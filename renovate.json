@@ -3,14 +3,22 @@
   "extends": [
     "config:recommended"
   ],
-  "schedule": ["* 0-3 * * *"],
-  "enabledManagers": ["argocd"],
+  "schedule": [
+    "* 0-3 * * *"
+  ],
+  "enabledManagers": [
+    "argocd"
+  ],
   "argocd": {
-    "fileMatch": ["\\.ya?ml$"]
+    "managerFilePatterns": [
+      "/\\.ya?ml$/"
+    ]
   },
   "packageRules": [
     {
-      "matchManagers": ["argocd"],
+      "matchManagers": [
+        "argocd"
+      ],
       "groupName": "ArgoCD Helm chart updates"
     }
   ]
