@@ -1,4 +1,5 @@
 # https://artifacthub.io/packages/helm/longhorn/longhorn
+# https://longhorn.io/docs/1.8.1/snapshots-and-backups/backup-and-restore/set-backup-target/
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
