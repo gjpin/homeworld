@@ -1,0 +1,15 @@
+# https://cloudnative-pg.io/documentation/current/samples/
+# https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: nextcloud
+  namespace: nextcloud
+spec:
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.4-17
+  storage:
+    storageClass: longhorn
+    size: 200Gi
+---
