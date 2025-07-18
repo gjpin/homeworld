@@ -7,9 +7,9 @@ metadata:
   name: nextcloud
   namespace: nextcloud
 spec:
-  instances: 3
+  instances: 1
   imageName: ghcr.io/cloudnative-pg/postgresql:17.4-17
   storage:
-    storageClass: longhorn
+    storageClass: longhorn-crypto
     size: 200Gi
 ---

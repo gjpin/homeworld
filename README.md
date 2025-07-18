@@ -20,6 +20,9 @@ export ACME_EMAIL=
 
 # external-dns
 export EXTERNAL_IP=10.0.0.1
+
+# longhorn
+export LONGHORN_ENCRYPTION_PASSPHRASE=
 ```
 
 # Helm repos

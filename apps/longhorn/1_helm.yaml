@@ -25,7 +25,7 @@ spec:
     repoURL: https://charts.longhorn.io
     targetRevision: 1.9.0
     helm:
-      namespaceOverride: longhorn-system
+      namespaceOverride: longhorn-system # mandatory namespace for this helm chart
 
       ingress:
         enabled: true
