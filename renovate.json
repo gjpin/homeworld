@@ -1,0 +1,17 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "schedule": ["* 0-3 * * *"],
+  "enabledManagers": ["argocd"],
+  "argocd": {
+    "fileMatch": ["\\.ya?ml$"]
+  },
+  "packageRules": [
+    {
+      "matchManagers": ["argocd"],
+      "groupName": "ArgoCD Helm chart updates"
+    }
+  ]
+}
