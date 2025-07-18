@@ -28,5 +28,13 @@ spec:
       fullnameOverride: cloudnative-pg
       namespaceOverride: cloudnative-pg
 
+      resources:
+        requests:
+          cpu: 100m
+          memory: 100Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+
       nodeSelector:
         node-role.kubernetes.io/homelab: homelab

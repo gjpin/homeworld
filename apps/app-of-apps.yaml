@@ -1,9 +1,9 @@
 ---
-# argocd
+# metrics-server
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argocd
+  name: metrics-server
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "0"
@@ -11,11 +11,11 @@ spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homelab.git
-    path: "apps/argocd"
+    path: "apps/metrics-server"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: metrics-server
   syncPolicy:
     automated:
       prune: true
@@ -55,34 +55,6 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
-# cloudnative-pg
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: cloudnative-pg
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/gjpin/homelab.git
-    path: "apps/cloudnative-pg"
-    targetRevision: HEAD
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: cloudnative-pg
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-      allowEmpty: false
-    syncOptions:
-    - Validate=true
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
----
 # external-dns
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -90,7 +62,7 @@ metadata:
   name: external-dns
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   project: default
   source:
@@ -111,6 +83,62 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
+# argocd
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homelab.git
+    path: "apps/argocd"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+---
+# cloudnative-pg
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloudnative-pg
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homelab.git
+    path: "apps/cloudnative-pg"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cloudnative-pg
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+---
 # longhorn
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -118,7 +146,7 @@ metadata:
   name: longhorn
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   project: default
   source:
@@ -139,34 +167,6 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
-# metrics-server
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: metrics-server
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/gjpin/homelab.git
-    path: "apps/metrics-server"
-    targetRevision: HEAD
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: metrics-server
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-      allowEmpty: false
-    syncOptions:
-    - Validate=true
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
----
 # nextcloud
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -174,7 +174,7 @@ metadata:
   name: nextcloud
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   project: default
   source:
@@ -202,7 +202,7 @@ metadata:
   name: otel-collector
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   project: default
   source:
@@ -230,7 +230,7 @@ metadata:
   name: sealed-secrets
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   project: default
   source:
@@ -258,7 +258,7 @@ metadata:
   name: traefik
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   project: default
   source:

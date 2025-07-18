@@ -28,7 +28,21 @@ spec:
       fullnameOverride: argocd
       namespaceOverride: argocd
 
+      # server
       server:
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+        autoscaling:
+          enabled: true
+          minReplicas: 1
+          maxReplicas: 5
+          targetCPUUtilizationPercentage: 80
+          targetMemoryUtilizationPercentage: 80
         ingress:
           enabled: true
           ingressClassName: traefik
@@ -51,6 +65,96 @@ spec:
             external-dns.alpha.kubernetes.io/hostname: grpc.argocd.${BASE_DOMAIN}
           hostname: grpc.argocd.${BASE_DOMAIN}
           tls: true
+
+      # repo server
+      repoServer:
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            cpu: 50m
+            memory: 128Mi
+        autoscaling:
+          enabled: true
+          minReplicas: 1
+          maxReplicas: 5
+          targetCPUUtilizationPercentage: 80
+          targetMemoryUtilizationPercentage: 80
+      
+      # controller
+      controller:
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+
+      # dex
+      dex:
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 50m
+            memory: 64Mi
+        initImage:
+          resources:
+            requests:
+              cpu: 5m
+              memory: 96Mi
+            limits:
+              cpu: 10m
+              memory: 144Mi
+
+      # redis
+      redis:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+        exporter:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi
+      redisSecretInit:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+
+      # application set
+      applicationSet:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+
+      # notifications
+      notifications:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
 
       crds:
         install: true

@@ -54,6 +54,14 @@ spec:
         kubernetesEvents:
           enabled: true
 
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 250m
+          memory: 512Mi
+
       config:
         receivers:
           jaeger: null

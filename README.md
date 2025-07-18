@@ -55,6 +55,11 @@ helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
 # Documentation
 [external-dns annotations](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/annotations/annotations.md)
 
+# New component checklist
+- requests/limits
+- autoscaling
+- nodeselector
+
 # Decisions
 Why cert-manager if Traefik handles certificates generation?
 - Traefik certificates are not shared across multiple nodes by default

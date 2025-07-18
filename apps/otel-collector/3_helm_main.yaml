@@ -1,10 +1,10 @@
 # https://artifacthub.io/packages/helm/opentelemetry-helm/opentelemetry-collector
-# https://opentelemetry.io/docs/platforms/kubernetes/getting-started/#daemonset-collector
+# https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: otel-collector-daemonset
+  name: otel-collector-main
   namespace: argocd
 spec:
   project: default
@@ -26,18 +26,13 @@ spec:
     repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
     targetRevision: 0.129.0
     helm:
-      fullnameOverride: otel-collector-daemonset
+      fullnameOverride: otel-collector-main
       namespaceOverride: otel-collector
 
-      mode: daemonset
-
+      mode: deployment
+      
       image:
-        repository: docker.io/library/otel/opentelemetry-collector-k8s
-
-      service:
-        enabled: true
-        type: ClusterIP
-        trafficDistribution: PreferClose
+        repository: docker.io/library/otel/opentelemetry-collector-contrib
 
       resources:
         requests:
@@ -47,39 +42,43 @@ spec:
           cpu: 250m
           memory: 512Mi
 
-      presets:
-        # filelog receiver
-        # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver
-        logsCollection:
-          enabled: true
-          includeCollectorLogs: false
-        # hostmetrics receiver
-        # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver
-        hostMetrics:
-          enabled: true
-        # kubeletstats receiver
-        # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kubeletstatsreceiver
-        kubeletMetrics:
-          enabled: true
-        # k8sattributes processor
-        # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/k8sattributesprocessor
-        kubernetesAttributes:
-          enabled: true
-          extractAllPodLabels: true
-          extractAllPodAnnotations: true
-      
+      autoscaling:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 5
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab
+
+      service:
+        enabled: true
+        type: ClusterIP
+
       config:
         receivers:
           jaeger: null
           zipkin: null
-          prometheus:
+          prometheus: # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver
             config:
               scrape_configs:
-                - job_name: otel-collector-daemonset
+                - job_name: otel-collector-main
                   scrape_interval: 10s
                   static_configs:
                     - targets:
                         - ${env:MY_POD_IP}:8888
+                - job_name: k8s
+                  kubernetes_sd_configs:
+                  - role: pod
+                  relabel_configs:
+                  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                    regex: "true"
+                    action: keep
+                  metric_relabel_configs:
+                  - source_labels: [__name__]
+                    regex: "(request_duration_seconds.*|response_duration_seconds.*)"
+                    action: keep
           otlp:
             protocols:
               grpc:
