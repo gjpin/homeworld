@@ -20,7 +20,7 @@
         "argocd"
       ],
       "groupName": "ArgoCD Helm chart updates",
-      "versioning": "semver"
+      "versioning": "semver-coerced"
     }
   ]
 }
