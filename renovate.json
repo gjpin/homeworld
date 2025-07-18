@@ -14,7 +14,7 @@
     {
       "customType": "regex",
       "managerFilePatterns": ["/\\.ya?ml$/"],
-      "matchStrings": ["imageName:\\s*(?<depName>[^:\\s]+):(?<currentValue>[^\\s]+)"],
+      "matchStrings": ["(?:^|\\n)\\s*imageName:\\s*(?<depName>[^:\\s]+):(?<currentValue>[^\\s]+)"],
       "depNameTemplate": "{{{depName}}}",
       "datasourceTemplate": "docker"
     }
