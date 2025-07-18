@@ -19,7 +19,8 @@
       "matchManagers": [
         "argocd"
       ],
-      "groupName": "ArgoCD Helm chart updates"
+      "groupName": "ArgoCD Helm chart updates",
+      "versioning": "semver"
     }
   ]
 }
