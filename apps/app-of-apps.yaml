@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homelab.git
-    path: "kubernetes/apps/argocd"
+    path: "apps/argocd"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
@@ -39,7 +39,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homelab.git
-    path: "kubernetes/apps/cert-manager"
+    path: "apps/cert-manager"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
@@ -67,7 +67,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homelab.git
-    path: "kubernetes/apps/external-dns"
+    path: "apps/external-dns"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
@@ -95,7 +95,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homelab.git
-    path: "kubernetes/apps/longhorn"
+    path: "apps/longhorn"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
@@ -123,11 +123,39 @@ spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homelab.git
-    path: "kubernetes/apps/metrics-server"
+    path: "apps/metrics-server"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
     namespace: metrics-server
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+---
+# nextcloud
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nextcloud
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homelab.git
+    path: "apps/nextcloud"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nextcloud
   syncPolicy:
     automated:
       prune: true
@@ -151,7 +179,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homelab.git
-    path: "kubernetes/apps/otel-collector"
+    path: "apps/otel-collector"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
@@ -179,7 +207,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homelab.git
-    path: "kubernetes/apps/sealed-secrets"
+    path: "apps/sealed-secrets"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
@@ -207,7 +235,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homelab.git
-    path: "kubernetes/apps/traefik"
+    path: "apps/traefik"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
