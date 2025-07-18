@@ -13,7 +13,7 @@
   "customManagers": [
     {
       "customType": "regex",
-      "managerFilePatterns": ["\\.ya?ml$"],
+      "managerFilePatterns": ["/\\.ya?ml$/"],
       "matchStrings": ["imageName:\\s*(?<depName>[^:\\s]+):(?<currentValue>[^\\s]+)"],
       "depNameTemplate": "{{{depName}}}",
       "datasourceTemplate": "docker"
@@ -21,7 +21,7 @@
   ],
   "argocd": {
     "managerFilePatterns": [
-      "\\.ya?ml$"
+      "/\\.ya?ml$/"
     ]
   },
   "packageRules": [
