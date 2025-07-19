@@ -2,14 +2,13 @@
 ```
 - argocd.${BASE_DOMAIN}
 - grpc.argocd.${BASE_DOMAIN}
-- hyperdx.${BASE_DOMAIN}
 - longhorn.${BASE_DOMAIN}
-- traefik.${BASE_DOMAIN}
+- nextcloud.${BASE_DOMAIN}
 ```
 
 # Variables
 ```bash
-# argocd, traefik, hyperdx
+# argocd, nextcloud, longhorn
 export BASE_DOMAIN=domain.com
 
 # external-dns, cert-manager
@@ -23,6 +22,10 @@ export EXTERNAL_IP=10.0.0.1
 
 # longhorn
 export LONGHORN_ENCRYPTION_PASSPHRASE=
+
+# nextcloud
+export NEXTCLOUD_USERNAME=
+export NEXTCLOUD_PASSWORD=
 ```
 
 # Helm repos
@@ -45,9 +48,6 @@ helm repo add longhorn https://charts.longhorn.io
 # opentelemetry
 helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
 
-# hyperdx
-helm repo add hyperdx https://hyperdxio.github.io/helm-charts
-
 # sealed-secrets
 helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
 ```
@@ -56,6 +56,7 @@ helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
 [external-dns annotations](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/annotations/annotations.md)
 
 # New component checklist
+- fullnameOverride
 - requests/limits
 - autoscaling
 - nodeselector

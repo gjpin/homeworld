@@ -11,5 +11,5 @@ spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:17.4-17
   storage:
     storageClass: longhorn-crypto
-    size: 200Gi
+    size: 5Gi
 ---

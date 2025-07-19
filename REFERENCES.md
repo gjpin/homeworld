@@ -29,3 +29,6 @@ https://github.com/Altinity/clickhouse-operator/
 
 gigapipe
 https://gigapipe.com/docs/oss.html
+
+collabora online (nextcloud integration)
+https://artifacthub.io/packages/helm/collabora-online/collabora-online

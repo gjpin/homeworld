@@ -25,6 +25,96 @@ spec:
     repoURL: https://nextcloud.github.io/helm
     targetRevision: 7.0.0
     helm:
+
+      fullnameOverride: nextcloud
+
+      ingress:
+        enabled: true
+        className: nginx
+        annotations:
+          nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+          nginx.ingress.kubernetes.io/proxy-body-size: 4G
+          nginx.ingress.kubernetes.io/server-snippet: |-
+            server_tokens off;
+            proxy_hide_header X-Powered-By;
+            rewrite ^/.well-known/webfinger /index.php/.well-known/webfinger last;
+            rewrite ^/.well-known/nodeinfo /index.php/.well-known/nodeinfo last;
+            rewrite ^/.well-known/host-meta /public.php?service=host-meta last;
+            rewrite ^/.well-known/host-meta.json /public.php?service=host-meta-json;
+            location = /.well-known/carddav {
+              return 301 $scheme://$host/remote.php/dav;
+            }
+            location = /.well-known/caldav {
+              return 301 $scheme://$host/remote.php/dav;
+            }
+            location = /robots.txt {
+              allow all;
+              log_not_found off;
+              access_log off;
+            }
+            location ~ ^/(?:build|tests|config|lib|3rdparty|templates|data)/ {
+              deny all;
+            }
+            location ~ ^/(?:autotest|occ|issue|indie|db_|console) {
+              deny all;
+            }
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+          external-dns.alpha.kubernetes.io/hostname: nextcloud.${BASE_DOMAIN}
+        tls:
+          - secretName: nextcloud-ingress-tls
+            hosts:
+              - nextcloud.${BASE_DOMAIN}
+
+      nextcloud:
+        host: nextcloud.${BASE_DOMAIN}
+        existingSecret:
+          enabled: true
+          usernameKey: nextcloud-username # TODO
+          passwordKey: nextcloud-password # TODO
+          tokenKey: "" # TODO
+          smtpUsernameKey: smtp-username # TODO
+          smtpPasswordKey: smtp-password # TODO
+          smtpHostKey: smtp-host # TODO
+      
+      internalDatabase:
+        enabled: false
+
+      externalDatabase:
+        enabled: true
+        type: postgresql
+        existingSecret:
+          enabled: true
+          secretName: nameofsecret # TODO
+          usernameKey: db-username # TODO
+          passwordKey: db-password # TODO
+          hostKey: db-hostname-or-ip # TODO
+          databaseKey: db-name # TODO
+
+      cronjob:
+        enabled: true
+
       service:
         annotations:
           traefik.ingress.kubernetes.io/service.sticky.cookie: "true"
+
+      persistence:
+        enabled: true
+        storageClass: longhorn-crypto
+        accessMode: ReadWriteOnce
+        size: 200Gi
+
+      hpa:
+        enabled: true
+        cputhreshold: 60
+        minPods: 1
+        maxPods: 5
+
+      metrics:
+        serviceMonitor:
+          enabled: true
+
+      rbac:
+        enabled: true
+
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab

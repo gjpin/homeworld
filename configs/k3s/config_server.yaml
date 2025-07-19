@@ -5,6 +5,7 @@ tls-san:
 node-label:
  - 'node-role.kubernetes.io/homelab=homelab'
 cluster-init: true
+disable: 'traefik'
 protect-kernel-defaults: true
 secrets-encryption: true
 flannel-backend: 'wireguard-native'

@@ -1,4 +1,5 @@
 # https://artifacthub.io/packages/helm/argo/argo-cd
+# https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-2-ssl-termination-at-ingress-controller
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -45,22 +46,19 @@ spec:
           targetMemoryUtilizationPercentage: 80
         ingress:
           enabled: true
-          ingressClassName: traefik
+          ingressClassName: nginx
           annotations:
-            traefik.ingress.kubernetes.io/router.entrypoints: websecure
-            traefik.ingress.kubernetes.io/router.tls: "true"
-            traefik.ingress.kubernetes.io/service.serversscheme: "http"
+            nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+            nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
             cert-manager.io/cluster-issuer: letsencrypt-prod
             external-dns.alpha.kubernetes.io/hostname: argocd.${BASE_DOMAIN}
           hostname: argocd.${BASE_DOMAIN}
           tls: true
         ingressGrpc:
           enabled: true
-          ingressClassName: traefik
+          ingressClassName: nginx
           annotations:
-            traefik.ingress.kubernetes.io/router.entrypoints: websecure
-            traefik.ingress.kubernetes.io/router.tls: "true"
-            traefik.ingress.kubernetes.io/service.serversscheme: "h2c"
+            nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
             cert-manager.io/cluster-issuer: letsencrypt-prod
             external-dns.alpha.kubernetes.io/hostname: grpc.argocd.${BASE_DOMAIN}
           hostname: grpc.argocd.${BASE_DOMAIN}
