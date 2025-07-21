@@ -36,24 +36,27 @@ helm repo add argo https://argoproj.github.io/argo-helm
 # cert-manager
 helm repo add cert-manager https://charts.jetstack.io
 
+# cloudnative-pg
+helm repo add cloudnative-pg https://cloudnative-pg.io/charts
+
 # external-dns
 helm repo add external-dns https://kubernetes-sigs.github.io/external-dns/
-
-# metrics-server
-helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
 
 # longhorn
 helm repo add longhorn https://charts.longhorn.io
 
-# opentelemetry
+# metrics-server
+helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+
+# nextcloud
+helm repo add nextcloud https://nextcloud.github.io/helm
+
+# otel-collector
 helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
 
 # sealed-secrets
 helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
 ```
-
-# Documentation
-[external-dns annotations](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/annotations/annotations.md)
 
 # New component checklist
 - fullnameOverride
