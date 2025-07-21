@@ -9,7 +9,7 @@ metadata:
 spec:
   project: default
   destination:
-    server: "https://kubernetes.default.svc"
+    server: https://kubernetes.default.svc
     namespace: longhorn
   syncPolicy:
     automated:
@@ -27,19 +27,6 @@ spec:
     targetRevision: 1.9.0
     helm:
       namespaceOverride: longhorn-system # mandatory namespace for this helm chart
-
-      ingress:
-        enabled: true
-        ingressClassName: nginx
-        annotations:
-          nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-          nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-          cert-manager.io/cluster-issuer: letsencrypt-prod
-          external-dns.alpha.kubernetes.io/hostname: longhorn.${BASE_DOMAIN}
-        host: longhorn.${BASE_DOMAIN}
-        tls: true
-        tlsSecret: longhorn-ingress-tls
-        secureBackends: false
 
       global:
         nodeSelector:

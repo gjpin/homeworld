@@ -1,0 +1,47 @@
+# https://gateway.envoyproxy.io/docs/api/extension_types/#envoygateway
+# https://gateway.envoyproxy.io/latest/tasks/traffic/gateway-address/#external-ips
+# https://github.com/envoyproxy/gateway/tree/main/charts/gateway-helm
+# https://gateway.envoyproxy.io/docs/install/install-argocd/
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: envoy-gateway
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: envoy-gateway
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+  source:
+    chart: gateway-helm
+    repoURL: https://docker.io/envoyproxy
+    targetRevision: v1.4.2
+    helm:
+      deployment:
+        envoyGateway:
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1024Mi"
+              cpu: "500m"
+        pod:
+          nodeSelector:
+            node-role.kubernetes.io/homelab: homelab
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 5

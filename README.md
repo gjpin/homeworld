@@ -60,10 +60,4 @@ helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
 - requests/limits
 - autoscaling
 - nodeselector
-
-# Decisions
-Why cert-manager if Traefik handles certificates generation?
-- Traefik certificates are not shared across multiple nodes by default
-  - Resolved by using shared volumes
-- With shared volumes approach, multiple Traefik instances can try to renew the certs at the same time (race condition)
-  - Resolved by having a single node renewing the certs
+- httproute + gateway listener (if applicable)

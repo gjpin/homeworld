@@ -83,11 +83,11 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
-# ingress nginx
+# envoy gateway
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ingress-nginx
+  name: envoy-gateway
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "3"
@@ -95,11 +95,11 @@ spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/ingress-nginx"
+    path: "apps/envoy-gateway"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
-    namespace: ingress-nginx
+    namespace: envoy-gateway
   syncPolicy:
     automated:
       prune: true
@@ -278,32 +278,3 @@ spec:
     - CreateNamespace=true
     - PrunePropagationPolicy=foreground
     - PruneLast=true
----
-# traefik
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: traefik
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/traefik"
-    targetRevision: HEAD
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: traefik
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-      allowEmpty: false
-    syncOptions:
-    - Validate=true
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
----

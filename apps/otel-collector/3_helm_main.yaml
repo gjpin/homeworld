@@ -9,7 +9,7 @@ metadata:
 spec:
   project: default
   destination:
-    server: "https://kubernetes.default.svc"
+    server: https://kubernetes.default.svc
     namespace: otel-collector
   syncPolicy:
     automated:

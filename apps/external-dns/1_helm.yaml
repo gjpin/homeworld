@@ -9,7 +9,7 @@ metadata:
 spec:
   project: default
   destination:
-    server: "https://kubernetes.default.svc"
+    server: https://kubernetes.default.svc
     namespace: external-dns
   syncPolicy:
     automated:
@@ -35,7 +35,11 @@ spec:
 
       sources:
         - service
-        - ingress
+        - gateway-httproute
+        - gateway-grpcroute
+        - gateway-tlsroute
+        - gateway-tcproute
+        - gateway-udproute
 
       # "sync" policy has issues:
       # https://github.com/kubernetes-sigs/external-dns/issues/4059
