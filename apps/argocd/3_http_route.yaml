@@ -9,7 +9,7 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: envoy-gateway
+      namespace: argocd
   hostnames:
     - "argocd.${BASE_DOMAIN}"
   rules:

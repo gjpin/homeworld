@@ -9,7 +9,7 @@ metadata:
 spec:
   parentRefs:
   - name: envoy
-    namespace: envoy-gateway
+    namespace: nextcloud
   hostnames:
   - "nextcloud.${BASE_DOMAIN}"
   rules:

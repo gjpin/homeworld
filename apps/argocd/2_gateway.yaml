@@ -1,4 +1,5 @@
-# listeners specify hostnames till cert-manager fully supports routes only:
+# TODO: each application has a gateway, which are merged into a single one till
+# cert-manager supports http routes for automatic certificates
 # https://github.com/cert-manager/cert-manager/issues/6051
 # https://gateway.envoyproxy.io/docs/tasks/security/tls-cert-manager/
 ---
@@ -6,7 +7,7 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: envoy
-  namespace: envoy-gateway
+  namespace: argocd
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     kubernetes.io/tls-acme: "true"
@@ -16,7 +17,6 @@ spec:
     - type: IPAddress
       value: ${EXTERNAL_IP}
   listeners:
-    # argocd
     - name: argocd-https
       protocol: HTTPS
       port: 443
@@ -40,33 +40,5 @@ spec:
         mode: Terminate
         certificateRefs:
           - name: argocd-grpc-tls-cert
-            kind: Secret
-            
-    # nextcloud
-    - name: nextcloud-https
-      protocol: HTTPS
-      port: 443
-      hostname: "nextcloud.${BASE_DOMAIN}"
-      allowedRoutes:
-        namespaces:
-          from: all
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: nextcloud-tls-cert
-            kind: Secret
-
-    # longhorn
-    - name: longhorn-https
-      protocol: HTTPS
-      port: 443
-      hostname: "longhorn.${BASE_DOMAIN}"
-      allowedRoutes:
-        namespaces:
-          from: all
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: longhorn-tls-cert
             kind: Secret
 ---

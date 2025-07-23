@@ -2,13 +2,14 @@
 ```
 - argocd.${BASE_DOMAIN}
 - grpc.argocd.${BASE_DOMAIN}
+- immich.${BASE_DOMAIN}
 - longhorn.${BASE_DOMAIN}
 - nextcloud.${BASE_DOMAIN}
 ```
 
 # Variables
 ```bash
-# argocd, nextcloud, longhorn
+# argocd, immich, longhorn, nextcloud
 export BASE_DOMAIN=domain.com
 
 # external-dns, cert-manager
@@ -61,6 +62,7 @@ helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
 # New component checklist
 - fullnameOverride
 - requests/limits
-- autoscaling
+- autoscaling (hpa)
 - nodeselector
 - httproute + gateway listener (if applicable)
+- serviceMonitor

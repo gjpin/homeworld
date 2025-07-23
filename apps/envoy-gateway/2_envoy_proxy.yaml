@@ -1,0 +1,11 @@
+# https://gateway.envoyproxy.io/docs/api/extension_types/#envoyproxyspec
+# https://gateway.envoyproxy.io/docs/tasks/operations/deployment-mode/#merged-gateways-deployment
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: custom-proxy-config
+  namespace: envoy-gateway-system
+spec:
+  mergeGateways: true
+---

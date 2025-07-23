@@ -6,6 +6,7 @@
 - grafana dashboards:
   - https://github.com/bitnami-labs/sealed-secrets/blob/main/contrib/prometheus-mixin/dashboards/sealed-secrets-controller.json
   - https://github.com/cloudnative-pg/grafana-dashboards
+  - https://github.com/dragonflydb/dragonfly-operator/blob/main/monitoring/grafana-dashboard.json
 - add https://github.com/apps/forking-renovate to readme (does not require write access to code)
   - https://docs.renovatebot.com/security-and-permissions/#global-permissions
 - confirm if otel-collector-main (3_helm_main.yaml) is required or has duplicated config from other collectors

@@ -1,0 +1,20 @@
+# https://www.dragonflydb.io/docs/managing-dragonfly/operator/installation
+---
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  labels:
+    app.kubernetes.io/part-of: dragonfly-operator
+    app.kubernetes.io/created-by: dragonfly-operator
+  name: dragonfly
+  namespace: immich
+spec:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 500m
+      memory: 200Mi
+    limits:
+      cpu: 600m
+      memory: 400Mi
+---

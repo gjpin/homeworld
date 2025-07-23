@@ -1,5 +1,6 @@
-# https://artifacthub.io/packages/helm/opentelemetry-helm/opentelemetry-collector
 # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver
+# https://artifacthub.io/packages/helm/opentelemetry-helm/opentelemetry-collector
+# https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-collector
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
