@@ -1,0 +1,42 @@
+# https://opentelemetry.io/docs/platforms/kubernetes/getting-started/#deployment-collector
+# https://opentelemetry.io/docs/platforms/kubernetes/operator/
+---
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: deployment
+  namespace: opentelemetry-collector
+spec:
+  mode: deployment
+  image: docker.io/library/otel/opentelemetry-collector-k8s:v0.130.1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  autoscaler:
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilization: 80
+    targetMemoryUtilization: 80
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+  config:
+    receivers:
+      jaeger:
+        protocols:
+          grpc: {}
+    processors: {}
+
+    exporters:
+      debug: {}
+
+    service:
+      pipelines:
+        traces:
+          receivers: [jaeger]
+          processors: []
+          exporters: [debug]
+---

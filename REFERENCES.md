@@ -6,12 +6,6 @@ https://docs.gitea.com/installation/install-on-kubernetes
 home assistant
 https://blog.quadmeup.com/2025/04/07/how-to-run-home-assistant-in-kubernetes/
 
-immich
-https://immich.app/docs/install/kubernetes/
-
-nextcloud
-https://github.com/nextcloud/helm/blob/main/charts/nextcloud/README.md
-
 pihole
 https://chriskirby.net/highly-available-pi-hole-setup-in-kubernetes-with-secure-dns-over-https-doh/
 
@@ -23,12 +17,6 @@ https://actualbudget.org/docs/advanced/bank-sync/gocardless
 
 velero
 https://velero.io/
-
-clickhouse
-https://github.com/Altinity/clickhouse-operator/
-
-gigapipe
-https://gigapipe.com/docs/oss.html
 
 collabora online (nextcloud integration)
 https://artifacthub.io/packages/helm/collabora-online/collabora-online

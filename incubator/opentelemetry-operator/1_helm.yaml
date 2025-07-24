@@ -1,0 +1,47 @@
+# https://artifacthub.io/packages/helm/opentelemetry-helm/opentelemetry-operator
+# https://opentelemetry.io/docs/platforms/kubernetes/operator/
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: opentelemetry-operator
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: opentelemetry-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+  source:
+    chart: opentelemetry-operator
+    repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
+    targetRevision: 0.92.1
+    helm:
+      fullnameOverride: opentelemetry-operator
+      namespaceOverride: opentelemetry-operator
+
+      createRbacPermissions: true
+
+      resources:
+        requests:
+          cpu: 100m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+
+      serviceMonitor:
+        enabled: true
+
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab
+---

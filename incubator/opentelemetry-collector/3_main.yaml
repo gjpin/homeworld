@@ -1,0 +1,107 @@
+# opentelemetry.io/docs/platforms/kubernetes/operator/target-allocator/
+# https://opentelemetry.io/docs/platforms/kubernetes/operator/
+---
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: main
+  namespace: opentelemetry-collector
+spec:
+  mode: deployment
+  image: docker.io/library/otel/opentelemetry-collector-contrib:v0.130.1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  autoscaler:
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilization: 80
+    targetMemoryUtilization: 80
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+  config:
+    receivers:
+      prometheus: # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver
+        config:
+          scrape_configs:
+            - job_name: opentelemetry-collector-main
+              scrape_interval: 60s
+              static_configs:
+                - targets:
+                    - ${env:MY_POD_IP}:8888
+            - job_name: k8s
+              kubernetes_sd_configs:
+              - role: pod
+              relabel_configs:
+              - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                regex: "true"
+                action: keep
+              metric_relabel_configs:
+              - source_labels: [__name__]
+                regex: "(request_duration_seconds.*|response_duration_seconds.*)"
+                action: keep
+          otlp:
+            protocols:
+              grpc:
+                endpoint: ${env:MY_POD_IP}:4317
+              http:
+                endpoint: ${env:MY_POD_IP}:4318
+
+    processors:
+      batch: {}
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+
+    exporters:
+      otlphttp:
+        endpoint: # TODO: change to gigapipe
+        compression: gzip
+
+    extensions:
+      health_check:
+        endpoint: ${env:MY_POD_IP}:13133
+
+    service:
+      telemetry:
+        metrics:
+          readers:
+            - pull:
+                exporter:
+                  prometheus:
+                    host: ${env:MY_POD_IP}
+                    port: 8888
+      extensions:
+        - health_check
+      pipelines:
+        logs:
+          receivers:
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - otlphttp
+        metrics:
+          receivers:
+            - otlp
+            - prometheus
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - otlphttp
+        traces:
+          receivers:
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - otlphttp
+---

@@ -1,5 +1,5 @@
+# https://github.com/immich-app/immich-charts
 # https://artifacthub.io/packages/helm/immich/immich
-# https://github.com/immich-app/immich-charts/tree/main
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
