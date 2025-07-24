@@ -1,0 +1,107 @@
+# https://artifacthub.io/packages/helm/grafana/grafana
+# https://github.com/gigapipehq/gigapipe-oss-demo/blob/main/grafana/provisioning/datasources/datasource.yml
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: grafana
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+  source:
+    chart: nextcloud
+    repoURL: https://grafana.github.io/helm-charts
+    targetRevision: 9.2.10
+    helm:
+      grafana.ini:
+        server:
+          domain: "grafana.${BASE_DOMAIN}"
+
+      admin:
+        existingSecret: grafana-credentials
+        userKey: username
+        passwordKey: password
+
+      datasources:
+        datasources.yaml:
+          apiVersion: 1
+          datasources:
+          - name: Prometheus
+            type: prometheus
+            uid: mimir
+            access: proxy
+            url: http://gigapipe.gigapipe.svc.cluster.local:3100
+            jsonData:
+              httpMethod: GET
+              graphiteVersion: "1.1"
+              tlsAuth: false
+              tlsAuthWithCACert: false
+              cacheLevel: 'High'
+              incrementalQuerying: 'Enable'
+              incrementalQueryOverlapWindow: 2m
+          - name: Tempo
+            type: tempo
+            uid: tempo
+            access: proxy
+            url: http://gigapipe.gigapipe.svc.cluster.local:3100
+            jsonData:
+              nodeGraph:
+                enabled: true
+              tracesToLogs:
+                datasourceUid: loki
+                filterByTraceID: false
+                spanEndTimeShift: "2000ms"
+                spanStartTimeShift: "-2000ms"
+                tags: ['job']
+              tracesToMetrics:
+                datasourceUid: prometheus
+                tags: ['job']
+              serviceMap:
+                datasourceUid: prometheus
+              lokiSearch:
+                datasourceUid: loki
+          - name: Loki
+            type: loki
+            uid: loki
+            access: proxy
+            url: http://gigapipe.gigapipe.svc.cluster.local:3100
+            jsonData:
+              derivedFields:
+                - datasourceUid: tempo
+                  matcherRegex: "^.*?traceI[d|D]=(\\w+).*$"
+                  name: traceId
+                  url: '$${__value.raw}'
+                - datasourceUid: tempo
+                  matcherRegex: "^.*?\"traceID\":\"(\\w+)\".*$"
+                  name: traceID
+                  url: '$${__value.raw}'
+
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+
+      persistence:
+        enabled: true
+        storageClassName: longhorn-crypto
+        size: 2Gi
+
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab
+---

@@ -1,0 +1,40 @@
+# https://github.com/gigapipehq/gigapipe-oss-demo/blob/main/docker-compose-base.yml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gigapipe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gigapipe
+  template:
+    metadata:
+      labels:
+        app: gigapipe
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab
+      containers:
+        - name: gigapipe
+          image: ghcr.io/metrico/gigapipe:v4.0.17
+          ports:
+            - containerPort: 3100
+          env:
+            - name: CLICKHOUSE_SERVER
+              value: # TODO: change me
+            - name: CLICKHOUSE_PORT
+              value: # TODO: change me
+            - name: CLICKHOUSE_AUTH
+              value: # TODO: change me
+            - name: CLICKHOUSE_DB
+              value: # TODO: change me
+            - name: PORT
+              value: "3100"
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=4096"
+            - name: FASTIFY_METRICS
+              value: true
+      restartPolicy: Always
+---

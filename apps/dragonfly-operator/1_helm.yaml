@@ -42,8 +42,8 @@ spec:
 
       serviceMonitor:
         enabled: true
-        interval: 30s
-        path: /metrics
+        interval: 60s
 
       nodeSelector:
         node-role.kubernetes.io/homelab: homelab
+---

@@ -144,3 +144,4 @@ spec:
                 - batch
               exporters:
                 - otlphttp
+---

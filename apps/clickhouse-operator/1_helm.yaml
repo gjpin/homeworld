@@ -1,0 +1,49 @@
+# https://github.com/Altinity/clickhouse-operator/tree/master/deploy/helm/clickhouse-operator
+# https://artifacthub.io/packages/helm/altinity-clickhouse-operator/altinity-clickhouse-operator
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: clickhouse-operator
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: clickhouse-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+  source:
+    chart: altinity-clickhouse-operator
+    repoURL: https://docs.altinity.com/clickhouse-operator
+    targetRevision: 0.25.2
+    helm:
+      fullnameOverride: clickhouse-operator
+      namespaceOverride: clickhouse-operator
+
+      serviceMonitor:
+        enabled: true
+        clickhouseMetrics:
+          interval: 60s
+        operatorMetrics:
+          interval: 60s
+
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab
+---

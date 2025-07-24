@@ -55,6 +55,10 @@ spec:
               name: cloudflare-api-token
               key: api-token
 
+      serviceMonitor:
+        enabled: true
+        interval: 60s
+
       resources:
         requests:
           cpu: 100m
@@ -65,3 +69,4 @@ spec:
 
       nodeSelector:
         node-role.kubernetes.io/homelab: homelab
+---

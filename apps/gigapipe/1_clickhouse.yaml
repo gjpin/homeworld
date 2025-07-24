@@ -1,0 +1,47 @@
+# https://altinity.com/blog/clickhouse-confidential-using-kubernetes-secrets-with-the-altinity-operator
+# https://github.com/Altinity/clickhouse-operator/blob/master/docs/chi-examples/03-persistent-volume-05-resizeable-volume-1.yaml
+# https://github.com/Altinity/clickhouse-operator/tree/master
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: clickhouse-gigapipe-credentials
+  namespace: gigapipe
+type: Opaque
+stringData:
+  password: ${GIGAPIPE_CLICKHOUSE_PASSWORD}
+---
+apiVersion: clickhouse.altinity.com/v1
+kind: ClickHouseInstallation
+metadata:
+  name: gigapipe
+  namespace: gigapipe
+spec:
+  defaults:
+    templates:
+      dataVolumeClaimTemplate: data-volumeclaim-template
+  configuration:
+    users:
+      gigapipe/networks/ip: "::/0"
+      gigapipe/profile: default
+      gigapipe/password:
+        valueFrom:
+          secretKeyRef:
+            name: clickhouse-gigapipe-credentials
+            key: password
+    clusters:
+      - name: gigapipe
+        layout:
+          shardsCount: 1
+          replicasCount: 1
+  templates:
+    volumeClaimTemplates:
+      - name: data-volumeclaim-template
+        spec:
+          storageClassName: longhorn-crypto
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 20Gi
+---

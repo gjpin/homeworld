@@ -13,7 +13,7 @@ parameters:
   numberOfReplicas: "2"
   staleReplicaTimeout: "2880"
   diskSelector: # TODO
-  fsType: "xfs"
+  fsType: "ext4"
   encrypted: "true"
   csi.storage.k8s.io/provisioner-secret-name: "longhorn-crypto"
   csi.storage.k8s.io/provisioner-secret-namespace: "longhorn-system"

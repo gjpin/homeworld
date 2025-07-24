@@ -2,6 +2,7 @@
 ```
 - argocd.${BASE_DOMAIN}
 - grpc.argocd.${BASE_DOMAIN}
+- grafana.${BASE_DOMAIN}
 - immich.${BASE_DOMAIN}
 - longhorn.${BASE_DOMAIN}
 - nextcloud.${BASE_DOMAIN}
@@ -9,7 +10,7 @@
 
 # Variables
 ```bash
-# argocd, immich, longhorn, nextcloud
+# argocd, grafana, immich, longhorn, nextcloud
 export BASE_DOMAIN=domain.com
 
 # external-dns, cert-manager
@@ -27,6 +28,13 @@ export LONGHORN_ENCRYPTION_PASSPHRASE=
 # nextcloud
 export NEXTCLOUD_USERNAME=
 export NEXTCLOUD_PASSWORD=
+
+# grafana
+export GRAFANA_USERNAME=
+export GRAFANA_PASSWORD=
+
+# gigapipe
+export GIGAPIPE_CLICKHOUSE_PASSWORD=
 ```
 
 # Helm repos
@@ -55,8 +63,8 @@ helm repo add nextcloud https://nextcloud.github.io/helm
 # otel-collector
 helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
 
-# sealed-secrets
-helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+# clickhouse
+helm repo add altinity-clickhouse-operator https://docs.altinity.com/clickhouse-operator/
 ```
 
 # New component checklist

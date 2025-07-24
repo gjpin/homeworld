@@ -28,6 +28,12 @@ spec:
     helm:
       namespaceOverride: longhorn-system # mandatory namespace for this helm chart
 
+      metrics:
+        serviceMonitor:
+          enabled: true
+          interval: 60s
+
       global:
         nodeSelector:
           node-role.kubernetes.io/homelab: homelab
+---

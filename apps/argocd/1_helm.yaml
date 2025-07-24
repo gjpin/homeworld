@@ -31,6 +31,12 @@ spec:
 
       # server
       server:
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: true
+            interval: 60s
+
         resources:
           requests:
             cpu: 50m
@@ -47,6 +53,11 @@ spec:
 
       # repo server
       repoServer:
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: true
+            interval: 60s
         resources:
           requests:
             cpu: 10m
@@ -63,6 +74,11 @@ spec:
       
       # controller
       controller:
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: true
+            interval: 60s
         resources:
           requests:
             cpu: 250m
@@ -73,6 +89,11 @@ spec:
 
       # dex
       dex:
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: true
+            interval: 60s
         resources:
           requests:
             cpu: 10m
@@ -117,6 +138,11 @@ spec:
 
       # application set
       applicationSet:
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: true
+            interval: 60s
         resources:
           requests:
             cpu: 100m
@@ -127,6 +153,11 @@ spec:
 
       # notifications
       notifications:
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: true
+            interval: 60s
         resources:
           requests:
             cpu: 100m
@@ -149,3 +180,4 @@ spec:
       global:
         nodeSelector:
           node-role.kubernetes.io/homelab: homelab
+---

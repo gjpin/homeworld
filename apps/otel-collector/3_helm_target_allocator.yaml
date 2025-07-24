@@ -35,3 +35,4 @@ spec:
           collector_selector:
             matchlabels:
               app.kubernetes.io/component: otel-collector-main
+---

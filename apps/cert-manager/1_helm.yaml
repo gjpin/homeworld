@@ -47,5 +47,11 @@ spec:
           cpu: 500m
           memory: 256Mi
 
+      prometheus:
+        servicemonitor:
+          enabled: true
+          interval: 60s
+
       nodeSelector:
         node-role.kubernetes.io/homelab: homelab
+---

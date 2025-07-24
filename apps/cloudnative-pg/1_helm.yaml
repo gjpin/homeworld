@@ -28,6 +28,9 @@ spec:
       fullnameOverride: cloudnative-pg
       namespaceOverride: cloudnative-pg
 
+      monitoring:
+        podMonitorEnabled: true
+
       resources:
         requests:
           cpu: 100m
@@ -38,3 +41,4 @@ spec:
 
       nodeSelector:
         node-role.kubernetes.io/homelab: homelab
+---

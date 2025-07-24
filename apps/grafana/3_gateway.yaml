@@ -1,0 +1,32 @@
+# TODO: each application has a gateway, which are merged into a single one till
+# cert-manager supports http routes for automatic certificates
+# https://github.com/cert-manager/cert-manager/issues/6051
+# https://gateway.envoyproxy.io/docs/tasks/security/tls-cert-manager/
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy
+  namespace: grafana
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    kubernetes.io/tls-acme: "true"
+spec:
+  gatewayClassName: envoy-gateway
+  addresses:
+    - type: IPAddress
+      value: ${EXTERNAL_IP}
+  listeners:
+    - name: grafana-https
+      protocol: HTTPS
+      port: 443
+      hostname: "grafana.${BASE_DOMAIN}"
+      allowedRoutes:
+        namespaces:
+          from: all
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: grafana-tls-cert
+            kind: Secret
+---
