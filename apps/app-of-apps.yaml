@@ -1,21 +1,21 @@
 ---
-# metrics-server
+# prometheus-operator-crd
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: metrics-server
+  name: prometheus-operator-crd
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/metrics-server"
+    path: "apps/prometheus-operator-crd"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
-    namespace: metrics-server
+    namespace: prometheus-operator-crd
   syncPolicy:
     automated:
       prune: true
@@ -34,7 +34,7 @@ metadata:
   name: cert-manager
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   project: default
   source:
@@ -83,14 +83,14 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
-# envoy gateway
+# envoy-gateway
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: envoy-gateway
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   project: default
   source:
@@ -118,7 +118,7 @@ metadata:
   name: longhorn
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   project: default
   source:
@@ -146,7 +146,7 @@ metadata:
   name: argocd
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   project: default
   source:
@@ -174,7 +174,7 @@ metadata:
   name: cloudnative-pg
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "6"
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   project: default
   source:
@@ -195,34 +195,6 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
-# nextcloud
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: nextcloud
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/nextcloud"
-    targetRevision: HEAD
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: nextcloud
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-      allowEmpty: false
-    syncOptions:
-    - Validate=true
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
----
 # dragonfly-operator
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -230,7 +202,7 @@ metadata:
   name: dragonfly-operator
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "10"
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   project: default
   source:
@@ -251,6 +223,34 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
+# nextcloud
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nextcloud
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/nextcloud"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nextcloud
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+---
 # immich
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -258,7 +258,7 @@ metadata:
   name: immich
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "10"
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   project: default
   source:
@@ -286,7 +286,7 @@ metadata:
   name: otel-collector
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "10"
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   project: default
   source:
@@ -314,7 +314,7 @@ metadata:
   name: grafana
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "10"
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   project: default
   source:
@@ -342,7 +342,7 @@ metadata:
   name: gigapipe
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "10"
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   project: default
   source:
@@ -370,7 +370,7 @@ metadata:
   name: clickhouse-operator
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "10"
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   project: default
   source:

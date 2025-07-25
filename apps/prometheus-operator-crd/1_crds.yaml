@@ -1,0 +1,26 @@
+# https://github.com/prometheus-operator/prometheus-operator/tree/main/example/prometheus-operator-crd
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-operator-crd
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prometheus-operator-crd
+  syncPolicy:
+    automated:
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=true
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - ServerSideApply=true
+  source:
+    repoURL: https://github.com/prometheus-operator/prometheus-operator.git
+    targetRevision: v0.84.0
+    path: example/prometheus-operator-crd
+---

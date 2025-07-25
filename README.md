@@ -1,12 +1,10 @@
 # Domains
-```
-- argocd.${BASE_DOMAIN}
-- grpc.argocd.${BASE_DOMAIN}
-- grafana.${BASE_DOMAIN}
-- immich.${BASE_DOMAIN}
-- longhorn.${BASE_DOMAIN}
-- nextcloud.${BASE_DOMAIN}
-```
+* argocd.${BASE_DOMAIN}
+* grpc.argocd.${BASE_DOMAIN}
+* grafana.${BASE_DOMAIN}
+* immich.${BASE_DOMAIN}
+* longhorn.${BASE_DOMAIN}
+* nextcloud.${BASE_DOMAIN}
 
 # Variables
 ```bash
@@ -51,6 +49,9 @@ helm repo add cloudnative-pg https://cloudnative-pg.io/charts
 # external-dns
 helm repo add external-dns https://kubernetes-sigs.github.io/external-dns/
 
+# kube-prometheus-stack
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+
 # longhorn
 helm repo add longhorn https://charts.longhorn.io
 
@@ -68,9 +69,29 @@ helm repo add altinity-clickhouse-operator https://docs.altinity.com/clickhouse-
 ```
 
 # New component checklist
-- fullnameOverride
-- requests/limits
-- autoscaling (hpa)
-- nodeselector
-- httproute + gateway listener (if applicable)
-- serviceMonitor
+* fullnameOverride
+* requests/limits
+* autoscaling (hpa)
+* nodeselector
+* httproute + gateway listener (if applicable)
+* serviceMonitor
+
+# ArgoCD
+* Sync wave 1
+   * prometheus-operator-crd
+* Sync wave 2
+   * cert-manager
+   * external-dns
+   * envoy-gateway
+   * longhorn
+* Sync wave 3
+   * argocd
+   * cloudnative-pg
+   * dragonfly-operator
+* Sync wave 4
+   * nextcloud
+   * immich
+   * otel-collector
+   * grafana
+   * gigapipe
+   * clickhouse-operator
