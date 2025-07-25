@@ -26,22 +26,24 @@ spec:
     repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
     targetRevision: 0.92.1
     helm:
-      fullnameOverride: opentelemetry-operator
-      namespaceOverride: opentelemetry-operator
+      releaseName: opentelemetry-operator
+      valuesObject:
+        fullnameOverride: opentelemetry-operator
+        namespaceOverride: opentelemetry-operator
 
-      createRbacPermissions: true
+        createRbacPermissions: true
 
-      resources:
-        requests:
-          cpu: 100m
-          memory: 64Mi
-        limits:
-          cpu: 200m
-          memory: 128Mi
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
 
-      serviceMonitor:
-        enabled: true
+        serviceMonitor:
+          enabled: true
 
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab
 ---

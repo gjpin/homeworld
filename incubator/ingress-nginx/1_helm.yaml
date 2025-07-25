@@ -26,26 +26,29 @@ spec:
     repoURL: https://kubernetes.github.io/ingress-nginx
     targetRevision: 4.13.0
     helm:
-      fullnameOverride: ingress-nginx
-      controller:
-        kind: DaemonSet
-        hostNetwork: true
-        hostPort:
-          enabled: true
-        service:
-          enabled: false
-        publishService:
-          enabled: false
-        metrics:
-          enabled: true
-          serviceMonitor:
+      releaseName: ingress-nginx
+      valuesObject:
+        fullnameOverride: ingress-nginx
+        controller:
+          kind: DaemonSet
+          hostNetwork: true
+          hostPort:
+            enabled: true
+          service:
             enabled: false
-        config:
-          use-forwarded-headers: "true"
-        resources:
-          requests:
-            cpu: 100m
-            memory: 90Mi
-          limits:
-            cpu: 200m
-            memory: 256Mi
+          publishService:
+            enabled: false
+          metrics:
+            enabled: true
+            serviceMonitor:
+              enabled: false
+          config:
+            use-forwarded-headers: "true"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 90Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---

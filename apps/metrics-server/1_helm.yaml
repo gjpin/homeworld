@@ -25,23 +25,25 @@ spec:
     repoURL: https://kubernetes-sigs.github.io/metrics-server
     targetRevision: 3.12.2
     helm:
-      fullnameOverride: metrics-server
+      releaseName: metrics-server
+      valuesObject:
+        fullnameOverride: metrics-server
 
-      metrics:
-        enabled: true
+        metrics:
+          enabled: true
 
-      serviceMonitor:
-        enabled: true
-        interval: 60s
+        serviceMonitor:
+          enabled: true
+          interval: 60s
 
-      resources:
-        requests:
-          cpu: 100m
-          memory: 200Mi
-        limits:
-          cpu: 200m
-          memory: 512Mi
+        resources:
+          requests:
+            cpu: 100m
+            memory: 200Mi
+          limits:
+            cpu: 200m
+            memory: 512Mi
 
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab
 ---

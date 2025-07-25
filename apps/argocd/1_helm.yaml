@@ -26,100 +26,76 @@ spec:
     repoURL: https://argoproj.github.io/argo-helm
     targetRevision: 8.1.3
     helm:
-      fullnameOverride: argocd
-      namespaceOverride: argocd
+      releaseName: argocd
+      valuesObject:
+        fullnameOverride: argocd
+        namespaceOverride: argocd
 
-      # server
-      server:
-        metrics:
-          enabled: true
-          serviceMonitor:
+        # server
+        server:
+          metrics:
             enabled: true
-            interval: 60s
+            serviceMonitor:
+              enabled: true
+              interval: 60s
 
-        resources:
-          requests:
-            cpu: 50m
-            memory: 64Mi
-          limits:
-            cpu: 100m
-            memory: 128Mi
-        autoscaling:
-          enabled: true
-          minReplicas: 1
-          maxReplicas: 5
-          targetCPUUtilizationPercentage: 80
-          targetMemoryUtilizationPercentage: 80
-
-      # repo server
-      repoServer:
-        metrics:
-          enabled: true
-          serviceMonitor:
-            enabled: true
-            interval: 60s
-        resources:
-          requests:
-            cpu: 10m
-            memory: 64Mi
-          limits:
-            cpu: 50m
-            memory: 128Mi
-        autoscaling:
-          enabled: true
-          minReplicas: 1
-          maxReplicas: 5
-          targetCPUUtilizationPercentage: 80
-          targetMemoryUtilizationPercentage: 80
-      
-      # controller
-      controller:
-        metrics:
-          enabled: true
-          serviceMonitor:
-            enabled: true
-            interval: 60s
-        resources:
-          requests:
-            cpu: 250m
-            memory: 256Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
-
-      # dex
-      dex:
-        metrics:
-          enabled: true
-          serviceMonitor:
-            enabled: true
-            interval: 60s
-        resources:
-          requests:
-            cpu: 10m
-            memory: 32Mi
-          limits:
-            cpu: 50m
-            memory: 64Mi
-        initImage:
           resources:
             requests:
-              cpu: 5m
-              memory: 96Mi
+              cpu: 50m
+              memory: 64Mi
             limits:
-              cpu: 10m
-              memory: 144Mi
+              cpu: 100m
+              memory: 128Mi
+          autoscaling:
+            enabled: true
+            minReplicas: 1
+            maxReplicas: 5
+            targetCPUUtilizationPercentage: 80
+            targetMemoryUtilizationPercentage: 80
 
-      # redis
-      redis:
-        resources:
-          requests:
-            cpu: 100m
-            memory: 64Mi
-          limits:
-            cpu: 200m
-            memory: 128Mi
-        exporter:
+        # repo server
+        repoServer:
+          metrics:
+            enabled: true
+            serviceMonitor:
+              enabled: true
+              interval: 60s
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 50m
+              memory: 128Mi
+          autoscaling:
+            enabled: true
+            minReplicas: 1
+            maxReplicas: 5
+            targetCPUUtilizationPercentage: 80
+            targetMemoryUtilizationPercentage: 80
+        
+        # controller
+        controller:
+          metrics:
+            enabled: true
+            serviceMonitor:
+              enabled: true
+              interval: 60s
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+        # dex
+        dex:
+          metrics:
+            enabled: true
+            serviceMonitor:
+              enabled: true
+              interval: 60s
           resources:
             requests:
               cpu: 10m
@@ -127,57 +103,83 @@ spec:
             limits:
               cpu: 50m
               memory: 64Mi
-      redisSecretInit:
-        resources:
-          requests:
-            cpu: 100m
-            memory: 64Mi
-          limits:
-            cpu: 200m
-            memory: 128Mi
+          initImage:
+            resources:
+              requests:
+                cpu: 5m
+                memory: 96Mi
+              limits:
+                cpu: 10m
+                memory: 144Mi
 
-      # application set
-      applicationSet:
-        metrics:
-          enabled: true
-          serviceMonitor:
+        # redis
+        redis:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          exporter:
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                cpu: 50m
+                memory: 64Mi
+        redisSecretInit:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+
+        # application set
+        applicationSet:
+          metrics:
             enabled: true
-            interval: 60s
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 100m
-            memory: 128Mi
+            serviceMonitor:
+              enabled: true
+              interval: 60s
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
 
-      # notifications
-      notifications:
-        metrics:
-          enabled: true
-          serviceMonitor:
+        # notifications
+        notifications:
+          metrics:
             enabled: true
-            interval: 60s
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 100m
-            memory: 128Mi
+            serviceMonitor:
+              enabled: true
+              interval: 60s
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
 
-      crds:
-        install: true
-        keep: true
+        crds:
+          install: true
+          keep: true
 
-      # TLS is terminated at Ingress Controller,
-      # so we disable TLS in the API server.
-      # https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#ingressroute-crd
-      configs:
-        params:
-          server.insecure: true
+        # TLS is terminated at Ingress Controller,
+        # so we disable TLS in the API server.
+        # https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#ingressroute-crd
+        configs:
+          params:
+            server.insecure: true
 
-      global:
-        nodeSelector:
-          node-role.kubernetes.io/homelab: homelab
+        global:
+          nodeSelector:
+            node-role.kubernetes.io/homelab: homelab
 ---

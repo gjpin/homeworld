@@ -25,20 +25,22 @@ spec:
     repoURL: https://cloudnative-pg.io/charts
     targetRevision: 0.24.0
     helm:
-      fullnameOverride: cloudnative-pg
-      namespaceOverride: cloudnative-pg
+      releaseName: cloudnative-pg
+      valuesObject:
+        fullnameOverride: cloudnative-pg
+        namespaceOverride: cloudnative-pg
 
-      monitoring:
-        podMonitorEnabled: true
+        monitoring:
+          podMonitorEnabled: true
 
-      resources:
-        requests:
-          cpu: 100m
-          memory: 100Mi
-        limits:
-          cpu: 200m
-          memory: 256Mi
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
 
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab
 ---

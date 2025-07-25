@@ -26,26 +26,28 @@ spec:
     repoURL: ghcr.io/immich-app/immich-charts
     targetRevision: 0.9.3
     helm:
-      global:
-        fullnameOverride: immich
+      releaseName: immich
+      valuesObject:
+        global:
+          fullnameOverride: immich
 
-      immich:
-        metrics:
-          enabled: true # serviceMonitor
-        persistence:
-          library:
-            existingClaim: immich
-      
-      machine-learning:
-        persistence:
-          cache:
-            enabled: true
-            size: 10Gi
-            type: pvc
-            accessMode: ReadWriteMany
-            storageClass: longhorn-crypto
+        immich:
+          metrics:
+            enabled: true # serviceMonitor
+          persistence:
+            library:
+              existingClaim: immich
+        
+        machine-learning:
+          persistence:
+            cache:
+              enabled: true
+              size: 10Gi
+              type: pvc
+              accessMode: ReadWriteMany
+              storageClass: longhorn-crypto
 
-      env:
-        REDIS_HOSTNAME: dragonfly.svc.cluster.local:6379 # TODO: check value
-        DB_HOSTNAME: # TODO: check vlaue
+        env:
+          REDIS_HOSTNAME: dragonfly.svc.cluster.local:6379 # TODO: check value
+          DB_HOSTNAME: # TODO: check vlaue
 ---

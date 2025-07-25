@@ -26,24 +26,26 @@ spec:
     repoURL: https://docs.altinity.com/clickhouse-operator
     targetRevision: 0.25.2
     helm:
-      fullnameOverride: clickhouse-operator
-      namespaceOverride: clickhouse-operator
+      releaseName: clickhouse-operator
+      valuesObject:
+        fullnameOverride: clickhouse-operator
+        namespaceOverride: clickhouse-operator
 
-      serviceMonitor:
-        enabled: true
-        clickhouseMetrics:
-          interval: 60s
-        operatorMetrics:
-          interval: 60s
+        serviceMonitor:
+          enabled: true
+          clickhouseMetrics:
+            interval: 60s
+          operatorMetrics:
+            interval: 60s
 
-      resources:
-        requests:
-          cpu: 100m
-          memory: 128Mi
-        limits:
-          cpu: 200m
-          memory: 256Mi
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
 
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab
 ---

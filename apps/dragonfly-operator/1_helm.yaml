@@ -27,23 +27,25 @@ spec:
     repoURL: ghcr.io/dragonflydb/dragonfly-operator/helm
     targetRevision: v1.1.11
     helm:
-      fullnameOverride: dragonfly-operator
-      
-      additionalLabels:
-        app: dragonfly-operator
+      releaseName: dragonfly-operator
+      valuesObject:
+        fullnameOverride: dragonfly-operator
+        
+        additionalLabels:
+          app: dragonfly-operator
 
-      resources:
-        requests:
-          cpu: 10m
-          memory: 64Mi
-        limits:
-          cpu: 500m
-          memory: 128Mi
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 128Mi
 
-      serviceMonitor:
-        enabled: true
-        interval: 60s
+        serviceMonitor:
+          enabled: true
+          interval: 60s
 
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab
 ---

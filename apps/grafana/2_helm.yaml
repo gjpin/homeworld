@@ -22,86 +22,88 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
   source:
-    chart: nextcloud
+    chart: grafana
     repoURL: https://grafana.github.io/helm-charts
     targetRevision: 9.2.10
     helm:
-      grafana.ini:
-        server:
-          domain: "grafana.${BASE_DOMAIN}"
+      releaseName: grafan
+      valuesObject:
+        grafana.ini:
+          server:
+            domain: "grafana.${BASE_DOMAIN}"
 
-      admin:
-        existingSecret: grafana-credentials
-        userKey: username
-        passwordKey: password
+        admin:
+          existingSecret: grafana-credentials
+          userKey: username
+          passwordKey: password
 
-      datasources:
-        datasources.yaml:
-          apiVersion: 1
-          datasources:
-          - name: Prometheus
-            type: prometheus
-            uid: mimir
-            access: proxy
-            url: http://gigapipe.gigapipe.svc.cluster.local:3100
-            jsonData:
-              httpMethod: GET
-              graphiteVersion: "1.1"
-              tlsAuth: false
-              tlsAuthWithCACert: false
-              cacheLevel: 'High'
-              incrementalQuerying: 'Enable'
-              incrementalQueryOverlapWindow: 2m
-          - name: Tempo
-            type: tempo
-            uid: tempo
-            access: proxy
-            url: http://gigapipe.gigapipe.svc.cluster.local:3100
-            jsonData:
-              nodeGraph:
-                enabled: true
-              tracesToLogs:
-                datasourceUid: loki
-                filterByTraceID: false
-                spanEndTimeShift: "2000ms"
-                spanStartTimeShift: "-2000ms"
-                tags: ['job']
-              tracesToMetrics:
-                datasourceUid: prometheus
-                tags: ['job']
-              serviceMap:
-                datasourceUid: prometheus
-              lokiSearch:
-                datasourceUid: loki
-          - name: Loki
-            type: loki
-            uid: loki
-            access: proxy
-            url: http://gigapipe.gigapipe.svc.cluster.local:3100
-            jsonData:
-              derivedFields:
-                - datasourceUid: tempo
-                  matcherRegex: "^.*?traceI[d|D]=(\\w+).*$"
-                  name: traceId
-                  url: '$${__value.raw}'
-                - datasourceUid: tempo
-                  matcherRegex: "^.*?\"traceID\":\"(\\w+)\".*$"
-                  name: traceID
-                  url: '$${__value.raw}'
+        datasources:
+          datasources.yaml:
+            apiVersion: 1
+            datasources:
+            - name: Prometheus
+              type: prometheus
+              uid: mimir
+              access: proxy
+              url: http://gigapipe.gigapipe.svc.cluster.local:3100
+              jsonData:
+                httpMethod: GET
+                graphiteVersion: "1.1"
+                tlsAuth: false
+                tlsAuthWithCACert: false
+                cacheLevel: 'High'
+                incrementalQuerying: 'Enable'
+                incrementalQueryOverlapWindow: 2m
+            - name: Tempo
+              type: tempo
+              uid: tempo
+              access: proxy
+              url: http://gigapipe.gigapipe.svc.cluster.local:3100
+              jsonData:
+                nodeGraph:
+                  enabled: true
+                tracesToLogs:
+                  datasourceUid: loki
+                  filterByTraceID: false
+                  spanEndTimeShift: "2000ms"
+                  spanStartTimeShift: "-2000ms"
+                  tags: ['job']
+                tracesToMetrics:
+                  datasourceUid: prometheus
+                  tags: ['job']
+                serviceMap:
+                  datasourceUid: prometheus
+                lokiSearch:
+                  datasourceUid: loki
+            - name: Loki
+              type: loki
+              uid: loki
+              access: proxy
+              url: http://gigapipe.gigapipe.svc.cluster.local:3100
+              jsonData:
+                derivedFields:
+                  - datasourceUid: tempo
+                    matcherRegex: "^.*?traceI[d|D]=(\\w+).*$"
+                    name: traceId
+                    url: '$${__value.raw}'
+                  - datasourceUid: tempo
+                    matcherRegex: "^.*?\"traceID\":\"(\\w+)\".*$"
+                    name: traceID
+                    url: '$${__value.raw}'
 
-      resources:
-        requests:
-          cpu: 100m
-          memory: 128Mi
-        limits:
-          cpu: 200m
-          memory: 256Mi
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
 
-      persistence:
-        enabled: true
-        storageClassName: longhorn-crypto
-        size: 2Gi
+        persistence:
+          enabled: true
+          storageClassName: longhorn-crypto
+          size: 2Gi
 
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab
 ---

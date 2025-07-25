@@ -26,47 +26,49 @@ spec:
     repoURL: https://kubernetes-sigs.github.io/external-dns
     targetRevision: 1.18.0
     helm:
-      fullnameOverride: external-dns
-      namespaced: true
+      releaseName: external-dns
+      valuesObject:
+        fullnameOverride: external-dns
+        namespaced: true
 
-      # force the DNS record IP address
-      extraArgs:
-        - default-targets=${EXTERNAL_IP}
+        # force the DNS record IP address
+        extraArgs:
+          - default-targets=${EXTERNAL_IP}
 
-      sources:
-        - service
-        - gateway-httproute
-        - gateway-grpcroute
-        - gateway-tlsroute
-        - gateway-tcproute
-        - gateway-udproute
+        sources:
+          - service
+          - gateway-httproute
+          - gateway-grpcroute
+          - gateway-tlsroute
+          - gateway-tcproute
+          - gateway-udproute
 
-      # "sync" policy has issues:
-      # https://github.com/kubernetes-sigs/external-dns/issues/4059
-      policy: upsert-only
+        # "sync" policy has issues:
+        # https://github.com/kubernetes-sigs/external-dns/issues/4059
+        policy: upsert-only
 
-      provider:
-        name: cloudflare
+        provider:
+          name: cloudflare
 
-      env:
-        - name: CF_API_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: cloudflare-api-token
-              key: api-token
+        env:
+          - name: CF_API_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: cloudflare-api-token
+                key: api-token
 
-      serviceMonitor:
-        enabled: true
-        interval: 60s
+        serviceMonitor:
+          enabled: true
+          interval: 60s
 
-      resources:
-        requests:
-          cpu: 100m
-          memory: 128Mi
-        limits:
-          cpu: 500m
-          memory: 256Mi
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
 
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab
 ---

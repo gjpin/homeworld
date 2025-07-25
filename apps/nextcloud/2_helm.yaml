@@ -26,56 +26,58 @@ spec:
     repoURL: https://nextcloud.github.io/helm
     targetRevision: 7.0.0
     helm:
-      fullnameOverride: nextcloud
+      releaseName: nextcloud
+      valuesObject:
+        fullnameOverride: nextcloud
 
-      nextcloud:
-        host: nextcloud.${BASE_DOMAIN}
-        existingSecret:
+        nextcloud:
+          host: nextcloud.${BASE_DOMAIN}
+          existingSecret:
+            enabled: true
+            usernameKey: nextcloud-username # TODO
+            passwordKey: nextcloud-password # TODO
+            tokenKey: "" # TODO
+            smtpUsernameKey: smtp-username # TODO
+            smtpPasswordKey: smtp-password # TODO
+            smtpHostKey: smtp-host # TODO
+        
+        internalDatabase:
+          enabled: false
+
+        externalDatabase:
           enabled: true
-          usernameKey: nextcloud-username # TODO
-          passwordKey: nextcloud-password # TODO
-          tokenKey: "" # TODO
-          smtpUsernameKey: smtp-username # TODO
-          smtpPasswordKey: smtp-password # TODO
-          smtpHostKey: smtp-host # TODO
-      
-      internalDatabase:
-        enabled: false
+          type: postgresql
+          existingSecret:
+            enabled: true
+            secretName: nameofsecret # TODO
+            usernameKey: db-username # TODO
+            passwordKey: db-password # TODO
+            hostKey: db-hostname-or-ip # TODO
+            databaseKey: db-name # TODO
 
-      externalDatabase:
-        enabled: true
-        type: postgresql
-        existingSecret:
+        cronjob:
           enabled: true
-          secretName: nameofsecret # TODO
-          usernameKey: db-username # TODO
-          passwordKey: db-password # TODO
-          hostKey: db-hostname-or-ip # TODO
-          databaseKey: db-name # TODO
 
-      cronjob:
-        enabled: true
-
-      persistence:
-        enabled: true
-        storageClass: longhorn-crypto
-        accessMode: ReadWriteOnce
-        size: 200Gi
-
-      hpa:
-        enabled: true
-        cputhreshold: 60
-        minPods: 1
-        maxPods: 5
-
-      metrics:
-        serviceMonitor:
+        persistence:
           enabled: true
-          interval: 60s
+          storageClass: longhorn-crypto
+          accessMode: ReadWriteOnce
+          size: 200Gi
 
-      rbac:
-        enabled: true
+        hpa:
+          enabled: true
+          cputhreshold: 60
+          minPods: 1
+          maxPods: 5
 
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
+        metrics:
+          serviceMonitor:
+            enabled: true
+            interval: 60s
+
+        rbac:
+          enabled: true
+
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab
 ---

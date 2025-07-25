@@ -25,68 +25,71 @@ spec:
     repoURL: https://helm.cilium.io
     targetRevision: 1.17.6
     helm:
-      namespaceOverride: cilium
+      releaseName: cilium
+      valuesObject:
+        namespaceOverride: cilium
 
-      # https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/
-      kubeProxyReplacement: true
+        # https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/
+        kubeProxyReplacement: true
 
-      dnsPolicy: ClusterFirst
+        dnsPolicy: ClusterFirst
 
-      # https://docs.cilium.io/en/stable/network/concepts/masquerading/
-      bpf:
-        masquerade: true
+        # https://docs.cilium.io/en/stable/network/concepts/masquerading/
+        bpf:
+          masquerade: true
 
-      hubble:
-        relay:
-          enabled: true
-          rollOutPods: true
-          nodeSelector:
-            node-role.kubernetes.io/homelab: homelab
-        ui:
-          enabled: true
-          rollOutPods: true
-          nodeSelector:
-            node-role.kubernetes.io/homelab: homelab
+        hubble:
+          relay:
+            enabled: true
+            rollOutPods: true
+            nodeSelector:
+              node-role.kubernetes.io/homelab: homelab
+          ui:
+            enabled: true
+            rollOutPods: true
+            nodeSelector:
+              node-role.kubernetes.io/homelab: homelab
 
-      # https://docs.cilium.io/en/stable/network/kubernetes/ipam-cluster-pool/
-      ipam:
+        # https://docs.cilium.io/en/stable/network/kubernetes/ipam-cluster-pool/
+        ipam:
+          operator:
+            clusterPoolIPv4PodCIDRList: ["10.42.0.0/16"]
+
+        # Wait for Kubernetes to provide the PodCIDR range via the Kubernetes node resource
+        k8s.requireIPv4PodCIDR: true
+
+        l7Proxy: true 
+
+        localRedirectPolicy: true
+        rollOutCiliumPods: true
+
         operator:
-          clusterPoolIPv4PodCIDRList: ["10.42.0.0/16"]
+          replicas: 1
+          rollOutPods: true
+          nodeSelector:
+            node-role.kubernetes.io/homelab: homelab
 
-      # Wait for Kubernetes to provide the PodCIDR range via the Kubernetes node resource
-      k8s.requireIPv4PodCIDR: true
-
-      l7Proxy: true 
-
-      localRedirectPolicy: true
-      rollOutCiliumPods: true
-
-      operator:
-        replicas: 1
-        rollOutPods: true
-        nodeSelector:
-          node-role.kubernetes.io/homelab: homelab
-
-      # https://github.com/cilium/cilium/issues/22973
-      securityContext:
-        seLinuxOptions:
-          type: "super_t"
-
-      # https://docs.cilium.io/en/latest/security/network/proxy/envoy/
-      # https://docs.cilium.io/en/latest/network/servicemesh/gateway-api/gateway-api/#bind-to-privileged-port
-      envoy:
-        enabled: true
+        # https://github.com/cilium/cilium/issues/22973
         securityContext:
-          capabilities:
-            keepCapNetBindService: true
-            envoy:
-            - NET_ADMIN
-            - BPF
-            - PERMON
-            - NET_BIND_SERVICE
+          seLinuxOptions:
+            type: "super_t"
 
-      # https://docs.cilium.io/en/latest/security/network/encryption-wireguard/
-      # Enable pod-to-pod encryption
-      encryption:
-        enabled: true
-        type: wireguard
+        # https://docs.cilium.io/en/latest/security/network/proxy/envoy/
+        # https://docs.cilium.io/en/latest/network/servicemesh/gateway-api/gateway-api/#bind-to-privileged-port
+        envoy:
+          enabled: true
+          securityContext:
+            capabilities:
+              keepCapNetBindService: true
+              envoy:
+              - NET_ADMIN
+              - BPF
+              - PERMON
+              - NET_BIND_SERVICE
+
+        # https://docs.cilium.io/en/latest/security/network/encryption-wireguard/
+        # Enable pod-to-pod encryption
+        encryption:
+          enabled: true
+          type: wireguard
+---

@@ -26,32 +26,34 @@ spec:
     repoURL: https://charts.jetstack.io
     targetRevision: 1.18.2
     helm:
-      fullnameOverride: cert-manager
-      namespace: cert-manager
+      releaseName: cert-manager
+      valuesObject:
+        fullnameOverride: cert-manager
+        namespace: cert-manager
 
-      crds:
-        enabled: true
-        keep: true
-
-      # https://cert-manager.io/docs/usage/gateway/
-      config:
-        apiVersion: controller.config.cert-manager.io/v1alpha1
-        kind: ControllerConfiguration
-        enableGatewayAPI: true
-
-      resources:
-        requests:
-          cpu: 100m
-          memory: 128Mi
-        limits:
-          cpu: 500m
-          memory: 256Mi
-
-      prometheus:
-        servicemonitor:
+        crds:
           enabled: true
-          interval: 60s
+          keep: true
 
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
+        # https://cert-manager.io/docs/usage/gateway/
+        config:
+          apiVersion: controller.config.cert-manager.io/v1alpha1
+          kind: ControllerConfiguration
+          enableGatewayAPI: true
+
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+
+        prometheus:
+          servicemonitor:
+            enabled: true
+            interval: 60s
+
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab
 ---
