@@ -87,7 +87,7 @@ spec:
               memory: 256Mi
             limits:
               cpu: 500m
-              memory: 512Mi
+              memory: 768Mi
 
         # dex
         dex:
@@ -101,8 +101,8 @@ spec:
               cpu: 10m
               memory: 32Mi
             limits:
-              cpu: 50m
-              memory: 64Mi
+              cpu: 100m
+              memory: 128Mi
           initImage:
             resources:
               requests:
