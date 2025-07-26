@@ -98,7 +98,8 @@ helm repo update
 helm install argocd argo/argo-cd \
   --version 8.2.1 \
   --namespace argocd \
-  --create-namespace
+  --create-namespace \
+  -f configs/argocd/helm_values.yaml
 
 # Install app-of-apps
 kubectl apply -f apps/app-of-apps.yaml
