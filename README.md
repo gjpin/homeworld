@@ -77,19 +77,19 @@ helm repo add altinity-clickhouse-operator https://docs.altinity.com/clickhouse-
 * serviceMonitor
 
 # ArgoCD
-* Sync wave 1
-   * prometheus-operator-crd
-* Sync wave 2
-   * envoy-gateway
-* Sync wave 3
-   * cert-manager
-   * external-dns
-   * longhorn
-* Sync wave 4
+* **Sync wave 1**
+   * prometheus-operator-crd: CRDs required by service monitors
+* **Sync wave 2**
+   * envoy-gateway: Gateway API and provides CRDs required by HTTP/GRPC routes
+* **Sync wave 3**
+   * cert-manager: TLS certificates management
+   * external-dns: manages DNS records
+   * longhorn: block storage
+* **Sync wave 4**
    * argocd
-   * cloudnative-pg
-   * dragonfly-operator
-* Sync wave 5
+   * cloudnative-pg: postgresql operator
+   * dragonfly-operator: dragonfly (redis-compatible) operator
+* **Sync wave 5**
    * nextcloud
    * immich
    * otel-collector
