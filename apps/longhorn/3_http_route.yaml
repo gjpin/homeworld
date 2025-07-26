@@ -6,6 +6,7 @@ metadata:
   namespace: longhorn-system
   annotations:
     external-dns.alpha.kubernetes.io/hostname: "longhorn.${BASE_DOMAIN}"
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   parentRefs:
     - name: envoy

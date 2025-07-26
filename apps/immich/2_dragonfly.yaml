@@ -8,6 +8,8 @@ metadata:
     app.kubernetes.io/created-by: dragonfly-operator
   name: dragonfly
   namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   replicas: 1
   resources:

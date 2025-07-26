@@ -7,6 +7,8 @@ kind: Secret
 metadata:
   name: clickhouse-gigapipe-credentials
   namespace: gigapipe
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 type: Opaque
 stringData:
   password: ${GIGAPIPE_CLICKHOUSE_PASSWORD}

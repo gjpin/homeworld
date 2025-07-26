@@ -7,6 +7,8 @@ kind: Application
 metadata:
   name: otel-collector-main
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   project: default
   destination:

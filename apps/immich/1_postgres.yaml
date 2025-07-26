@@ -8,6 +8,8 @@ kind: Cluster
 metadata:
   name: immich
   namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instances: 1
   imageName: ghcr.io/tensorchord/cloudnative-vectorchord:17.5-0.4.3

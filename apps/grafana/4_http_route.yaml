@@ -6,6 +6,7 @@ metadata:
   namespace: grafana
   annotations:
     external-dns.alpha.kubernetes.io/hostname: "grafana.${BASE_DOMAIN}"
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   parentRefs:
     - name: envoy

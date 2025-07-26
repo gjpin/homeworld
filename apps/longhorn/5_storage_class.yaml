@@ -5,6 +5,8 @@ kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
   name: longhorn-crypto
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
 provisioner: driver.longhorn.io
 allowVolumeExpansion: true
 reclaimPolicy: Retain

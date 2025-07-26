@@ -6,6 +6,8 @@ kind: Application
 metadata:
   name: immich
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   project: default
   destination:
