@@ -8,8 +8,8 @@ kind: Application
 metadata:
   name: envoy-gateway-helm
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
+  # annotations:
+  #   argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:

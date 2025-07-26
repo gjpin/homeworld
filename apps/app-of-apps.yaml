@@ -21,12 +21,6 @@ spec:
       prune: true
       selfHeal: true
       allowEmpty: false
-    retry:
-      limit: 0
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 5m
     syncOptions:
     - Validate=true
     - CreateNamespace=true
@@ -55,12 +49,6 @@ spec:
       prune: true
       selfHeal: true
       allowEmpty: false
-    retry:
-      limit: 0
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 5m
     syncOptions:
     - Validate=true
     - CreateNamespace=true
@@ -89,12 +77,6 @@ spec:
       prune: true
       selfHeal: true
       allowEmpty: false
-    retry:
-      limit: 0
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 5m
     syncOptions:
     - Validate=true
     - CreateNamespace=true
@@ -123,12 +105,6 @@ spec:
       prune: true
       selfHeal: true
       allowEmpty: false
-    retry:
-      limit: 0
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 5m
     syncOptions:
     - Validate=true
     - CreateNamespace=true
@@ -157,12 +133,6 @@ spec:
       prune: true
       selfHeal: true
       allowEmpty: false
-    retry:
-      limit: 0
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 5m
     syncOptions:
     - Validate=true
     - CreateNamespace=true
@@ -191,12 +161,6 @@ spec:
       prune: true
       selfHeal: true
       allowEmpty: false
-    retry:
-      limit: 0
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 5m
     syncOptions:
     - Validate=true
     - CreateNamespace=true
@@ -225,12 +189,6 @@ spec:
       prune: true
       selfHeal: true
       allowEmpty: false
-    retry:
-      limit: 0
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 5m
     syncOptions:
     - Validate=true
     - CreateNamespace=true
@@ -259,12 +217,6 @@ spec:
       prune: true
       selfHeal: true
       allowEmpty: false
-    retry:
-      limit: 0
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 5m
     syncOptions:
     - Validate=true
     - CreateNamespace=true
@@ -293,12 +245,6 @@ spec:
       prune: true
       selfHeal: true
       allowEmpty: false
-    retry:
-      limit: 0
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 5m
     syncOptions:
     - Validate=true
     - CreateNamespace=true
@@ -327,12 +273,6 @@ spec:
       prune: true
       selfHeal: true
       allowEmpty: false
-    retry:
-      limit: 0
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 5m
     syncOptions:
     - Validate=true
     - CreateNamespace=true
@@ -361,12 +301,6 @@ spec:
       prune: true
       selfHeal: true
       allowEmpty: false
-    retry:
-      limit: 0
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 5m
     syncOptions:
     - Validate=true
     - CreateNamespace=true
@@ -395,12 +329,6 @@ spec:
       prune: true
       selfHeal: true
       allowEmpty: false
-    retry:
-      limit: 0
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 5m
     syncOptions:
     - Validate=true
     - CreateNamespace=true
@@ -429,12 +357,6 @@ spec:
       prune: true
       selfHeal: true
       allowEmpty: false
-    retry:
-      limit: 0
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 5m
     syncOptions:
     - Validate=true
     - CreateNamespace=true
@@ -463,12 +385,6 @@ spec:
       prune: true
       selfHeal: true
       allowEmpty: false
-    retry:
-      limit: 0
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 5m
     syncOptions:
     - Validate=true
     - CreateNamespace=true
