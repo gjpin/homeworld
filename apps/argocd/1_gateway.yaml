@@ -11,6 +11,7 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     kubernetes.io/tls-acme: "true"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   gatewayClassName: envoy-gateway
   addresses:

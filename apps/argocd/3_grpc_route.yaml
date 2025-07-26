@@ -1,17 +1,18 @@
 ---
 apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
+kind: GRPCRoute
 metadata:
   name: argocd
   namespace: argocd
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: "argocd.${BASE_DOMAIN}"
+    external-dns.alpha.kubernetes.io/hostname: "grpc.argocd.${BASE_DOMAIN}"
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   parentRefs:
     - name: envoy
       namespace: argocd
   hostnames:
-    - "argocd.${BASE_DOMAIN}"
+    - "grpc.argocd.${BASE_DOMAIN}"
   rules:
     - backendRefs:
       - name: argocd-server
