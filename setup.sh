@@ -96,7 +96,7 @@ helm repo update
 
 # Install ArgoCD
 helm install argocd argo/argo-cd \
-  --version 8.2.1 \
+  --version 8.2.2 \
   --namespace argocd \
   --create-namespace \
   -f configs/argocd/helm_values.yaml
