@@ -6,8 +6,6 @@ kind: EnvoyProxy
 metadata:
   name: custom-proxy-config
   namespace: envoy-gateway-system
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
 spec:
   mergeGateways: true
 ---
