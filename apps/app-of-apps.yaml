@@ -5,6 +5,8 @@ kind: Application
 metadata:
   name: prometheus-operator-crd-app
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
@@ -33,6 +35,8 @@ kind: Application
 metadata:
   name: envoy-gateway-app
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
@@ -61,6 +65,8 @@ kind: Application
 metadata:
   name: cert-manager-app
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "3"
 spec:
@@ -89,6 +95,8 @@ kind: Application
 metadata:
   name: external-dns-app
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "3"
 spec:
@@ -117,6 +125,8 @@ kind: Application
 metadata:
   name: longhorn-app
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "3"
 spec:
@@ -145,6 +155,8 @@ kind: Application
 metadata:
   name: argocd-app
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "4"
 spec:
@@ -173,6 +185,8 @@ kind: Application
 metadata:
   name: cloudnative-pg-app
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "4"
 spec:
@@ -201,6 +215,8 @@ kind: Application
 metadata:
   name: dragonfly-operator-app
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "4"
 spec:
@@ -229,6 +245,8 @@ kind: Application
 metadata:
   name: nextcloud-app
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "5"
 spec:
@@ -257,6 +275,8 @@ kind: Application
 metadata:
   name: immich-app
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "5"
 spec:
@@ -285,6 +305,8 @@ kind: Application
 metadata:
   name: otel-collector-app
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "5"
 spec:
@@ -313,6 +335,8 @@ kind: Application
 metadata:
   name: grafana-app
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "5"
 spec:
@@ -341,6 +365,8 @@ kind: Application
 metadata:
   name: gigapipe-app
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "5"
 spec:
@@ -369,6 +395,8 @@ kind: Application
 metadata:
   name: clickhouse-operator-app
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "5"
 spec:
