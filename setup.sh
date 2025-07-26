@@ -85,3 +85,20 @@ curl -sfL https://get.k3s.io | K3S_TOKEN=${K3S_TOKEN} sh -s - server
 
 # Ensure that the Kubernetes PKI certificates have proper permissions
 sudo chmod -R 600 /var/lib/rancher/k3s/server/tls/*.crt
+
+################################################
+##### Applications
+################################################
+
+# Add ArgoCD helm repo
+helm repo add argo https://argoproj.github.io/argo-helm
+helm repo update
+
+# Install ArgoCD
+helm install argocd argo/argo-cd \
+  --version 8.2.1 \
+  --namespace argocd \
+  --create-namespace
+
+# Install app-of-apps
+kubectl apply -f apps/app-of-apps.yaml

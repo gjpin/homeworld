@@ -80,15 +80,16 @@ helm repo add altinity-clickhouse-operator https://docs.altinity.com/clickhouse-
 * Sync wave 1
    * prometheus-operator-crd
 * Sync wave 2
+   * envoy-gateway
+* Sync wave 3
    * cert-manager
    * external-dns
-   * envoy-gateway
    * longhorn
-* Sync wave 3
+* Sync wave 4
    * argocd
    * cloudnative-pg
    * dragonfly-operator
-* Sync wave 4
+* Sync wave 5
    * nextcloud
    * immich
    * otel-collector
