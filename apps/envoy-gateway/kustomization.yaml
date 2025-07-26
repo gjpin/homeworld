@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - 1_crds.yaml
+  - 2_helm.yaml
+  - 3_envoy_proxy.yaml
+  - 4_gateway_class.yaml
