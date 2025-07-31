@@ -1,0 +1,1 @@
+kubectl get nodes -o name | xargs -I{} kubectl label {} node-role.kubernetes.io/homelab=homelab --overwrite
