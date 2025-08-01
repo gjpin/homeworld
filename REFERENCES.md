@@ -1,5 +1,8 @@
 K3S_TOKEN=$(/var/lib/rancher/k3s/server/node-token)
 
+ente
+https://help.ente.io/self-hosting/
+
 gitea
 https://docs.gitea.com/installation/install-on-kubernetes
 
