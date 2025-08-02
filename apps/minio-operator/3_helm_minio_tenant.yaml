@@ -1,0 +1,62 @@
+# https://github.com/minio/operator
+# https://github.com/minio/operator/blob/master/helm/tenant/values.yaml
+# https://docs.min.io/community/minio-object-store/operations/deployments/k8s-deploy-operator-helm-on-kubernetes.html
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minio-tenant
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: minio-tenant
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+  source:
+    chart: tenant
+    repoURL: https://operator.min.io
+    targetRevision: 7.1.1 # helm search repo minio-operator/tenant --versions
+    helm:
+      releaseName: minio-tenant
+      valuesObject:
+        tenant:
+          name: default
+          
+          configSecret:
+            name: minio-tenant-credentials
+            accessKey: null
+            secretKey: null
+            existingSecret: true
+
+          pools:
+            - servers: 4 # minimum for HA
+              size: 5Gi
+              storageClassName: longhorn-crypto
+              nodeSelector:
+                node-role.kubernetes.io/homelab: homelab
+              affinity:
+                podAntiAffinity:
+                  preferredDuringSchedulingIgnoredDuringExecution:
+                    - labelSelector:
+                        matchExpressions:
+                          - key: name
+                            operator: In
+                            values:
+                              - minio-tenant
+                      topologyKey: kubernetes.io/hostname
+
+          metrics:
+            enabled: true
+---

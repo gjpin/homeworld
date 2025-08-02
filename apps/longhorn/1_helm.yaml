@@ -32,6 +32,10 @@ spec:
       valuesObject:
         namespaceOverride: longhorn-system # mandatory namespace for this helm chart
 
+        # disable default storage class
+        persistence:
+          defaultClass: false
+
         metrics:
           serviceMonitor:
             enabled: true

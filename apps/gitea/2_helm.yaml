@@ -1,0 +1,57 @@
+# https://artifacthub.io/packages/helm/gitea/gitea
+# https://gitea.com/gitea/helm-gitea
+# https://docs.gitea.com/administration/config-cheat-sheet
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gitea
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gitea
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+  source:
+    chart: gitea
+    repoURL: https://dl.gitea.com/charts
+    targetRevision: 12.1.2
+    helm:
+      releaseName: gitea
+      valuesObject:
+        namespace: gitea
+
+        # Disable inbuilt postgres
+        postgresql-ha:
+          enabled: false
+        postgresql:
+          enabled: false
+
+        gitea:
+          config:
+            database:
+              DB_TYPE: postgres
+              HOST: # TODO: RELEASE-NAME-postgresql.default.svc.cluster.local:5432
+              NAME: # TODO: gitea
+              PASSWD: # TODO: gitea
+              USER: # TODO: gitea
+          metrics:
+            serviceMonitor:
+              enabled: true
+              interval: 60s
+
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab
+---

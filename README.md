@@ -43,11 +43,20 @@ helm repo add argo https://argoproj.github.io/argo-helm
 # cert-manager
 helm repo add cert-manager https://charts.jetstack.io
 
+# clickhouse
+helm repo add altinity-clickhouse-operator https://docs.altinity.com/clickhouse-operator/
+
 # cloudnative-pg
 helm repo add cloudnative-pg https://cloudnative-pg.io/charts
 
 # external-dns
 helm repo add external-dns https://kubernetes-sigs.github.io/external-dns/
+
+# gitea
+helm repo add gitea https://dl.gitea.com/charts/
+
+# grafana
+helm repo add grafana https://grafana.github.io/helm-charts
 
 # kube-prometheus-stack
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -58,14 +67,17 @@ helm repo add longhorn https://charts.longhorn.io
 # metrics-server
 helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
 
+# minio-operator
+helm repo add minio-operator https://operator.min.io
+
 # nextcloud
 helm repo add nextcloud https://nextcloud.github.io/helm
 
 # otel-collector
 helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
 
-# clickhouse
-helm repo add altinity-clickhouse-operator https://docs.altinity.com/clickhouse-operator/
+# s3 operator
+helm repo add inseefrlab https://inseefrlab.github.io/helm-charts
 ```
 
 # New component checklist
@@ -89,10 +101,14 @@ helm repo add altinity-clickhouse-operator https://docs.altinity.com/clickhouse-
    * argocd
    * cloudnative-pg: postgresql operator
    * dragonfly-operator: dragonfly (redis-compatible) operator
+   * minio-operator: s3-compatible storage operator
+   * clickhouse-operator
 * **Sync wave 5**
+   * s3-operator: minio bucket/policies operator
+* **Sync wave 6**
    * nextcloud
    * immich
    * otel-collector
    * grafana
    * gigapipe
-   * clickhouse-operator
+   * ente-auth

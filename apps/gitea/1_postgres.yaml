@@ -1,0 +1,17 @@
+# https://cloudnative-pg.io/documentation/current/samples/
+# https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: gitea
+  namespace: gitea
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.4-17
+  storage:
+    storageClass: longhorn-crypto
+    size: 5Gi
+---

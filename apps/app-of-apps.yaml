@@ -209,6 +209,36 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
+# minio-operator
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minio-operator-app
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/minio-operator"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: minio-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+---
 # dragonfly-operator
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -239,6 +269,66 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
+# clickhouse-operator
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: clickhouse-operator-app
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/clickhouse-operator"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: clickhouse-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+---
+# s3-operator
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: s3-operator-app
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/s3-operator"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: s3-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+---
 # nextcloud
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -248,7 +338,7 @@ metadata:
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "6"
 spec:
   project: default
   source:
@@ -278,7 +368,7 @@ metadata:
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "6"
 spec:
   project: default
   source:
@@ -308,7 +398,7 @@ metadata:
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "6"
 spec:
   project: default
   source:
@@ -329,6 +419,36 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
+# gitea
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gitea-app
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/gitea"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gitea
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+---
 # grafana
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -338,7 +458,7 @@ metadata:
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "6"
 spec:
   project: default
   source:
@@ -368,7 +488,7 @@ metadata:
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "6"
 spec:
   project: default
   source:
@@ -389,25 +509,25 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
-# clickhouse-operator
+# ente
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: clickhouse-operator-app
+  name: ente-auth-app
   namespace: argocd
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "6"
 spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/clickhouse-operator"
+    path: "apps/ente-auth"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
-    namespace: clickhouse-operator
+    namespace: ente-auth
   syncPolicy:
     automated:
       prune: true

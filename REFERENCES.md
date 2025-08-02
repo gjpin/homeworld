@@ -1,11 +1,5 @@
 K3S_TOKEN=$(/var/lib/rancher/k3s/server/node-token)
 
-ente
-https://help.ente.io/self-hosting/
-
-gitea
-https://docs.gitea.com/installation/install-on-kubernetes
-
 home assistant
 https://blog.quadmeup.com/2025/04/07/how-to-run-home-assistant-in-kubernetes/
 
@@ -23,3 +17,5 @@ https://velero.io/
 
 collabora online (nextcloud integration)
 https://artifacthub.io/packages/helm/collabora-online/collabora-online
+
+https://affine.pro/

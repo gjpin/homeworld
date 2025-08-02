@@ -1,0 +1,56 @@
+# https://github.com/minio/operator
+# https://github.com/minio/operator/blob/master/helm/operator/values.yaml
+# https://docs.min.io/community/minio-object-store/operations/deployments/k8s-deploy-operator-helm-on-kubernetes.html
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minio-operator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: minio-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+  source:
+    chart: operator
+    repoURL: https://operator.min.io
+    targetRevision: 7.1.1 # helm search repo minio-operator/operator --versions
+    helm:
+      releaseName: minio-operator
+      valuesObject:
+        operator:
+          replicaCount: 2
+          
+          nodeSelector:
+            node-role.kubernetes.io/homelab: homelab
+
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: name
+                        operator: In
+                        values:
+                          - minio-operator
+                  topologyKey: kubernetes.io/hostname
+
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+              ephemeral-storage: 500Mi
+---
