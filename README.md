@@ -104,7 +104,6 @@ helm repo add inseefrlab https://inseefrlab.github.io/helm-charts
    * prometheus-operator-crd: CRDs required by service monitors
 * **Sync wave 2**
    * envoy-gateway: Gateway API and provides CRDs required by HTTP/GRPC routes
-   * metrics-server
 * **Sync wave 3**
    * cert-manager: TLS certificates management
    * external-dns: manages DNS records
@@ -126,9 +125,28 @@ helm repo add inseefrlab https://inseefrlab.github.io/helm-charts
    * ente
 
 # Testing
-* Add homelab role to all nodes:
+* Add 'homelab' role to all nodes:
 ```bash
 kubectl label nodes --all node-role.kubernetes.io/homelab=homelab
+```
+
+* Enable minikube's metrics-server addon
+```bash
+minikube addons enable metrics-server
+```
+
+* Bootstrap Argo
+```bash
+# Add ArgoCD helm repo
+helm repo add argo https://argoproj.github.io/argo-helm
+helm repo update
+
+# Install ArgoCD
+helm install argocd argo/argo-cd \
+  --version 8.2.2 \
+  --namespace argocd \
+  --create-namespace \
+  -f configs/argocd/helm_values.yaml
 ```
 
 * Access ArgoCD UI:
