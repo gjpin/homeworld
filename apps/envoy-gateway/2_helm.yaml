@@ -35,14 +35,14 @@ spec:
       releaseName: envoy-gateway
       valuesObject:
         deployment:
-          envoyGateway:
-            resources:
-              requests:
-                memory: "256Mi"
-                cpu: "100m"
-              limits:
-                memory: "1024Mi"
-                cpu: "500m"
+          # envoyGateway:
+          #   resources:
+          #     requests:
+          #       memory: "256Mi"
+          #       cpu: "100m"
+          #     limits:
+          #       memory: "1024Mi"
+          #       cpu: "500m"
           pod:
             nodeSelector:
               node-role.kubernetes.io/homelab: homelab

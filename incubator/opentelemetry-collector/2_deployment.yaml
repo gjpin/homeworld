@@ -9,13 +9,13 @@ metadata:
 spec:
   mode: deployment
   image: docker.io/library/otel/opentelemetry-collector-k8s:v0.130.1
-  resources:
-    requests:
-      cpu: 100m
-      memory: 64Mi
-    limits:
-      cpu: 200m
-      memory: 128Mi
+  # resources:
+  #   requests:
+  #     cpu: 100m
+  #     memory: 64Mi
+  #   limits:
+  #     cpu: 200m
+  #     memory: 128Mi
   autoscaler:
     minReplicas: 1
     maxReplicas: 5

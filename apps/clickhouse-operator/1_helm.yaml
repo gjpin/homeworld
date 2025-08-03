@@ -40,13 +40,13 @@ spec:
           operatorMetrics:
             interval: 60s
 
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 200m
-            memory: 256Mi
+        # resources:
+        #   requests:
+        #     cpu: 100m
+        #     memory: 128Mi
+        #   limits:
+        #     cpu: 200m
+        #     memory: 256Mi
 
         nodeSelector:
           node-role.kubernetes.io/homelab: homelab

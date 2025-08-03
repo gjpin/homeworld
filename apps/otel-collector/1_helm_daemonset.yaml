@@ -44,13 +44,13 @@ spec:
           type: ClusterIP
           trafficDistribution: PreferClose
 
-        resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
-          limits:
-            cpu: 250m
-            memory: 512Mi
+        # resources:
+        #   requests:
+        #     cpu: 100m
+        #     memory: 256Mi
+        #   limits:
+        #     cpu: 250m
+        #     memory: 512Mi
 
         presets:
           # filelog receiver

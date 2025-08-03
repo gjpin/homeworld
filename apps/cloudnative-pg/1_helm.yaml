@@ -35,13 +35,13 @@ spec:
         monitoring:
           podMonitorEnabled: true
 
-        resources:
-          requests:
-            cpu: 100m
-            memory: 100Mi
-          limits:
-            cpu: 200m
-            memory: 256Mi
+        # resources:
+        #   requests:
+        #     cpu: 100m
+        #     memory: 100Mi
+        #   limits:
+        #     cpu: 200m
+        #     memory: 256Mi
 
         nodeSelector:
           node-role.kubernetes.io/homelab: homelab

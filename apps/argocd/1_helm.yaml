@@ -41,13 +41,13 @@ spec:
               enabled: true
               interval: 60s
 
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: 200m
-              memory: 512Mi
+          # resources:
+          #   requests:
+          #     cpu: 100m
+          #     memory: 256Mi
+          #   limits:
+          #     cpu: 200m
+          #     memory: 512Mi
           autoscaling:
             enabled: true
             minReplicas: 1
@@ -62,13 +62,13 @@ spec:
             serviceMonitor:
               enabled: true
               interval: 60s
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: 500m
-              memory: 512Mi
+          # resources:
+          #   requests:
+          #     cpu: 100m
+          #     memory: 256Mi
+          #   limits:
+          #     cpu: 500m
+          #     memory: 512Mi
           autoscaling:
             enabled: true
             minReplicas: 1
@@ -83,13 +83,13 @@ spec:
             serviceMonitor:
               enabled: true
               interval: 60s
-          resources:
-            requests:
-              cpu: 250m
-              memory: 256Mi
-            limits:
-              cpu: 500m
-              memory: 768Mi
+          # resources:
+          #   requests:
+          #     cpu: 250m
+          #     memory: 256Mi
+          #   limits:
+          #     cpu: 500m
+          #     memory: 768Mi
 
         # dex
         dex:
@@ -98,47 +98,47 @@ spec:
             serviceMonitor:
               enabled: true
               interval: 60s
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 128Mi
-          initImage:
-            resources:
-              requests:
-                cpu: 5m
-                memory: 96Mi
-              limits:
-                cpu: 10m
-                memory: 144Mi
+          # resources:
+          #   requests:
+          #     cpu: 10m
+          #     memory: 32Mi
+          #   limits:
+          #     cpu: 100m
+          #     memory: 128Mi
+          # initImage:
+          #   resources:
+          #     requests:
+          #       cpu: 5m
+          #       memory: 96Mi
+          #     limits:
+          #       cpu: 10m
+          #       memory: 144Mi
 
         # redis
-        redis:
-          resources:
-            requests:
-              cpu: 100m
-              memory: 64Mi
-            limits:
-              cpu: 200m
-              memory: 128Mi
-          exporter:
-            resources:
-              requests:
-                cpu: 10m
-                memory: 32Mi
-              limits:
-                cpu: 50m
-                memory: 64Mi
-        redisSecretInit:
-          resources:
-            requests:
-              cpu: 100m
-              memory: 64Mi
-            limits:
-              cpu: 200m
-              memory: 128Mi
+        # redis:
+        #   resources:
+        #     requests:
+        #       cpu: 100m
+        #       memory: 64Mi
+        #     limits:
+        #       cpu: 200m
+        #       memory: 128Mi
+        #   exporter:
+        #     resources:
+        #       requests:
+        #         cpu: 10m
+        #         memory: 32Mi
+        #       limits:
+        #         cpu: 50m
+        #         memory: 64Mi
+        # redisSecretInit:
+        #   resources:
+        #     requests:
+        #       cpu: 100m
+        #       memory: 64Mi
+        #     limits:
+        #       cpu: 200m
+        #       memory: 128Mi
 
         # application set
         applicationSet:
@@ -147,13 +147,13 @@ spec:
             serviceMonitor:
               enabled: true
               interval: 60s
-          resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: 100m
-              memory: 128Mi
+          # resources:
+          #   requests:
+          #     cpu: 100m
+          #     memory: 128Mi
+          #   limits:
+          #     cpu: 100m
+          #     memory: 128Mi
 
         # notifications
         notifications:
@@ -162,13 +162,13 @@ spec:
             serviceMonitor:
               enabled: true
               interval: 60s
-          resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: 100m
-              memory: 128Mi
+          # resources:
+          #   requests:
+          #     cpu: 100m
+          #     memory: 128Mi
+          #   limits:
+          #     cpu: 100m
+          #     memory: 128Mi
 
         crds:
           install: true

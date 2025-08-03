@@ -48,9 +48,9 @@ spec:
                           - minio-operator
                   topologyKey: kubernetes.io/hostname
 
-          resources:
-            requests:
-              cpu: 200m
-              memory: 256Mi
-              ephemeral-storage: 500Mi
+          # resources:
+          #   requests:
+          #     cpu: 200m
+          #     memory: 256Mi
+          #     ephemeral-storage: 500Mi
 ---

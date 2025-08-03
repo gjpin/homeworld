@@ -93,18 +93,18 @@ helm repo add inseefrlab https://inseefrlab.github.io/helm-charts
 
 # New component checklist
 * fullnameOverride
-* requests/limits
-* autoscaling (hpa)
 * nodeselector
 * httproute + gateway listener (if applicable)
 * serviceMonitor
+* requests/limits
+* autoscaling (hpa)
 
 # ArgoCD
 * **Sync wave 1**
-   * metrics-server
    * prometheus-operator-crd: CRDs required by service monitors
 * **Sync wave 2**
    * envoy-gateway: Gateway API and provides CRDs required by HTTP/GRPC routes
+   * metrics-server
 * **Sync wave 3**
    * cert-manager: TLS certificates management
    * external-dns: manages DNS records
@@ -124,3 +124,20 @@ helm repo add inseefrlab https://inseefrlab.github.io/helm-charts
    * grafana
    * gigapipe
    * ente
+
+# Testing
+* Add homelab role to all nodes:
+```bash
+kubectl label nodes --all node-role.kubernetes.io/homelab=homelab
+```
+
+* Access ArgoCD UI:
+```bash
+# Get default secret
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
+
+# Port forward UI
+kubectl port-forward -n argocd svc/argocd-server 8080:80
+
+# Access: admin:$password
+```
