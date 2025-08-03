@@ -46,21 +46,6 @@ export ENTE_KEY_HASH=$(openssl rand -base64 64)
 export ENTE_JWT_SECRET=$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '=')
 ```
 
-# Secrets
-```yaml
----
-# cert-manager
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cloudflare-api-token
-  namespace: cert-manager
-type: Opaque
-data:
-  api-token: ${CLOUDFLARE_API_TOKEN}
----
-```
-
 # Helm repos
 ```bash
 # argo
