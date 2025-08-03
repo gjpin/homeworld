@@ -6,7 +6,8 @@ kind: ClusterIssuer
 metadata:
   name: letsencrypt-prod
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
@@ -25,7 +26,8 @@ kind: ClusterIssuer
 metadata:
   name: letsencrypt-staging
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   acme:
     server: https://acme-staging-v02.api.letsencrypt.org/directory
@@ -44,7 +46,8 @@ kind: ClusterIssuer
 metadata:
   name: buypass
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   acme:
     server: https://api.buypass.com/acme/directory
