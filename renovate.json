@@ -7,17 +7,7 @@
     "* 0-3 * * *"
   ],
   "enabledManagers": [
-    "argocd",
-    "custom.regex"
-  ],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["\\.ya?ml$"],
-      "matchStrings": ["^\\s*imageName:\\s*(?<depName>[^:\\s]+):(?<currentValue>\\S+)"],
-      "depNameTemplate": "{{{depName}}}",
-      "datasourceTemplate": "docker"
-    }
+    "argocd"
   ],
   "argocd": {
     "managerFilePatterns": [
