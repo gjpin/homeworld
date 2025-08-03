@@ -9,7 +9,6 @@ metadata:
     argocd.argoproj.io/sync-wave: "4"
 spec:
   acme:
-    email: ${ACME_EMAIL}
     server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: letsencrypt-prod
@@ -29,7 +28,6 @@ metadata:
     argocd.argoproj.io/sync-wave: "4"
 spec:
   acme:
-    email: ${ACME_EMAIL}
     server: https://acme-staging-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: letsencrypt-staging
@@ -49,7 +47,6 @@ metadata:
     argocd.argoproj.io/sync-wave: "4"
 spec:
   acme:
-    email: ${ACME_EMAIL}
     server: https://api.buypass.com/acme/directory
     privateKeySecretRef:
       name: buypass

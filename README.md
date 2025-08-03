@@ -18,7 +18,7 @@
 export BASE_DOMAIN=domain.com
 
 # external-dns, cert-manager
-export CLOUDFLARE_API_TOKEN=
+export CLOUDFLARE_API_TOKEN= # API token with DNS edit permissions for the zone
 
 # cert-manager
 export ACME_EMAIL=
@@ -44,6 +44,21 @@ export GIGAPIPE_CLICKHOUSE_PASSWORD=
 export ENTE_KEY_ENCRYPTION=$(openssl rand -base64 32)
 export ENTE_KEY_HASH=$(openssl rand -base64 64)
 export ENTE_JWT_SECRET=$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '=')
+```
+
+# Secrets
+```yaml
+---
+# cert-manager
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflare-api-token
+  namespace: cert-manager
+type: Opaque
+data:
+  api-token: ${CLOUDFLARE_API_TOKEN}
+---
 ```
 
 # Helm repos
