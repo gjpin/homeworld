@@ -1,0 +1,32 @@
+# https://github.com/ente-io/ente/blob/main/server/config/compose.yaml
+# https://github.com/ente-io/ente/blob/main/web/docs/docker.md
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: museum
+  namespace: ente
+spec:
+  selector:
+    app: museum
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ente-web
+  namespace: ente
+spec:
+  selector:
+    app: ente-web
+  ports:
+    - port: 3001 # Account
+      targetPort: 3001
+    - port: 3003 # Auth
+      targetPort: 3003
+  type: ClusterIP
+---

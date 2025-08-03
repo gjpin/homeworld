@@ -1,4 +1,10 @@
+# Apps
+| App | Domains | Description | Link | Notes |
+| --- | --- | --- | --- | --- |
+| Ente | 2fa.${BASE_DOMAIN} | 2FA authenticator | https://ente.io/auth/ | Only Auth is configured/enabled |
+
 # Domains
+* 2fa.${BASE_DOMAIN}
 * argocd.${BASE_DOMAIN}
 * grpc.argocd.${BASE_DOMAIN}
 * grafana.${BASE_DOMAIN}
@@ -8,7 +14,7 @@
 
 # Variables
 ```bash
-# argocd, grafana, immich, longhorn, nextcloud
+# argocd, grafana, immich, longhorn, nextcloud, ente
 export BASE_DOMAIN=domain.com
 
 # external-dns, cert-manager
@@ -33,6 +39,11 @@ export GRAFANA_PASSWORD=
 
 # gigapipe
 export GIGAPIPE_CLICKHOUSE_PASSWORD=
+
+# ente
+export ENTE_KEY_ENCRYPTION=$(openssl rand -base64 32)
+export ENTE_KEY_HASH=$(openssl rand -base64 64)
+export ENTE_JWT_SECRET=$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '=')
 ```
 
 # Helm repos
@@ -111,4 +122,4 @@ helm repo add inseefrlab https://inseefrlab.github.io/helm-charts
    * otel-collector
    * grafana
    * gigapipe
-   * ente-auth
+   * ente

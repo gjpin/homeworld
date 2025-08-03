@@ -1,0 +1,25 @@
+# https://help.ente.io/self-hosting/installation/config
+# https://github.com/ente-io/ente/blob/main/server/config/example.yaml
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ente-config
+  namespace: ente
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+data:
+  db:
+    host: # TODO postgres
+    port: # TODO 5432
+    name: # TODO ente_db
+    user: # TODO pguser
+    password: # TODO <password>
+  apps:
+    accounts: https://2fa.${BASE_DOMAIN}
+  key:
+    encryption: yvmG/RnzKrbCb9L3mgsmoxXr9H7i2Z4qlbT0mL3ln4w=
+    hash: KXYiG07wC7GIgvCSdg+WmyWdXDAn6XKYJtp/wkEU7x573+byBRAYtpTP0wwvi8i/4l37uicX1dVTUzwH3sLZyw==
+  jwt:
+    secret: i2DecQmfGreG6q1vBj5tCokhlN41gcfS2cjOs9Po-u8=
+---

@@ -1,0 +1,76 @@
+# https://github.com/ente-io/ente/blob/main/server/config/compose.yaml
+# https://github.com/ente-io/ente/blob/main/web/docs/docker.md
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: museum
+  namespace: ente
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: museum
+  template:
+    metadata:
+      labels:
+        app: museum
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: museum
+          image: museum:latest # TODO: Replace with actual image
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: museum-env
+          volumeMounts:
+            - name: config
+              mountPath: /museum.yaml
+              subPath: museum.yaml
+              readOnly: true
+            - name: data
+              mountPath: /data
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: museum-config
+            items:
+              - key: museum.yaml
+                path: museum.yaml
+        - name: data
+          persistentVolumeClaim:
+            claimName: museum-data
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ente-web
+  namespace: ente
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ente-web
+  template:
+    metadata:
+      labels:
+        app: ente-web
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: ente-web
+          image: ente-web:latest # TODO: Replace with actual image
+          ports:
+            - containerPort: 3001 # Account
+            - containerPort: 3003 # Auth
+          envFrom:
+            - configMapRef:
+                name: ente-web-env
+---

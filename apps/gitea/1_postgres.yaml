@@ -4,7 +4,7 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: gitea
+  name: gitea-pg
   namespace: gitea
   annotations:
     argocd.argoproj.io/sync-wave: "1"

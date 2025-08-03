@@ -1,0 +1,13 @@
+# https://github.com/ente-io/ente/blob/main/server/config/example.env
+# https://help.ente.io/self-hosting/installation/env-var
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ente-config
+  namespace: ente
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+data:
+  db:
+---

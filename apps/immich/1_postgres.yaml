@@ -6,7 +6,7 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: immich
+  name: immich-pg
   namespace: immich
   annotations:
     argocd.argoproj.io/sync-wave: "1"

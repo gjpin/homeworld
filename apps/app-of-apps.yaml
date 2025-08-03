@@ -513,7 +513,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ente-auth-app
+  name: ente-app
   namespace: argocd
   finalizers:
   - resources-finalizer.argocd.argoproj.io
@@ -523,11 +523,11 @@ spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/ente-auth"
+    path: "apps/ente"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
-    namespace: ente-auth
+    namespace: ente
   syncPolicy:
     automated:
       prune: true
