@@ -46,8 +46,8 @@ spec:
           pod:
             nodeSelector:
               node-role.kubernetes.io/homelab: homelab
-        hpa:
-          enabled: true
-          minReplicas: 1
-          maxReplicas: 5
+        # hpa:
+        #   enabled: true
+        #   minReplicas: 1
+        #   maxReplicas: 5
 ---

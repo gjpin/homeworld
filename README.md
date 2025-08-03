@@ -96,8 +96,8 @@ helm repo add inseefrlab https://inseefrlab.github.io/helm-charts
 * nodeselector
 * httproute + gateway listener (if applicable)
 * serviceMonitor
-* requests/limits
-* autoscaling (hpa)
+* (disabled for now) requests/limits
+* (disabled for now) autoscaling (hpa/keda)
 
 # ArgoCD
 * **Sync wave 1**

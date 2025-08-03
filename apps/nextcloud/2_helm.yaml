@@ -66,11 +66,11 @@ spec:
           accessMode: ReadWriteOnce
           size: 200Gi
 
-        hpa:
-          enabled: true
-          cputhreshold: 60
-          minPods: 1
-          maxPods: 5
+        # hpa:
+        #   enabled: true
+        #   cputhreshold: 60
+        #   minPods: 1
+        #   maxPods: 5
 
         metrics:
           serviceMonitor:

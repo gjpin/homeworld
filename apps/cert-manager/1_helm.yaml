@@ -1,5 +1,6 @@
 # https://artifacthub.io/packages/helm/cert-manager/cert-manager
 # https://cert-manager.io/docs/configuration/acme/dns01/cloudflare/
+# https://cert-manager.io/docs/devops-tips/scaling-cert-manager/
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -42,6 +43,10 @@ spec:
           apiVersion: controller.config.cert-manager.io/v1alpha1
           kind: ControllerConfiguration
           enableGatewayAPI: true
+          kubernetesAPIQPS: 10000
+          kubernetesAPIBurst: 10000
+          featureGates:
+            ServerSideApply: true
 
         # resources:
         #   requests:
