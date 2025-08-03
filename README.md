@@ -101,6 +101,7 @@ helm repo add inseefrlab https://inseefrlab.github.io/helm-charts
 
 # ArgoCD
 * **Sync wave 1**
+   * metrics-server
    * prometheus-operator-crd: CRDs required by service monitors
 * **Sync wave 2**
    * envoy-gateway: Gateway API and provides CRDs required by HTTP/GRPC routes
