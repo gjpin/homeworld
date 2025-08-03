@@ -20,9 +20,6 @@ export BASE_DOMAIN=domain.com
 # external-dns, cert-manager
 export CLOUDFLARE_API_TOKEN= # API token with DNS edit permissions for the zone
 
-# cert-manager
-export ACME_EMAIL=
-
 # external-dns
 export EXTERNAL_IP=10.0.0.1
 
@@ -44,6 +41,12 @@ export GIGAPIPE_CLICKHOUSE_PASSWORD=
 export ENTE_KEY_ENCRYPTION=$(openssl rand -base64 32)
 export ENTE_KEY_HASH=$(openssl rand -base64 64)
 export ENTE_JWT_SECRET=$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '=')
+```
+
+# Secrets
+* Create secrets in cluster:
+```bash
+envsubst < secrets.yaml | kubectl apply -f -
 ```
 
 # Helm repos
