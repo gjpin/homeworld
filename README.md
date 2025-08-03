@@ -20,6 +20,9 @@ export BASE_DOMAIN=domain.com
 # external-dns, cert-manager
 export CLOUDFLARE_API_TOKEN= # API token with DNS edit permissions for the zone
 
+# cert-manager
+export ACME_EMAIL=
+
 # external-dns
 export EXTERNAL_IP=10.0.0.1
 

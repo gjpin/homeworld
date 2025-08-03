@@ -6,10 +6,11 @@ kind: ClusterIssuer
 metadata:
   name: letsencrypt-prod
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "4"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   acme:
+    email: ${ACME_EMAIL}
     server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: letsencrypt-prod
@@ -26,10 +27,11 @@ kind: ClusterIssuer
 metadata:
   name: letsencrypt-staging
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "4"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   acme:
+    email: ${ACME_EMAIL}
     server: https://acme-staging-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: letsencrypt-staging
@@ -40,24 +42,24 @@ spec:
             name: cloudflare-api-token
             key: api-token
 ---
-# # Buypass
-# apiVersion: cert-manager.io/v1
-# kind: ClusterIssuer
-# metadata:
-#   name: buypass
-#   annotations:
-#     argocd.argoproj.io/sync-wave: "3"
-#     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-# spec:
-#   acme:
-#     email: ${ACME_EMAIL} # required for Buypass
-#     server: https://api.buypass.com/acme/directory
-#     privateKeySecretRef:
-#       name: buypass
-#     solvers:
-#     - dns01:
-#         cloudflare:
-#           apiTokenSecretRef:
-#             name: cloudflare-api-token
-#             key: api-token
-# ---
+# Buypass
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: buypass
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  acme:
+    email: ${ACME_EMAIL}
+    server: https://api.buypass.com/acme/directory
+    privateKeySecretRef:
+      name: buypass
+    solvers:
+    - dns01:
+        cloudflare:
+          apiTokenSecretRef:
+            name: cloudflare-api-token
+            key: api-token
+---
