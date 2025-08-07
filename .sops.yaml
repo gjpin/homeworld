@@ -1,0 +1,8 @@
+stores:
+  yaml:
+    indent: 2
+stores:
+  json:
+    indent: 2
+  json_binary:
+    indent: 2
