@@ -1,7 +1,10 @@
+creation_rules:
+  - encrypted_regex: '^(username|password)$'
+    age:
+      - age15sv0s96kufeqd5uuf8rd3znx4xjq0qkl9s02l9zzudvdu7mx34usnd7932
 stores:
   yaml:
     indent: 2
-stores:
   json:
     indent: 2
   json_binary:
