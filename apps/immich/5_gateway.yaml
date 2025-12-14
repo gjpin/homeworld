@@ -30,4 +30,3 @@ spec:
         certificateRefs:
           - name: immich-tls-cert
             kind: Secret
----

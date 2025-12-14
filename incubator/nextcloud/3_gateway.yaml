@@ -30,4 +30,3 @@ spec:
         certificateRefs:
           - name: nextcloud-tls-cert
             kind: Secret
----

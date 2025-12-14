@@ -27,4 +27,3 @@ spec:
   - hosts:
     - traefik.${BASE_DOMAIN}
     secretName: traefik-ingress-tls
----

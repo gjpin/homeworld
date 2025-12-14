@@ -79,4 +79,3 @@ spec:
     backendRefs:
     - name: nextcloud
       port: 8080
----

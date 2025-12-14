@@ -31,4 +31,3 @@ spec:
     helm:
       releaseName: s3-operator
       valuesObject:
----

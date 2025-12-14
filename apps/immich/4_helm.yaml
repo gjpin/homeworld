@@ -52,4 +52,3 @@ spec:
         env:
           REDIS_HOSTNAME: dragonfly.svc.cluster.local:6379 # TODO: check value
           DB_HOSTNAME: # TODO: check vlaue
----

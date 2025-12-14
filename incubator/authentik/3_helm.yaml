@@ -1,0 +1,79 @@
+# https://artifacthub.io/packages/helm/goauthentik/authentik
+# https://github.com/goauthentik/helm
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: authentik
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: authentik
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+  source:
+    chart: authentik
+    repoURL: https://charts.goauthentik.io/
+    targetRevision: 2025.10.2
+    helm:
+      releaseName: authentik
+      valuesObject:
+        global:
+          fullnameOverride: authentik
+          namespaceOverride: authentik
+          nodeSelector:
+            node-role.kubernetes.io/homelab: homelab
+            
+        authentik:
+          secret_key: "PleaseGenerateA50CharKey"
+          postgresql:
+            host: # TODO
+            name: # TODO
+            user: file:///postgres-creds/username
+            password: file:///postgres-creds/password
+            port: 5432
+          redis:
+            host: # TODO
+            password: # TODO
+          error_reporting:
+            enabled: false
+
+        server:
+          ingress:
+            enabled: false
+          volumes:
+            - name: postgres-creds
+              secret:
+                secretName: postgres-credentials
+          volumeMounts:
+            - name: postgres-creds
+              mountPath: /postgres-creds
+              readOnly: true
+
+        worker:
+          volumes:
+            - name: postgres-creds
+              secret:
+                secretName: postgres-credentials
+          volumeMounts:
+            - name: postgres-creds
+              mountPath: /postgres-creds
+              readOnly: true
+
+        # Ensure dependencies are disabled
+        postgresql:
+          enabled: false
+        redis:
+          enabled: false

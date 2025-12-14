@@ -42,4 +42,3 @@ spec:
         certificateRefs:
           - name: argocd-grpc-tls-cert
             kind: Secret
----

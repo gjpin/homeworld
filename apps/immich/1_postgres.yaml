@@ -1,3 +1,4 @@
+# https://github.com/tensorchord/cloudnative-vectorchord/pkgs/container/cloudnative-vectorchord
 # https://github.com/tensorchord/cloudnative-vectorchord/tree/main
 # https://github.com/tensorchord/cloudnative-vectorchord/pkgs/container/cloudnative-vectorchord
 # https://cloudnative-pg.io/documentation/current/samples/
@@ -12,7 +13,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "1"
 spec:
   instances: 1
-  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:17.5-0.4.3
+  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:18.1-1.0.0
   storage:
     storageClass: longhorn-crypto
     size: 5Gi
@@ -20,4 +21,3 @@ spec:
     initdb:
       postInitSQL:
         - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
----

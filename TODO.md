@@ -40,3 +40,17 @@ network policies:
 pod security policies:
 - prevent deployment in other namespaces
 - prevent host network and privileged pods
+
+---------
+
+# renovatebot
+things to update:
+
+## postgres
+spec:
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
+
+## helm versions
+spec:
+  source:
+    targetRevision: 2025.10.2

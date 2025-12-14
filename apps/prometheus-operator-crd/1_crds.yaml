@@ -25,4 +25,3 @@ spec:
     repoURL: https://github.com/prometheus-operator/prometheus-operator.git
     targetRevision: v0.87.1
     path: example/prometheus-operator-crd
----

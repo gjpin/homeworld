@@ -31,4 +31,3 @@ spec:
         certificateRefs:
           - name: longhorn-tls-cert
             kind: Secret
----

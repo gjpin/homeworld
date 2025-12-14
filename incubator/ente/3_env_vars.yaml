@@ -10,4 +10,3 @@ metadata:
     argocd.argoproj.io/sync-wave: "3"
 data:
   db:
----

@@ -34,4 +34,3 @@ spec:
           receivers: [jaeger]
           processors: []
           exporters: [debug]
----

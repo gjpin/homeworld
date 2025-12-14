@@ -40,4 +40,3 @@ spec:
             - name: FASTIFY_METRICS
               value: true
       restartPolicy: Always
----

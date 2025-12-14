@@ -22,4 +22,3 @@ data:
     hash: ${ENTE_KEY_HASH}
   jwt:
     secret: ${ENTE_JWT_SECRET}
----

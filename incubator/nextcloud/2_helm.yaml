@@ -82,4 +82,3 @@ spec:
 
         nodeSelector:
           node-role.kubernetes.io/homelab: homelab
----

@@ -19,4 +19,3 @@ spec:
         namespace: immich
         kind: Service
         port: 80
----

@@ -29,4 +29,3 @@ spec:
     - port: 3003 # Auth
       targetPort: 3003
   type: ClusterIP
----

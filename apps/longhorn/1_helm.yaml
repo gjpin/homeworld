@@ -44,4 +44,3 @@ spec:
         global:
           nodeSelector:
             node-role.kubernetes.io/homelab: homelab
----
