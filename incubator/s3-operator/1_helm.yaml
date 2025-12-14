@@ -1,3 +1,4 @@
+# https://github.com/InseeFrLab/s3-operator/releases
 # https://github.com/InseeFrLab/s3-operator
 # https://github.com/InseeFrLab/helm-charts/tree/master/charts/s3-operator
 ---
@@ -25,10 +26,9 @@ spec:
     - PruneLast=true
   source:
     chart: s3-operator
-    repoURL: https://inseefrlab.github.io/helm-charts
-    targetRevision: 0.6.0 # helm search repo inseefrlab/s3-operator --versions
+    repoURL: https://inseefrlab.github.io/s3-operator
+    targetRevision: 0.9.0
     helm:
       releaseName: s3-operator
       valuesObject:
-        
 ---

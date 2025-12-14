@@ -73,7 +73,7 @@ helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
 helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
 
 # s3 operator
-helm repo add inseefrlab https://inseefrlab.github.io/helm-charts
+helm repo add inseefrlab-s3operator https://inseefrlab.github.io/s3-operator
 ```
 
 # New component checklist
