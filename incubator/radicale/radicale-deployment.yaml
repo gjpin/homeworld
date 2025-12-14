@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f /Users/zero/src/homelab/homelab/applications/radicale/docker-compose.yaml
+    kompose.version: 1.37.0 (HEAD)
+  labels:
+    io.kompose.service: radicale
+  name: radicale
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: radicale
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f /Users/zero/src/homelab/homelab/applications/radicale/docker-compose.yaml
+        kompose.version: 1.37.0 (HEAD)
+      labels:
+        io.kompose.service: radicale
+    spec:
+      containers:
+        - image: radicale
+          name: radicale
+          volumeMounts:
+            - mountPath: /etc/radicale/users
+              name: radicale-claim0
+            - mountPath: /etc/radicale/config
+              name: radicale-claim1
+            - mountPath: /var/lib/radicale/collections
+              name: radicale-claim2
+      restartPolicy: Always
+      volumes:
+        - name: radicale-claim0
+          persistentVolumeClaim:
+            claimName: radicale-claim0
+        - name: radicale-claim1
+          persistentVolumeClaim:
+            claimName: radicale-claim1
+        - name: radicale-claim2
+          persistentVolumeClaim:
+            claimName: radicale-claim2

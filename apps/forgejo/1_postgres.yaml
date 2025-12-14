@@ -4,8 +4,8 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: gitea-pg
-  namespace: gitea
+  name: forgejo-pg
+  namespace: forgejo
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:

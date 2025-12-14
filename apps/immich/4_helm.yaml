@@ -1,5 +1,5 @@
-# https://github.com/immich-app/immich-charts
 # https://artifacthub.io/packages/helm/immich/immich
+# https://github.com/immich-app/immich-charts
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -26,7 +26,7 @@ spec:
   source:
     chart: immich
     repoURL: ghcr.io/immich-app/immich-charts
-    targetRevision: 0.9.3
+    targetRevision: 0.10.3
     helm:
       releaseName: immich
       valuesObject:

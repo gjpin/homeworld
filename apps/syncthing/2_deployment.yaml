@@ -1,0 +1,40 @@
+# https://hub.docker.com/r/syncthing/syncthing/tags
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: syncthing
+  namespace: syncthing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: syncthing
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: syncthing
+    spec:
+      containers:
+        - name: syncthing
+          image: docker.io/syncthing/syncthing:2.0.12
+          env:
+            - name: PGID
+              value: "1000"
+            - name: PUID
+              value: "1000"
+          ports:
+            - containerPort: 22000
+              protocol: TCP
+            - containerPort: 22000
+              protocol: UDP
+          volumeMounts:
+            - mountPath: /var/syncthing
+              name: syncthing-data
+      restartPolicy: Always
+      volumes:
+        - name: syncthing-data
+          persistentVolumeClaim:
+            claimName: syncthing-data

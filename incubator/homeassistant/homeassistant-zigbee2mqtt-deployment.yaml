@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f /Users/zero/src/homelab/homelab/applications/homeassistant/docker-compose.yaml
+    kompose.version: 1.37.0 (HEAD)
+  labels:
+    io.kompose.service: homeassistant-zigbee2mqtt
+  name: homeassistant-zigbee2mqtt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: homeassistant-zigbee2mqtt
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f /Users/zero/src/homelab/homelab/applications/homeassistant/docker-compose.yaml
+        kompose.version: 1.37.0 (HEAD)
+      labels:
+        io.kompose.service: homeassistant-zigbee2mqtt
+    spec:
+      containers:
+        - image: ghcr.io/koenkk/zigbee2mqtt:2.5.1
+          name: homeassistant-zigbee2mqtt
+          volumeMounts:
+            - mountPath: /app/data
+              name: homeassistant-zigbee2mqtt-claim0
+            - mountPath: /run/udev
+              name: homeassistant-zigbee2mqtt-claim1
+              readOnly: true
+            - mountPath: /etc/localtime
+              name: homeassistant-zigbee2mqtt-cm2
+              readOnly: true
+              subPath: localtime
+      restartPolicy: Always
+      volumes:
+        - name: homeassistant-zigbee2mqtt-claim0
+          persistentVolumeClaim:
+            claimName: homeassistant-zigbee2mqtt-claim0
+        - name: homeassistant-zigbee2mqtt-claim1
+          persistentVolumeClaim:
+            claimName: homeassistant-zigbee2mqtt-claim1
+            readOnly: true
+        - configMap:
+            items:
+              - key: localtime
+                path: localtime
+            name: homeassistant-zigbee2mqtt-cm2
+          name: homeassistant-zigbee2mqtt-cm2

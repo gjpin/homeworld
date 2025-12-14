@@ -1,5 +1,5 @@
-# https://github.com/Altinity/clickhouse-operator/tree/master/deploy/helm/clickhouse-operator
 # https://artifacthub.io/packages/helm/altinity-clickhouse-operator/altinity-clickhouse-operator
+# https://github.com/Altinity/clickhouse-operator/tree/master/deploy/helm/clickhouse-operator
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -26,7 +26,7 @@ spec:
   source:
     chart: altinity-clickhouse-operator
     repoURL: https://docs.altinity.com/clickhouse-operator
-    targetRevision: 0.25.2
+    targetRevision: 0.25.6
     helm:
       releaseName: clickhouse-operator
       valuesObject:

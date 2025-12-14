@@ -1,20 +1,17 @@
 # Apps
 | App | Domains | Description | Link | Notes |
 | --- | --- | --- | --- | --- |
-| Ente | 2fa.${BASE_DOMAIN} | 2FA authenticator | https://ente.io/auth/ | Only Auth is configured/enabled |
 
 # Domains
-* 2fa.${BASE_DOMAIN}
 * argocd.${BASE_DOMAIN}
 * grpc.argocd.${BASE_DOMAIN}
 * grafana.${BASE_DOMAIN}
 * immich.${BASE_DOMAIN}
 * longhorn.${BASE_DOMAIN}
-* nextcloud.${BASE_DOMAIN}
 
 # Variables
 ```bash
-# argocd, grafana, immich, longhorn, nextcloud, ente
+# argocd, grafana, immich, longhorn
 export BASE_DOMAIN=domain.com
 
 # external-dns, cert-manager
@@ -29,21 +26,12 @@ export EXTERNAL_IP=10.0.0.1
 # longhorn
 export LONGHORN_ENCRYPTION_PASSPHRASE=
 
-# nextcloud
-export NEXTCLOUD_USERNAME=
-export NEXTCLOUD_PASSWORD=
-
 # grafana
 export GRAFANA_USERNAME=
 export GRAFANA_PASSWORD=
 
 # gigapipe
 export GIGAPIPE_CLICKHOUSE_PASSWORD=
-
-# ente
-export ENTE_KEY_ENCRYPTION=$(openssl rand -base64 32)
-export ENTE_KEY_HASH=$(openssl rand -base64 64)
-export ENTE_JWT_SECRET=$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '=')
 ```
 
 # Secrets
@@ -69,9 +57,6 @@ helm repo add cloudnative-pg https://cloudnative-pg.io/charts
 # external-dns
 helm repo add external-dns https://kubernetes-sigs.github.io/external-dns/
 
-# gitea
-helm repo add gitea https://dl.gitea.com/charts/
-
 # grafana
 helm repo add grafana https://grafana.github.io/helm-charts
 
@@ -83,12 +68,6 @@ helm repo add longhorn https://charts.longhorn.io
 
 # metrics-server
 helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
-
-# minio-operator
-helm repo add minio-operator https://operator.min.io
-
-# nextcloud
-helm repo add nextcloud https://nextcloud.github.io/helm
 
 # otel-collector
 helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
@@ -118,17 +97,15 @@ helm repo add inseefrlab https://inseefrlab.github.io/helm-charts
    * argocd
    * cloudnative-pg: postgresql operator
    * dragonfly-operator: dragonfly (redis-compatible) operator
-   * minio-operator: s3-compatible storage operator
+   * TBD (rustfs / garage): s3-compatible storage operator
    * clickhouse-operator
 * **Sync wave 5**
    * s3-operator: minio bucket/policies operator
 * **Sync wave 6**
-   * nextcloud
    * immich
    * otel-collector
    * grafana
    * gigapipe
-   * ente
 
 # Testing
 * Add 'homelab' role to all nodes:

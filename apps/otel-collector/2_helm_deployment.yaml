@@ -1,5 +1,5 @@
-# https://opentelemetry.io/docs/platforms/kubernetes/getting-started/#deployment-collector
 # https://artifacthub.io/packages/helm/opentelemetry-helm/opentelemetry-collector
+# https://opentelemetry.io/docs/platforms/kubernetes/getting-started/#deployment-collector
 # https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-collector
 ---
 apiVersion: argoproj.io/v1alpha1
@@ -27,7 +27,7 @@ spec:
   source:
     chart: opentelemetry-collector
     repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
-    targetRevision: 0.129.0
+    targetRevision: 0.141.1
     helm:
       releaseName: otel-collector-deployment
       valuesObject:

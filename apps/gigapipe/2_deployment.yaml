@@ -1,3 +1,4 @@
+# https://github.com/metrico/gigapipe/pkgs/container/gigapipe
 # https://github.com/gigapipehq/gigapipe-oss-demo/blob/main/docker-compose-base.yml
 ---
 apiVersion: apps/v1
@@ -20,7 +21,7 @@ spec:
         node-role.kubernetes.io/homelab: homelab
       containers:
         - name: gigapipe
-          image: ghcr.io/metrico/gigapipe:v4.0.17
+          image: ghcr.io/metrico/gigapipe:v4.1.1
           ports:
             - containerPort: 3100
           env:

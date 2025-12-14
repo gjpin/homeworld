@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f /Users/zero/src/homelab/homelab/applications/homeassistant/docker-compose.yaml
+    kompose.version: 1.37.0 (HEAD)
+  labels:
+    io.kompose.service: homeassistant-mosquitto
+  name: homeassistant-mosquitto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: homeassistant-mosquitto
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f /Users/zero/src/homelab/homelab/applications/homeassistant/docker-compose.yaml
+        kompose.version: 1.37.0 (HEAD)
+      labels:
+        io.kompose.service: homeassistant-mosquitto
+    spec:
+      containers:
+        - image: docker.io/library/eclipse-mosquitto:2.0.21
+          name: homeassistant-mosquitto
+          volumeMounts:
+            - mountPath: /mosquitto/config
+              name: homeassistant-mosquitto-claim0
+            - mountPath: /mosquitto/data
+              name: homeassistant-mosquitto-claim1
+            - mountPath: /mosquitto/log
+              name: homeassistant-mosquitto-claim2
+            - mountPath: /etc/localtime
+              name: homeassistant-mosquitto-cm3
+              readOnly: true
+              subPath: localtime
+      restartPolicy: Always
+      volumes:
+        - name: homeassistant-mosquitto-claim0
+          persistentVolumeClaim:
+            claimName: homeassistant-mosquitto-claim0
+        - name: homeassistant-mosquitto-claim1
+          persistentVolumeClaim:
+            claimName: homeassistant-mosquitto-claim1
+        - name: homeassistant-mosquitto-claim2
+          persistentVolumeClaim:
+            claimName: homeassistant-mosquitto-claim2
+        - configMap:
+            items:
+              - key: localtime
+                path: localtime
+            name: homeassistant-mosquitto-cm3
+          name: homeassistant-mosquitto-cm3

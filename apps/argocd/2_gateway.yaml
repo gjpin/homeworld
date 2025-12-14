@@ -13,7 +13,7 @@ metadata:
     kubernetes.io/tls-acme: "true"
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  gatewayClassName: envoy-gateway
+  gatewayClassName: envoy-merged
   addresses:
     - type: IPAddress
       value: ${EXTERNAL_IP}

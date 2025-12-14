@@ -27,7 +27,7 @@ spec:
   source:
     chart: dragonfly-operator
     repoURL: ghcr.io/dragonflydb/dragonfly-operator/helm
-    targetRevision: v1.1.11
+    targetRevision: v1.3.1
     helm:
       releaseName: dragonfly-operator
       valuesObject:

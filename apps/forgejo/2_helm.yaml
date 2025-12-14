@@ -1,11 +1,11 @@
-# https://artifacthub.io/packages/helm/gitea/gitea
-# https://gitea.com/gitea/helm-gitea
-# https://docs.gitea.com/administration/config-cheat-sheet
+# https://artifacthub.io/packages/helm/forgejo-helm/forgejo
+# https://code.forgejo.org/forgejo-helm/forgejo-helm
+# https://forgejo.org/docs/latest/admin/config-cheat-sheet/
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: gitea
+  name: forgejo
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "1"
@@ -13,7 +13,7 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: gitea
+    namespace: forgejo
   syncPolicy:
     automated:
       prune: true
@@ -25,13 +25,13 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
   source:
-    chart: gitea
-    repoURL: https://dl.gitea.com/charts
-    targetRevision: 12.1.2
+    chart: forgejo
+    repoURL: oci://code.forgejo.org/forgejo-helm/forgejo
+    targetRevision: 15.0.3
     helm:
-      releaseName: gitea
+      releaseName: forgejo
       valuesObject:
-        namespace: gitea
+        namespace: forgejo
 
         # Disable inbuilt postgres
         postgresql-ha:
@@ -44,9 +44,9 @@ spec:
             database:
               DB_TYPE: postgres
               HOST: # TODO: RELEASE-NAME-postgresql.default.svc.cluster.local:5432
-              NAME: # TODO: gitea
-              PASSWD: # TODO: gitea
-              USER: # TODO: gitea
+              NAME: # TODO: forgejo
+              PASSWD: # TODO: forgejo
+              USER: # TODO: forgejo
           metrics:
             serviceMonitor:
               enabled: true

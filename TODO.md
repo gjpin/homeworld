@@ -31,3 +31,12 @@ collabora online (nextcloud integration)
 https://artifacthub.io/packages/helm/collabora-online/collabora-online
 
 https://affine.pro/
+
+-------
+
+network policies:
+- allow egress only inside the cluster (coredns and communication with other pods)
+
+pod security policies:
+- prevent deployment in other namespaces
+- prevent host network and privileged pods

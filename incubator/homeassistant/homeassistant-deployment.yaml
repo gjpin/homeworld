@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f /Users/zero/src/homelab/homelab/applications/homeassistant/docker-compose.yaml
+    kompose.version: 1.37.0 (HEAD)
+  labels:
+    io.kompose.service: homeassistant
+  name: homeassistant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: homeassistant
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f /Users/zero/src/homelab/homelab/applications/homeassistant/docker-compose.yaml
+        kompose.version: 1.37.0 (HEAD)
+      labels:
+        io.kompose.service: homeassistant
+    spec:
+      containers:
+        - image: ghcr.io/home-assistant/home-assistant:2025.7.0
+          name: homeassistant
+          volumeMounts:
+            - mountPath: /config
+              name: homeassistant-claim0
+            - mountPath: /etc/localtime
+              name: homeassistant-cm1
+              readOnly: true
+              subPath: localtime
+            - mountPath: /run/dbus
+              name: homeassistant-claim2
+              readOnly: true
+      restartPolicy: Always
+      volumes:
+        - name: homeassistant-claim0
+          persistentVolumeClaim:
+            claimName: homeassistant-claim0
+        - configMap:
+            items:
+              - key: localtime
+                path: localtime
+            name: homeassistant-cm1
+          name: homeassistant-cm1
+        - name: homeassistant-claim2
+          persistentVolumeClaim:
+            claimName: homeassistant-claim2
+            readOnly: true

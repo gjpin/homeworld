@@ -209,36 +209,6 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
-# minio-operator
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: minio-operator-app
-  namespace: argocd
-  finalizers:
-  - resources-finalizer.argocd.argoproj.io
-  annotations:
-    argocd.argoproj.io/sync-wave: "4"
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/minio-operator"
-    targetRevision: HEAD
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: minio-operator
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-      allowEmpty: false
-    syncOptions:
-    - Validate=true
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
----
 # dragonfly-operator
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -329,36 +299,6 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
-# nextcloud
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: nextcloud-app
-  namespace: argocd
-  finalizers:
-  - resources-finalizer.argocd.argoproj.io
-  annotations:
-    argocd.argoproj.io/sync-wave: "6"
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/nextcloud"
-    targetRevision: HEAD
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: nextcloud
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-      allowEmpty: false
-    syncOptions:
-    - Validate=true
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
----
 # immich
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -419,11 +359,11 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
-# gitea
+# forgejo
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: gitea-app
+  name: forgejo-app
   namespace: argocd
   finalizers:
   - resources-finalizer.argocd.argoproj.io
@@ -433,11 +373,11 @@ spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/gitea"
+    path: "apps/forgejo"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
-    namespace: gitea
+    namespace: forgejo
   syncPolicy:
     automated:
       prune: true
@@ -498,36 +438,6 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: gigapipe
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-      allowEmpty: false
-    syncOptions:
-    - Validate=true
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
----
-# ente
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: ente-app
-  namespace: argocd
-  finalizers:
-  - resources-finalizer.argocd.argoproj.io
-  annotations:
-    argocd.argoproj.io/sync-wave: "6"
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/ente"
-    targetRevision: HEAD
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: ente
   syncPolicy:
     automated:
       prune: true
