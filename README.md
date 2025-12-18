@@ -106,6 +106,7 @@ helm repo add inseefrlab-s3operator https://inseefrlab.github.io/s3-operator
    * otel-collector
    * grafana
    * gigapipe
+   * forgejo
 
 # Testing
 * Add 'homelab' role to all nodes:

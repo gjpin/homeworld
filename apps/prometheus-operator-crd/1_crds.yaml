@@ -1,3 +1,4 @@
+# https://github.com/prometheus-operator/prometheus-operator/releases
 # https://github.com/prometheus-operator/prometheus-operator/tree/main/example/prometheus-operator-crd
 ---
 apiVersion: argoproj.io/v1alpha1
