@@ -7,8 +7,6 @@ kind: Application
 metadata:
   name: dragonfly-operator
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:
@@ -35,14 +33,6 @@ spec:
         
         additionalLabels:
           app: dragonfly-operator
-
-        # resources:
-        #   requests:
-        #     cpu: 10m
-        #     memory: 64Mi
-        #   limits:
-        #     cpu: 500m
-        #     memory: 128Mi
 
         serviceMonitor:
           enabled: true

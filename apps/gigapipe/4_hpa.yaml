@@ -4,8 +4,6 @@
 # metadata:
 #   name: gigapipe
 #   namespace: gigapipe
-#   annotations:
-#     argocd.argoproj.io/sync-wave: "4"
 # spec:
 #   scaleTargetRef:
 #     apiVersion: apps/v1

@@ -7,26 +7,25 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: envoy
-  namespace: grafana
+  namespace: radicale
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     kubernetes.io/tls-acme: "true"
-    argocd.argoproj.io/sync-wave: "3"
 spec:
   gatewayClassName: envoy-merged
   addresses:
     - type: IPAddress
       value: ${EXTERNAL_IP}
   listeners:
-    - name: grafana-https
+    - name: radicale-https
       protocol: HTTPS
       port: 443
-      hostname: "grafana.${BASE_DOMAIN}"
+      hostname: "contacts.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
           from: all
       tls:
         mode: Terminate
         certificateRefs:
-          - name: grafana-tls-cert
+          - name: radicale-tls-cert
             kind: Secret

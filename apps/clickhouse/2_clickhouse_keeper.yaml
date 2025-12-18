@@ -1,0 +1,91 @@
+# https://github.com/Altinity/helm-charts/blob/main/charts/clickhouse/templates/chk.yaml
+---
+apiVersion: "clickhouse-keeper.altinity.com/v1"
+kind: "ClickHouseKeeperInstallation"
+metadata:
+  name: clickhouse
+  labels:
+    app.kubernetes.io/name: clickhouse
+    app.kubernetes.io/instance: clickhouse
+spec:
+  configuration:
+    clusters:
+      - name: "clickhouse"
+        layout:
+          replicas:
+            - name: "keeper-0"
+              templates:
+                podTemplate: "keeper-0"
+                dataVolumeClaimTemplate: "keeper-0"
+                replicaServiceTemplate: "keeper-0"
+    settings:
+      prometheus/asynchronous_metrics: true
+      prometheus/endpoint: /metrics
+      prometheus/events: true
+      prometheus/metrics: true
+      prometheus/port: 7000
+      prometheus/status_info: true
+  defaults:
+    storageManagement:
+      provisioner: Operator
+      reclaimPolicy: Retain
+  templates:
+    serviceTemplates:
+      - name: "keeper-0"
+        generateName: "keeper-clickhouse-0"
+        spec:
+          type: ClusterIP
+          publishNotReadyAddresses: true
+          ports:
+            - name: zk
+              port: 2181
+              targetPort: 2181
+            - name: raft
+              port: 9444
+              targetPort: 9444
+            - name: metrics
+              port: 7000
+              targetPort: 7000
+    volumeClaimTemplates:
+      - name: "keeper-0"
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+          storageClassName: "longhorn-crypto"
+    podTemplates:
+      - name: "keeper-0"
+        generateName: "keeper-clickhouse-0"
+        metadata:
+          annotations:
+            prometheus.io/port: "7000"
+            prometheus.io/scrape: "true"
+        spec:
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: node-role.kubernetes.io/homelab
+                        operator: In
+                        values:
+                          - homelab
+          topologySpreadConstraints:
+          - maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: DoNotSchedule
+            labelSelector:
+              matchLabels:
+                clickhouse-keeper.altinity.com/cluster: "clickhouse"
+          containers:
+            - name: clickhouse-keeper
+              image: "altinity/clickhouse-keeper:25.3.8.10041.altinitystable" # https://hub.docker.com/r/altinity/clickhouse-server/tags?page=1&name=altinitystable
+              ports:
+              - name: metrics
+                containerPort: 7000
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 128Mi

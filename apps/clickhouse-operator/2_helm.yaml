@@ -6,8 +6,6 @@ kind: Application
 metadata:
   name: clickhouse-operator
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:
@@ -26,12 +24,18 @@ spec:
   source:
     chart: altinity-clickhouse-operator
     repoURL: https://docs.altinity.com/clickhouse-operator
-    targetRevision: 0.25.6
+    targetRevision: 0.25.5
     helm:
       releaseName: clickhouse-operator
       valuesObject:
         fullnameOverride: clickhouse-operator
         namespaceOverride: clickhouse-operator
+
+        secret:
+          create: false
+
+        metrics:
+          enabled: true
 
         serviceMonitor:
           enabled: true
@@ -40,6 +44,9 @@ spec:
           operatorMetrics:
             interval: 60s
 
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab
+
         # resources:
         #   requests:
         #     cpu: 100m
@@ -47,6 +54,3 @@ spec:
         #   limits:
         #     cpu: 200m
         #     memory: 256Mi
-
-        nodeSelector:
-          node-role.kubernetes.io/homelab: homelab

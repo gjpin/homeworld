@@ -1,0 +1,60 @@
+# https://artifacthub.io/packages/helm/valkey/valkey
+# https://github.com/valkey-io/valkey-helm
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: valkey
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: valkey
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+  source:
+    chart: valkey
+    repoURL: https://valkey.io/valkey-helm
+    targetRevision: 0.8.1
+    helm:
+      releaseName: valkey
+      valuesObject:
+        fullnameOverride: valkey
+        
+        replicaCount: 1
+
+        podLabels:
+          app: valkey
+
+        dataStorage:
+          enabled: true
+          persistentVolumeClaimName: valkey
+
+        auth:
+          enabled: true
+          usersExistingSecret: "valkey"
+          aclUsers:
+            admin:
+              permissions: "~* &* +@all"
+              # Password will be read from secret key "admin"
+            readonly:
+              permissions: "~* -@all +@read +ping +info"
+              passwordKey: "read"  # Password will be read from secret key "read"
+
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: true
+            interval: 60s
+
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab

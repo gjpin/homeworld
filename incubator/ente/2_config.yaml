@@ -6,8 +6,6 @@ kind: ConfigMap
 metadata:
   name: ente-config
   namespace: ente
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
 data:
   db:
     host: # TODO postgres

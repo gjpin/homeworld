@@ -1,0 +1,38 @@
+# https://hub.docker.com/r/radicale/radicale/tags
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: radicale
+  namespace: radicale
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: radicale
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: radicale
+    spec:
+      containers:
+        - name: radicale
+          image: docker.io/grepular/radicale:3.5.9
+          env:
+            - name: PGID
+              value: "1000"
+            - name: PUID
+              value: "1000"
+          ports:
+            - containerPort: 5232
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/radicale
+              name: radicale
+      restartPolicy: Always
+      volumes:
+        - name: radicale
+          persistentVolumeClaim:
+            claimName: radicale

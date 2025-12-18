@@ -7,8 +7,6 @@ kind: Application
 metadata:
   name: otel-collector-main
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "3"
 spec:
   project: default
   destination:
@@ -27,7 +25,7 @@ spec:
   source:
     chart: opentelemetry-collector
     repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
-    targetRevision: 0.129.0
+    targetRevision: 0.141.1
     helm:
       releaseName: otel-collector-main
       valuesObject:
@@ -37,7 +35,7 @@ spec:
         mode: deployment
         
         image:
-          repository: docker.io/library/otel/opentelemetry-collector-contrib
+          repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib
 
         # resources:
         #   requests:

@@ -7,6 +7,15 @@
   - https://docs.renovatebot.com/security-and-permissions/#global-permissions
 - confirm if otel-collector-main (3_helm_main.yaml) is required or has duplicated config from other collectors
 - argocd default username/password
+- feed username/password to all PG databases (like ferret/clickstack) 
+
+-------------------
+
+https://github.com/hyperdxio/helm-charts/tree/main/charts/clickstack
+https://clickhouse.com/docs/use-cases/observability/clickstack/deployment/helm
+
+https://blog.ferretdb.io/run-ferretdb-cloudnativepg-kubernetes/
+https://blog.ferretdb.io/full-stack-observability-hyperdx-ferretdb/
 
 ------------------------------------
 
@@ -54,3 +63,15 @@ spec:
 spec:
   source:
     targetRevision: 2025.10.2
+
+## immich version
+spec:
+  source:
+    helm:
+      valuesObject:
+        controllers:
+          main:
+            containers:
+              main:
+                image:
+                  tag

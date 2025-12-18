@@ -6,7 +6,5 @@ kind: ConfigMap
 metadata:
   name: ente-config
   namespace: ente
-  annotations:
-    argocd.argoproj.io/sync-wave: "3"
 data:
-  db:
+  db: # TODO

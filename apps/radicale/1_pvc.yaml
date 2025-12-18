@@ -2,14 +2,12 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: photos
-  namespace: immich
-  annotations:
-    argocd.argoproj.io/sync-wave: "3"
+  name: radicale
+  namespace: radicale
 spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: longhorn-crypto
   resources:
     requests:
-      storage: 200Gi
+      storage: 50Gi

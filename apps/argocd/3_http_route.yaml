@@ -6,7 +6,6 @@ metadata:
   namespace: argocd
   annotations:
     external-dns.alpha.kubernetes.io/hostname: "argocd.${BASE_DOMAIN}"
-    argocd.argoproj.io/sync-wave: "3"
 spec:
   parentRefs:
     - name: envoy

@@ -5,8 +5,6 @@ kind: Application
 metadata:
   name: cloudnative-pg
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:
@@ -24,7 +22,7 @@ spec:
     - PruneLast=true
   source:
     chart: cloudnative-pg
-    repoURL: https://cloudnative-pg.io/charts
+    repoURL: https://cloudnative-pg.github.io/charts
     targetRevision: 0.27.0
     helm:
       releaseName: cloudnative-pg

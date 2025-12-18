@@ -1,3 +1,4 @@
+# https://www.dragonflydb.io/docs/managing-dragonfly/operator/dragonfly-configuration
 # https://www.dragonflydb.io/docs/managing-dragonfly/operator/installation
 ---
 apiVersion: dragonflydb.io/v1alpha1
@@ -8,14 +9,18 @@ metadata:
     app.kubernetes.io/created-by: dragonfly-operator
   name: dragonfly
   namespace: immich
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
 spec:
   replicas: 1
   resources:
     requests:
-      cpu: 500m
-      memory: 200Mi
+      cpu: 100m
+      memory: 50Mi
     limits:
-      cpu: 600m
-      memory: 400Mi
+      cpu: 500m
+      memory: 2000Mi
+  authentication:
+    passwordFromSecret:
+      name: dragonfly
+      key: password
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab

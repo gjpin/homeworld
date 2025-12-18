@@ -1,0 +1,146 @@
+# https://github.com/Altinity/helm-charts/blob/main/charts/clickhouse/templates/chi.yaml
+---
+apiVersion: "clickhouse.altinity.com/v1"
+kind: ClickHouseInstallation
+metadata:
+  name: clickhouse
+  labels:
+    app.kubernetes.io/name: clickhouse
+    app.kubernetes.io/instance: clickhouse
+spec:
+  defaults:
+    templates:
+      serviceTemplate: clickhouse-service
+      podTemplate: clickhouse-pod
+      dataVolumeClaimTemplate: clickhouse-data
+  templates:
+    podTemplates:
+      - name: clickhouse-pod
+        metadata:
+          labels:
+            app.kubernetes.io/name: clickhouse
+            app.kubernetes.io/instance: clickhouse
+        podDistribution:
+          []
+        spec:
+          securityContext:
+            {}
+          containers:
+            - name: clickhouse
+              securityContext:
+                {}
+              image: "altinity/clickhouse-server:25.3.8.10041.altinitystable" # https://hub.docker.com/r/altinity/clickhouse-server/tags?page=1&name=altinitystable
+              imagePullPolicy: IfNotPresent
+              ports:
+                - name: http
+                  containerPort: 8123
+                - name: client
+                  containerPort: 9000
+                - name: interserver
+                  containerPort: 9009
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 128Mi
+          nodeSelector:
+            node-role.kubernetes.io/homelab: homelab
+    serviceTemplates:
+      - name: "clickhouse-service"
+        metadata:
+          labels:
+            app.kubernetes.io/name: clickhouse
+            app.kubernetes.io/instance: clickhouse
+        spec:
+          type: ClusterIP
+          ports:
+            - name: http
+              port: 8123
+              targetPort: 8123
+            - name: tcp
+              port: 9000
+              targetPort: 9000
+          selector:
+            app.kubernetes.io/name: clickhouse
+            app.kubernetes.io/instance: clickhouse
+    volumeClaimTemplates:
+      - name: clickhouse-data
+        reclaimPolicy: Retain
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: longhorn-crypto
+          resources:
+            requests:
+              storage: 20Gi
+  configuration:
+    users:
+      # default user
+      default/networks/ip: "192.168.0.0/16" # Cilium's pod CIDR
+      default/access_management: 1
+      default/named_collection_control: 1
+      default/show_named_collections: 1
+      default/show_named_collections_secrets: 1
+      default/password:
+        valueFrom:
+          secretKeyRef:
+            name: clickhouse
+            key: default_user_username
+      # hyperdx user
+      hyperdx/networks/ip: "192.168.0.0/16" # Cilium's pod CIDR
+      hyperdx/profile: default
+      hyperdx/quota: default
+      hyperdx/password:
+        valueFrom:
+          secretKeyRef:
+            name: clickhouse
+            key: hyperdx_user_password
+      # ch-ui user
+      chui/networks/ip: "192.168.0.0/16" # Cilium's pod CIDR
+      chui/profile: default
+      chui/quota: default
+      chui/password:
+        valueFrom:
+          secretKeyRef:
+            name: clickhouse
+            key: ch_ui_user_password
+      # otel-collector user
+      otelcollector/networks/ip: "192.168.0.0/16" # Cilium's pod CIDR
+      otelcollector/profile: default
+      otelcollector/quota: default
+      otelcollector/password:
+        valueFrom:
+          secretKeyRef:
+            name: clickhouse
+            key: otel_collector_user_password
+      # gigapipe user
+      gigapipe/networks/ip: "192.168.0.0/16" # Cilium's pod CIDR
+      gigapipe/profile: default
+      gigapipe/quota: default
+      gigapipe/password:
+        valueFrom:
+          secretKeyRef:
+            name: clickhouse
+            key: gigapipe_user_password
+    clusters:
+      - name: clickhouse
+        layout:
+          shardsCount: 1
+          replicasCount: 1
+    zookeeper:
+        nodes:
+          - host: keeper-clickhouse
+            port: 2181
+    files:
+      # https://clickhouse.com/docs/data-compression/compression-in-clickhouse
+      # https://clickhouse.com/docs/operations/server-configuration-parameters/settings#compression
+      config.d/compression.xml: |
+        <clickhouse>
+          <compression incl="clickhouse_compression">
+            <case>
+              <min_part_size>100000000</min_part_size> <!-- 100 MB -->
+              <min_part_size_ratio>0.01</min_part_size_ratio> <!-- 1% of table -->
+              <method>zstd</method>
+              <level>1</level>
+            </case>
+          </compression>
+        </clickhouse>

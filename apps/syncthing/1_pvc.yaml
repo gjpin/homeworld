@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: syncthing-data
+  name: syncthing
   namespace: syncthing
 spec:
   accessModes:

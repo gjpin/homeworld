@@ -98,15 +98,13 @@ helm repo add inseefrlab-s3operator https://inseefrlab.github.io/s3-operator
    * cloudnative-pg: postgresql operator
    * dragonfly-operator: dragonfly (redis-compatible) operator
    * TBD (rustfs / garage): s3-compatible storage operator
-   * clickhouse-operator
 * **Sync wave 5**
    * s3-operator: minio bucket/policies operator
 * **Sync wave 6**
    * immich
    * otel-collector
-   * grafana
-   * gigapipe
    * forgejo
+   * grafana
 
 # Testing
 * Add 'homelab' role to all nodes:

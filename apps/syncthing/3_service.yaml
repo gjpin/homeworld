@@ -5,12 +5,13 @@ metadata:
   name: syncthing
   namespace: syncthing
 spec:
+  type: ClusterIP
   ports:
-    - name: tcp-sync
+    - name: syncthing-tcp
       port: 22000
       protocol: TCP
       targetPort: 22000
-    - name: udp-sync
+    - name: syncthing-udp
       port: 22000
       protocol: UDP
       targetPort: 22000

@@ -1,3 +1,5 @@
+# https://blog.ferretdb.io/run-ferretdb-cloudnativepg-kubernetes/
+# https://blog.ferretdb.io/full-stack-observability-hyperdx-ferretdb/
 # https://github.com/cloudnative-pg/postgres-containers/pkgs/container/postgresql/versions?filters%5Bversion_type%5D=tagged
 # https://cloudnative-pg.io/documentation/current/samples/
 # https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/
@@ -5,13 +7,17 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: authentik-pg
-  namespace: authentik
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
+  name: clickstack
+  namespace: clickstack
 spec:
   instances: 1
   imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
   storage:
     storageClass: longhorn-crypto
     size: 5Gi
+  bootstrap:
+    initdb:
+      database: ferretdb
+      owner: ferret
+      secret:
+        name: ferretdb

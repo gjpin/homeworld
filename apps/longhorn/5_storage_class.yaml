@@ -7,7 +7,6 @@ metadata:
   name: longhorn-crypto
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
-    argocd.argoproj.io/sync-wave: "5"
 provisioner: driver.longhorn.io
 allowVolumeExpansion: true
 reclaimPolicy: Retain

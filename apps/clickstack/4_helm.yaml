@@ -1,0 +1,54 @@
+# https://github.com/hyperdxio/helm-charts/releases
+# https://github.com/hyperdxio/helm-charts/blob/main/charts/clickstack/values.yaml
+# https://clickhouse.com/docs/use-cases/observability/clickstack/config
+# https://clickhouse.com/docs/use-cases/observability/clickstack/deployment/helm
+# https://github.com/hyperdxio/helm-charts/tree/main/charts/clickstack
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: clickstack
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: clickstack
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+  source:
+    chart: clickstack
+    repoURL: https://hyperdxio.github.io/helm-charts
+    targetRevision: 1.0.1
+    helm:
+      releaseName: clickstack
+      valuesObject:
+        global:
+          storageClassName: longhorn-crypto
+
+        hyperdx:
+          apiKey: NULL # read from env var
+          mongoUri: NULL # read from env var
+          frontendUrl: "https://hyperdx.${BASE_DOMAIN}"
+          usageStatsEnabled: false
+          nodeSelector:
+            node-role.kubernetes.io/homelab: homelab
+          env:
+            - name: HYPERDX_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.hyperdx.apiKeySecret.name }}
+                  key: {{ .Values.hyperdx.apiKeySecret.key }}
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.hyperdx.apiKeySecret.name }}
+                  key: {{ .Values.hyperdx.apiKeySecret.key }}

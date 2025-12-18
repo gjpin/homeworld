@@ -1,0 +1,41 @@
+# https://github.com/ferretdb/FerretDB/pkgs/container/ferretdb
+# https://blog.ferretdb.io/run-ferretdb-cloudnativepg-kubernetes/
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ferretdb
+  namespace: clickstack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ferretdb
+  template:
+    metadata:
+      labels:
+        app: ferretdb
+    spec:
+      containers:
+        - name: ferretdb
+          image: ghcr.io/ferretdb/ferretdb:2.7.0
+          ports:
+            - containerPort: 27017
+          env:
+            - name: FERRETDB_POSTGRESQL_URL
+              value: 'postgresql://ferret@clickstack-rw.clickstack.svc.cluster.local:5432/ferretdb'
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ferretdb-service
+  namespace: clickstack
+spec:
+  selector:
+    app: ferretdb
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+  type: ClusterIP

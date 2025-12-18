@@ -5,7 +5,6 @@ kind: GatewayClass
 metadata:
   name: envoy-merged
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   controllerName: gateway.envoyproxy.io/gatewayclass-controller

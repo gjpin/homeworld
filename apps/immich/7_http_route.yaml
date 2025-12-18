@@ -6,7 +6,6 @@ metadata:
   namespace: immich
   annotations:
     external-dns.alpha.kubernetes.io/hostname: "immich.${BASE_DOMAIN}"
-    argocd.argoproj.io/sync-wave: "6"
 spec:
   parentRefs:
     - name: envoy

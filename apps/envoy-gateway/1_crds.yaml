@@ -6,8 +6,6 @@ kind: Application
 metadata:
   name: gateway-api-crd
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:

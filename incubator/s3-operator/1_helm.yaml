@@ -7,8 +7,6 @@ kind: Application
 metadata:
   name: s3-operator
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:

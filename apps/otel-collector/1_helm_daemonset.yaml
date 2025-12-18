@@ -7,8 +7,6 @@ kind: Application
 metadata:
   name: otel-collector-daemonset
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:
@@ -37,7 +35,7 @@ spec:
         mode: daemonset
 
         image:
-          repository: docker.io/library/otel/opentelemetry-collector-k8s
+          repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
 
         service:
           enabled: true
