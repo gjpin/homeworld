@@ -1,3 +1,5 @@
+# https://artifacthub.io/packages/helm/cilium/cilium
+
 namespaceOverride: cilium
 
 # https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/
@@ -8,6 +10,9 @@ dnsPolicy: ClusterFirst
 # https://docs.cilium.io/en/stable/network/concepts/masquerading/
 bpf:
   masquerade: true
+
+nodeinit:
+  enabled: true
 
 hubble:
   relay:
@@ -24,7 +29,7 @@ hubble:
 # https://docs.cilium.io/en/stable/network/kubernetes/ipam-cluster-pool/
 ipam:
   operator:
-    clusterPoolIPv4PodCIDRList: ["10.42.0.0/16"]
+    clusterPoolIPv4PodCIDRList: ["10.1.0.0/16"]
 
 # Wait for Kubernetes to provide the PodCIDR range via the Kubernetes node resource
 k8s.requireIPv4PodCIDR: true
@@ -36,13 +41,10 @@ localRedirectPolicy: true
 rollOutCiliumPods: true
 
 operator:
-  replicas: 1
-  rollOutPods: true
   nodeSelector:
     node-role.kubernetes.io/homelab: homelab
 
 # https://docs.cilium.io/en/latest/security/network/proxy/envoy/
-# https://docs.cilium.io/en/latest/network/servicemesh/gateway-api/gateway-api/#bind-to-privileged-port
 envoy:
   enabled: true
   securityContext:
@@ -53,6 +55,11 @@ envoy:
       - BPF
       - PERMON
       - NET_BIND_SERVICE
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      interval: 60s
 
 # https://docs.cilium.io/en/latest/security/network/encryption-wireguard/
 # Enable pod-to-pod encryption

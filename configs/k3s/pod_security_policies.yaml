@@ -17,4 +17,3 @@ plugins:
       usernames: []
       runtimeClasses: []
       namespaces: [kube-system]
----

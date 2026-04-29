@@ -23,7 +23,7 @@ spec:
   source:
     chart: cloudnative-pg
     repoURL: https://cloudnative-pg.github.io/charts
-    targetRevision: 0.27.0
+    targetRevision: 0.28.0
     helm:
       releaseName: cloudnative-pg
       valuesObject:
@@ -32,14 +32,6 @@ spec:
 
         monitoring:
           podMonitorEnabled: true
-
-        # resources:
-        #   requests:
-        #     cpu: 100m
-        #     memory: 100Mi
-        #   limits:
-        #     cpu: 200m
-        #     memory: 256Mi
 
         nodeSelector:
           node-role.kubernetes.io/homelab: homelab
