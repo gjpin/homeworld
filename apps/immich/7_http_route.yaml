@@ -5,13 +5,13 @@ metadata:
   name: immich
   namespace: immich
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: "immich.${BASE_DOMAIN}"
+    external-dns.alpha.kubernetes.io/hostname: "photos.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
       namespace: immich
   hostnames:
-    - "immich.${BASE_DOMAIN}"
+    - "photos.${BASE_DOMAIN}"
   rules:
     - backendRefs:
       - name: immich

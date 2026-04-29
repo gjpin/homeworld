@@ -4,10 +4,15 @@
 
 # Domains
 * argocd.${BASE_DOMAIN}
+* authentik.${BASE_DOMAIN}
+* envoy.${BASE_DOMAIN}
+* git.${BASE_DOMAIN}
 * grpc.argocd.${BASE_DOMAIN}
 * grafana.${BASE_DOMAIN}
-* immich.${BASE_DOMAIN}
+* home.${BASE_DOMAIN}
 * longhorn.${BASE_DOMAIN}
+* photos.${BASE_DOMAIN}
+* syncthing.${BASE_DOMAIN}
 
 # Variables
 ```bash
@@ -23,15 +28,19 @@ export ACME_EMAIL=
 # external-dns
 export EXTERNAL_IP=10.0.0.1
 
+# external-secrets
+export INFISICAL_CLIENT_ID=
+export INFISICAL_CLIENT_SECRET=
+export INFISICAL_HOST=https://app.infisical.com
+export INFISICAL_PROJECT_SLUG=
+export INFISICAL_ENVIRONMENT_SLUG=dev
+
 # longhorn
 export LONGHORN_ENCRYPTION_PASSPHRASE=
 
 # grafana
 export GRAFANA_USERNAME=
 export GRAFANA_PASSWORD=
-
-# gigapipe
-export GIGAPIPE_CLICKHOUSE_PASSWORD=
 ```
 
 # Secrets

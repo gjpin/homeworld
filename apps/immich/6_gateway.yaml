@@ -20,7 +20,7 @@ spec:
     - name: immich-https
       protocol: HTTPS
       port: 443
-      hostname: "immich.${BASE_DOMAIN}"
+      hostname: "photos.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
           from: all
