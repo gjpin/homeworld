@@ -1,0 +1,6 @@
+# Env Vars
+INFISICAL_ENCRYPTION_KEY=$(openssl rand -hex 32)
+INFISICAL_AUTH_SECRET=$(openssl rand -hex 32)
+INFISICAL_POSTGRES_PASSWORD=$(openssl rand -hex 32)
+INFISICAL_POSTGRES_USER="infisical"
+INFISICAL_POSTGRES_DB="infisical"
