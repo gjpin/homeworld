@@ -1,0 +1,42 @@
+# https://github.com/grafana/grafana-operator
+# https://grafana.github.io/grafana-operator/docs/installation/helm/
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana-operator
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: grafana-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+  source:
+    chart: grafana-operator
+    repoURL: ghcr.io/grafana/helm-charts
+    targetRevision: 5.24.0
+    helm:
+      releaseName: grafana-operator
+      valuesObject:
+        fullnameOverride: grafana-operator
+        namespaceOverride: grafana-operator
+
+        crds:
+          immutable: false
+
+        serviceMonitor:
+          enabled: true
+          interval: 60s
+
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab

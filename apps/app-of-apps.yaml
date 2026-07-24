@@ -239,6 +239,36 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
+# grafana-operator
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana-operator-app
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/grafana-operator"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: grafana-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+---
 # s3-operator
 apiVersion: argoproj.io/v1alpha1
 kind: Application

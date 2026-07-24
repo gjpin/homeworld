@@ -106,6 +106,7 @@ helm repo add inseefrlab-s3operator https://inseefrlab.github.io/s3-operator
    * argocd
    * cloudnative-pg: postgresql operator
    * dragonfly-operator: dragonfly (redis-compatible) operator
+   * grafana-operator: Grafana instance, dashboard, and datasource operator
    * TBD (rustfs / garage): s3-compatible storage operator
 * **Sync wave 5**
    * s3-operator: minio bucket/policies operator
