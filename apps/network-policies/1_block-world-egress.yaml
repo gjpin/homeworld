@@ -1,0 +1,29 @@
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: block-world-egress
+spec:
+  endpointSelector:
+    matchExpressions:
+    - key: k8s:io.kubernetes.pod.namespace
+      operator: In
+      values:
+      - authentik
+      - cloudnative-pg
+      - dragonfly-operator
+      - envoy-gateway
+      - forgejo
+      - grafana
+      - grafana-operator
+      - homeassistant
+      - immich
+      - longhorn-system
+      - openobserve
+      - otel-collector
+      - prometheus-operator-crd
+      - radicale
+      - s3-operator
+      - syncthing
+  egressDeny:
+  - toEntities:
+    - world

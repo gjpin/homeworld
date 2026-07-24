@@ -81,13 +81,13 @@ helm repo add openobserve https://charts.openobserve.ai
 helm repo add inseefrlab-s3operator https://inseefrlab.github.io/s3-operator
 ```
 
-# New component checklist
-* fullnameOverride
-* nodeselector
-* httproute + gateway listener (if applicable)
-* serviceMonitor
-* (disabled for now) requests/limits
-* (disabled for now) autoscaling (hpa/keda)
+# Network egress
+Cilium and its `CiliumClusterwideNetworkPolicy` CRD must be installed before
+Argo CD syncs this repository. The sync wave 0 network policy blocks egress to
+the Cilium `world` entity from application namespaces. `world` includes both
+LAN and Internet destinations.
+
+Internet-capable exceptions: Argo CD (Git), cert-manager (ACME), external-dns (DNS provider), and external-secrets (Infisical).
 
 # Grafana admin credentials
 Create the following values in Infisical before syncing Grafana:
@@ -109,6 +109,8 @@ Create the following value in Infisical before syncing Longhorn:
 * `/longhorn/CRYPTO_KEY_VALUE`
 
 # ArgoCD
+* **Sync wave 0**
+   * network-policies: Cilium cluster-wide world-egress restriction
 * **Sync wave 1**
    * prometheus-operator-crd: CRDs required by service monitors
 * **Sync wave 2**

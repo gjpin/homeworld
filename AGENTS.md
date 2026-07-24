@@ -23,8 +23,7 @@ bootstrap script.
   the intended apply/read order.
 - `grafana-dashboards/`: imported Grafana dashboard JSON.
 - `setup.sh`: Fedora/k3s host bootstrap and initial Argo CD installation.
-- `README.md`: required environment variables, bootstrap notes, sync-wave
-  documentation, and the new-component checklist.
+- `README.md`: required environment variables, bootstrap notes, and sync-wave documentation.
 
 ## Manifest conventions
 
@@ -52,6 +51,16 @@ bootstrap script.
   secret values in the repository. Prefer the existing External Secrets /
   Infisical pattern for new secret material.
 
+## New component checklist
+
+- `fullnameOverride`
+- `nodeSelector`
+- Gateway listener and `HTTPRoute` (if applicable)
+- `ServiceMonitor`
+- Add the destination namespace to the world-egress policy selector, or explicitly justify an egress exception.
+- Resource requests/limits are intentionally disabled unless the user requests a policy change.
+- Autoscaling (HPA/KEDA) is intentionally disabled unless the user requests a policy change.
+
 ## Adding or changing a component
 
 - Check the upstream chart/image documentation before changing a version or
@@ -61,10 +70,7 @@ bootstrap script.
 - Add the component to `apps/app-of-apps.yaml` with the correct destination
   namespace and dependency sync wave. Keep the sync-wave explanation in
   `README.md` accurate.
-- Apply the README checklist as applicable: stable name override, homelab node
-  selector, Gateway/HTTPRoute listener, and ServiceMonitor. Resource
-  requests/limits and autoscaling are intentionally disabled unless the user
-  requests a policy change.
+- Apply the new-component checklist as applicable.
 - Treat CRDs and operators as dependencies: they must be installed in an earlier
   sync wave than resources that use them.
 - Do not run `kubectl apply`, `helm install/upgrade`, Argo CD sync, or `setup.sh`
