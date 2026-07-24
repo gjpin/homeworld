@@ -1,0 +1,70 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: grafana
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: grafana-dashboard-argocd
+    files:
+      - json=dashboards/argocd.json
+  - name: grafana-dashboard-cert-manager
+    files:
+      - json=dashboards/cert-manager.json
+  - name: grafana-dashboard-clickhouse-operator-clickhouse-queries
+    files:
+      - json=dashboards/clickhouse-operator-clickhouse-queries.json
+  - name: grafana-dashboard-clickhouse-operator-kafka
+    files:
+      - json=dashboards/clickhouse-operator-kafka.json
+  - name: grafana-dashboard-clickhouse-operator-keeper
+    files:
+      - json=dashboards/clickhouse-operator-keeper.json
+  - name: grafana-dashboard-clickhouse-operator-zookeeper
+    files:
+      - json=dashboards/clickhouse-operator-zookeeper.json
+  - name: grafana-dashboard-clickhouse-operator
+    files:
+      - json=dashboards/clickhouse-operator.json
+  - name: grafana-dashboard-cloudnative-pg
+    files:
+      - json=dashboards/cloudnative-pg.json
+  - name: grafana-dashboard-dragonfly-operator
+    files:
+      - json=dashboards/dragonfly-operator.json
+  - name: grafana-dashboard-envoy-gateway-clusters
+    files:
+      - json=dashboards/envoy-gateway-clusters.json
+  - name: grafana-dashboard-envoy-gateway-envoy-proxy-global
+    files:
+      - json=dashboards/envoy-gateway-envoy-proxy-global.json
+  - name: grafana-dashboard-envoy-gateway-global-ratelimit
+    files:
+      - json=dashboards/envoy-gateway-global-ratelimit.json
+  - name: grafana-dashboard-envoy-gateway-global
+    files:
+      - json=dashboards/envoy-gateway-global.json
+  - name: grafana-dashboard-envoy-gateway-resources-monitor
+    files:
+      - json=dashboards/envoy-gateway-resources-monitor.json
+  - name: grafana-dashboard-external-dns
+    files:
+      - json=dashboards/external-dns.json
+  - name: grafana-dashboard-immich
+    files:
+      - json=dashboards/immich.json
+  - name: grafana-dashboard-longhorn
+    files:
+      - json=dashboards/longhorn.json
+  - name: grafana-dashboard-nextcloud
+    files:
+      - json=dashboards/nextcloud.json
+  - name: grafana-dashboard-otel-collector
+    files:
+      - json=dashboards/otel-collector.json
+resources:
+  - 1_secrets.yaml
+  - 2_gateway.yaml
+  - 3_grafana.yaml
+  - 4_service_monitor.yaml
+  - 5_dashboards.yaml

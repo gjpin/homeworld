@@ -16,7 +16,7 @@
 
 # Variables
 ```bash
-# argocd, grafana, immich, longhorn
+# argocd, immich, longhorn
 export BASE_DOMAIN=domain.com
 
 # external-dns, cert-manager
@@ -38,9 +38,6 @@ export INFISICAL_ENVIRONMENT_SLUG=dev
 # longhorn
 export LONGHORN_ENCRYPTION_PASSPHRASE=
 
-# grafana
-export GRAFANA_USERNAME=
-export GRAFANA_PASSWORD=
 ```
 
 # Secrets
@@ -66,8 +63,6 @@ helm repo add cloudnative-pg https://cloudnative-pg.io/charts
 # external-dns
 helm repo add external-dns https://kubernetes-sigs.github.io/external-dns/
 
-# grafana
-helm repo add grafana https://grafana.github.io/helm-charts
 
 # kube-prometheus-stack
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -92,6 +87,12 @@ helm repo add inseefrlab-s3operator https://inseefrlab.github.io/s3-operator
 * serviceMonitor
 * (disabled for now) requests/limits
 * (disabled for now) autoscaling (hpa/keda)
+
+# Grafana admin credentials
+Create the following values in Infisical before syncing Grafana:
+
+* `/grafana/GF_SECURITY_ADMIN_USER`
+* `/grafana/GF_SECURITY_ADMIN_PASSWORD`
 
 # ArgoCD
 * **Sync wave 1**
