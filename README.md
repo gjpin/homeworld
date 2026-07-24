@@ -11,12 +11,13 @@
 * grafana.${BASE_DOMAIN}
 * home.${BASE_DOMAIN}
 * longhorn.${BASE_DOMAIN}
+* openobserve.${BASE_DOMAIN}
 * photos.${BASE_DOMAIN}
 * syncthing.${BASE_DOMAIN}
 
 # Variables
 ```bash
-# argocd, immich, longhorn
+# public HTTP routes
 export BASE_DOMAIN=domain.com
 
 # external-dns, cert-manager
@@ -34,9 +35,6 @@ export INFISICAL_CLIENT_SECRET=
 export INFISICAL_HOST=https://app.infisical.com
 export INFISICAL_PROJECT_SLUG=
 export INFISICAL_ENVIRONMENT_SLUG=dev
-
-# longhorn
-export LONGHORN_ENCRYPTION_PASSPHRASE=
 
 ```
 
@@ -76,6 +74,9 @@ helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
 # otel-collector
 helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
 
+# openobserve
+helm repo add openobserve https://charts.openobserve.ai
+
 # s3 operator
 helm repo add inseefrlab-s3operator https://inseefrlab.github.io/s3-operator
 ```
@@ -94,6 +95,19 @@ Create the following values in Infisical before syncing Grafana:
 * `/grafana/GF_SECURITY_ADMIN_USER`
 * `/grafana/GF_SECURITY_ADMIN_PASSWORD`
 
+# OpenObserve credentials
+Create the following values in Infisical before syncing OpenObserve, the OTel
+Collector, and Grafana:
+
+* `/openobserve/ZO_ROOT_USER_EMAIL`
+* `/openobserve/ZO_ROOT_USER_PASSWORD`
+* `/openobserve/OTLP_AUTHORIZATION` (the complete `Basic <base64(email:password)>` header)
+
+# Longhorn encryption credential
+Create the following value in Infisical before syncing Longhorn:
+
+* `/longhorn/CRYPTO_KEY_VALUE`
+
 # ArgoCD
 * **Sync wave 1**
    * prometheus-operator-crd: CRDs required by service monitors
@@ -111,6 +125,7 @@ Create the following values in Infisical before syncing Grafana:
    * TBD (rustfs / garage): s3-compatible storage operator
 * **Sync wave 5**
    * s3-operator: minio bucket/policies operator
+   * openobserve: standalone logs, metrics, and traces backend
 * **Sync wave 6**
    * immich
    * otel-collector

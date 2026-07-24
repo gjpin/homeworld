@@ -68,3 +68,4 @@ resources:
   - 3_grafana.yaml
   - 4_service_monitor.yaml
   - 5_dashboards.yaml
+  - 6_openobserve_datasource.yaml

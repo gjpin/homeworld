@@ -59,6 +59,13 @@ spec:
           enabled: true
           type: ClusterIP
 
+        extraEnvs:
+          - name: OPENOBSERVE_AUTHORIZATION
+            valueFrom:
+              secretKeyRef:
+                name: openobserve
+                key: OTLP_AUTHORIZATION
+
         config:
           receivers:
             jaeger: null
@@ -98,10 +105,11 @@ spec:
 
           exporters:
             debug: null
-            otlphttp:
-              endpoint: 'TODO: clickhouse svc'
+            otlphttp/openobserve:
+              endpoint: http://openobserve.openobserve.svc.cluster.local:5080/api/default
               headers:
-                authorization: 'TODO: clickhouse api key'
+                Authorization: ${env:OPENOBSERVE_AUTHORIZATION}
+                stream-name: kubernetes
               compression: gzip
 
           extensions:
@@ -127,7 +135,7 @@ spec:
                   - memory_limiter
                   - batch
                 exporters:
-                  - otlphttp
+                  - otlphttp/openobserve
               metrics:
                 receivers:
                   - otlp
@@ -136,7 +144,7 @@ spec:
                   - memory_limiter
                   - batch
                 exporters:
-                  - otlphttp
+                  - otlphttp/openobserve
               traces:
                 receivers:
                   - otlp
@@ -144,4 +152,4 @@ spec:
                   - memory_limiter
                   - batch
                 exporters:
-                  - otlphttp
+                  - otlphttp/openobserve

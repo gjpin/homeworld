@@ -1,0 +1,56 @@
+# https://github.com/openobserve/openobserve-helm-chart/tree/main/charts/openobserve-standalone
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openobserve
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openobserve
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+  source:
+    chart: openobserve-standalone
+    repoURL: https://charts.openobserve.ai
+    targetRevision: 0.91.2
+    helm:
+      releaseName: openobserve
+      valuesObject:
+        fullnameOverride: openobserve
+
+        image:
+          oss:
+            tag: v0.91.1
+
+        auth:
+          existingRootUserSecret:
+            name: openobserve-root
+            emailKey: ZO_ROOT_USER_EMAIL
+            passwordKey: ZO_ROOT_USER_PASSWORD
+
+        config:
+          ZO_WEB_URL: "https://openobserve.${BASE_DOMAIN}"
+          ZO_COMPACT_DATA_RETENTION_DAYS: "30"
+
+        persistence:
+          enabled: true
+          size: 20Gi
+          storageClass: longhorn-crypto
+
+        serviceMonitor:
+          enabled: true
+          interval: 60s
+
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab
