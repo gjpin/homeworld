@@ -1,0 +1,19 @@
+name: Validate manifests
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  yaml:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Parse Kubernetes manifests
+        run: |
+          find apps -type f -name '*.yaml' -print0 |
+            xargs -0 -n1 yq eval '.' >/dev/null

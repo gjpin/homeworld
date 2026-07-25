@@ -1,0 +1,72 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "enabledManagers": [
+    "argocd",
+    "custom.regex",
+    "github-actions",
+    "kubernetes"
+  ],
+  "ignorePaths": [
+    "apps/app-of-apps.yaml"
+  ],
+  "automerge": false,
+  "ignoreUnstable": true,
+  "separateMajorMinor": false,
+  "separateMinorPatch": false,
+  "separateMultipleMajor": false,
+  "argocd": {
+    "managerFilePatterns": [
+      "/^apps/.+\\.ya?ml$/"
+    ]
+  },
+  "kubernetes": {
+    "managerFilePatterns": [
+      "/^apps/.+\\.ya?ml$/"
+    ]
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update CloudNativePG Cluster images",
+      "managerFilePatterns": [
+        "/^apps/(?:authentik|forgejo|immich)/[0-9]+_postgres\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*imageName:\\s*(?<depName>ghcr\\.io/[^:\\s]+):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Grafana custom resource image",
+      "managerFilePatterns": [
+        "/^apps/grafana/3_grafana\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^  version:\\s*docker\\.io/(?<depName>grafana/grafana):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the OpenObserve Helm image tag",
+      "managerFilePatterns": [
+        "/^apps/openobserve/2_helm\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^            tag:\\s*(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "depNameTemplate": "openobserve/openobserve",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    }
+  ]
+}

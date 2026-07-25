@@ -70,6 +70,9 @@ bootstrap script.
 - Add the component to `apps/app-of-apps.yaml` with the correct destination
   namespace and dependency sync wave. Keep the sync-wave explanation in
   `README.md` accurate.
+- Check whether the component's pinned chart, image, or remote revision is
+  covered by `renovate.json`; update Renovate configuration when its existing
+  managers and matchers do not support the new dependency field.
 - Apply the new-component checklist as applicable.
 - Treat CRDs and operators as dependencies: they must be installed in an earlier
   sync wave than resources that use them.

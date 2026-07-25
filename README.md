@@ -166,6 +166,40 @@ Create the following values in Infisical before syncing Authentik and Immich:
 kubectl label nodes --all node-role.kubernetes.io/homelab=homelab
 ```
 
+# Dependency updates
+Renovate runs daily at 04:17 UTC and can also be started from the **Run
+workflow** button for the `Renovate` GitHub Actions workflow. It opens review
+PRs only: updates, including major releases, are never auto-merged. Merging a
+reviewed Renovate PR is the only way an update reaches Argo CD; the workflows
+do not run `kubectl`, Helm, or Argo CD commands.
+
+Create a GitHub App, install it on this repository, and save its app ID and
+private key as these repository Actions secrets:
+
+* `RENOVATE_APP_ID`
+* `RENOVATE_APP_PRIVATE_KEY`
+
+Configure the GitHub App with these repository permissions:
+
+| Permission | Access |
+| --- | --- |
+| Administration | Read-only |
+| Checks | Read and write |
+| Commit statuses | Read and write |
+| Contents | Read and write |
+| Dependabot alerts | Read-only |
+| Issues | Read and write |
+| Metadata | Read-only |
+| Members | Read-only |
+| Pull requests | Read and write |
+| Workflows | Read and write |
+
+The installation token is generated per workflow run and is not stored in the
+repository. Renovate updates Argo CD Helm and Git-tag revisions, explicit
+container images, and the CloudNativePG, Grafana, and OpenObserve image fields.
+`apps/app-of-apps.yaml` intentionally remains on `HEAD`; Helm image repository
+overrides without an explicit tag continue to inherit their chart's image tag.
+
 * Enable minikube's metrics-server addon
 ```bash
 minikube addons enable metrics-server
