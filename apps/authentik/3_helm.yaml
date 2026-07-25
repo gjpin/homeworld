@@ -6,6 +6,8 @@ kind: Application
 metadata:
   name: authentik
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:
@@ -37,8 +39,8 @@ spec:
         authentik:
           secret_key: "PleaseGenerateA50CharKey"
           postgresql:
-            host: # TODO
-            name: # TODO
+            host: authentik-rw.authentik.svc.cluster.local
+            name: authentik
             user: file:///postgres-creds/username
             password: file:///postgres-creds/password
             port: 5432

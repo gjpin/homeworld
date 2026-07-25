@@ -6,6 +6,8 @@ kind: Application
 metadata:
   name: immich
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:
@@ -43,7 +45,7 @@ spec:
             cache:
               enabled: true
               size: 10Gi
-              type: pvc
+              type: persistentVolumeClaim
               accessMode: ReadWriteMany
               storageClass: longhorn-crypto
 
@@ -55,4 +57,10 @@ spec:
                   REDIS_HOSTNAME: valkey.immich.svc.cluster.local:6379
                   IMMICH_MACHINE_LEARNING_URL: immich-machine-learning.immich.svc.cluster.local:3003
                   DB_HOSTNAME: immich-rw.immich.svc.cluster.local:5432
-          
+                  DB_DATABASE_NAME: immich
+                  DB_USERNAME: immich
+                  DB_PASSWORD:
+                    valueFrom:
+                      secretKeyRef:
+                        name: postgres-credentials
+                        key: password

@@ -7,6 +7,8 @@ kind: Application
 metadata:
   name: forgejo
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:
@@ -41,10 +43,15 @@ spec:
           config:
             database:
               DB_TYPE: postgres
-              HOST: # TODO: RELEASE-NAME-postgresql.default.svc.cluster.local:5432
-              NAME: # TODO: forgejo
-              PASSWD: # TODO: forgejo
-              USER: # TODO: forgejo
+              HOST: forgejo-rw.forgejo.svc.cluster.local:5432
+              NAME: forgejo
+              USER: forgejo
+          additionalConfigFromEnvs:
+            - name: FORGEJO__DATABASE__PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
           metrics:
             serviceMonitor:
               enabled: true

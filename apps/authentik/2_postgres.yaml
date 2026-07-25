@@ -1,15 +1,40 @@
 # https://github.com/cloudnative-pg/postgres-containers/pkgs/container/postgresql/versions?filters%5Bversion_type%5D=tagged
-# https://cloudnative-pg.io/documentation/current/samples/
-# https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/
+# https://cloudnative-pg.io/docs/1.28/bootstrap/
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: authentik
   namespace: authentik
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   instances: 1
   imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
+  affinity:
+    nodeSelector:
+      node-role.kubernetes.io/homelab: homelab
   storage:
     storageClass: longhorn-crypto
     size: 5Gi
+  bootstrap:
+    initdb:
+      database: authentik
+      owner: authentik
+      secret:
+        name: postgres-credentials
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: authentik
+  namespace: authentik
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: authentik
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 60s

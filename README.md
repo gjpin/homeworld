@@ -108,6 +108,20 @@ Create the following value in Infisical before syncing Longhorn:
 
 * `/longhorn/CRYPTO_KEY_VALUE`
 
+# PostgreSQL application credentials
+Create the following values in Infisical before syncing CloudNativePG and its
+database consumers:
+
+* `/authentik/POSTGRES_USERNAME`
+* `/authentik/POSTGRES_PASSWORD`
+* `/forgejo/POSTGRES_USERNAME`
+* `/forgejo/POSTGRES_PASSWORD`
+* `/immich/POSTGRES_USERNAME`
+* `/immich/POSTGRES_PASSWORD`
+
+Set each `POSTGRES_USERNAME` value to its matching application role:
+`authentik`, `forgejo`, or `immich`.
+
 # ArgoCD
 * **Sync wave 0**
    * network-policies: Cilium cluster-wide world-egress restriction
