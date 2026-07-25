@@ -54,7 +54,12 @@ spec:
             containers:
               main:
                 env:
-                  REDIS_HOSTNAME: valkey.immich.svc.cluster.local:6379
+                  REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local:6379
+                  REDIS_PASSWORD:
+                    valueFrom:
+                      secretKeyRef:
+                        name: dragonfly
+                        key: password
                   IMMICH_MACHINE_LEARNING_URL: immich-machine-learning.immich.svc.cluster.local:3003
                   DB_HOSTNAME: immich-rw.immich.svc.cluster.local:5432
                   DB_DATABASE_NAME: immich

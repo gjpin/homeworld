@@ -122,11 +122,19 @@ database consumers:
 Set each `POSTGRES_USERNAME` value to its matching application role:
 `authentik`, `forgejo`, or `immich`.
 
+# Authentik and Dragonfly credentials
+Create the following values in Infisical before syncing Authentik and Immich:
+
+* `/authentik/AUTHENTIK_SECRET_KEY`
+* `/authentik/DRAGONFLY_PASSWORD`
+* `/immich/DRAGONFLY_PASSWORD`
+
 # ArgoCD
 * **Sync wave 0**
    * network-policies: Cilium cluster-wide world-egress restriction
 * **Sync wave 1**
    * prometheus-operator-crd: CRDs required by service monitors
+   * external-secrets: External Secrets Operator and Infisical ClusterSecretStore
 * **Sync wave 2**
    * envoy-gateway: Gateway API and provides CRDs required by HTTP/GRPC routes
 * **Sync wave 3**
@@ -143,10 +151,14 @@ Set each `POSTGRES_USERNAME` value to its matching application role:
    * s3-operator: minio bucket/policies operator
    * openobserve: standalone logs, metrics, and traces backend
 * **Sync wave 6**
+   * authentik
+   * homeassistant
    * immich
    * otel-collector
    * forgejo
    * grafana
+   * radicale
+   * syncthing
 
 # Testing
 * Add 'homelab' role to all nodes:

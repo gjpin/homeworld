@@ -1,0 +1,19 @@
+# https://www.dragonflydb.io/docs/managing-dragonfly/operator/dragonfly-configuration
+# https://www.dragonflydb.io/docs/managing-dragonfly/operator/installation
+---
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  labels:
+    app.kubernetes.io/part-of: dragonfly-operator
+    app.kubernetes.io/created-by: dragonfly-operator
+  name: dragonfly
+  namespace: authentik
+spec:
+  replicas: 1
+  authentication:
+    passwordFromSecret:
+      name: authentik
+      key: AUTHENTIK_REDIS__PASSWORD
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
