@@ -1,19 +1,26 @@
 # Apps
-| App | Domains | Description | Link | Notes |
-| --- | --- | --- | --- | --- |
 
-# Domains
-* argocd.${BASE_DOMAIN}
-* authentik.${BASE_DOMAIN}
-* envoy.${BASE_DOMAIN}
-* git.${BASE_DOMAIN}
-* grpc.argocd.${BASE_DOMAIN}
-* grafana.${BASE_DOMAIN}
-* home.${BASE_DOMAIN}
-* longhorn.${BASE_DOMAIN}
-* openobserve.${BASE_DOMAIN}
-* photos.${BASE_DOMAIN}
-* syncthing.${BASE_DOMAIN}
+| App | Domain(s) | Description |
+| --- | --- | --- |
+| Argo CD | `argocd.${BASE_DOMAIN}`<br>`grpc.argocd.${BASE_DOMAIN}` | GitOps continuous delivery and its gRPC API. |
+| Authentik | `auth.${BASE_DOMAIN}` | Identity provider. |
+| cert-manager | — | TLS certificate management. |
+| CloudNativePG | — | PostgreSQL operator. |
+| Dragonfly Operator | — | Dragonfly, a Redis-compatible datastore, operator. |
+| Envoy Gateway | — | Gateway API implementation. |
+| ExternalDNS | — | DNS record management. |
+| External Secrets | — | Infisical-backed secret synchronization. |
+| Forgejo | `git.${BASE_DOMAIN}` | Git forge. |
+| Grafana | `grafana.${BASE_DOMAIN}` | Dashboards and observability visualization. |
+| Grafana Operator | — | Grafana instance, dashboard, and datasource operator. |
+| Home Assistant | — | Home automation. |
+| Immich | `photos.${BASE_DOMAIN}` | Photo and video management. |
+| Longhorn | `longhorn.${BASE_DOMAIN}` | Distributed block-storage management. |
+| OpenObserve | `openobserve.${BASE_DOMAIN}` | Logs, metrics, and traces backend. |
+| OpenTelemetry Collector | — | Telemetry collection and export. |
+| Prometheus Operator CRDs | — | Custom resource definitions required for monitoring resources. |
+| Radicale | `contacts.${BASE_DOMAIN}` | CalDAV and CardDAV server. |
+| Syncthing | `sync.${BASE_DOMAIN}` | Peer-to-peer file synchronization. |
 
 # Variables
 ```bash
@@ -77,15 +84,13 @@ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm
 # openobserve
 helm repo add openobserve https://charts.openobserve.ai
 
-# s3 operator
-helm repo add inseefrlab-s3operator https://inseefrlab.github.io/s3-operator
 ```
 
 # Network egress
-Cilium and its `CiliumClusterwideNetworkPolicy` CRD must be installed before
-Argo CD syncs this repository. The sync wave 0 network policy blocks egress to
-the Cilium `world` entity from application namespaces. `world` includes both
-LAN and Internet destinations.
+Cilium and its `CiliumNetworkPolicy` CRD must be installed before Argo CD syncs
+this repository. Each protected application includes a namespaced policy that
+blocks egress to the Cilium `world` entity. `world` includes both LAN and
+Internet destinations.
 
 Internet-capable exceptions: Argo CD (Git), cert-manager (ACME), external-dns (DNS provider), and external-secrets (Infisical).
 
@@ -130,8 +135,6 @@ Create the following values in Infisical before syncing Authentik and Immich:
 * `/immich/DRAGONFLY_PASSWORD`
 
 # ArgoCD
-* **Sync wave 0**
-   * network-policies: Cilium cluster-wide world-egress restriction
 * **Sync wave 1**
    * prometheus-operator-crd: CRDs required by service monitors
    * external-secrets: External Secrets Operator and Infisical ClusterSecretStore
@@ -148,7 +151,6 @@ Create the following values in Infisical before syncing Authentik and Immich:
    * grafana-operator: Grafana instance, dashboard, and datasource operator
    * TBD (rustfs / garage): s3-compatible storage operator
 * **Sync wave 5**
-   * s3-operator: minio bucket/policies operator
    * openobserve: standalone logs, metrics, and traces backend
 * **Sync wave 6**
    * authentik

@@ -11,7 +11,7 @@ spec:
     - name: envoy
       namespace: radicale
   hostnames:
-    - "radicale.${BASE_DOMAIN}"
+    - "contacts.${BASE_DOMAIN}"
   rules:
     - backendRefs:
       - name: radicale
