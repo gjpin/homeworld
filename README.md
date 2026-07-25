@@ -179,20 +179,21 @@ private key as these repository Actions secrets:
 * `RENOVATE_APP_ID`
 * `RENOVATE_APP_PRIVATE_KEY`
 
-Configure the GitHub App with these repository permissions:
+Configure the GitHub App permissions as documented for
+[self-hosted Renovate](https://docs.renovatebot.com/modules/platform/github/#running-as-a-github-app):
 
-| Permission | Access |
+| Permission | Scope |
 | --- | --- |
-| Administration | Read-only |
-| Checks | Read and write |
-| Commit statuses | Read and write |
-| Contents | Read and write |
-| Dependabot alerts | Read-only |
-| Issues | Read and write |
-| Metadata | Read-only |
-| Members | Read-only |
-| Pull requests | Read and write |
-| Workflows | Read and write |
+| Checks | `read` + `write` |
+| Commit statuses | `read` + `write` |
+| Contents | `read` + `write` |
+| Issues | `read` + `write` |
+| Pull requests | `read` + `write` |
+| Workflows | `read` + `write` |
+| Administration | `read` |
+| Dependabot alerts | `read` |
+| Members | `read` |
+| Metadata | `read` |
 
 The installation token is generated per workflow run and is not stored in the
 repository. Renovate updates Argo CD Helm and Git-tag revisions, explicit
