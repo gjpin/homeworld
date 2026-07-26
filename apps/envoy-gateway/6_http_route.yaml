@@ -1,0 +1,20 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: envoy
+  namespace: envoy-gateway
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: "envoy.${BASE_DOMAIN}"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: envoy-gateway
+  hostnames:
+    - "envoy.${BASE_DOMAIN}"
+  rules:
+    - backendRefs:
+        - name: envoy-gateway
+          namespace: envoy-gateway
+          kind: Service
+          port: 19001

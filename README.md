@@ -7,13 +7,13 @@
 | cert-manager | — | TLS certificate management. |
 | CloudNativePG | — | PostgreSQL operator. |
 | Dragonfly Operator | — | Dragonfly, a Redis-compatible datastore, operator. |
-| Envoy Gateway | — | Gateway API implementation. |
+| Envoy Gateway | `envoy.${BASE_DOMAIN}` | Gateway API implementation and control-plane metrics. |
 | ExternalDNS | — | DNS record management. |
 | External Secrets | — | Infisical-backed secret synchronization. |
 | Forgejo | `git.${BASE_DOMAIN}` | Git forge. |
 | Grafana | `grafana.${BASE_DOMAIN}` | Dashboards and observability visualization. |
 | Grafana Operator | — | Grafana instance, dashboard, and datasource operator. |
-| Home Assistant | — | Home automation. |
+| Home Assistant | `home.${BASE_DOMAIN}` | Home automation. |
 | Immich | `photos.${BASE_DOMAIN}` | Photo and video management. |
 | Longhorn | `longhorn.${BASE_DOMAIN}` | Distributed block-storage management. |
 | OpenObserve | `openobserve.${BASE_DOMAIN}` | Logs, metrics, and traces backend. |
