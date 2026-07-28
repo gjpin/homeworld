@@ -149,6 +149,66 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
+# velero
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velero-app
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/velero"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velero
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+---
+# velero-ui
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velero-ui-app
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/velero-ui"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velero-ui
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+---
 # argocd
 apiVersion: argoproj.io/v1alpha1
 kind: Application

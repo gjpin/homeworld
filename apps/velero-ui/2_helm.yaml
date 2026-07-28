@@ -1,0 +1,60 @@
+# https://velero-ui.docs.otwld.com/getting-started/helm/
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velero-ui
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velero-ui
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+  source:
+    chart: velero-ui
+    repoURL: https://helm.otwld.com
+    targetRevision: 0.15.0
+    helm:
+      releaseName: velero-ui
+      valuesObject:
+        fullnameOverride: velero-ui
+
+        configuration:
+          general:
+            secretPassPhrase:
+              useSecret: false
+            veleroNamespace: velero
+
+        env:
+          - name: AUTH_SECRET_PASSPHRASE
+            valueFrom:
+              secretKeyRef:
+                name: velero-ui-auth
+                key: AUTH_SECRET_PASSPHRASE
+          - name: BASIC_AUTH_ENABLED
+            value: "true"
+          - name: BASIC_AUTH_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: velero-ui-auth
+                key: BASIC_AUTH_USERNAME
+          - name: BASIC_AUTH_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: velero-ui-auth
+                key: BASIC_AUTH_PASSWORD
+          - name: DEFAULT_TIMEZONE
+            value: Europe/Lisbon
+
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab

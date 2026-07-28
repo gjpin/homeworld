@@ -50,6 +50,10 @@ bootstrap script.
 - Never place real credentials, tokens, passwords, private keys, or substituted
   secret values in the repository. Prefer the existing External Secrets /
   Infisical pattern for new secret material.
+- Every PostgreSQL database must be provisioned as a CloudNativePG `Cluster`
+  instance; do not deploy application-bundled PostgreSQL.
+- Every Redis or Redis-compatible datastore must be provisioned as Dragonfly;
+  do not deploy application-bundled Redis.
 
 ## New component checklist
 

@@ -1,0 +1,85 @@
+# https://artifacthub.io/packages/helm/vmware-tanzu/velero
+# https://velero.io/docs/v1.18/csi-snapshot-data-movement/
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velero
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velero
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+  source:
+    chart: velero
+    repoURL: https://vmware-tanzu.github.io/helm-charts
+    targetRevision: 12.1.0
+    helm:
+      releaseName: velero
+      valuesObject:
+        fullnameOverride: velero
+
+        initContainers:
+          - name: velero-plugin-for-aws
+            image: velero/velero-plugin-for-aws:v1.13.1
+            imagePullPolicy: IfNotPresent
+            volumeMounts:
+              - mountPath: /target
+                name: plugins
+
+        configuration:
+          backupStorageLocation:
+            - name: default
+              provider: aws
+              bucket: ${B2_BUCKET}
+              prefix: velero
+              default: true
+              credential:
+                name: velero-credentials
+                key: cloud
+              config:
+                region: ${B2_REGION}
+                s3Url: https://s3.${B2_REGION}.backblazeb2.com
+                s3ForcePathStyle: "true"
+          defaultSnapshotMoveData: true
+          defaultVolumesToFsBackup: false
+          features: EnableCSI
+
+        credentials:
+          existingSecret: velero-credentials
+
+        deployNodeAgent: true
+        nodeSelector:
+          node-role.kubernetes.io/homelab: homelab
+        nodeAgent:
+          nodeSelector:
+            node-role.kubernetes.io/homelab: homelab
+
+        metrics:
+          enabled: true
+          scrapeInterval: 60s
+          serviceMonitor:
+            enabled: true
+
+        schedules:
+          daily:
+            schedule: CRON_TZ=Europe/Lisbon 0 3 * * *
+            template:
+              ttl: 720h
+              includedNamespaces:
+                - '*'
+              excludedNamespaces:
+                - velero
+              includeClusterResources: true
+              snapshotMoveData: true
