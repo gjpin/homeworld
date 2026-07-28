@@ -1,0 +1,28 @@
+# https://github.com/rustfs/operator/tree/0.0.5/examples
+---
+apiVersion: rustfs.com/v1alpha1
+kind: Tenant
+metadata:
+  name: rustfs
+  namespace: rustfs
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  image: rustfs/rustfs:1.0.0-beta.10
+  imagePullPolicy: IfNotPresent
+  credsSecret:
+    name: rustfs-admin-credentials
+  pools:
+    - name: primary
+      servers: 1
+      persistence:
+        volumesPerServer: 1
+        volumeClaimTemplate:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: longhorn-crypto
+          resources:
+            requests:
+              storage: 50Gi
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab

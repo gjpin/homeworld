@@ -69,6 +69,32 @@
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the RustFS Operator image tag",
+      "managerFilePatterns": [
+        "/^apps/rustfs-operator/1_helm\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^            repository:\\s*(?<depName>rustfs/operator)\\s*\\n            tag:\\s*(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the RustFS Tenant image",
+      "managerFilePatterns": [
+        "/^apps/rustfs/2_tenant\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^  image:\\s*(?<depName>rustfs/rustfs):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
     }
   ]
 }

@@ -299,6 +299,36 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
+# rustfs-operator
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rustfs-operator-app
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/rustfs-operator"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rustfs-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+---
 # external-secrets
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -348,6 +378,36 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: grafana-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+---
+# rustfs
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rustfs-app
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/rustfs"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rustfs
   syncPolicy:
     automated:
       prune: true

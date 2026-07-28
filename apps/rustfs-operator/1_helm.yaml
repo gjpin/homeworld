@@ -1,0 +1,69 @@
+# https://github.com/rustfs/operator
+# https://github.com/rustfs/operator/tree/main/deploy/rustfs-operator
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rustfs-operator
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rustfs-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - RespectIgnoreDifferences=true
+  ignoreDifferences:
+    - kind: Secret
+      name: rustfs-operator-console-secret
+      namespace: rustfs-operator
+      jsonPointers:
+        - /data/jwt-secret
+    - group: apps
+      kind: Deployment
+      name: rustfs-operator-console
+      namespace: rustfs-operator
+      jsonPointers:
+        - /spec/template/metadata/annotations/checksum~1secret
+  source:
+    chart: rustfs-operator
+    repoURL: https://operator.rustfs.com
+    targetRevision: 0.0.5
+    helm:
+      releaseName: rustfs-operator
+      valuesObject:
+        fullnameOverride: rustfs-operator
+        namespace: rustfs-operator
+
+        operator:
+          image:
+            repository: rustfs/operator
+            tag: 0.0.5
+          resources:
+            requests: null
+            limits: null
+          nodeSelector:
+            node-role.kubernetes.io/homelab: homelab
+          serviceMonitor:
+            enabled: true
+            interval: 60s
+
+        console:
+          enabled: true
+          resources:
+            requests: null
+            limits: null
+          nodeSelector:
+            node-role.kubernetes.io/homelab: homelab
+
+        sts:
+          enabled: true

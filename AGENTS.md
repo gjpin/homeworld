@@ -69,6 +69,11 @@ bootstrap script.
 
 - Check the upstream chart/image documentation before changing a version or
   values schema.
+- Before modifying an existing Helm installation or adding a new one, render
+  the exact pinned chart with the proposed values and inspect the generated
+  resources. Ground chart versions, value keys, resource names, selectors,
+  ports, generated secrets, CRDs, and other integration details in that render
+  rather than assumptions from defaults or documentation alone.
 - For a new component, create `apps/<component>/` and order manifests with
   numeric filename prefixes when dependencies exist.
 - Add the component to `apps/app-of-apps.yaml` with the correct destination
