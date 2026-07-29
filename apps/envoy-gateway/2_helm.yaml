@@ -27,25 +27,6 @@ spec:
     - PruneLast=true
     - ServerSideApply=true
   source:
-    chart: gateway-helm
-    repoURL: docker.io/envoyproxy
-    targetRevision: v1.7.2
-    helm:
-      releaseName: envoy-gateway
-      valuesObject:
-        deployment:
-          # envoyGateway:
-          #   resources:
-          #     requests:
-          #       memory: "256Mi"
-          #       cpu: "100m"
-          #     limits:
-          #       memory: "1024Mi"
-          #       cpu: "500m"
-          pod:
-            nodeSelector:
-              node-role.kubernetes.io/homelab: homelab
-        # hpa:
-        #   enabled: true
-        #   minReplicas: 1
-        #   maxReplicas: 5
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/envoy-gateway/helm/envoy-gateway/overlays/homelab
+    targetRevision: HEAD

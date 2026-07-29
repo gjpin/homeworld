@@ -1,0 +1,510 @@
+{
+  "exceptions": [
+    {
+      "check": "C-0002",
+      "control": "Prevent containers from allowing command execution",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0007",
+      "control": "Roles with delete capabilities",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0012",
+      "control": "Applications credentials in configuration files",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0013",
+      "control": "Non-root containers",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The pinned upstream image security context is preserved because generic UID or filesystem changes can break runtime access."
+    },
+    {
+      "check": "C-0015",
+      "control": "List Kubernetes secrets",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0016",
+      "control": "Allow privilege escalation",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The pinned upstream image security context is preserved because generic UID or filesystem changes can break runtime access."
+    },
+    {
+      "check": "C-0017",
+      "control": "Immutable container filesystem",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The pinned upstream image security context is preserved because generic UID or filesystem changes can break runtime access."
+    },
+    {
+      "check": "C-0018",
+      "control": "Configured readiness probe",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The upstream chart does not expose a safe additional health probe; synthetic probes could trigger unsafe restarts."
+    },
+    {
+      "check": "C-0030",
+      "control": "Ingress and Egress blocked",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "CiliumNetworkPolicy is the enforced network boundary; Kubescape does not evaluate the Cilium policy CRD."
+    },
+    {
+      "check": "C-0031",
+      "control": "Delete Kubernetes events",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0034",
+      "control": "Automatic mapping of service account",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The exact controller requires Kubernetes API access through its dedicated service account to reconcile resources."
+    },
+    {
+      "check": "C-0035",
+      "control": "Administrative Roles",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0037",
+      "control": "CoreDNS poisoning",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0044",
+      "control": "Container hostPort",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0045",
+      "control": "Writable hostPath mount",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The exact storage or node controller requires host integration to provide its documented cluster function."
+    },
+    {
+      "check": "C-0048",
+      "control": "HostPath mount",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The exact storage or node controller requires host integration to provide its documented cluster function."
+    },
+    {
+      "check": "C-0053",
+      "control": "Access container service account",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The exact controller requires Kubernetes API access through its dedicated service account to reconcile resources."
+    },
+    {
+      "check": "C-0055",
+      "control": "Linux hardening",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The pinned upstream image security context is preserved because generic UID or filesystem changes can break runtime access."
+    },
+    {
+      "check": "C-0056",
+      "control": "Configured liveness probe",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The upstream chart does not expose a safe additional health probe; synthetic probes could trigger unsafe restarts."
+    },
+    {
+      "check": "C-0057",
+      "control": "Privileged container",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0061",
+      "control": "Pods in default namespace",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0063",
+      "control": "Portforwarding privileges",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0065",
+      "control": "No impersonation",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0076",
+      "control": "Label usage for resources",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The upstream-generated resource omits an optional recommended label but remains identified by exact kind and name."
+    },
+    {
+      "check": "C-0077",
+      "control": "K8s common labels usage",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0186",
+      "control": "Minimize access to secrets",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0187",
+      "control": "Minimize wildcard use in Roles and ClusterRoles",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0188",
+      "control": "Minimize access to create pods",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0190",
+      "control": "Ensure that Service Account Tokens are only mounted where necessary",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The exact controller requires Kubernetes API access through its dedicated service account to reconcile resources."
+    },
+    {
+      "check": "C-0191",
+      "control": "Limit use of the Bind, Impersonate and Escalate permissions in the Kubernetes cluster",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0207",
+      "control": "Prefer using secrets as files over secrets as environment variables",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The application only supports these secret values through environment variables populated by External Secrets."
+    },
+    {
+      "check": "C-0210",
+      "control": "Ensure that the seccomp profile is set to docker/default in your pod definitions",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The pinned upstream image security context is preserved because generic UID or filesystem changes can break runtime access."
+    },
+    {
+      "check": "C-0211",
+      "control": "Apply Security Context to Your Pods and Containers",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The pinned upstream image security context is preserved because generic UID or filesystem changes can break runtime access."
+    },
+    {
+      "check": "C-0237",
+      "control": "Check if signature exists",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "Static manifests cannot prove signature verification; provenance is reviewed when the pinned dependency is updated."
+    },
+    {
+      "check": "C-0255",
+      "control": "Workload with secret access",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0258",
+      "control": "Workload with ConfigMap access",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0260",
+      "control": "Missing network policy",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "CiliumNetworkPolicy is the enforced network boundary; Kubescape does not evaluate the Cilium policy CRD."
+    },
+    {
+      "check": "C-0261",
+      "control": "ServiceAccount token mounted",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The exact controller requires Kubernetes API access through its dedicated service account to reconcile resources."
+    },
+    {
+      "check": "C-0267",
+      "control": "Workload with cluster takeover roles",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0272",
+      "control": "Workload with administrative roles",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0278",
+      "control": "Minimize access to create persistent volumes",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0279",
+      "control": "Minimize access to the proxy sub-resource of nodes",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0280",
+      "control": "Minimize access to the approval sub-resource of certificatesigningrequests objects",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0281",
+      "control": "Minimize access to webhook configuration objects",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0282",
+      "control": "Minimize access to the service account token creation",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0293",
+      "control": "Service with no workload",
+      "profiles": [
+        "homelab",
+        "production"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    }
+  ]
+}

@@ -19,32 +19,11 @@ spec:
       selfHeal: true
       allowEmpty: false
     syncOptions:
-    - Validate=true
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
+      - Validate=true
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
   source:
-    chart: authentik
-    repoURL: https://charts.goauthentik.io/
-    targetRevision: 2026.2.2
-    helm:
-      releaseName: authentik
-      valuesObject:
-        global:
-          fullnameOverride: authentik
-          namespaceOverride: authentik
-          nodeSelector:
-            node-role.kubernetes.io/homelab: homelab
-            
-        authentik:
-          existingSecret:
-            secretName: authentik
-
-        server:
-          ingress:
-            enabled: false
-        # Ensure dependencies are disabled
-        postgresql:
-          enabled: false
-        redis:
-          enabled: false
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/authentik/helm/authentik/overlays/homelab
+    targetRevision: HEAD

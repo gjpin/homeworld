@@ -1,0 +1,6 @@
+fullnameOverride: cloudnative-pg
+namespaceOverride: cloudnative-pg
+monitoring:
+  podMonitorEnabled: true
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab

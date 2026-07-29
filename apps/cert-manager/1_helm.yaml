@@ -18,46 +18,11 @@ spec:
       selfHeal: true
       allowEmpty: false
     syncOptions:
-    - Validate=true
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
+      - Validate=true
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
   source:
-    chart: cert-manager
-    repoURL: https://charts.jetstack.io
-    targetRevision: 1.20.2
-    helm:
-      releaseName: cert-manager
-      valuesObject:
-        fullnameOverride: cert-manager
-        namespace: cert-manager
-
-        crds:
-          enabled: true
-          keep: true
-
-        # https://cert-manager.io/docs/usage/gateway/
-        config:
-          apiVersion: controller.config.cert-manager.io/v1alpha1
-          kind: ControllerConfiguration
-          enableGatewayAPI: true
-          kubernetesAPIQPS: 10000
-          kubernetesAPIBurst: 10000
-          featureGates:
-            ServerSideApply: true
-
-        # resources:
-        #   requests:
-        #     cpu: 100m
-        #     memory: 128Mi
-        #   limits:
-        #     cpu: 500m
-        #     memory: 256Mi
-
-        prometheus:
-          servicemonitor:
-            enabled: true
-            interval: 60s
-
-        nodeSelector:
-          node-role.kubernetes.io/homelab: homelab
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/cert-manager/helm/cert-manager/overlays/homelab
+    targetRevision: HEAD

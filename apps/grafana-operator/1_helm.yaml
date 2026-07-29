@@ -21,22 +21,8 @@ spec:
     - CreateNamespace=true
     - PrunePropagationPolicy=foreground
     - PruneLast=true
+
   source:
-    chart: grafana-operator
-    repoURL: ghcr.io/grafana/helm-charts
-    targetRevision: 5.24.0
-    helm:
-      releaseName: grafana-operator
-      valuesObject:
-        fullnameOverride: grafana-operator
-        namespaceOverride: grafana-operator
-
-        crds:
-          immutable: false
-
-        serviceMonitor:
-          enabled: true
-          interval: 60s
-
-        nodeSelector:
-          node-role.kubernetes.io/homelab: homelab
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/grafana-operator/helm/grafana-operator/overlays/homelab
+    targetRevision: HEAD

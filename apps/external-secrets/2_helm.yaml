@@ -23,19 +23,8 @@ spec:
     - CreateNamespace=true
     - PrunePropagationPolicy=foreground
     - PruneLast=true
+
   source:
-    chart: external-secrets
-    repoURL: https://charts.external-secrets.io
-    targetRevision: 2.4.1
-    helm:
-      releaseName: external-secrets
-      valuesObject:
-        nameOverride: "external-secrets"
-        fullnameOverride: "external-secrets"
-
-        serviceAccount:
-          name: "external-secrets"
-
-        global:
-          nodeSelector:
-            node-role.kubernetes.io/homelab: homelab
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/external-secrets/helm/external-secrets/overlays/homelab
+    targetRevision: HEAD

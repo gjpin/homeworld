@@ -26,6 +26,37 @@
 | Velero | — | Whole-cluster backups to Backblaze B2. |
 | Velero UI | `velero.${BASE_DOMAIN}` | Web interface for managing Velero. |
 
+# Helm security profiles
+
+Pinned upstream charts are rendered through Kustomize overlays under each
+component's `helm/` directory. Argo CD deploys the `homelab` overlay; CI renders
+both `homelab` and `production` with the same chart version and values.
+
+Argo CD must have `kustomize.buildOptions: --enable-helm` before chart
+Applications are switched to local overlay sources. Argo CD itself remains on
+the direct Helm bootstrap source until that setting has been synced, and should
+be migrated last. RustFS Operator remains direct Helm because chart `0.0.5`
+contains a duplicate CRD; CI renders it with Helm until upstream fixes the
+package.
+
+Security findings must pass or have a resource-specific entry in
+`security/exceptions.yaml` with a substantive reason and owner. Global scanner
+exclusions and wildcard resource exceptions are not accepted.
+
+Profile resource fallbacks, applied only when an upstream value is absent:
+
+| Profile | Requests | Limits |
+| --- | --- | --- |
+| Homelab | `10m` CPU, `64Mi` memory, `64Mi` ephemeral storage | `1` CPU, `2Gi` memory, `2Gi` ephemeral storage |
+| Production | `100m` CPU, `128Mi` memory, `128Mi` ephemeral storage | `2` CPU, `4Gi` memory, `4Gi` ephemeral storage |
+
+Render either profile without touching the cluster:
+
+```bash
+scripts/render-helm-profiles.sh homelab /tmp/homeworld-homelab
+scripts/render-helm-profiles.sh production /tmp/homeworld-production
+```
+
 # Variables
 ```bash
 # public HTTP routes
@@ -214,6 +245,8 @@ Create the following values in Infisical before syncing Authentik and Immich:
 * `/immich/DRAGONFLY_PASSWORD`
 
 # ArgoCD
+* **Sync wave 0**
+   * argocd: enables Helm inflation for the Kustomize-rendered chart profiles
 * **Sync wave 1**
    * prometheus-operator-crd: CRDs required by service monitors
    * external-secrets: External Secrets Operator and Infisical ClusterSecretStore
@@ -224,7 +257,6 @@ Create the following values in Infisical before syncing Authentik and Immich:
    * external-dns: manages DNS records
    * longhorn: block storage
 * **Sync wave 4**
-   * argocd
    * cloudnative-pg: postgresql operator
    * dragonfly-operator: dragonfly (redis-compatible) operator
    * grafana-operator: Grafana instance, dashboard, and datasource operator

@@ -1,0 +1,39 @@
+apiVersion: e2e.testing.dev/v1alpha1
+kind: Suite
+metadata:
+  name: minimal
+spec:
+  cluster:
+    name: e2e-minimal
+    kindConfig: |
+      kind: Cluster
+      apiVersion: kind.x-k8s.io/v1alpha4
+      networking:
+        disableDefaultCNI: true
+      nodes:
+      - role: control-plane
+      - role: worker
+    cilium:
+      chartVersion: "1.17.2"
+      namespace: kube-system
+      values:
+        image.pullPolicy: IfNotPresent
+        ipam.mode: kubernetes
+      waitTimeout: 10m
+  prepare:
+    nodeLabels:
+      - node-role.kubernetes.io/homelab=homelab
+  deploy:
+    timeout: 5m
+    steps:
+      - name: noop-hook
+        hook:
+          name: noop
+          command: ["true"]
+  assert:
+    timeout: 5m
+    checks:
+      - name: pods
+        podsReady:
+          excludeNamespaces: ["kube-system"]
+          ignoreCompletedJobs: true

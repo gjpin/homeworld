@@ -1,0 +1,112 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../base
+commonAnnotations:
+  security.homeworld/profile: production
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^velero$
+    namespace: ^velero$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/resources
+      value: {"requests":{"cpu":"100m","memory":"128Mi","ephemeral-storage":"128Mi"},"limits":{"cpu":"2","memory":"4Gi","ephemeral-storage":"4Gi"}}
+    - op: add
+      path: /spec/template/spec/initContainers/0/resources
+      value: {"requests":{"cpu":"100m","memory":"128Mi","ephemeral-storage":"128Mi"},"limits":{"cpu":"2","memory":"4Gi","ephemeral-storage":"4Gi"}}
+- target:
+    group: apps
+    version: v1
+    kind: DaemonSet
+    name: ^node-agent$
+    namespace: ^velero$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/resources
+      value: {"requests":{"cpu":"100m","memory":"128Mi","ephemeral-storage":"128Mi"},"limits":{"cpu":"2","memory":"4Gi","ephemeral-storage":"4Gi"}}
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: ^velero-upgrade-crds$
+    namespace: ^velero$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/resources
+      value: {"requests":{"cpu":"100m","memory":"128Mi","ephemeral-storage":"128Mi"},"limits":{"cpu":"2","memory":"4Gi","ephemeral-storage":"4Gi"}}
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^velero$
+    namespace: ^velero$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: Always
+    - op: add
+      path: /spec/template/spec/initContainers/0/imagePullPolicy
+      value: Always
+- target:
+    group: apps
+    version: v1
+    kind: DaemonSet
+    name: ^node-agent$
+    namespace: ^velero$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: Always
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: ^velero-upgrade-crds$
+    namespace: ^velero$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: Always
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: ^velero-upgrade-crds$
+    namespace: ^velero$
+  patch: |-
+    - op: add
+      path: /metadata/annotations/kube-score~1ignore
+      value: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem
+    - op: add
+      path: /metadata/annotations/security.homeworld~1exception-reason
+      value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+- target:
+    group: apps
+    version: v1
+    kind: DaemonSet
+    name: ^node-agent$
+    namespace: ^velero$
+  patch: |-
+    - op: add
+      path: /metadata/annotations/kube-score~1ignore
+      value: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem
+    - op: add
+      path: /metadata/annotations/security.homeworld~1exception-reason
+      value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^velero$
+    namespace: ^velero$
+  patch: |-
+    - op: add
+      path: /metadata/annotations/kube-score~1ignore
+      value: pod-probes-identical,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-strategy,deployment-replicas
+    - op: add
+      path: /metadata/annotations/security.homeworld~1exception-reason
+      value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.

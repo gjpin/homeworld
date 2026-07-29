@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  yaml:
+  manifests:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -17,3 +17,58 @@ jobs:
         run: |
           find apps -type f -name '*.yaml' -print0 |
             xargs -0 -n1 yq eval '.' >/dev/null
+
+  helm-security:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        profile:
+          - homelab
+          - production
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install pinned security toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          curl -sSfLO https://github.com/kubescape/kubescape/releases/download/v4.0.11/kubescape_4.0.11_linux_amd64
+          curl -sSfL https://github.com/kubescape/kubescape/releases/download/v4.0.11/checksums.sha256 |
+            grep ' kubescape_4.0.11_linux_amd64$' | sha256sum --check
+          sudo install kubescape_4.0.11_linux_amd64 /usr/local/bin/kubescape
+
+          curl -sSfLO https://github.com/zegl/kube-score/releases/download/v1.20.0/kube-score_1.20.0_linux_amd64.tar.gz
+          curl -sSfL https://github.com/zegl/kube-score/releases/download/v1.20.0/checksums.txt |
+            grep ' kube-score_1.20.0_linux_amd64.tar.gz$' | sha256sum --check
+          tar -xzf kube-score_1.20.0_linux_amd64.tar.gz kube-score
+          sudo install kube-score /usr/local/bin/kube-score
+
+          curl -sSfLO https://get.helm.sh/helm-v4.2.3-linux-amd64.tar.gz
+          curl -sSfL https://get.helm.sh/helm-v4.2.3-linux-amd64.tar.gz.sha256 |
+            awk '{print $1 "  helm-v4.2.3-linux-amd64.tar.gz"}' | sha256sum --check
+          tar -xzf helm-v4.2.3-linux-amd64.tar.gz
+          sudo install linux-amd64/helm /usr/local/bin/helm
+
+          sudo curl -sSfL -o /usr/local/bin/kubectl \
+            https://dl.k8s.io/release/v1.36.3/bin/linux/amd64/kubectl
+          curl -sSfL https://dl.k8s.io/release/v1.36.3/bin/linux/amd64/kubectl.sha256 |
+            awk '{print $1 "  /usr/local/bin/kubectl"}' | sha256sum --check
+          sudo chmod 0755 /usr/local/bin/kubectl
+
+          curl -sSfLO https://github.com/mikefarah/yq/releases/download/v4.47.1/yq_linux_amd64
+          echo '0fb28c6680193c41b364193d0c0fc4a03177aecde51cfc04d506b1517158c2fb  yq_linux_amd64' |
+            sha256sum --check
+          sudo install yq_linux_amd64 /usr/local/bin/yq
+
+      - name: Render and enforce security policy
+        run: scripts/scan-security.sh "${{ matrix.profile }}"
+
+      - name: Upload scanner reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: security-${{ matrix.profile }}
+          path: security-reports/${{ matrix.profile }}

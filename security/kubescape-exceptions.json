@@ -1,0 +1,6343 @@
+[
+  {
+    "name": "homeworld-C-0002",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0002"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0007",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-server$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-certificates$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-challenges$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-clusterissuers$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-issuers$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^dragonfly-operator-manager-clusterrolebinding$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^external-secrets-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-bind$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^rustfs-operator-console$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^authentik$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^envoy-gateway-gateway-helm-infra-manager$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^longhorn$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0007"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0012",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ConfigMap$",
+          "name": "^argocd-cm$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ConfigMap$",
+          "name": "^openobserve$",
+          "namespace": "^openobserve$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0012"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0013",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-dex-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-redis$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-repo-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-server$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-worker$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-cainjector$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-webhook$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^dragonfly-operator$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-cert-controller$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-webhook$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^forgejo$",
+          "namespace": "^forgejo$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^grafana-operator$",
+          "namespace": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-machine-learning$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-server$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-ui$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-deployment$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-main$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator-console$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^argocd-redis-secret-init$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^cert-manager-startupapicheck$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0013"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0015",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-notifications-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-server$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-cainjector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-certificates$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-challenges$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-clusterissuers$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-issuers$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-orders$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^envoy-gateway-gateway-helm-envoy-gateway-rolebinding$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^external-secrets-cert-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^external-secrets-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-bind$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^rustfs-operator-console$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-dex-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^authentik$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cert-manager-webhook:dynamic-serving$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^envoy-gateway-gateway-helm-certgen$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^longhorn$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-ui-velero-permissions$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0015"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0016",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-server$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-worker$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^forgejo$",
+          "namespace": "^forgejo$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-machine-learning$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-server$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-ui$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-deployment$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-main$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^openobserve$",
+          "namespace": "^openobserve$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0016"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0017",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-server$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-worker$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^dragonfly-operator$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^envoy-gateway$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^forgejo$",
+          "namespace": "^forgejo$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-machine-learning$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-server$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-ui$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-deployment$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-main$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator-console$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^openobserve$",
+          "namespace": "^openobserve$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0017"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0018",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-dex-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-redis$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-cainjector$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^dragonfly-operator$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-ui$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^argocd-redis-secret-init$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^cert-manager-startupapicheck$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^envoy-gateway-gateway-helm-certgen$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0018"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0030",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-dex-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-redis$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-repo-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-server$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-worker$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-cainjector$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-webhook$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cloudnative-pg$",
+          "namespace": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^dragonfly-operator$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^envoy-gateway$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-dns$",
+          "namespace": "^external-dns$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-cert-controller$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-webhook$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^forgejo$",
+          "namespace": "^forgejo$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^grafana-operator$",
+          "namespace": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-machine-learning$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-server$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-ui$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-deployment$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-main$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator-console$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^argocd-redis-secret-init$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^cert-manager-startupapicheck$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^envoy-gateway-gateway-helm-certgen$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^openobserve$",
+          "namespace": "^openobserve$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0030"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0031",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-server$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-bind$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^longhorn$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0031"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0034",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-dex-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-redis$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-repo-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-server$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-worker$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-cainjector$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-webhook$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cloudnative-pg$",
+          "namespace": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^dragonfly-operator$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^envoy-gateway$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-dns$",
+          "namespace": "^external-dns$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-cert-controller$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-webhook$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^forgejo$",
+          "namespace": "^forgejo$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^grafana-operator$",
+          "namespace": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-machine-learning$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-server$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-ui$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-deployment$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-main$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator-console$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^argocd-redis-secret-init$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^cert-manager-startupapicheck$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^envoy-gateway-gateway-helm-certgen$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^openobserve$",
+          "namespace": "^openobserve$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0034"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0035",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0035"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0037",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-server$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^authentik$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^dragonfly-operator-leader-election-rolebinding$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^envoy-gateway-gateway-helm-infra-manager$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^envoy-gateway-gateway-helm-leader-election-rolebinding$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^longhorn$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0037"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0044",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0044"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0045",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0045"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0048",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0048"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0053",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-notifications-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-server$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^authentik-authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-cainjector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-approve:cert-manager-io$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-certificates$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-certificatesigningrequests$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-challenges$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-clusterissuers$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-ingress-shim$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-issuers$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-orders$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-webhook:subjectaccessreviews$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^dragonfly-operator-manager-clusterrolebinding$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^dragonfly-operator-proxy-clusterrolebinding$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^envoy-gateway-gateway-helm-certgen:envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^envoy-gateway-gateway-helm-envoy-gateway-rolebinding$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^external-dns-namespaces$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^external-secrets-cert-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^external-secrets-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-bind$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^otel-collector-daemonset$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^otel-collector-deployment$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^rustfs-operator-console$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^velero-upgrade-crds$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^external-dns-viewer$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-dex-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-repo-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^authentik$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cert-manager-startupapicheck:create-cert$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cert-manager-tokenrequest$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cert-manager-webhook:dynamic-serving$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^dragonfly-operator-leader-election-rolebinding$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^envoy-gateway-gateway-helm-certgen$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^envoy-gateway-gateway-helm-infra-manager$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^envoy-gateway-gateway-helm-leader-election-rolebinding$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^external-secrets-leaderelection$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^grafana-operator-leases$",
+          "namespace": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cert-manager-cainjector:leaderelection$",
+          "namespace": "^kube-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cert-manager:leaderelection$",
+          "namespace": "^kube-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^longhorn$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-ui-velero-permissions$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-ui-permissions$",
+          "namespace": "^velero-ui$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0053"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0055",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-server$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-worker$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^dragonfly-operator$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^forgejo$",
+          "namespace": "^forgejo$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^grafana-operator$",
+          "namespace": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-machine-learning$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-server$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-ui$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-deployment$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-main$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^openobserve$",
+          "namespace": "^openobserve$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0055"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0056",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-dex-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-redis$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-cainjector$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^dragonfly-operator$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-cert-controller$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-webhook$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-ui$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^argocd-redis-secret-init$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^cert-manager-startupapicheck$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^envoy-gateway-gateway-helm-certgen$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0056"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0057",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0057"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0061",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0061"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0063",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0063"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0065",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^longhorn$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0065"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0076",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-dex-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-redis$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-repo-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-server$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-worker$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cloudnative-pg$",
+          "namespace": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^envoy-gateway$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-dns$",
+          "namespace": "^external-dns$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-cert-controller$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-webhook$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^grafana-operator$",
+          "namespace": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-machine-learning$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-server$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-deployment$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-main$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator-console$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^argocd-redis-secret-init$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^envoy-gateway-gateway-helm-certgen$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^openobserve$",
+          "namespace": "^openobserve$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0076"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0077",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^envoy-gateway-gateway-helm-certgen$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0077"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0186",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-notifications-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-server$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-cainjector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-certificates$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-challenges$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-clusterissuers$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-issuers$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-orders$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^envoy-gateway-gateway-helm-envoy-gateway-rolebinding$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^external-secrets-cert-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^external-secrets-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-bind$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^rustfs-operator-console$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-dex-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^authentik$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cert-manager-webhook:dynamic-serving$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^envoy-gateway-gateway-helm-certgen$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^longhorn$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-ui-velero-permissions$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0186"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0187",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0187"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0188",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-controller-challenges$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^dragonfly-operator-manager-clusterrolebinding$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^longhorn$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0188"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0190",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-dex-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-redis$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-repo-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-server$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-worker$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-cainjector$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-webhook$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cloudnative-pg$",
+          "namespace": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^dragonfly-operator$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^envoy-gateway$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-dns$",
+          "namespace": "^external-dns$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-cert-controller$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-webhook$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^forgejo$",
+          "namespace": "^forgejo$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^grafana-operator$",
+          "namespace": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-machine-learning$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-server$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-ui$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-deployment$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-main$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator-console$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^argocd-redis-secret-init$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^cert-manager-startupapicheck$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^envoy-gateway-gateway-helm-certgen$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^openobserve$",
+          "namespace": "^openobserve$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0190"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0191",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-bind$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^longhorn$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0191"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0207",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-redis$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-repo-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-dns$",
+          "namespace": "^external-dns$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-machine-learning$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-server$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-deployment$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-main$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator-console$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^openobserve$",
+          "namespace": "^openobserve$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0207"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0210",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-server$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-worker$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^dragonfly-operator$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^forgejo$",
+          "namespace": "^forgejo$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^grafana-operator$",
+          "namespace": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-machine-learning$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-server$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-ui$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-deployment$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-main$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^openobserve$",
+          "namespace": "^openobserve$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0210"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0211",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-dex-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-redis$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-repo-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-server$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-worker$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-cainjector$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-webhook$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cloudnative-pg$",
+          "namespace": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^dragonfly-operator$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^envoy-gateway$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-dns$",
+          "namespace": "^external-dns$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-cert-controller$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-webhook$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^forgejo$",
+          "namespace": "^forgejo$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^grafana-operator$",
+          "namespace": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-machine-learning$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-server$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-ui$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-deployment$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-main$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator-console$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^argocd-redis-secret-init$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^cert-manager-startupapicheck$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^envoy-gateway-gateway-helm-certgen$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^openobserve$",
+          "namespace": "^openobserve$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0211"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0237",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-dex-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-redis$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-repo-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-server$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-worker$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^dragonfly-operator$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^envoy-gateway$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^forgejo$",
+          "namespace": "^forgejo$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^grafana-operator$",
+          "namespace": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-machine-learning$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-server$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-ui$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator-console$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^argocd-redis-secret-init$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^envoy-gateway-gateway-helm-certgen$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^openobserve$",
+          "namespace": "^openobserve$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0237"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0255",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-webhook$",
+          "namespace": "^external-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0255"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0258",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-redis$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-repo-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^envoy-gateway$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-deployment$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-main$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0258"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0260",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-dex-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-redis$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-repo-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-server$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-worker$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-cainjector$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-webhook$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cloudnative-pg$",
+          "namespace": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^dragonfly-operator$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^envoy-gateway$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-dns$",
+          "namespace": "^external-dns$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-cert-controller$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-webhook$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^forgejo$",
+          "namespace": "^forgejo$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^grafana-operator$",
+          "namespace": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-machine-learning$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^immich-server$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-ui$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-deployment$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-main$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator-console$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^argocd-redis-secret-init$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^cert-manager-startupapicheck$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^envoy-gateway-gateway-helm-certgen$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^openobserve$",
+          "namespace": "^openobserve$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0260"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0261",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^otel-collector-daemonset-agent$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-dex-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-repo-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-worker$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-cainjector$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-webhook$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cloudnative-pg$",
+          "namespace": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^dragonfly-operator$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^envoy-gateway$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-dns$",
+          "namespace": "^external-dns$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-cert-controller$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^grafana-operator$",
+          "namespace": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^otel-collector-deployment$",
+          "namespace": "^otel-collector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator-console$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^cert-manager-startupapicheck$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^envoy-gateway-gateway-helm-certgen$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^velero-upgrade-crds$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0261"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0267",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^longhorn-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-applicationset-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-dex-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-server$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authentik-worker$",
+          "namespace": "^authentik$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-cainjector$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-webhook$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cloudnative-pg$",
+          "namespace": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^dragonfly-operator$",
+          "namespace": "^dragonfly-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^envoy-gateway$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-secrets-cert-controller$",
+          "namespace": "^external-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^grafana-operator$",
+          "namespace": "^grafana-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-driver-deployer$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^rustfs-operator-console$",
+          "namespace": "^rustfs-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^envoy-gateway-gateway-helm-certgen$",
+          "namespace": "^envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-pre-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-uninstall$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0267"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0272",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^node-agent$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^argocd-argocd-application-controller$",
+          "namespace": "^argocd$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0272"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0278",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-bind$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0278"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0279",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-server$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0279"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0280",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0280"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0281",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-server$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-cainjector$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^envoy-gateway-gateway-helm-certgen:envoy-gateway$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^external-secrets-cert-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-bind$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0281"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0282",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^argocd-argocd-application-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^external-secrets-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cert-manager-tokenrequest$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^velero-server$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0282"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0293",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Service$",
+          "name": "^longhorn-admission-webhook$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Service$",
+          "name": "^longhorn-recovery-backend$",
+          "namespace": "^longhorn-system$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0293"
+      }
+    ]
+  }
+]

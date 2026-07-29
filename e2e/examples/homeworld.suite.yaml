@@ -1,0 +1,105 @@
+apiVersion: e2e.testing.dev/v1alpha1
+kind: Suite
+metadata:
+  name: homeworld
+spec:
+  # Repository root (suite file lives in e2e/examples/).
+  workdir: ../..
+
+  deps:
+    dockerCompose:
+      - name: infisical
+        file: e2e/examples/infisical/docker-compose.yml
+        envFile: e2e/examples/infisical/.env.e2e
+        projectName: e2e-infisical
+        wait:
+          - url: http://127.0.0.1:8080/api/status
+            timeout: 5m
+
+  cluster:
+    name: homeworld-e2e
+    kindConfig: |
+      kind: Cluster
+      apiVersion: kind.x-k8s.io/v1alpha4
+      networking:
+        disableDefaultCNI: true
+      nodes:
+      - role: control-plane
+        kubeadmConfigPatches:
+        - |
+          kind: ClusterConfiguration
+          apiServer:
+            certSANs: ["127.0.0.1", "localhost"]
+        # Docker Desktop / macOS: pods reach host services via host.docker.internal.
+        # On Linux, also add extraHosts mapping to the docker bridge gateway IP
+        # (see e2e/README.md "Kind → Infisical reachability").
+        extraPortMappings: []
+      - role: worker
+    cilium:
+      chartVersion: "1.17.2"
+      namespace: kube-system
+      values:
+        image.pullPolicy: IfNotPresent
+        ipam.mode: kubernetes
+        operator.replicas: "1"
+        kubeProxyReplacement: "false"
+      waitTimeout: 10m
+
+  prepare:
+    nodeLabels:
+      - node-role.kubernetes.io/homelab=homelab
+    hooks:
+      - name: seed-infisical
+        command: ["./e2e/examples/hooks/seed-infisical.sh"]
+        timeout: 10m
+        env:
+          INFISICAL_HOST: http://host.docker.internal:8080
+          INFISICAL_HOST_LOCAL: http://127.0.0.1:8080
+          INFISICAL_PROJECT_SLUG: homeworld
+          INFISICAL_ENVIRONMENT_SLUG: prod
+      - name: apply-eso-credentials
+        command: ["./e2e/examples/hooks/apply-eso-credentials.sh"]
+        timeout: 5m
+        env:
+          INFISICAL_HOST: http://host.docker.internal:8080
+
+  deploy:
+    timeout: 45m
+    steps:
+      - name: apply-root
+        apply:
+          paths: ["apps/app-of-apps.yaml"]
+      - name: wait-argo
+        wait:
+          group: argoproj.io
+          version: v1alpha1
+          resource: applications
+          namespace: argocd
+          selector: "app.kubernetes.io/part-of=homeworld"
+          conditions:
+            - type: Synced
+              status: "True"
+            - type: Healthy
+              status: "True"
+          timeout: 40m
+
+  assert:
+    timeout: 20m
+    checks:
+      - name: pods
+        podsReady:
+          excludeNamespaces: ["kube-system"]
+          ignoreCompletedJobs: true
+      - name: workloads
+        workloadsReady:
+          kinds: ["Deployment", "StatefulSet", "DaemonSet"]
+          namespaces: ["argocd", "external-secrets", "cert-manager"]
+      - name: eso-store
+        resourceCondition:
+          apiVersion: external-secrets.io/v1
+          kind: ClusterSecretStore
+          name: infisical
+          condition: Ready
+          status: "True"
+          timeout: 10m
+      # Longhorn/kind, Cloudflare ACME, B2, and Zigbee remain out of scope for v1.

@@ -33,9 +33,11 @@ bootstrap script.
 - Set `metadata.namespace` explicitly when the resource is namespaced.
 - Pin container images, chart versions, and remote revisions. Do not introduce
   floating tags such as `latest`.
-- Helm installations are represented as Argo CD `Application` resources with
-  inline `spec.source.helm.valuesObject`. Preserve the existing automated sync
-  policy and sync options unless the change specifically requires otherwise.
+- Helm installations are rendered from pinned upstream charts under
+  `apps/<component>/helm/<release>/`. Argo CD `Application` resources select
+  the `homelab` overlay; both `homelab` and `production` must render in CI.
+  Preserve the existing automated sync policy and sync options unless the
+  change specifically requires otherwise.
 - Keep service names, selectors, labels, PVC references, route backends, and
   namespaces consistent across all resources in a component.
 - Workloads should target homelab nodes using
@@ -62,7 +64,8 @@ bootstrap script.
 - Gateway listener and `HTTPRoute` (if applicable)
 - `ServiceMonitor`
 - Add the destination namespace to the world-egress policy selector, or explicitly justify an egress exception.
-- Resource requests/limits are intentionally disabled unless the user requests a policy change.
+- Set requests and limits on all regular, init, and sidecar containers. Preserve
+  higher upstream values; use the documented profile fallbacks when absent.
 - Autoscaling (HPA/KEDA) is intentionally disabled unless the user requests a policy change.
 
 ## Adding or changing a component

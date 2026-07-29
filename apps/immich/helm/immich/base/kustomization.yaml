@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+helmCharts:
+- name: immich
+  repo: oci://ghcr.io/immich-app/immich-charts
+  version: 0.11.1
+  releaseName: immich
+  namespace: immich
+  includeCRDs: true
+  skipTests: true
+  valuesFile: values.yaml

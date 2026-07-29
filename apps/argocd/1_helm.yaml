@@ -44,6 +44,8 @@ spec:
         # so we disable TLS in the API server.
         # https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#ingressroute-crd
         configs:
+          cm:
+            kustomize.buildOptions: --enable-helm
           params:
             server.insecure: true
 

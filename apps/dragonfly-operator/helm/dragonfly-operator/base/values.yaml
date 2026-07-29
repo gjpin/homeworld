@@ -1,0 +1,8 @@
+fullnameOverride: dragonfly-operator
+additionalLabels:
+  app: dragonfly-operator
+serviceMonitor:
+  enabled: true
+  interval: 60s
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab

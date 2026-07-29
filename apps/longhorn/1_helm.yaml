@@ -22,23 +22,6 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
   source:
-    chart: longhorn
-    repoURL: https://charts.longhorn.io
-    targetRevision: 1.11.1
-    helm:
-      releaseName: longhorn
-      valuesObject:
-        namespaceOverride: longhorn-system # mandatory namespace for this helm chart
-
-        # disable default storage class
-        persistence:
-          defaultClass: false
-
-        metrics:
-          serviceMonitor:
-            enabled: true
-            interval: 60s
-
-        global:
-          nodeSelector:
-            node-role.kubernetes.io/homelab: homelab
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/longhorn/helm/longhorn/overlays/homelab
+    targetRevision: HEAD

@@ -1,0 +1,253 @@
+package config
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"time"
+
+	"gopkg.in/yaml.v3"
+)
+
+const (
+	APIVersion = "e2e.testing.dev/v1alpha1"
+	KindSuite  = "Suite"
+)
+
+// Suite is the portable E2E suite contract.
+type Suite struct {
+	APIVersion string   `yaml:"apiVersion"`
+	Kind       string   `yaml:"kind"`
+	Metadata   Metadata `yaml:"metadata"`
+	Spec       Spec     `yaml:"spec"`
+
+	// Path is the absolute path to the suite file (set on load).
+	Path string `yaml:"-"`
+	// Dir is the directory containing the suite file (set on load).
+	Dir string `yaml:"-"`
+}
+
+type Metadata struct {
+	Name string `yaml:"name"`
+}
+
+type Spec struct {
+	// Workdir overrides the working directory for relative paths and hooks.
+	// Defaults to the suite file directory.
+	Workdir string   `yaml:"workdir,omitempty"`
+	Deps    *Deps    `yaml:"deps,omitempty"`
+	Cluster Cluster  `yaml:"cluster"`
+	Prepare *Prepare `yaml:"prepare,omitempty"`
+	Deploy  *Deploy  `yaml:"deploy,omitempty"`
+	Assert  *Assert  `yaml:"assert,omitempty"`
+}
+
+type Deps struct {
+	DockerCompose []DockerCompose `yaml:"dockerCompose,omitempty"`
+}
+
+type DockerCompose struct {
+	Name        string             `yaml:"name"`
+	File        string             `yaml:"file"`
+	EnvFile     string             `yaml:"envFile,omitempty"`
+	ProjectName string             `yaml:"projectName"`
+	Wait        []ComposeWaitProbe `yaml:"wait,omitempty"`
+}
+
+type ComposeWaitProbe struct {
+	URL     string `yaml:"url"`
+	Timeout string `yaml:"timeout,omitempty"`
+}
+
+type Cluster struct {
+	Name        string `yaml:"name"`
+	KindConfig  string `yaml:"kindConfig"`
+	Cilium      Cilium `yaml:"cilium"`
+	KubeVersion string `yaml:"kubeVersion,omitempty"`
+}
+
+type Cilium struct {
+	ChartVersion string            `yaml:"chartVersion"`
+	Namespace    string            `yaml:"namespace,omitempty"`
+	Values       map[string]string `yaml:"values,omitempty"`
+	WaitTimeout  string            `yaml:"waitTimeout,omitempty"`
+}
+
+type Prepare struct {
+	NodeLabels []string `yaml:"nodeLabels,omitempty"`
+	Hooks      []Hook   `yaml:"hooks,omitempty"`
+}
+
+type Hook struct {
+	Name    string            `yaml:"name"`
+	Command []string          `yaml:"command"`
+	Env     map[string]string `yaml:"env,omitempty"`
+	Timeout string            `yaml:"timeout,omitempty"`
+}
+
+type Deploy struct {
+	Timeout string       `yaml:"timeout,omitempty"`
+	Steps   []DeployStep `yaml:"steps"`
+}
+
+type DeployStep struct {
+	Name      string         `yaml:"name"`
+	Apply     *ApplyStep     `yaml:"apply,omitempty"`
+	Kustomize *KustomizeStep `yaml:"kustomize,omitempty"`
+	Helm      *HelmStep      `yaml:"helm,omitempty"`
+	Wait      *WaitStep      `yaml:"wait,omitempty"`
+	Hook      *Hook          `yaml:"hook,omitempty"`
+}
+
+type ApplyStep struct {
+	Paths []string `yaml:"paths"`
+}
+
+type KustomizeStep struct {
+	Path string `yaml:"path"`
+}
+
+type HelmStep struct {
+	ReleaseName string            `yaml:"releaseName"`
+	Chart       string            `yaml:"chart"`
+	RepoURL     string            `yaml:"repoURL,omitempty"`
+	Version     string            `yaml:"version,omitempty"`
+	Namespace   string            `yaml:"namespace,omitempty"`
+	CreateNS    bool              `yaml:"createNamespace,omitempty"`
+	Values      map[string]string `yaml:"values,omitempty"`
+	ValuesFiles []string          `yaml:"valuesFiles,omitempty"`
+	Wait        bool              `yaml:"wait,omitempty"`
+	Timeout     string            `yaml:"timeout,omitempty"`
+}
+
+type WaitStep struct {
+	Group      string          `yaml:"group,omitempty"`
+	Version    string          `yaml:"version"`
+	Resource   string          `yaml:"resource"`
+	Namespace  string          `yaml:"namespace,omitempty"`
+	Name       string          `yaml:"name,omitempty"`
+	Selector   string          `yaml:"selector,omitempty"`
+	Conditions []WaitCondition `yaml:"conditions,omitempty"`
+	Timeout    string          `yaml:"timeout,omitempty"`
+}
+
+type WaitCondition struct {
+	Type   string `yaml:"type"`
+	Status string `yaml:"status"`
+}
+
+type Assert struct {
+	Timeout string  `yaml:"timeout,omitempty"`
+	Checks  []Check `yaml:"checks"`
+}
+
+type Check struct {
+	Name              string             `yaml:"name"`
+	PodsReady         *PodsReady         `yaml:"podsReady,omitempty"`
+	WorkloadsReady    *WorkloadsReady    `yaml:"workloadsReady,omitempty"`
+	ServiceProbe      *ServiceProbe      `yaml:"serviceProbe,omitempty"`
+	ResourceCondition *ResourceCondition `yaml:"resourceCondition,omitempty"`
+	GatewayReady      *GatewayReady      `yaml:"gatewayReady,omitempty"`
+	NetworkProbe      *NetworkProbe      `yaml:"networkProbe,omitempty"`
+}
+
+type PodsReady struct {
+	Namespaces         []string `yaml:"namespaces,omitempty"`
+	ExcludeNamespaces  []string `yaml:"excludeNamespaces,omitempty"`
+	IgnoreCompletedJobs bool    `yaml:"ignoreCompletedJobs,omitempty"`
+	Selector           string   `yaml:"selector,omitempty"`
+}
+
+type WorkloadsReady struct {
+	Namespaces []string `yaml:"namespaces,omitempty"`
+	Kinds      []string `yaml:"kinds,omitempty"` // Deployment, StatefulSet, DaemonSet
+	Selector   string   `yaml:"selector,omitempty"`
+}
+
+type ServiceProbe struct {
+	Namespace string `yaml:"namespace"`
+	Service   string `yaml:"service"`
+	Port      int    `yaml:"port"`
+	Path      string `yaml:"path,omitempty"`
+	Scheme    string `yaml:"scheme,omitempty"`
+	Timeout   string `yaml:"timeout,omitempty"`
+}
+
+type ResourceCondition struct {
+	APIVersion string `yaml:"apiVersion"`
+	Kind       string `yaml:"kind"`
+	Name       string `yaml:"name"`
+	Namespace  string `yaml:"namespace,omitempty"`
+	Condition  string `yaml:"condition"`
+	Status     string `yaml:"status"`
+	Timeout    string `yaml:"timeout,omitempty"`
+}
+
+type GatewayReady struct {
+	Name      string `yaml:"name"`
+	Namespace string `yaml:"namespace"`
+	Timeout   string `yaml:"timeout,omitempty"`
+}
+
+type NetworkProbe struct {
+	FromNamespace string `yaml:"fromNamespace,omitempty"`
+	FromSelector  string `yaml:"fromSelector,omitempty"`
+	Address       string `yaml:"address"`
+	Port          int    `yaml:"port,omitempty"`
+	Protocol      string `yaml:"protocol,omitempty"` // tcp (default), http
+	Path          string `yaml:"path,omitempty"`
+	Timeout       string `yaml:"timeout,omitempty"`
+}
+
+// Load reads and validates a suite YAML file.
+func Load(path string) (*Suite, error) {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return nil, fmt.Errorf("resolve suite path: %w", err)
+	}
+	data, err := os.ReadFile(abs)
+	if err != nil {
+		return nil, fmt.Errorf("read suite: %w", err)
+	}
+	var suite Suite
+	if err := yaml.Unmarshal(data, &suite); err != nil {
+		return nil, fmt.Errorf("parse suite YAML: %w", err)
+	}
+	suite.Path = abs
+	suite.Dir = filepath.Dir(abs)
+	if err := suite.Validate(); err != nil {
+		return nil, err
+	}
+	return &suite, nil
+}
+
+// WorkDir returns the effective working directory for relative paths.
+func (s *Suite) WorkDir() string {
+	if s.Spec.Workdir != "" {
+		if filepath.IsAbs(s.Spec.Workdir) {
+			return s.Spec.Workdir
+		}
+		return filepath.Join(s.Dir, s.Spec.Workdir)
+	}
+	return s.Dir
+}
+
+// ResolvePath resolves a path relative to the suite workdir.
+func (s *Suite) ResolvePath(p string) string {
+	if filepath.IsAbs(p) {
+		return p
+	}
+	return filepath.Join(s.WorkDir(), p)
+}
+
+// ParseDuration parses a duration string with a default when empty.
+func ParseDuration(value string, def time.Duration) (time.Duration, error) {
+	if value == "" {
+		return def, nil
+	}
+	d, err := time.ParseDuration(value)
+	if err != nil {
+		return 0, fmt.Errorf("invalid duration %q: %w", value, err)
+	}
+	return d, nil
+}

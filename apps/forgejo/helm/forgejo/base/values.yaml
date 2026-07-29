@@ -1,0 +1,25 @@
+namespace: forgejo
+# Disable inbuilt postgres
+postgresql-ha:
+  enabled: false
+postgresql:
+  enabled: false
+gitea:
+  config:
+    database:
+      DB_TYPE: postgres
+      HOST: forgejo-rw.forgejo.svc.cluster.local:5432
+      NAME: forgejo
+      USER: forgejo
+  additionalConfigFromEnvs:
+    - name: FORGEJO__DATABASE__PASSWD
+      valueFrom:
+        secretKeyRef:
+          name: postgres-credentials
+          key: password
+  metrics:
+    serviceMonitor:
+      enabled: true
+      interval: 60s
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab

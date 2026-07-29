@@ -14,7 +14,7 @@ spec:
     - "photos.${BASE_DOMAIN}"
   rules:
     - backendRefs:
-      - name: immich
+      - name: immich-server
         namespace: immich
         kind: Service
         port: 80

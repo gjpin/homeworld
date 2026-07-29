@@ -23,49 +23,8 @@ spec:
     - CreateNamespace=true
     - PrunePropagationPolicy=foreground
     - PruneLast=true
+
   source:
-    chart: immich
-    repoURL: ghcr.io/immich-app/immich-charts
-    targetRevision: 0.11.1
-    helm:
-      releaseName: immich
-      valuesObject:
-        global:
-          fullnameOverride: immich
-
-        immich:
-          metrics:
-            enabled: true
-          persistence:
-            library:
-              existingClaim: immich
-        
-        machine-learning:
-          persistence:
-            cache:
-              enabled: true
-              size: 10Gi
-              type: persistentVolumeClaim
-              accessMode: ReadWriteMany
-              storageClass: longhorn-crypto
-
-        controllers:
-          main:
-            containers:
-              main:
-                env:
-                  REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local:6379
-                  REDIS_PASSWORD:
-                    valueFrom:
-                      secretKeyRef:
-                        name: dragonfly
-                        key: password
-                  IMMICH_MACHINE_LEARNING_URL: immich-machine-learning.immich.svc.cluster.local:3003
-                  DB_HOSTNAME: immich-rw.immich.svc.cluster.local:5432
-                  DB_DATABASE_NAME: immich
-                  DB_USERNAME: immich
-                  DB_PASSWORD:
-                    valueFrom:
-                      secretKeyRef:
-                        name: postgres-credentials
-                        key: password
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/immich/helm/immich/overlays/homelab
+    targetRevision: HEAD

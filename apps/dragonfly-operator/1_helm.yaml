@@ -23,20 +23,6 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
   source:
-    chart: dragonfly-operator
-    repoURL: ghcr.io/dragonflydb/dragonfly-operator/helm
-    targetRevision: v1.5.0
-    helm:
-      releaseName: dragonfly-operator
-      valuesObject:
-        fullnameOverride: dragonfly-operator
-        
-        additionalLabels:
-          app: dragonfly-operator
-
-        serviceMonitor:
-          enabled: true
-          interval: 60s
-
-        nodeSelector:
-          node-role.kubernetes.io/homelab: homelab
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/dragonfly-operator/helm/dragonfly-operator/overlays/homelab
+    targetRevision: HEAD

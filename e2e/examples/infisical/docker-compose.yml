@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  backend:
+    container_name: e2e-infisical-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    image: infisical/infisical:v0.162.12
+    env_file: .env.e2e
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - infisical
+
+  redis:
+    image: redis:7.4.2-alpine
+    container_name: e2e-infisical-redis
+    env_file: .env.e2e
+    restart: unless-stopped
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - infisical
+    volumes:
+      - redis_data:/data
+
+  db:
+    container_name: e2e-infisical-db
+    image: postgres:14.17-alpine
+    restart: unless-stopped
+    env_file: .env.e2e
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - infisical
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username=$${POSTGRES_USER} && psql --username=$${POSTGRES_USER} --list"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+volumes:
+  pg_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  infisical:

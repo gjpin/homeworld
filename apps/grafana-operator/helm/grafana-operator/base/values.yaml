@@ -1,0 +1,9 @@
+fullnameOverride: grafana-operator
+namespaceOverride: grafana-operator
+crds:
+  immutable: false
+serviceMonitor:
+  enabled: true
+  interval: 60s
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab

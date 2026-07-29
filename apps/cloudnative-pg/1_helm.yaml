@@ -20,18 +20,8 @@ spec:
     - CreateNamespace=true
     - PrunePropagationPolicy=foreground
     - PruneLast=true
+
   source:
-    chart: cloudnative-pg
-    repoURL: https://cloudnative-pg.github.io/charts
-    targetRevision: 0.28.0
-    helm:
-      releaseName: cloudnative-pg
-      valuesObject:
-        fullnameOverride: cloudnative-pg
-        namespaceOverride: cloudnative-pg
-
-        monitoring:
-          podMonitorEnabled: true
-
-        nodeSelector:
-          node-role.kubernetes.io/homelab: homelab
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/cloudnative-pg/helm/cloudnative-pg/overlays/homelab
+    targetRevision: HEAD

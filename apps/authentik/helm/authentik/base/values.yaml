@@ -1,0 +1,16 @@
+global:
+  fullnameOverride: authentik
+  namespaceOverride: authentik
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+authentik:
+  existingSecret:
+    secretName: authentik
+server:
+  ingress:
+    enabled: false
+# Ensure dependencies are disabled
+postgresql:
+  enabled: false
+redis:
+  enabled: false

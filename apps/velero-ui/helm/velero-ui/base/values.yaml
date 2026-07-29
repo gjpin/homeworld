@@ -1,0 +1,28 @@
+fullnameOverride: velero-ui
+configuration:
+  general:
+    secretPassPhrase:
+      useSecret: false
+    veleroNamespace: velero
+env:
+  - name: AUTH_SECRET_PASSPHRASE
+    valueFrom:
+      secretKeyRef:
+        name: velero-ui-auth
+        key: AUTH_SECRET_PASSPHRASE
+  - name: BASIC_AUTH_ENABLED
+    value: "true"
+  - name: BASIC_AUTH_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: velero-ui-auth
+        key: BASIC_AUTH_USERNAME
+  - name: BASIC_AUTH_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: velero-ui-auth
+        key: BASIC_AUTH_PASSWORD
+  - name: DEFAULT_TIMEZONE
+    value: Europe/Lisbon
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab
