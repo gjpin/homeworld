@@ -101,6 +101,47 @@
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Collabora Helm chart",
+      "managerFilePatterns": [
+        "/^apps/collabora/helm/collabora-online/base/kustomization\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^    version:\\s*(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "depNameTemplate": "collabora-online",
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm",
+      "registryUrlTemplate": "https://collaboraonline.github.io/online/"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Collabora image",
+      "managerFilePatterns": [
+        "/^apps/collabora/helm/collabora-online/base/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^  tag:\\s*(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "depNameTemplate": "collabora/code",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update OpenCloud, Tika, and web extension images",
+      "managerFilePatterns": [
+        "/^apps/opencloud/4_deployments\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>opencloudeu/opencloud-rolling|apache/tika|opencloudeu/web-extensions):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
     }
   ]
 }

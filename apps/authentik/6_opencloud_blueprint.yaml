@@ -1,0 +1,108 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-opencloud-blueprint
+  namespace: authentik
+data:
+  opencloud.yaml: |
+    version: 1
+    metadata:
+      name: OpenCloud OAuth and groups
+    entries:
+      - model: authentik_core.group
+        identifiers:
+          name: opencloud-admin
+        attrs:
+          name: opencloud-admin
+      - model: authentik_core.group
+        identifiers:
+          name: opencloud-spaceadmin
+        attrs:
+          name: opencloud-spaceadmin
+      - model: authentik_core.group
+        identifiers:
+          name: opencloud-user
+        attrs:
+          name: opencloud-user
+      - model: authentik_core.group
+        identifiers:
+          name: opencloud-user-light
+        attrs:
+          name: opencloud-user-light
+      - model: authentik_flows.flow
+        id: opencloud-authorization-flow
+        identifiers:
+          slug: opencloud-authorization
+        attrs:
+          designation: authorization
+          name: OpenCloud authorization
+          title: Redirecting to %(app)s
+          authentication: require_authenticated
+      - model: authentik_policies_expression.expressionpolicy
+        id: opencloud-access-policy
+        identifiers:
+          name: OpenCloud access groups
+        attrs:
+          expression: |
+            allowed_groups = [
+                "opencloud-admin",
+                "opencloud-spaceadmin",
+                "opencloud-user",
+                "opencloud-user-light",
+            ]
+            return any(group.name in allowed_groups for group in request.user.groups.all())
+      - model: authentik_stages_consent.consentstage
+        id: opencloud-consent
+        identifiers:
+          name: OpenCloud consent
+        attrs:
+          mode: expiring
+      - model: authentik_flows.flowstagebinding
+        id: opencloud-consent-binding
+        identifiers:
+          order: 0
+          stage: !KeyOf opencloud-consent
+          target: !KeyOf opencloud-authorization-flow
+      - model: authentik_policies.policybinding
+        identifiers:
+          order: 0
+          policy: !KeyOf opencloud-access-policy
+          target: !KeyOf opencloud-consent-binding
+      - model: authentik_providers_oauth2.oauth2provider
+        id: opencloud-provider
+        identifiers:
+          name: OpenCloud
+        attrs:
+          authorization_flow: !KeyOf opencloud-authorization-flow
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+          issuer_mode: per_provider
+          client_type: public
+          client_id: web
+          redirect_uris:
+            - matching_mode: strict
+              url: https://cloud.${BASE_DOMAIN}/
+            - matching_mode: strict
+              url: https://cloud.${BASE_DOMAIN}/oidc-callback.html
+            - matching_mode: strict
+              url: https://cloud.${BASE_DOMAIN}/oidc-silent-redirect.html
+            - matching_mode: strict
+              url: http://127.0.0.1
+            - matching_mode: strict
+              url: http://localhost
+            - matching_mode: strict
+              url: oc://android.opencloud.eu
+            - matching_mode: strict
+              url: oc://ios.opencloud.eu
+          property_mappings:
+            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
+            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
+            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
+            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-offline_access]]
+          signing_key: !Find [authentik_crypto.certificatekeypair, [name, authentik Self-signed Certificate]]
+      - model: authentik_core.application
+        identifiers:
+          slug: opencloud
+        attrs:
+          name: OpenCloud
+          provider: !KeyOf opencloud-provider

@@ -6,6 +6,7 @@
 | Authentik | `auth.${BASE_DOMAIN}` | Identity provider. |
 | cert-manager | — | TLS certificate management. |
 | CloudNativePG | — | PostgreSQL operator. |
+| Collabora | `office.${BASE_DOMAIN}` | WOPI office editor for OpenCloud. |
 | Dragonfly Operator | — | Dragonfly, a Redis-compatible datastore, operator. |
 | Envoy Gateway | `envoy.${BASE_DOMAIN}` | Gateway API implementation and control-plane metrics. |
 | ExternalDNS | — | DNS record management. |
@@ -18,6 +19,7 @@
 | Longhorn | `longhorn.${BASE_DOMAIN}` | Distributed block-storage management. |
 | OpenObserve | `openobserve.${BASE_DOMAIN}` | Logs, metrics, and traces backend. |
 | OpenTelemetry Collector | — | Telemetry collection and export. |
+| OpenCloud | `cloud.${BASE_DOMAIN}` | Files, sharing, search, and integrated collaboration. |
 | Prometheus Operator CRDs | — | Custom resource definitions required for monitoring resources. |
 | Radicale | `contacts.${BASE_DOMAIN}` | CalDAV and CardDAV server. |
 | RustFS | `s3.${BASE_DOMAIN}`<br>`console.rustfs.${BASE_DOMAIN}` | Shared S3-compatible object storage and Tenant console. |
@@ -138,7 +140,9 @@ helm repo add otwld https://helm.otwld.com/
 Cilium and its `CiliumNetworkPolicy` CRD must be installed before Argo CD syncs
 this repository. Each protected application includes a namespaced policy that
 blocks egress to the Cilium `world` entity. `world` includes both LAN and
-Internet destinations.
+Internet destinations. OpenCloud and Collabora instead use explicit egress
+allow-lists for DNS, RustFS, Tika, Authentik discovery, and their WOPI HTTP
+boundary.
 
 Internet-capable exceptions: Argo CD (Git), cert-manager (ACME), external-dns (DNS provider), external-secrets (Infisical), and Velero (Backblaze B2).
 
@@ -223,6 +227,11 @@ administration. Each consuming application should receive its own bucket,
 least-privilege policy, and identity rather than sharing the administrator
 credentials.
 
+OpenCloud uses a separate `opencloud` bucket and identity. Create the bucket,
+identity, and least-privilege policy in the RustFS administration interface
+before syncing OpenCloud. The OpenCloud credentials in Infisical must be for
+that identity, not the Tenant administrator.
+
 # PostgreSQL application credentials
 Create the following values in Infisical before syncing CloudNativePG and its
 database consumers:
@@ -243,6 +252,29 @@ Create the following values in Infisical before syncing Authentik and Immich:
 * `/authentik/AUTHENTIK_SECRET_KEY`
 * `/authentik/DRAGONFLY_PASSWORD`
 * `/immich/DRAGONFLY_PASSWORD`
+
+# OpenCloud credentials and access groups
+Create the following values in Infisical before syncing OpenCloud and
+Collabora:
+
+* `/opencloud/IDM_ADMIN_PASSWORD`
+* `/opencloud/RUSTFS_ACCESS_KEY`
+* `/opencloud/RUSTFS_SECRET_KEY`
+* `/opencloud/COLLABORA_ADMIN_USER`
+* `/opencloud/COLLABORA_ADMIN_PASSWORD`
+* `/opencloud/COLLABORA_PROOF_KEY`
+* `/opencloud/COLLABORA_PROOF_KEY_PUB`
+
+The Authentik blueprint creates these empty groups:
+
+* `opencloud-admin` — OpenCloud `admin`
+* `opencloud-spaceadmin` — OpenCloud `spaceadmin`
+* `opencloud-user` — OpenCloud `user`
+* `opencloud-user-light` — OpenCloud `user-light`
+
+Add users to the appropriate group in Authentik. Group precedence is
+privileged to least privileged; users without a matching group cannot receive
+an OpenCloud role.
 
 # ArgoCD
 * **Sync wave 0**
@@ -276,6 +308,10 @@ Create the following values in Infisical before syncing Authentik and Immich:
    * grafana
    * radicale
    * syncthing
+* **Sync wave 7**
+   * collabora: standalone Collabora chart and WOPI endpoint
+* **Sync wave 8**
+   * opencloud: OpenCloud, Tika, RustFS storage integration, and routes
 
 # Testing
 * Add 'homelab' role to all nodes:
@@ -315,7 +351,8 @@ Configure the GitHub App permissions as documented for
 The installation token is generated per workflow run and is not stored in the
 repository. Renovate updates Argo CD Helm and Git-tag revisions, explicit
 container images, and the CloudNativePG, Grafana, OpenObserve, RustFS Operator,
-and RustFS Tenant image fields.
+RustFS Tenant, Collabora, OpenCloud, Tika, and OpenCloud web-extension image
+fields.
 `apps/app-of-apps.yaml` intentionally remains on `HEAD`; Helm image repository
 overrides without an explicit tag continue to inherit their chart's image tag.
 

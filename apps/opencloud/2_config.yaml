@@ -1,0 +1,125 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opencloud-config-files
+  namespace: opencloud
+data:
+  proxy.yaml: |
+    role_assignment:
+      driver: oidc
+      oidc_role_mapper:
+        role_claim: groups
+        role_mapping:
+          - role_name: admin
+            claim_value: opencloud-admin
+          - role_name: spaceadmin
+            claim_value: opencloud-spaceadmin
+          - role_name: user
+            claim_value: opencloud-user
+          - role_name: user-light
+            claim_value: opencloud-user-light
+  app-registry.yaml: |
+    app_registry:
+      mimetypes:
+        - mime_type: application/vnd.oasis.opendocument.text
+          extension: odt
+          name: OpenDocument
+          description: OpenDocument text document
+          icon: ''
+          default_app: CollaboraOnline
+          allow_creation: true
+        - mime_type: application/vnd.oasis.opendocument.spreadsheet
+          extension: ods
+          name: OpenSpreadsheet
+          description: OpenDocument spreadsheet document
+          icon: ''
+          default_app: CollaboraOnline
+          allow_creation: true
+        - mime_type: application/vnd.oasis.opendocument.presentation
+          extension: odp
+          name: OpenPresentation
+          description: OpenDocument presentation document
+          icon: ''
+          default_app: CollaboraOnline
+          allow_creation: true
+        - mime_type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+          extension: docx
+          name: Microsoft Word
+          description: Microsoft Word document
+          icon: ''
+          default_app: CollaboraOnline
+          allow_creation: true
+        - mime_type: application/vnd.openxmlformats-officedocument.wordprocessingml.form
+          extension: docxf
+          name: Form Document
+          description: Form Document
+          icon: ''
+          default_app: CollaboraOnline
+          allow_creation: true
+        - mime_type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+          extension: xlsx
+          name: Microsoft Excel
+          description: Microsoft Excel document
+          icon: ''
+          default_app: CollaboraOnline
+          allow_creation: true
+        - mime_type: application/vnd.openxmlformats-officedocument.presentationml.presentation
+          extension: pptx
+          name: Microsoft PowerPoint
+          description: Microsoft PowerPoint document
+          icon: ''
+          default_app: CollaboraOnline
+          allow_creation: true
+  apps.yaml: |
+    external-sites:
+      config:
+        sites:
+          - name: Documentation
+            url: https://docs.opencloud.eu
+            target: embedded
+            color: "#E2BAFF"
+            icon: cloud
+            priority: 50
+  csp.yaml: |
+    directives:
+      child-src:
+        - '''self'''
+      connect-src:
+        - '''self'''
+        - 'blob:'
+        - 'https://auth.${BASE_DOMAIN}/'
+        - 'https://office.${BASE_DOMAIN}/'
+        - 'wss://office.${BASE_DOMAIN}/'
+        - 'https://raw.githubusercontent.com/opencloud-eu/awesome-apps/'
+      default-src:
+        - '''none'''
+      font-src:
+        - '''self'''
+      frame-ancestors:
+        - '''self'''
+      frame-src:
+        - '''self'''
+        - 'blob:'
+        - 'https://embed.diagrams.net/'
+        - 'https://office.${BASE_DOMAIN}/'
+        - 'https://docs.opencloud.eu'
+      img-src:
+        - '''self'''
+        - 'data:'
+        - 'blob:'
+        - 'https://office.${BASE_DOMAIN}/'
+        - 'https://raw.githubusercontent.com/opencloud-eu/awesome-apps/'
+      manifest-src:
+        - '''self'''
+      media-src:
+        - '''self'''
+      object-src:
+        - '''self'''
+        - 'blob:'
+      script-src:
+        - '''self'''
+        - '''unsafe-inline'''
+      style-src:
+        - '''self'''
+        - '''unsafe-inline'''

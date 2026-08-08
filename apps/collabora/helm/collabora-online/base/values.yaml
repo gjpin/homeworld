@@ -1,0 +1,76 @@
+fullnameOverride: collabora
+image:
+  repository: docker.io/collabora/code
+  tag: 26.04.2.4.1
+  pullPolicy: Always
+replicaCount: 1
+# Keep one replica until WOPISrc-based routing is added for document affinity.
+autoscaling:
+  enabled: false
+collabora:
+  aliasgroups:
+    - host: https://cloud.${BASE_DOMAIN}
+  server_name: office.${BASE_DOMAIN}:443
+  extra_params: >-
+    --o:ssl.enable=false
+    --o:ssl.termination=true
+    --o:welcome.enable=false
+    --o:net.frame_ancestors=https://cloud.${BASE_DOMAIN}
+    --o:logging.level=warning
+  existingSecret:
+    enabled: true
+    secretName: collabora-admin
+    usernameKey: username
+    passwordKey: password
+  proofKeysSecretRef: collabora-proof
+  proofKeyGeneration:
+    enabled: false
+prometheus:
+  servicemonitor:
+    enabled: true
+route:
+  enabled: true
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: "office.${BASE_DOMAIN}"
+  hostnames:
+    - "office.${BASE_DOMAIN}"
+  parentRefs:
+    - name: envoy
+      namespace: collabora
+      sectionName: office-https
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab
+podLabels:
+  app: collabora
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+service:
+  port: 9980
+deployment:
+  containerPort: 9980
+  labels:
+    app: collabora
+  annotations:
+    kube-score/ignore: pod-probes-identical,container-security-context-readonlyrootfilesystem,pod-networkpolicy,container-security-context-user-group-id,deployment-replicas
+    security.homeworld/exception-reason: The upstream chart uses one HTTP health endpoint for both probes; its pinned image requires a writable root filesystem and has an image UID/GID below kube-score's threshold; Cilium provides the network policy, and one replica is intentional until WOPISrc session routing is added.
+
+probes:
+  liveness:
+    initialDelaySeconds: 30

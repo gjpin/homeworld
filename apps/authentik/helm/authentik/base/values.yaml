@@ -3,6 +3,9 @@ global:
   namespaceOverride: authentik
   nodeSelector:
     node-role.kubernetes.io/homelab: homelab
+blueprints:
+  configMaps:
+    - authentik-opencloud-blueprint
 authentik:
   existingSecret:
     secretName: authentik

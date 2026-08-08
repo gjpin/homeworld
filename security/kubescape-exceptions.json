@@ -1100,6 +1100,14 @@
           "name": "^openobserve$",
           "namespace": "^openobserve$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^collabora$",
+          "namespace": "^collabora$"
+        }
       }
     ],
     "posturePolicies": [
@@ -1616,6 +1624,14 @@
           "kind": "^StatefulSet$",
           "name": "^openobserve$",
           "namespace": "^openobserve$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^collabora$",
+          "namespace": "^collabora$"
         }
       }
     ],
@@ -4307,6 +4323,14 @@
           "name": "^openobserve$",
           "namespace": "^openobserve$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^collabora$",
+          "namespace": "^collabora$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4838,6 +4862,14 @@
           "kind": "^StatefulSet$",
           "name": "^openobserve$",
           "namespace": "^openobserve$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^collabora$",
+          "namespace": "^collabora$"
         }
       }
     ],
@@ -5568,6 +5600,14 @@
           "kind": "^StatefulSet$",
           "name": "^openobserve$",
           "namespace": "^openobserve$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^collabora$",
+          "namespace": "^collabora$"
         }
       }
     ],
