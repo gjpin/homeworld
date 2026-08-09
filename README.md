@@ -357,6 +357,22 @@ Each user receives a “Personal Calendar” and “Personal Address Book” on 
 access. Radicale has no public hostname or web UI; the retired
 `https://contacts.${BASE_DOMAIN}` endpoint must not be used.
 
+## DAVx⁵ on Android
+
+To sync calendars and contacts with DAVx⁵, create an app token in the user's
+OpenCloud settings. In DAVx⁵, add an account using the URL and username/password
+login method with the following values:
+
+* URL: `https://cloud.${BASE_DOMAIN}`
+* Username: the OpenCloud username
+* Password: the generated OpenCloud app token
+
+The root URL supports automatic CalDAV and CardDAV discovery. If discovery does
+not work, use `https://cloud.${BASE_DOMAIN}/caldav/` and
+`https://cloud.${BASE_DOMAIN}/carddav/` as separate account URLs. Do not use the
+Authelia password or connect to Radicale directly; OpenCloud authenticates the
+request and proxies it to Radicale.
+
 # ArgoCD
 * **Sync wave 0**
    * argocd: enables Helm inflation for the Kustomize-rendered chart profiles
