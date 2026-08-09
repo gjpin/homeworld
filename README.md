@@ -19,9 +19,9 @@
 | Longhorn | `longhorn.${BASE_DOMAIN}` | Distributed block-storage management. |
 | OpenObserve | `openobserve.${BASE_DOMAIN}` | Logs, metrics, and traces backend. |
 | OpenTelemetry Collector | — | Telemetry collection and export. |
-| OpenCloud | `cloud.${BASE_DOMAIN}` | Files, sharing, search, and integrated collaboration. |
+| OpenCloud | `cloud.${BASE_DOMAIN}` | Files, sharing, search, collaboration, CalDAV, and CardDAV. |
 | Prometheus Operator CRDs | — | Custom resource definitions required for monitoring resources. |
-| Radicale | `contacts.${BASE_DOMAIN}` | CalDAV and CardDAV server. |
+| Radicale | — | Internal CalDAV and CardDAV backend authenticated by OpenCloud. |
 | RustFS | `s3.${BASE_DOMAIN}`<br>`console.rustfs.${BASE_DOMAIN}` | Shared S3-compatible object storage and Tenant console. |
 | RustFS Operator | `rustfs.${BASE_DOMAIN}` | RustFS storage operator and management console. |
 | Syncthing | `sync.${BASE_DOMAIN}` | Peer-to-peer file synchronization. |
@@ -146,9 +146,10 @@ Cilium and its `CiliumNetworkPolicy` CRD must be installed before Argo CD syncs
 this repository. Each protected application includes a namespaced policy that
 blocks egress to the Cilium `world` entity. `world` includes both LAN and
 Internet destinations. OpenCloud and Collabora instead use explicit egress
-allow-lists for DNS, RustFS, Tika, Authelia discovery, and their WOPI HTTP
-boundary. Authelia is limited to DNS, its CloudNativePG and Dragonfly services,
-`time.cloudflare.com:123`, and `${AUTHELIA_SMTP_HOST}:465`.
+allow-lists for DNS, RustFS, Tika, Radicale, Authelia discovery, and their WOPI
+HTTP boundary. Radicale accepts connections only from OpenCloud and retains its
+world-egress denial. Authelia is limited to DNS, its CloudNativePG and Dragonfly
+services, `time.cloudflare.com:123`, and `${AUTHELIA_SMTP_HOST}:465`.
 
 Internet-capable exceptions: Argo CD (Git), cert-manager (ACME), external-dns (DNS provider), external-secrets (Infisical), and Velero (Backblaze B2).
 
@@ -324,6 +325,19 @@ Authelia limits authenticated elevation/email initiation per source IP to three
 requests per hour and five per day. The SMTP provider's own quota remains the
 account-wide backstop.
 
+# OpenCloud calendars and contacts
+
+OpenCloud authenticates and proxies CalDAV and CardDAV requests to the internal
+Radicale service. Configure clients with `https://cloud.${BASE_DOMAIN}` as the
+discovery URL, the OpenCloud username, and an app token generated in the user's
+OpenCloud settings as the password. Clients can also use `/caldav/` and
+`/carddav/` directly; `/.well-known/caldav` and `/.well-known/carddav` support
+automatic discovery.
+
+Each user receives a “Personal Calendar” and “Personal Address Book” on first
+access. Radicale has no public hostname or web UI; the retired
+`https://contacts.${BASE_DOMAIN}` endpoint must not be used.
+
 # ArgoCD
 * **Sync wave 0**
    * argocd: enables Helm inflation for the Kustomize-rendered chart profiles
@@ -355,12 +369,14 @@ account-wide backstop.
    * otel-collector
    * forgejo
    * grafana
-   * radicale
+   * radicale: internal CalDAV and CardDAV backend, before OpenCloud's
+     authenticated DAV proxy
    * syncthing
 * **Sync wave 7**
    * collabora: standalone Collabora chart and WOPI endpoint
 * **Sync wave 8**
-   * opencloud: OpenCloud, Tika, RustFS storage integration, and routes
+   * opencloud: OpenCloud, Tika, RustFS storage integration, authenticated DAV
+     proxy, and routes
 
 # Testing
 * Add 'homelab' role to all nodes:

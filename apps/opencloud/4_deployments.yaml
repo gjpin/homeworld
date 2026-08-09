@@ -14,6 +14,8 @@ spec:
       app.kubernetes.io/name: opencloud
   template:
     metadata:
+      annotations:
+        checksum/proxy-config: radicale-integration-v1
       labels:
         app.kubernetes.io/name: opencloud
         app.kubernetes.io/component: server

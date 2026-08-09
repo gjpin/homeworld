@@ -4,12 +4,15 @@ kind: Service
 metadata:
   name: radicale
   namespace: radicale
+  labels:
+    app.kubernetes.io/name: radicale
+    app.kubernetes.io/component: dav-server
 spec:
   type: ClusterIP
   ports:
-    - name: radicale-tcp
+    - name: http
       port: 5232
       protocol: TCP
-      targetPort: 5232
+      targetPort: http
   selector:
-    app: radicale
+    app.kubernetes.io/name: radicale

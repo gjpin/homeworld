@@ -29,6 +29,14 @@ spec:
         - ports:
             - port: "9000"
               protocol: TCP
+    - toServices:
+        - k8sService:
+            serviceName: radicale
+            namespace: radicale
+      toPorts:
+        - ports:
+            - port: "5232"
+              protocol: TCP
     - toEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: opencloud

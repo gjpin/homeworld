@@ -11,3 +11,24 @@ spec:
   egressDeny:
     - toEntities:
         - world
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-opencloud-ingress
+  namespace: radicale
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: radicale
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: opencloud
+            k8s:app.kubernetes.io/name: opencloud
+      toPorts:
+        - ports:
+            - port: "5232"
+              protocol: TCP

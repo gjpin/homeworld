@@ -1,38 +1,98 @@
-# https://hub.docker.com/r/radicale/radicale/tags
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: radicale
   namespace: radicale
+  labels:
+    app.kubernetes.io/name: radicale
+    app.kubernetes.io/component: dav-server
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: radicale
+      app.kubernetes.io/name: radicale
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: radicale
+        app.kubernetes.io/name: radicale
+        app.kubernetes.io/component: dav-server
     spec:
+      automountServiceAccountToken: false
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: radicale
-          image: docker.io/grepular/radicale:3.5.9
-          env:
-            - name: PGID
-              value: "1000"
-            - name: PUID
-              value: "1000"
+          image: docker.io/opencloudeu/radicale:v3.7.7
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
           ports:
-            - containerPort: 5232
+            - name: http
+              containerPort: 5232
               protocol: TCP
+          startupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+              ephemeral-storage: 2Gi
           volumeMounts:
-            - mountPath: /var/radicale
-              name: radicale
-      restartPolicy: Always
+            - name: radicale-config
+              mountPath: /etc/radicale/config
+              subPath: config
+              readOnly: true
+            - name: radicale
+              mountPath: /var/lib/radicale
+            - name: tmp
+              mountPath: /tmp
       volumes:
+        - name: radicale-config
+          configMap:
+            name: radicale-config
         - name: radicale
           persistentVolumeClaim:
             claimName: radicale
+        - name: tmp
+          emptyDir: {}
