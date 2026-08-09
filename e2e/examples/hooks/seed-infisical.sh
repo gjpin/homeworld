@@ -35,6 +35,7 @@ wait_ready() {
 require_tools() {
   command -v curl >/dev/null || { log "curl required"; exit 1; }
   command -v jq >/dev/null || { log "jq required"; exit 1; }
+  command -v openssl >/dev/null || { log "openssl required"; exit 1; }
   if ! command -v infisical >/dev/null 2>&1; then
     log "note: infisical CLI not found; using HTTP API only (pin CLI ${CLI_VERSION_HINT} if you prefer CLI bootstrap)"
   fi
@@ -144,21 +145,38 @@ ensure_identity() {
 
 seed_secrets() {
   local token="$1"
-  local project_id
+  local project_id authelia_jwk authelia_users
   project_id=$(cat "${OUT_DIR}/project_id" 2>/dev/null || true)
   if [[ -z "${project_id}" ]]; then
     log "skip secret seed (no project id)"
     return 0
   fi
 
+  authelia_jwk=$(openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 2>/dev/null)
+  authelia_users=$(printf '%s\n' \
+    'users:' \
+    '  e2e:' \
+    '    disabled: false' \
+    '    displayname: E2E User' \
+    "    password: '\$argon2id\$v=19\$m=65536,t=3,p=2\$BpLnfgDsc2WD8F2q\$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM'" \
+    '    email: e2e@example.com' \
+    '    groups:' \
+    '      - opencloud-admin')
+
   # Placeholder values matching ExternalSecret remoteRef keys used by homeworld apps.
   local secrets=(
     "/grafana/GF_SECURITY_ADMIN_USER=admin"
     "/grafana/GF_SECURITY_ADMIN_PASSWORD=e2e-grafana"
-    "/authentik/POSTGRES_USERNAME=authentik"
-    "/authentik/POSTGRES_PASSWORD=e2e-authentik-db"
-    "/authentik/AUTHENTIK_SECRET_KEY=e2e-authentik-secret-key-32chars!!"
-    "/authentik/DRAGONFLY_PASSWORD=e2e-authentik-redis"
+    "/authelia/POSTGRES_USERNAME=authelia"
+    "/authelia/POSTGRES_PASSWORD=e2e-authelia-db"
+    "/authelia/DRAGONFLY_PASSWORD=e2e-authelia-dragonfly"
+    "/authelia/RESET_PASSWORD_JWT_SECRET=rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+    "/authelia/SESSION_SECRET=ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+    "/authelia/STORAGE_ENCRYPTION_KEY=eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    "/authelia/OIDC_HMAC_SECRET=hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"
+    "/authelia/OIDC_JWK_RS256=${authelia_jwk}"
+    "/authelia/SMTP_PASSWORD=e2e-authelia-smtp"
+    "/authelia/USERS_DATABASE=${authelia_users}"
     "/immich/POSTGRES_USERNAME=immich"
     "/immich/POSTGRES_PASSWORD=e2e-immich-db"
     "/immich/DRAGONFLY_PASSWORD=e2e-immich-redis"

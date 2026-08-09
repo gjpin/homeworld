@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+commonAnnotations:
+  security.homeworld/profile: production
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^authelia$
+      namespace: ^authelia$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value: {"requests":{"cpu":"100m","memory":"128Mi","ephemeral-storage":"128Mi"},"limits":{"cpu":"2","memory":"4Gi","ephemeral-storage":"4Gi"}}
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^authelia$
+      namespace: ^authelia$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: container-security-context-user-group-id,pod-networkpolicy,pod-probes-identical,deployment-replicas
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: The pinned image requires UID/GID 1000, the chart intentionally shares its health endpoint between probes, Cilium enforces the network policy, and one replica is intentional with HPA disabled.

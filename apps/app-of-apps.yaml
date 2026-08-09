@@ -449,11 +449,11 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
 ---
-# authentik
+# authelia
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: authentik-app
+  name: authelia-app
   namespace: argocd
   finalizers:
   - resources-finalizer.argocd.argoproj.io
@@ -463,11 +463,11 @@ spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/authentik"
+    path: "apps/authelia"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
-    namespace: authentik
+    namespace: authelia
   syncPolicy:
     automated:
       prune: true

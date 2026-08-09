@@ -239,6 +239,8 @@ spec:
               value: "false"
             - name: OC_INSECURE
               value: "false"
+            - name: OC_EXCLUDE_RUN_SERVICES
+              value: idp
             - name: PROXY_ENABLE_BASIC_AUTH
               value: "false"
             - name: IDM_ADMIN_PASSWORD
@@ -255,33 +257,35 @@ spec:
             - name: NATS_NATS_PORT
               value: "9233"
             - name: OC_OIDC_ISSUER
-              value: https://auth.${BASE_DOMAIN}/application/o/opencloud/
+              value: https://auth.${BASE_DOMAIN}
             - name: OC_OIDC_CLIENT_ID
               value: web
             - name: OC_OIDC_CLIENT_SCOPES
-              value: openid,profile,email,offline_access
+              value: openid,profile,email,groups,offline_access
             - name: WEB_OIDC_CLIENT_ID
               value: web
             - name: WEB_OIDC_SCOPE
-              value: openid profile email offline_access
+              value: openid profile email groups offline_access
             - name: WEBFINGER_WEB_OIDC_CLIENT_ID
               value: web
             - name: WEBFINGER_WEB_OIDC_CLIENT_SCOPES
-              value: openid,profile,email,offline_access
+              value: openid,profile,email,groups,offline_access
             - name: WEBFINGER_DESKTOP_OIDC_CLIENT_ID
-              value: web
+              value: OpenCloudDesktop
             - name: WEBFINGER_DESKTOP_OIDC_CLIENT_SCOPES
-              value: openid,profile,email,offline_access
+              value: openid,profile,email,groups,offline_access
             - name: WEBFINGER_ANDROID_OIDC_CLIENT_ID
-              value: web
+              value: OpenCloudAndroid
             - name: WEBFINGER_ANDROID_OIDC_CLIENT_SCOPES
-              value: openid,profile,email,offline_access
+              value: openid,profile,email,groups,offline_access
             - name: WEBFINGER_IOS_OIDC_CLIENT_ID
-              value: web
+              value: OpenCloudIOS
             - name: WEBFINGER_IOS_OIDC_CLIENT_SCOPES
-              value: openid,profile,email,offline_access
+              value: openid,profile,email,groups,offline_access
             - name: PROXY_OIDC_REWRITE_WELLKNOWN
               value: "true"
+            - name: PROXY_OIDC_ACCESS_TOKEN_VERIFY_METHOD
+              value: jwt
             - name: PROXY_ROLE_ASSIGNMENT_DRIVER
               value: oidc
             - name: PROXY_ROLE_ASSIGNMENT_OIDC_CLAIM

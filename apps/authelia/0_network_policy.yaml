@@ -1,0 +1,66 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: authelia-egress
+  namespace: authelia
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: authelia
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    - toServices:
+        - k8sService:
+            serviceName: authelia-rw
+            namespace: authelia
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - toServices:
+        - k8sService:
+            serviceName: dragonfly
+            namespace: authelia
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    - toFQDNs:
+        - matchName: time.cloudflare.com
+      toPorts:
+        - ports:
+            - port: "123"
+              protocol: UDP
+    - toFQDNs:
+        - matchName: "${AUTHELIA_SMTP_HOST}"
+      toPorts:
+        - ports:
+            - port: "465"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: authelia-database-block-world-egress
+  namespace: authelia
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: authelia
+  egressDeny:
+    - toEntities:
+        - world

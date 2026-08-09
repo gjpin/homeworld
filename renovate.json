@@ -40,7 +40,7 @@
       "customType": "regex",
       "description": "Update CloudNativePG Cluster images",
       "managerFilePatterns": [
-        "/^apps/(?:authentik|forgejo|immich)/[0-9]+_postgres\\.yaml$/"
+        "/^apps/(?:authelia|forgejo|immich)/[0-9]+_postgres\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^\\s*imageName:\\s*(?<depName>ghcr\\.io/[^:\\s]+):(?<currentValue>[^\\s#]+)\\s*$"
@@ -48,6 +48,19 @@
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Authelia Dragonfly image",
+      "managerFilePatterns": [
+        "/^apps/authelia/3_dragonfly\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>docker\\.dragonflydb\\.io/dragonflydb/dragonfly):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://docker.dragonflydb.io"
     },
     {
       "customType": "regex",

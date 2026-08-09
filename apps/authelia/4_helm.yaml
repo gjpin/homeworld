@@ -1,10 +1,10 @@
-# https://artifacthub.io/packages/helm/goauthentik/authentik
-# https://github.com/goauthentik/helm
+# https://artifacthub.io/packages/helm/authelia/authelia
+# https://github.com/authelia/chartrepo
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: authentik
+  name: authelia
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "1"
@@ -12,7 +12,7 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: authentik
+    namespace: authelia
   syncPolicy:
     automated:
       prune: true
@@ -25,5 +25,5 @@ spec:
       - PruneLast=true
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/authentik/helm/authentik/overlays/homelab
+    path: apps/authelia/helm/authelia/overlays/homelab
     targetRevision: HEAD

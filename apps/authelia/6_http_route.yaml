@@ -2,19 +2,19 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: authentik
-  namespace: authentik
+  name: authelia
+  namespace: authelia
   annotations:
     external-dns.alpha.kubernetes.io/hostname: "auth.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
-      namespace: authentik
+      namespace: authelia
   hostnames:
     - "auth.${BASE_DOMAIN}"
   rules:
     - backendRefs:
-        - name: authentik-server
-          namespace: authentik
+        - name: authelia
+          namespace: authelia
           kind: Service
           port: 80

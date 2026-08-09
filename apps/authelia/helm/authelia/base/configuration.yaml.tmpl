@@ -1,0 +1,178 @@
+---
+theme: auto
+default_2fa_method: totp
+server:
+  address: tcp://0.0.0.0:9091
+  endpoints:
+    rate_limits:
+      session_elevation_start:
+        enable: true
+        buckets:
+          - period: 1 hour
+            requests: 3
+          - period: 1 day
+            requests: 5
+log:
+  level: info
+  format: json
+telemetry:
+  metrics:
+    enabled: true
+    address: tcp://0.0.0.0:9959
+identity_validation:
+  elevated_session:
+    require_second_factor: true
+totp:
+  disable: false
+  issuer: auth.${BASE_DOMAIN}
+webauthn:
+  disable: false
+  display_name: Homeworld
+ntp:
+  address: udp://time.cloudflare.com:123
+authentication_backend:
+  password_reset:
+    disable: true
+  password_change:
+    disable: true
+  file:
+    path: /secrets/authelia-files/users_database.yml
+    watch: false
+    password:
+      algorithm: argon2
+      argon2:
+        variant: argon2id
+access_control:
+  default_policy: two_factor
+session:
+  cookies:
+    - domain: ${BASE_DOMAIN}
+      authelia_url: https://auth.${BASE_DOMAIN}
+      default_redirection_url: https://cloud.${BASE_DOMAIN}
+  redis:
+    host: dragonfly.authelia.svc.cluster.local
+    port: 6379
+regulation:
+  modes:
+    - user
+    - ip
+  max_retries: 3
+  find_time: 2 minutes
+  ban_time: 5 minutes
+storage:
+  postgres:
+    address: tcp://authelia-rw.authelia.svc.cluster.local:5432
+    database: authelia
+    username: authelia
+notifier:
+  disable_startup_check: true
+  smtp:
+    address: submissions://${AUTHELIA_SMTP_HOST}:465
+    username: ${AUTHELIA_SMTP_USERNAME}
+    sender: ${AUTHELIA_SMTP_SENDER}
+identity_providers:
+  oidc:
+    lifespans:
+      refresh_token: 30 days
+    claims_policies:
+      opencloud:
+        access_token:
+          - preferred_username
+          - email
+          - name
+          - groups
+    authorization_policies:
+      opencloud:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject:
+              - group:opencloud-admin
+              - group:opencloud-spaceadmin
+              - group:opencloud-user
+              - group:opencloud-user-light
+    jwks:
+      - key_id: opencloud-rs256
+        algorithm: RS256
+        use: sig
+        key: {{ secret "/secrets/authelia-files/oidc_jwk_rs256.pem" | mindent 10 "|" | msquote }}
+    cors:
+      endpoints:
+        - authorization
+        - token
+        - revocation
+        - userinfo
+      allowed_origins:
+        - https://cloud.${BASE_DOMAIN}
+    clients:
+      - client_id: web
+        client_name: OpenCloud Web
+        public: true
+        authorization_policy: opencloud
+        claims_policy: opencloud
+        require_pkce: true
+        pkce_challenge_method: S256
+        consent_mode: pre-configured
+        pre_configured_consent_duration: 1 week
+        access_token_signed_response_alg: RS256
+        redirect_uris:
+          - https://cloud.${BASE_DOMAIN}/
+          - https://cloud.${BASE_DOMAIN}/oidc-callback.html
+          - https://cloud.${BASE_DOMAIN}/oidc-silent-redirect.html
+        scopes: &opencloud_scopes
+          - openid
+          - profile
+          - email
+          - groups
+          - offline_access
+        grant_types: &opencloud_grants
+          - authorization_code
+          - refresh_token
+        response_types: &opencloud_responses
+          - code
+      - client_id: OpenCloudDesktop
+        client_name: OpenCloud Desktop
+        public: true
+        authorization_policy: opencloud
+        claims_policy: opencloud
+        require_pkce: true
+        pkce_challenge_method: S256
+        consent_mode: pre-configured
+        pre_configured_consent_duration: 1 week
+        access_token_signed_response_alg: RS256
+        redirect_uris:
+          - http://127.0.0.1
+          - http://localhost
+        scopes: *opencloud_scopes
+        grant_types: *opencloud_grants
+        response_types: *opencloud_responses
+      - client_id: OpenCloudAndroid
+        client_name: OpenCloud Android
+        public: true
+        authorization_policy: opencloud
+        claims_policy: opencloud
+        require_pkce: true
+        pkce_challenge_method: S256
+        consent_mode: pre-configured
+        pre_configured_consent_duration: 1 week
+        access_token_signed_response_alg: RS256
+        redirect_uris:
+          - oc://android.opencloud.eu
+        scopes: *opencloud_scopes
+        grant_types: *opencloud_grants
+        response_types: *opencloud_responses
+      - client_id: OpenCloudIOS
+        client_name: OpenCloud iOS
+        public: true
+        authorization_policy: opencloud
+        claims_policy: opencloud
+        require_pkce: true
+        pkce_challenge_method: S256
+        consent_mode: pre-configured
+        pre_configured_consent_duration: 1 week
+        access_token_signed_response_alg: RS256
+        redirect_uris:
+          - oc://ios.opencloud.eu
+        scopes: *opencloud_scopes
+        grant_types: *opencloud_grants
+        response_types: *opencloud_responses

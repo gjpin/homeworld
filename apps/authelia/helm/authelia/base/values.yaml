@@ -1,0 +1,102 @@
+nameOverride: authelia
+image:
+  registry: ghcr.io
+  repository: authelia/authelia
+  tag: 4.39.20
+  pullPolicy: Always
+pod:
+  kind: Deployment
+  replicas: 1
+  autoscaling:
+    enabled: false
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: "1"
+      maxUnavailable: "0"
+  selectors:
+    nodeSelector:
+      node-role.kubernetes.io/homelab: homelab
+  env:
+    - name: AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE
+      value: /secrets/authelia-files/reset_password_jwt_secret
+    - name: AUTHELIA_SESSION_SECRET_FILE
+      value: /secrets/authelia-files/session_secret
+    - name: AUTHELIA_SESSION_REDIS_PASSWORD_FILE
+      value: /secrets/authelia-files/dragonfly_password
+    - name: AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE
+      value: /secrets/authelia-files/storage_encryption_key
+    - name: AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE
+      value: /secrets/authelia-files/postgres_password
+    - name: AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE
+      value: /secrets/authelia-files/oidc_hmac_secret
+    - name: AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
+      value: /secrets/authelia-files/smtp_password
+  securityContext:
+    pod:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+      seccompProfile:
+        type: RuntimeDefault
+    container:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      seccompProfile:
+        type: RuntimeDefault
+configMap:
+  existingConfigMap: authelia-configuration
+  authentication_backend:
+    file:
+      enabled: true
+      path: /secrets/authelia-files/users_database.yml
+  session:
+    cookies:
+      - domain: example.com
+    redis:
+      enabled: true
+      deploy: false
+      host: dragonfly.authelia.svc.cluster.local
+      password:
+        disabled: true
+  storage:
+    encryption_key:
+      disabled: true
+    postgres:
+      enabled: true
+      deploy: false
+      address: tcp://authelia-rw.authelia.svc.cluster.local:5432
+      database: authelia
+      username: authelia
+      password:
+        disabled: true
+  notifier:
+    disable_startup_check: true
+    smtp:
+      enabled: true
+      address: submissions://smtp.example.com:465
+      sender: Authelia <authelia@example.com>
+      password:
+        disabled: true
+  telemetry:
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+secret:
+  disabled: true
+  existingSecret: authelia-files
+  additionalSecrets:
+    authelia-files: {}
+ingress:
+  enabled: false
+persistence:
+  enabled: false

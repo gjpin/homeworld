@@ -4,8 +4,8 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: authentik
-  namespace: authentik
+  name: authelia
+  namespace: authelia
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
@@ -19,22 +19,22 @@ spec:
     size: 5Gi
   bootstrap:
     initdb:
-      database: authentik
-      owner: authentik
+      database: authelia
+      owner: authelia
       secret:
         name: postgres-credentials
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
-  name: authentik
-  namespace: authentik
+  name: authelia
+  namespace: authelia
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   selector:
     matchLabels:
-      cnpg.io/cluster: authentik
+      cnpg.io/cluster: authelia
   podMetricsEndpoints:
     - port: metrics
       interval: 60s

@@ -1,19 +1,26 @@
 # https://www.dragonflydb.io/docs/managing-dragonfly/operator/dragonfly-configuration
-# https://www.dragonflydb.io/docs/managing-dragonfly/operator/installation
 ---
 apiVersion: dragonflydb.io/v1alpha1
 kind: Dragonfly
 metadata:
+  name: dragonfly
+  namespace: authelia
   labels:
     app.kubernetes.io/part-of: dragonfly-operator
     app.kubernetes.io/created-by: dragonfly-operator
-  name: dragonfly
-  namespace: authentik
 spec:
   replicas: 1
+  image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.37.0
+  resources:
+    requests:
+      cpu: 100m
+      memory: 50Mi
+    limits:
+      cpu: 500m
+      memory: 2Gi
   authentication:
     passwordFromSecret:
-      name: authentik
-      key: AUTHENTIK_REDIS__PASSWORD
+      name: dragonfly
+      key: password
   nodeSelector:
     node-role.kubernetes.io/homelab: homelab

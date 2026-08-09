@@ -3,7 +3,7 @@
 | App | Domain(s) | Description |
 | --- | --- | --- |
 | Argo CD | `argocd.${BASE_DOMAIN}`<br>`grpc.argocd.${BASE_DOMAIN}` | GitOps continuous delivery and its gRPC API. |
-| Authentik | `auth.${BASE_DOMAIN}` | Identity provider. |
+| Authelia | `auth.${BASE_DOMAIN}` | Identity provider for OpenCloud. |
 | cert-manager | — | TLS certificate management. |
 | CloudNativePG | — | PostgreSQL operator. |
 | Collabora | `office.${BASE_DOMAIN}` | WOPI office editor for OpenCloud. |
@@ -73,6 +73,11 @@ export ACME_EMAIL=
 # external-dns
 export EXTERNAL_IP=10.0.0.1
 
+# Authelia SMTP notifier (implicit TLS)
+export AUTHELIA_SMTP_HOST=smtp.example.com
+export AUTHELIA_SMTP_USERNAME=
+export AUTHELIA_SMTP_SENDER='Authelia <authelia@example.com>'
+
 # velero
 export B2_BUCKET=
 export B2_REGION=
@@ -141,8 +146,9 @@ Cilium and its `CiliumNetworkPolicy` CRD must be installed before Argo CD syncs
 this repository. Each protected application includes a namespaced policy that
 blocks egress to the Cilium `world` entity. `world` includes both LAN and
 Internet destinations. OpenCloud and Collabora instead use explicit egress
-allow-lists for DNS, RustFS, Tika, Authentik discovery, and their WOPI HTTP
-boundary.
+allow-lists for DNS, RustFS, Tika, Authelia discovery, and their WOPI HTTP
+boundary. Authelia is limited to DNS, its CloudNativePG and Dragonfly services,
+`time.cloudflare.com:123`, and `${AUTHELIA_SMTP_HOST}:465`.
 
 Internet-capable exceptions: Argo CD (Git), cert-manager (ACME), external-dns (DNS provider), external-secrets (Infisical), and Velero (Backblaze B2).
 
@@ -236,22 +242,66 @@ that identity, not the Tenant administrator.
 Create the following values in Infisical before syncing CloudNativePG and its
 database consumers:
 
-* `/authentik/POSTGRES_USERNAME`
-* `/authentik/POSTGRES_PASSWORD`
+* `/authelia/POSTGRES_USERNAME`
+* `/authelia/POSTGRES_PASSWORD`
 * `/forgejo/POSTGRES_USERNAME`
 * `/forgejo/POSTGRES_PASSWORD`
 * `/immich/POSTGRES_USERNAME`
 * `/immich/POSTGRES_PASSWORD`
 
 Set each `POSTGRES_USERNAME` value to its matching application role:
-`authentik`, `forgejo`, or `immich`.
+`authelia`, `forgejo`, or `immich`.
 
-# Authentik and Dragonfly credentials
-Create the following values in Infisical before syncing Authentik and Immich:
+# Authelia identities, encryption, and notifications
+Create all of the following values in Infisical before syncing Authelia:
 
-* `/authentik/AUTHENTIK_SECRET_KEY`
-* `/authentik/DRAGONFLY_PASSWORD`
-* `/immich/DRAGONFLY_PASSWORD`
+* `/authelia/POSTGRES_USERNAME` — must be `authelia`
+* `/authelia/POSTGRES_PASSWORD`
+* `/authelia/DRAGONFLY_PASSWORD`
+* `/authelia/RESET_PASSWORD_JWT_SECRET`
+* `/authelia/SESSION_SECRET`
+* `/authelia/STORAGE_ENCRYPTION_KEY`
+* `/authelia/OIDC_HMAC_SECRET`
+* `/authelia/OIDC_JWK_RS256`
+* `/authelia/SMTP_PASSWORD`
+* `/authelia/USERS_DATABASE`
+
+Generate independent 64-character random values for
+`RESET_PASSWORD_JWT_SECRET`, `SESSION_SECRET`, `STORAGE_ENCRYPTION_KEY`, and
+`OIDC_HMAC_SECRET`. `OIDC_JWK_RS256` must contain an RSA-2048 private key in PEM
+format. Authelia uses SMTP over implicit TLS on port 465; the SMTP host,
+username, and sender are the deployment variables documented above.
+
+`USERS_DATABASE` contains the complete `users_database.yml`, including every
+user and group assignment. Store Argon2id hashes, never plaintext passwords:
+
+```yaml
+users:
+  alice:
+    disabled: false
+    displayname: Alice Example
+    password: '$argon2id$v=19$m=65536,t=3,p=4$<salt>$<hash>'
+    email: alice@example.com
+    groups:
+      - opencloud-admin
+  bob:
+    disabled: false
+    displayname: Bob Example
+    password: '$argon2id$v=19$m=65536,t=3,p=4$<salt>$<hash>'
+    email: bob@example.com
+    groups:
+      - opencloud-user
+```
+
+The allowed OpenCloud groups, from highest to lowest precedence, are
+`opencloud-admin`, `opencloud-spaceadmin`, `opencloud-user`, and
+`opencloud-user-light`. Users without one of these groups cannot authorize an
+OpenCloud client. To change a password, generate a new Argon2id hash, replace
+the hash inside `/authelia/USERS_DATABASE`, wait for the External Secrets
+refresh, and restart the Authelia Deployment. Self-service password reset and
+password change are disabled.
+
+Create `/immich/DRAGONFLY_PASSWORD` before syncing Immich.
 
 # OpenCloud credentials and access groups
 Create the following values in Infisical before syncing OpenCloud and
@@ -265,16 +315,14 @@ Collabora:
 * `/opencloud/COLLABORA_PROOF_KEY`
 * `/opencloud/COLLABORA_PROOF_KEY_PUB`
 
-The Authentik blueprint creates these empty groups:
-
-* `opencloud-admin` — OpenCloud `admin`
-* `opencloud-spaceadmin` — OpenCloud `spaceadmin`
-* `opencloud-user` — OpenCloud `user`
-* `opencloud-user-light` — OpenCloud `user-light`
-
-Add users to the appropriate group in Authentik. Group precedence is
-privileged to least privileged; users without a matching group cannot receive
-an OpenCloud role.
+Authelia publishes four public Authorization Code + PKCE clients for OpenCloud:
+`web`, `OpenCloudDesktop`, `OpenCloudAndroid`, and `OpenCloudIOS`. All clients
+require MFA and one of the OpenCloud groups above, request the `openid`,
+`profile`, `email`, `groups`, and `offline_access` scopes, use RS256 access
+tokens, remember consent for one week, and issue refresh tokens for 30 days.
+Authelia limits authenticated elevation/email initiation per source IP to three
+requests per hour and five per day. The SMTP provider's own quota remains the
+account-wide backstop.
 
 # ArgoCD
 * **Sync wave 0**
@@ -300,7 +348,8 @@ an OpenCloud role.
      External Secrets, and Longhorn
    * velero-ui: web interface for Velero, after the Velero server
 * **Sync wave 6**
-   * authentik
+   * authelia: OpenCloud identity provider, after CloudNativePG, Dragonfly,
+     External Secrets, and Prometheus Operator CRDs
    * homeassistant
    * immich
    * otel-collector
@@ -355,6 +404,14 @@ RustFS Tenant, Collabora, OpenCloud, Tika, and OpenCloud web-extension image
 fields.
 `apps/app-of-apps.yaml` intentionally remains on `HEAD`; Helm image repository
 overrides without an explicit tag continue to inherit their chart's image tag.
+
+# Authelia cutover cleanup
+
+After Argo CD has pruned the replaced application and OpenCloud login is
+verified, manually remove obsolete `/authentik/*` values from Infisical and
+delete the old `authentik` namespace if it remains empty. This repository does
+not perform either cleanup and no pre-cutover state backup or migration is
+required.
 
 * Enable minikube's metrics-server addon
 ```bash
