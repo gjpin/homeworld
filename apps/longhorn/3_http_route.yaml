@@ -9,7 +9,7 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: longhorn
+      namespace: longhorn-system
   hostnames:
     - "longhorn.${BASE_DOMAIN}"
   rules:

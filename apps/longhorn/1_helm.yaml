@@ -10,7 +10,7 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: longhorn
+    namespace: longhorn-system
   syncPolicy:
     automated:
       prune: true

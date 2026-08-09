@@ -19,3 +19,18 @@ serviceMonitor:
   interval: 60s
 nodeSelector:
   node-role.kubernetes.io/homelab: homelab
+podSecurityContext:
+  fsGroup: 2000
+  runAsUser: 10000
+  runAsGroup: 3000
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault

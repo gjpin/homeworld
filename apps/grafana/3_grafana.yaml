@@ -37,6 +37,11 @@ spec:
         spec:
           nodeSelector:
             node-role.kubernetes.io/homelab: homelab
+          securityContext:
+            fsGroup: 1000
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
           initContainers:
             - name: openobserve-plugin-loader
               image: alpine:3.21.3
@@ -47,11 +52,25 @@ spec:
                   wget -O /var/lib/grafana/plugins/zo_gp.tar.gz https://zincsearch-releases.s3.us-west-2.amazonaws.com/zo_gp/zo_gp.tar.gz
                   echo '85e7542749e17a437b84547215b63e73286570ad917b0b472de47e5398dee5d1  /var/lib/grafana/plugins/zo_gp.tar.gz' | sha256sum -c -
                   tar -xzf /var/lib/grafana/plugins/zo_gp.tar.gz -C /var/lib/grafana/plugins
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                runAsGroup: 1000
+                runAsNonRoot: true
+                runAsUser: 1000
               volumeMounts:
                 - name: openobserve-plugin
                   mountPath: /var/lib/grafana/plugins
           containers:
             - name: grafana
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                runAsNonRoot: true
               volumeMounts:
                 - name: openobserve-plugin
                   mountPath: /var/lib/grafana/plugins

@@ -10,7 +10,7 @@ patches:
     version: v1
     kind: DaemonSet
     name: ^otel-collector-daemonset-agent$
-    namespace: ^otel-collector$
+    namespace: ^otel-collector-node$
   patch: |-
     - op: add
       path: /spec/template/spec/containers/0/resources
@@ -20,7 +20,7 @@ patches:
     version: v1
     kind: DaemonSet
     name: ^otel-collector-daemonset-agent$
-    namespace: ^otel-collector$
+    namespace: ^otel-collector-node$
   patch: |-
     - op: add
       path: /spec/template/spec/containers/0/imagePullPolicy
@@ -30,7 +30,7 @@ patches:
     version: v1
     kind: DaemonSet
     name: ^otel-collector-daemonset-agent$
-    namespace: ^otel-collector$
+    namespace: ^otel-collector-node$
   patch: |-
     - op: add
       path: /metadata/annotations/kube-score~1ignore

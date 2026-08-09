@@ -22,9 +22,19 @@ spec:
       labels:
         io.kompose.service: homeassistant-zigbee2mqtt
     spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - image: ghcr.io/koenkk/zigbee2mqtt:2.5.1
           name: homeassistant-zigbee2mqtt
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
           volumeMounts:
             - mountPath: /app/data
               name: homeassistant-zigbee2mqtt-claim0

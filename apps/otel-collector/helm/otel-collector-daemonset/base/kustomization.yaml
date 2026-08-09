@@ -5,7 +5,9 @@ helmCharts:
   repo: https://open-telemetry.github.io/opentelemetry-helm-charts
   version: 0.152.0
   releaseName: otel-collector-daemonset
-  namespace: otel-collector
+  namespace: otel-collector-node
   includeCRDs: true
   skipTests: true
   valuesFile: values.yaml
+resources:
+- network-policy.yaml

@@ -5,7 +5,7 @@ helmCharts:
   repo: https://charts.longhorn.io
   version: 1.11.1
   releaseName: longhorn
-  namespace: longhorn
+  namespace: longhorn-system
   includeCRDs: true
   skipTests: true
   valuesFile: values.yaml

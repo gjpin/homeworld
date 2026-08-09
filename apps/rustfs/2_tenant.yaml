@@ -7,11 +7,17 @@ metadata:
   namespace: rustfs
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+    security.homeworld/exception-reason: Pinned RustFS Operator does not emit all Restricted pod and container security fields for Tenant pods.
 spec:
   image: rustfs/rustfs:1.0.0-beta.12
   imagePullPolicy: IfNotPresent
   credsSecret:
     name: rustfs-admin-credentials
+  securityContext:
+    fsGroup: 10001
+    runAsGroup: 10001
+    runAsNonRoot: true
+    runAsUser: 10001
   pools:
     - name: primary
       servers: 1

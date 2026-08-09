@@ -22,9 +22,19 @@ spec:
       labels:
         io.kompose.service: homeassistant-mosquitto
     spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - image: docker.io/library/eclipse-mosquitto:2.0.21
           name: homeassistant-mosquitto
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
           volumeMounts:
             - mountPath: /mosquitto/config
               name: homeassistant-mosquitto-claim0

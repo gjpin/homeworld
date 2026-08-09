@@ -22,9 +22,19 @@ spec:
       labels:
         io.kompose.service: homeassistant
     spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - image: ghcr.io/home-assistant/home-assistant:2025.7.0
           name: homeassistant
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
           volumeMounts:
             - mountPath: /config
               name: homeassistant-claim0

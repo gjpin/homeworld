@@ -1,3 +1,19 @@
+defaultPodOptions:
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+  securityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+defaultContainerOptions:
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
 immich:
   metrics:
     enabled: true
@@ -12,16 +28,48 @@ machine-learning:
       type: persistentVolumeClaim
       accessMode: ReadWriteMany
       storageClass: longhorn-crypto
+  controllers:
+    main:
+      containers:
+        main:
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
 server:
   service:
     main:
       ports:
         http:
           port: 80
+  controllers:
+    main:
+      containers:
+        main:
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
 controllers:
   main:
     containers:
       main:
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
         env:
           REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local:6379
           REDIS_PASSWORD:

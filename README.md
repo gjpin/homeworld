@@ -59,6 +59,25 @@ scripts/render-helm-profiles.sh homelab /tmp/homeworld-homelab
 scripts/render-helm-profiles.sh production /tmp/homeworld-production
 ```
 
+# Pod Security Admission
+
+The root Argo CD Applications manage Pod Security Admission labels through
+`managedNamespaceMetadata`. The labels currently use Kubernetes minor version
+`v1.36`, matching the version pinned by CI; verify the live cluster minor version
+before syncing and update the labels if it differs.
+
+These namespaces enforce Restricted: `argocd`, `cert-manager`,
+`cloudnative-pg`, `collabora`, `envoy-gateway`, `external-dns`,
+`prometheus-operator-crd`, `radicale`, and `rustfs-operator`. `longhorn-system`
+is Privileged because Longhorn uses host integration, while `velero`,
+`otel-collector-node`, and `rustfs` are Baseline for their hostPath or operator
+limitations. The node-level OpenTelemetry collector is isolated in
+`otel-collector-node`; ordinary collectors remain in `otel-collector`.
+
+The remaining application namespaces start with Restricted audit and warning
+labels while workload startup is verified. Promote them to Restricted enforcement
+after reviewing the live admission warnings and operator-generated pods.
+
 # Variables
 ```bash
 # public HTTP routes

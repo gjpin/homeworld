@@ -19,6 +19,18 @@ image:
 #   targetMemoryUtilizationPercentage: 80
 nodeSelector:
   node-role.kubernetes.io/homelab: homelab
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
 service:
   enabled: true
   type: ClusterIP

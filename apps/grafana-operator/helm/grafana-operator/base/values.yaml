@@ -7,3 +7,6 @@ serviceMonitor:
   interval: 60s
 nodeSelector:
   node-role.kubernetes.io/homelab: homelab
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
