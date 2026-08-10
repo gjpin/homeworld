@@ -5,6 +5,28 @@ resources:
 commonAnnotations:
   security.homeworld/profile: homelab
 patches:
+# Velero 12.1.0 has no hostUsers value. Opt in only compatible workloads;
+# node-agent remains host-integrated for filesystem backups.
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^velero$
+    namespace: ^velero$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/hostUsers
+      value: false
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: ^velero-upgrade-crds$
+    namespace: ^velero$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/hostUsers
+      value: false
 - target:
     group: apps
     version: v1
@@ -96,7 +118,7 @@ patches:
       value: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem
     - op: add
       path: /metadata/annotations/security.homeworld~1exception-reason
-      value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+      value: User namespaces remain disabled because filesystem backup requires kubelet hostPath volumes and HostToContainer mount propagation; upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
 - target:
     group: apps
     version: v1

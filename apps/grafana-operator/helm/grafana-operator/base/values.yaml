@@ -10,3 +10,4 @@ nodeSelector:
 podSecurityContext:
   seccompProfile:
     type: RuntimeDefault
+hostUsers: false

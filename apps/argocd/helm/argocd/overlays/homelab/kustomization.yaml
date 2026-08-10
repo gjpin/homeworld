@@ -9,6 +9,36 @@ patches:
     group: apps
     version: v1
     kind: Deployment
+    name: ^argocd-argocd-(applicationset-controller|dex-server|notifications-controller|redis|repo-server|server)$
+    namespace: ^argocd$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/hostUsers
+      value: false
+- target:
+    group: apps
+    version: v1
+    kind: StatefulSet
+    name: ^argocd-argocd-application-controller$
+    namespace: ^argocd$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/hostUsers
+      value: false
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: ^argocd-redis-secret-init$
+    namespace: ^argocd$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/hostUsers
+      value: false
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
     name: ^argocd-argocd-applicationset-controller$
     namespace: ^argocd$
   patch: |-

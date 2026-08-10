@@ -101,6 +101,29 @@ bootstrap script.
   capabilities. Prefer splitting node-level or host-integrated workloads from
   ordinary Restricted workloads rather than weakening an entire namespace.
 
+## Kubernetes 1.36 user namespaces
+
+- Opt every compatible Pod into user namespaces with `spec.hostUsers: false`.
+  For Helm workloads, use the chart's exact value key or a rendered Kustomize
+  patch. For operator-generated Pods, use a supported operator pod-template or
+  patch mechanism; do not add unknown fields to a custom resource.
+- Review rendered resources in both `homelab` and `production`, including
+  Deployments, StatefulSets, DaemonSets, Jobs, hooks, init containers, sidecars,
+  ephemeral containers, and operator-generated operands. Verify the final Pod
+  specs contain `hostUsers: false`, not only the input values.
+- Before enabling user namespaces, verify that the nodes use Linux 6.3 or
+  newer, the kubelet Pod directory and every mounted volume filesystem support
+  idmap mounts, and the CRI/OCI runtime supports user namespaces (for example,
+  containerd 2.0+, runc 1.2+, or crun 1.9+). See the [Kubernetes user
+  namespaces documentation](https://kubernetes.io/docs/concepts/workloads/pods/user-namespaces/).
+- A Pod with `hostUsers: false` must not use `hostNetwork`, `hostIPC`, or
+  `hostPID`, and must not use `volumeDevices` or NFS volumes. Preserve
+  `hostUsers: true` or the default only for documented host integration,
+  unsupported operator-generated Pods, or incompatible filesystems, and add a
+  resource-scoped exception explaining the reason.
+- Recheck existing Pods after changing admission policies or generated Pod
+  templates; user-namespace mutations apply when Pods are created or recreated.
+
 ## New component checklist
 
 - `fullnameOverride`

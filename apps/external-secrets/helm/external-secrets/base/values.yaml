@@ -5,3 +5,8 @@ serviceAccount:
 global:
   nodeSelector:
     node-role.kubernetes.io/homelab: homelab
+hostUsers: false
+webhook:
+  hostUsers: false
+certController:
+  hostUsers: false

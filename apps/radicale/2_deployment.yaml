@@ -21,6 +21,7 @@ spec:
         app.kubernetes.io/component: dav-server
     spec:
       automountServiceAccountToken: false
+      hostUsers: false
       nodeSelector:
         node-role.kubernetes.io/homelab: homelab
       securityContext:

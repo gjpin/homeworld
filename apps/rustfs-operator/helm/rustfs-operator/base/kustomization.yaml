@@ -9,3 +9,16 @@ helmCharts:
   includeCRDs: true
   skipTests: true
   valuesFile: values.yaml
+# RustFS Operator 0.0.5 does not expose hostUsers; both enabled Deployments
+# are compatible with Kubernetes user namespaces.
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^rustfs-operator(-console)?$
+    namespace: ^rustfs-operator$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/hostUsers
+      value: false

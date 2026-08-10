@@ -1,3 +1,6 @@
+global:
+  hostUsers: false
+
 fullnameOverride: cert-manager
 namespace: cert-manager
 crds:

@@ -9,3 +9,24 @@ helmCharts:
   includeCRDs: true
   skipTests: true
   valuesFile: values.yaml
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^envoy-gateway$
+    namespace: ^envoy-gateway$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/hostUsers
+      value: false
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: ^envoy-gateway-gateway-helm-certgen$
+    namespace: ^envoy-gateway$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/hostUsers
+      value: false

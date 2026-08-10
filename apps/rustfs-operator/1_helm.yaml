@@ -35,53 +35,6 @@ spec:
       jsonPointers:
         - /spec/template/metadata/annotations/checksum~1secret
   source:
-    chart: rustfs-operator
-    repoURL: https://operator.rustfs.com
-    targetRevision: 0.0.5
-    helm:
-      releaseName: rustfs-operator
-      valuesObject:
-        fullnameOverride: rustfs-operator
-        namespace: rustfs-operator
-        commonAnnotations:
-          kube-score/ignore: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-replicas
-          security.homeworld/exception-reason: Upstream UID, filesystem, availability, and Cilium policy constraints are accepted for the two chart workloads.
-
-        operator:
-          image:
-            repository: rustfs/operator
-            tag: 0.0.5
-            pullPolicy: Always
-          resources:
-            requests:
-              cpu: 10m
-              memory: 64Mi
-              ephemeral-storage: 64Mi
-            limits:
-              cpu: "1"
-              memory: 2Gi
-              ephemeral-storage: 2Gi
-          nodeSelector:
-            node-role.kubernetes.io/homelab: homelab
-          serviceMonitor:
-            enabled: true
-            interval: 60s
-
-        console:
-          enabled: true
-          image:
-            pullPolicy: Always
-          resources:
-            requests:
-              cpu: 10m
-              memory: 64Mi
-              ephemeral-storage: 64Mi
-            limits:
-              cpu: "1"
-              memory: 2Gi
-              ephemeral-storage: 2Gi
-          nodeSelector:
-            node-role.kubernetes.io/homelab: homelab
-
-        sts:
-          enabled: true
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/rustfs-operator/helm/rustfs-operator/overlays/homelab
+    targetRevision: HEAD

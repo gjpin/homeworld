@@ -9,3 +9,20 @@ helmCharts:
   includeCRDs: true
   skipTests: true
   valuesFile: values.yaml
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^dragonfly-operator$
+    namespace: ^dragonfly-operator$
+  patch: |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: dragonfly-operator
+      namespace: dragonfly-operator
+    spec:
+      template:
+        spec:
+          hostUsers: false

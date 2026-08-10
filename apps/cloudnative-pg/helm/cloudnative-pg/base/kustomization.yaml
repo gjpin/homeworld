@@ -9,3 +9,15 @@ helmCharts:
   includeCRDs: true
   skipTests: true
   valuesFile: values.yaml
+# Chart 0.28.0 does not expose hostUsers; patch the generated operator PodSpec.
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^cloudnative-pg$
+    namespace: ^cloudnative-pg$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/hostUsers
+      value: false

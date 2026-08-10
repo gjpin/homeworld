@@ -9,3 +9,14 @@ helmCharts:
   includeCRDs: true
   skipTests: true
   valuesFile: values.yaml
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^otel-collector-main$
+    namespace: ^otel-collector$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/hostUsers
+      value: false

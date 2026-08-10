@@ -1,6 +1,7 @@
 defaultPodOptions:
   nodeSelector:
     node-role.kubernetes.io/homelab: homelab
+  hostUsers: false
   securityContext:
     runAsNonRoot: true
     seccompProfile:
@@ -30,6 +31,9 @@ machine-learning:
       storageClass: longhorn-crypto
   controllers:
     main:
+      # Longhorn RWX volumes are NFS-backed and cannot be mounted by user-namespaced Pods.
+      pod:
+        hostUsers: true
       containers:
         main:
           securityContext:

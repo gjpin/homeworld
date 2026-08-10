@@ -9,3 +9,25 @@ helmCharts:
   includeCRDs: true
   skipTests: true
   valuesFile: values.yaml
+# Longhorn 1.11.1 does not expose hostUsers; opt in only non-node-integrated pods.
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^(longhorn-driver-deployer|longhorn-ui)$
+    namespace: ^longhorn-system$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/hostUsers
+      value: false
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: ^(longhorn-post-upgrade|longhorn-uninstall)$
+    namespace: ^longhorn-system$
+  patch: |-
+    - op: add
+      path: /spec/template/spec/hostUsers
+      value: false

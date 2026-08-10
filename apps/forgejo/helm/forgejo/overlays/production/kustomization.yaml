@@ -13,6 +13,9 @@ patches:
     namespace: ^forgejo$
   patch: |-
     - op: add
+      path: /spec/template/spec/hostUsers
+      value: false
+    - op: add
       path: /spec/template/spec/containers/0/resources
       value: {"requests":{"cpu":"100m","memory":"128Mi","ephemeral-storage":"128Mi"},"limits":{"cpu":"2","memory":"4Gi","ephemeral-storage":"4Gi"}}
     - op: add

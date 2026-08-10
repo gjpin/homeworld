@@ -10,3 +10,14 @@ metadata:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   mergeGateways: true
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyDeployment:
+        patch:
+          type: StrategicMerge
+          value:
+            spec:
+              template:
+                spec:
+                  hostUsers: false

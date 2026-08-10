@@ -35,6 +35,7 @@ spec:
         type: Recreate
       template:
         spec:
+          hostUsers: false
           nodeSelector:
             node-role.kubernetes.io/homelab: homelab
           securityContext:

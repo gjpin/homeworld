@@ -8,6 +8,7 @@ metadata:
   namespace: forgejo
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+    cnpg.io/podPatch: '[{"op":"add","path":"/spec/hostUsers","value":false}]'
 spec:
   instances: 1
   imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie

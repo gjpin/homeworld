@@ -25,6 +25,9 @@ patches:
       - op: add
         path: /spec/template/spec/automountServiceAccountToken
         value: false
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
   - target:
       group: monitoring.coreos.com
       version: v1
