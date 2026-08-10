@@ -1,0 +1,59 @@
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: crowdsec-envoy-bouncer
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  from:
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: argocd
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: authelia
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: collabora
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: envoy-gateway
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: forgejo
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: grafana
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: homeassistant
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: immich
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: longhorn-system
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: opencloud
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: openobserve
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: rustfs-operator
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: rustfs
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: syncthing
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: velero-ui
+  to:
+    - group: ""
+      kind: Service
+      name: crowdsec-envoy-bouncer

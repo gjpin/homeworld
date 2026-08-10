@@ -8,6 +8,8 @@
 | CloudNativePG | — | PostgreSQL operator. |
 | Collabora | `office.${BASE_DOMAIN}` | WOPI office editor for OpenCloud. |
 | Dragonfly Operator | — | Dragonfly, a Redis-compatible datastore, operator. |
+| CrowdSec | — | Security Engine, PostgreSQL-backed LAPI, and AppSec WAF. |
+| CrowdSec Envoy Bouncer | — | Envoy Gateway external-authorization bouncer. |
 | Envoy Gateway | `envoy.${BASE_DOMAIN}` | Gateway API implementation and control-plane metrics. |
 | ExternalDNS | — | DNS record management. |
 | External Secrets | — | Infisical-backed secret synchronization. |
@@ -74,6 +76,13 @@ is Privileged because Longhorn uses host integration, while `velero`,
 limitations. The node-level OpenTelemetry collector is isolated in
 `otel-collector-node`; ordinary collectors remain in `otel-collector`.
 
+`crowdsec` is Baseline because the pinned CrowdSec image requires root for its
+staged startup configuration, and its agent reads node container logs through
+the chart-managed read-only `/var/log` hostPath. LAPI, AppSec, and registration
+Jobs retain close-to-Restricted seccomp, capability, and privilege settings
+with resource-scoped image exceptions; the Envoy bouncer remains Restricted
+and non-root.
+
 The remaining application namespaces start with Restricted audit and warning
 labels while workload startup is verified. Promote them to Restricted enforcement
 after reviewing the live admission warnings and operator-generated pods.
@@ -137,6 +146,9 @@ helm repo add external-dns https://kubernetes-sigs.github.io/external-dns/
 # kube-prometheus-stack
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
+# crowdsec
+helm repo add crowdsec https://crowdsecurity.github.io/helm-charts
+
 # longhorn
 helm repo add longhorn https://charts.longhorn.io
 
@@ -170,7 +182,45 @@ HTTP boundary. Radicale accepts connections only from OpenCloud and retains its
 world-egress denial. Authelia is limited to DNS, its CloudNativePG and Dragonfly
 services, `time.cloudflare.com:123`, and `${AUTHELIA_SMTP_HOST}:465`.
 
-Internet-capable exceptions: Argo CD (Git), cert-manager (ACME), external-dns (DNS provider), external-secrets (Infisical), and Velero (Backblaze B2).
+Internet-capable exceptions: Argo CD (Git), cert-manager (ACME), external-dns
+(DNS provider), external-secrets (Infisical), Velero (Backblaze B2), and
+CrowdSec. CrowdSec uses a namespace-wide DNS-only default-deny policy and is
+limited to TCP 443 for `api.crowdsec.net`,
+`papi.api.crowdsec.net`, `version.crowdsec.net`, `cdn-hub.crowdsec.net`, and
+`hub-data.crowdsec.net`; the Envoy bouncer has no Internet egress and talks to
+the LAPI and AppSec services inside the cluster.
+
+# CrowdSec
+Create these Infisical values before syncing CrowdSec and the Envoy bouncer:
+
+* `/crowdsec/DB_PASSWORD`
+* `/crowdsec/ENROLL_KEY`
+* `/crowdsec/BOUNCER_KEY_envoy`
+
+The PostgreSQL password is used by the `crowdsec` CloudNativePG Cluster. The
+enrollment key registers this instance with CrowdSec, and the bouncer key is
+shared by the LAPI registration and the Envoy external-auth bouncer. Do not
+place any of these values in Git.
+
+The community Envoy bouncer is pinned because it is not production-tested;
+exercise the staged fail-open rollout and representative routes before
+retaining the final fail-closed policies.
+
+The CrowdSec agent acquires containerd logs from `envoy-*` Pods in the
+`envoy-gateway` namespace through its read-only `/var/log` hostPath. The
+merged Envoy Service uses `externalTrafficPolicy: Local`, and the access log
+keeps the JSON `x-forwarded-for` and `downstream_remote_address` fields needed
+to identify the client IP. This preserves the real source address only when
+the upstream load balancer or NAT path also preserves it.
+
+CrowdSec protection is applied with one Gateway-targeted `SecurityPolicy` in
+each protected Gateway namespace. The policies use gRPC external authorization
+and are fail-closed after validation. Each policy is stored in the respective
+application directory so Argo CD ownership follows the protected Gateway.
+Because the bouncer Service is in `envoy-gateway`, the single `ReferenceGrant`
+there explicitly lists the 15 allowed policy namespaces; merged Envoy
+infrastructure does not make a policy in one namespace apply to Gateways in
+another.
 
 # Velero B2 backups
 Velero creates a whole-cluster backup every day at 03:00 Europe/Lisbon. The B2
@@ -392,11 +442,16 @@ request and proxies it to Radicale.
    * rustfs-operator: RustFS storage operator, console, and STS endpoint
    * velero: whole-cluster backups after External Secrets and Longhorn
 * **Sync wave 5**
+   * crowdsec: PostgreSQL-backed CrowdSec LAPI, Envoy log agent, and AppSec WAF,
+     after CloudNativePG and External Secrets
    * openobserve: standalone logs, metrics, and traces backend
    * rustfs: shared S3-compatible storage Tenant, after the RustFS Operator,
      External Secrets, and Longhorn
    * velero-ui: web interface for Velero, after the Velero server
 * **Sync wave 6**
+   * crowdsec-envoy-bouncer: pinned community Envoy external-auth bouncer,
+     after CrowdSec and Envoy Gateway; the Gateway policies remain owned by
+     their respective application directories and are fail-closed
    * authelia: OpenCloud identity provider, after CloudNativePG, Dragonfly,
      External Secrets, and Prometheus Operator CRDs
    * homeassistant
@@ -418,6 +473,22 @@ request and proxies it to Radicale.
 ```bash
 kubectl label nodes --all node-role.kubernetes.io/homelab=homelab
 ```
+
+After syncing CrowdSec, verify the LAPI, agent, AppSec, bouncer, and
+registration Jobs before enabling or confirming fail-closed policy behavior:
+
+* Check `kubectl -n crowdsec get pods`, `kubectl -n envoy-gateway get pods`,
+  `cscli metrics`, and the CrowdSec/AppSec logs for successful Hub collection
+  installs and bouncer registration.
+* Exercise representative browser and HTTP routes, Argo CD gRPC, S3 and
+  multipart uploads, DAV, and large file uploads. Confirm the Envoy JSON logs
+  contain the expected `x-forwarded-for` and `downstream_remote_address`
+  values.
+* In a controlled maintenance window, use the documented CrowdSec HTTP and
+  AppSec test scenarios, verify alerts with `cscli alerts list`, and remove
+  the test data afterward. Create a short-lived test decision, verify that a
+  representative route is blocked through each Gateway, then delete the
+  decision and confirm recovery.
 
 # Dependency updates
 Renovate runs daily at 04:17 UTC and can also be started from the **Run
