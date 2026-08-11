@@ -1,0 +1,75 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crowdsec-envoy-bouncer-ingress
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy-proxy-bouncer
+      k8s:app.kubernetes.io/instance: crowdsec-envoy-bouncer
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:gateway.envoyproxy.io/owning-gateway-namespace: envoy-gateway
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: prometheus-operator-crd
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crowdsec-envoy-bouncer-egress
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy-proxy-bouncer
+      k8s:app.kubernetes.io/instance: crowdsec-envoy-bouncer
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+          rules:
+            dns:
+              - matchName: crowdsec-service.crowdsec.svc.cluster.local
+              - matchName: crowdsec-appsec-service.crowdsec.svc.cluster.local
+    - toServices:
+        - k8sService:
+            serviceName: crowdsec-service
+            namespace: crowdsec
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - toServices:
+        - k8sService:
+            serviceName: crowdsec-appsec-service
+            namespace: crowdsec
+      toPorts:
+        - ports:
+            - port: "7422"
+              protocol: TCP

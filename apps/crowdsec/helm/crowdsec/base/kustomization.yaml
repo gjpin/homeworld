@@ -1,0 +1,157 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: crowdsec
+helmCharts:
+  - name: crowdsec
+    repo: https://crowdsecurity.github.io/helm-charts
+    version: 0.24.0
+    releaseName: crowdsec
+    namespace: crowdsec
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  - target:
+      version: v1
+      kind: ^(ConfigMap|Secret|Service)$
+      name: ^(acquis-configmap|appsec-acquis-config|crowdsec-appsec-configs|crowdsec-config-local|crowdsec-docker-start-script-configmap|crowdsec-lapi-secrets|crowdsec-agent-service|crowdsec-appsec-service|crowdsec-service)$
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: crowdsec
+  - target:
+      group: apps
+      version: v1
+      kind: ^(Deployment|DaemonSet)$
+      name: ^crowdsec-(appsec|lapi|agent)$
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: crowdsec
+  - target:
+      group: batch
+      version: v1
+      kind: Job
+      name: ^crowdsec-(capi-register|lapi-cscli-register)-job$
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: crowdsec
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^crowdsec-lapi$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^crowdsec-appsec$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+  - target:
+      group: apps
+      version: v1
+      kind: DaemonSet
+      name: ^crowdsec-agent$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: true
+  - target:
+      group: monitoring.coreos.com
+      version: v1
+      kind: ServiceMonitor
+      name: ^crowdsec-service$
+      namespace: crowdsec
+    patch: |-
+      - op: add
+        path: /spec/endpoints/0/interval
+        value: 60s
+  - target:
+      group: monitoring.coreos.com
+      version: v1
+      kind: ServiceMonitor
+      name: ^crowdsec-agent-service$
+      namespace: crowdsec
+    patch: |-
+      - op: add
+        path: /spec/endpoints/0/interval
+        value: 60s
+  - target:
+      group: monitoring.coreos.com
+      version: v1
+      kind: ServiceMonitor
+      name: ^crowdsec-appsec-service$
+      namespace: crowdsec
+    patch: |-
+      - op: add
+        path: /spec/endpoints/0/interval
+        value: 60s
+  - target:
+      group: batch
+      version: v1
+      kind: Job
+      name: ^crowdsec-(capi-register|lapi-cscli-register)-job$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+      - op: add
+        path: /spec/template/spec/securityContext
+        value:
+          fsGroup: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+            ephemeral-storage: 64Mi
+          limits:
+            cpu: 500m
+            memory: 128Mi
+            ephemeral-storage: 1Gi
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext
+        value:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+      - op: add
+        path: /spec/template/spec/initContainers/0/resources
+        value:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+            ephemeral-storage: 16Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+            ephemeral-storage: 256Mi
+      - op: add
+        path: /spec/template/spec/initContainers/0/securityContext
+        value:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+      - op: add
+        path: /metadata/annotations
+        value: {}
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-networkpolicy
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: The pinned CrowdSec image has no non-root USER and the registration hook must write its generated credentials; seccomp, dropped capabilities, and no privilege escalation remain enabled.

@@ -1,0 +1,181 @@
+---
+container_runtime: containerd
+
+image:
+  repository: crowdsecurity/crowdsec
+  tag: v1.7.8
+  pullPolicy: IfNotPresent
+  kubectl:
+    repository: alpine/kubectl
+    tag: "1.36.3"
+    pullPolicy: IfNotPresent
+
+lapi:
+  replicas: 1
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    privileged: false
+    capabilities:
+      drop:
+        - ALL
+  resources:
+    requests:
+      cpu: 500m
+      memory: 500Mi
+    limits:
+      cpu: 500m
+      memory: 500Mi
+  persistentVolume:
+    data:
+      enabled: false
+    config:
+      enabled: false
+  storeCAPICredentialsInSecret: true
+  storeLAPICscliCredentialsInSecret: true
+  env:
+    - name: ENROLL_KEY
+      valueFrom:
+        secretKeyRef:
+          name: crowdsec-enrollment
+          key: ENROLL_KEY
+    - name: ENROLL_INSTANCE_NAME
+      value: homeworld
+    - name: ENROLL_TAGS
+      value: k8s linux homelab
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: postgres-credentials
+          key: password
+    - name: BOUNCER_KEY_envoy
+      valueFrom:
+        secretKeyRef:
+          name: crowdsec-bouncer-key
+          key: BOUNCER_KEY_envoy
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+config:
+  config.yaml.local: |
+    db_config:
+      type: postgresql
+      user: crowdsec
+      password: ${DB_PASSWORD}
+      db_name: crowdsec
+      host: crowdsec-rw.crowdsec.svc.cluster.local
+      port: 5432
+      sslmode: disable
+    api:
+      server:
+        auto_registration:
+          enabled: true
+          token: "${REGISTRATION_TOKEN}"
+          allowed_ranges:
+            - "127.0.0.1/32"
+            - "192.168.0.0/16"
+            - "10.0.0.0/8"
+            - "172.16.0.0/12"
+
+agent:
+  enabled: true
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    privileged: false
+    capabilities:
+      drop:
+        - ALL
+  resources:
+    requests:
+      cpu: 500m
+      memory: 250Mi
+    limits:
+      cpu: 500m
+      memory: 250Mi
+  wait_for_lapi:
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+  hostVarLog: true
+  acquisition:
+    - namespace: envoy-gateway
+      podName: envoy-*
+      program: envoy
+      poll_without_inotify: true
+  env:
+    - name: PARSERS
+      value: crowdsecurity/cri-logs yanis-kouidri/envoy-logs
+    - name: COLLECTIONS
+      value: yanis-kouidri/envoy
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+appsec:
+  enabled: true
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    privileged: false
+    capabilities:
+      drop:
+        - ALL
+  resources:
+    requests:
+      cpu: 500m
+      memory: 250Mi
+    limits:
+      cpu: 500m
+      memory: 250Mi
+  wait_for_lapi:
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+  acquisitions:
+    - source: appsec
+      listen_addr: 0.0.0.0:7422
+      path: /
+      appsec_config: crowdsecurity/homeworld
+      labels:
+        type: appsec
+  configs:
+    homeworld.yaml: |
+      name: crowdsecurity/homeworld
+      default_remediation: ban
+      outofband_rules:
+        - crowdsecurity/experimental-*
+      inband_rules:
+        - crowdsecurity/base-config
+        - crowdsecurity/vpatch-*
+        - crowdsecurity/generic-*
+  env:
+    - name: COLLECTIONS
+      value: crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true

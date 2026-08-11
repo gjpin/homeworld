@@ -1,0 +1,182 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crowdsec-dns-egress
+  namespace: crowdsec
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+    security.homeworld/egress-reason: This namespace-wide DNS rule enables default-deny egress; workload-specific policies add only the CrowdSec services, Kubernetes API, and Hub endpoints required by the chart.
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+          rules:
+            dns:
+              - matchPattern: "*.crowdsec.svc.cluster.local"
+              - matchName: kubernetes.default.svc.cluster.local
+              - matchName: api.crowdsec.net
+              - matchName: papi.api.crowdsec.net
+              - matchName: version.crowdsec.net
+              - matchName: cdn-hub.crowdsec.net
+              - matchName: hub-data.crowdsec.net
+
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crowdsec-lapi-egress
+  namespace: crowdsec
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:k8s-app: crowdsec
+      k8s:type: lapi
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: crowdsec-rw
+            namespace: crowdsec
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - toFQDNs:
+        - matchName: api.crowdsec.net
+        - matchName: papi.api.crowdsec.net
+        - matchName: version.crowdsec.net
+        - matchName: cdn-hub.crowdsec.net
+        - matchName: hub-data.crowdsec.net
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crowdsec-agent-egress
+  namespace: crowdsec
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:k8s-app: crowdsec
+      k8s:type: agent
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: crowdsec-service
+            namespace: crowdsec
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - toFQDNs:
+        - matchName: api.crowdsec.net
+        - matchName: papi.api.crowdsec.net
+        - matchName: version.crowdsec.net
+        - matchName: cdn-hub.crowdsec.net
+        - matchName: hub-data.crowdsec.net
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crowdsec-capi-registration-egress
+  namespace: crowdsec
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:k8s-app: crowdsec
+      k8s:type: capi-register-job
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    - toFQDNs:
+        - matchName: api.crowdsec.net
+        - matchName: papi.api.crowdsec.net
+        - matchName: version.crowdsec.net
+        - matchName: cdn-hub.crowdsec.net
+        - matchName: hub-data.crowdsec.net
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crowdsec-lapi-registration-egress
+  namespace: crowdsec
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:k8s-app: crowdsec
+      k8s:type: lapi-cscli-register-job
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crowdsec-appsec-egress
+  namespace: crowdsec
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:k8s-app: crowdsec
+      k8s:type: appsec
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: crowdsec-service
+            namespace: crowdsec
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - toFQDNs:
+        - matchName: api.crowdsec.net
+        - matchName: papi.api.crowdsec.net
+        - matchName: version.crowdsec.net
+        - matchName: cdn-hub.crowdsec.net
+        - matchName: hub-data.crowdsec.net
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

@@ -8,6 +8,8 @@
 | CloudNativePG | — | PostgreSQL operator. |
 | Collabora | `office.${BASE_DOMAIN}` | WOPI office editor for OpenCloud. |
 | Dragonfly Operator | — | Dragonfly, a Redis-compatible datastore, operator. |
+| CrowdSec | — | Security Engine, PostgreSQL-backed LAPI, and AppSec WAF. |
+| CrowdSec Envoy Bouncer | — | Envoy Gateway external-authorization bouncer. |
 | Envoy Gateway | `envoy.${BASE_DOMAIN}` | Gateway API implementation and control-plane metrics. |
 | ExternalDNS | — | DNS record management. |
 | External Secrets | — | Infisical-backed secret synchronization. |
@@ -74,6 +76,13 @@ is Privileged because Longhorn uses host integration, while `velero`,
 limitations. The node-level OpenTelemetry collector is isolated in
 `otel-collector-node`; ordinary collectors remain in `otel-collector`.
 
+`crowdsec` is Baseline because the pinned CrowdSec image requires root for its
+staged startup configuration, and its agent reads node container logs through
+the chart-managed read-only `/var/log` hostPath. LAPI, AppSec, and registration
+Jobs retain close-to-Restricted seccomp, capability, and privilege settings
+with resource-scoped image exceptions; the Envoy bouncer remains Restricted
+and non-root.
+
 The remaining application namespaces start with Restricted audit and warning
 labels while workload startup is verified. Promote them to Restricted enforcement
 after reviewing the live admission warnings and operator-generated pods.
@@ -138,6 +147,9 @@ helm repo add external-dns https://kubernetes-sigs.github.io/external-dns/
 # kube-prometheus-stack
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
+# crowdsec
+helm repo add crowdsec https://crowdsecurity.github.io/helm-charts
+
 # longhorn
 helm repo add longhorn https://charts.longhorn.io
 
@@ -163,47 +175,53 @@ helm repo add otwld https://helm.otwld.com/
 
 # Network egress
 Cilium and its `CiliumNetworkPolicy` CRD must be installed before Argo CD syncs
-this repository. Every application namespace has a Cilium default-deny baseline
-for both ingress and egress. The only namespace-wide egress exception is DNS to
-the `kube-dns` endpoints on UDP/TCP 53; all other paths select their exact
-source, destination, and port. The Cilium `world` entity is used only for the
-public TCP 443 listener on the merged Envoy data plane. No other application
-pod has unrestricted Internet egress.
+this repository. Each protected application includes a namespaced policy that
+blocks egress to the Cilium `world` entity. `world` includes both LAN and
+Internet destinations. OpenCloud and Collabora instead use explicit egress
+allow-lists for DNS, RustFS, Tika, Radicale, Authelia discovery, and their WOPI
+HTTP boundary. Radicale accepts connections only from OpenCloud and retains its
+world-egress denial. Authelia is limited to DNS, its CloudNativePG and Dragonfly
+services, `time.cloudflare.com:123`, and `${AUTHELIA_SMTP_HOST}:465`.
 
-The merged Envoy data plane is the only public application ingress boundary.
-Gateway backends are allowed one service and listener port at a time. OTel
-receiver ports remain closed because no current in-repository sender uses them.
-The Longhorn manager and Velero node-agent retain only the rendered host-facing
-ports required for node integration; the policy comments document those
-exceptions.
+Internet-capable exceptions: Argo CD (Git), cert-manager (ACME), external-dns
+(DNS provider), external-secrets (Infisical), Velero (Backblaze B2), and
+CrowdSec. CrowdSec uses a namespace-wide DNS-only default-deny policy and is
+limited to TCP 443 for `api.crowdsec.net`,
+`papi.api.crowdsec.net`, `version.crowdsec.net`, `cdn-hub.crowdsec.net`, and
+`hub-data.crowdsec.net`; the Envoy bouncer has no Internet egress and talks to
+the LAPI and AppSec services inside the cluster.
 
-Documented external egress exceptions:
+# CrowdSec
+Create these Infisical values before syncing CrowdSec and the Envoy bouncer:
 
-| Workload | Destination | Reason |
-| --- | --- | --- |
-| Argo CD repo-server | Declared Git sources, pinned Helm repositories, and OCI registries over TCP 443 | Git checkout and Helm/Kustomize rendering |
-| cert-manager controller | `acme-v02.api.letsencrypt.org:443`, `acme-staging-v02.api.letsencrypt.org:443`, and `api.cloudflare.com:443` | ACME DNS-01 certificate issuance |
-| external-dns | `api.cloudflare.com:443` | Cloudflare DNS reconciliation |
-| external-secrets controller | `${INFISICAL_HOSTNAME}:443` | Infisical secret synchronization |
-| Velero server/node-agent | `s3.${B2_REGION}.backblazeb2.com:443` | Backups and CSI data movement |
-| Forgejo | `github.com:443`, `gitlab.com:443`, and `git.*.*:443` | User-requested HTTPS repository clone/fetch support |
-| Grafana pod | `zincsearch-releases.s3.us-west-2.amazonaws.com:443` | Existing plugin-loader init-container download |
-| Authelia | `time.cloudflare.com:123/UDP` and `${AUTHELIA_SMTP_HOST}:465/TCP` | NTP and SMTP |
-| OpenCloud/Collabora | Existing exact `auth.${BASE_DOMAIN}`, `cloud.${BASE_DOMAIN}`, and `office.${BASE_DOMAIN}` FQDNs over TCP 443 | OIDC, WOPI, and collaboration callbacks |
+* `/crowdsec/DB_PASSWORD`
+* `/crowdsec/ENROLL_KEY`
+* `/crowdsec/BOUNCER_KEY_envoy`
 
-The Forgejo `git.*.*` entry is intentionally limited to hostnames matching
-that pattern and TCP 443. It does not permit arbitrary hostnames or SSH. The
-OpenCloud browser CSP URLs are client-side destinations, not pod egress, and
-receive no network-policy exception.
+The PostgreSQL password is used by the `crowdsec` CloudNativePG Cluster. The
+enrollment key registers this instance with CrowdSec, and the bouncer key is
+shared by the LAPI registration and the Envoy external-auth bouncer. Do not
+place any of these values in Git.
 
-Home Assistant may use TCP/UDP ports in RFC1918 ranges
-(`10.0.0.0/8` except `10.42.0.0/16` and `10.43.0.0/16`, plus
-`172.16.0.0/12` and `192.168.0.0/16`) for device integrations. Syncthing may
-use those ranges only on TCP/UDP 22000 and UDP 21027, and may accept peer
-traffic only on TCP/UDP 22000. Its GUI remains Gateway-only on TCP 8384.
-Mosquitto and Zigbee2MQTT remain deny-by-default because no rendered or
-configured endpoint currently proves an additional path is required. No other
-application pod receives direct LAN ingress.
+The community Envoy bouncer is pinned because it is not production-tested;
+exercise the staged fail-open rollout and representative routes before
+retaining the final fail-closed policies.
+
+The CrowdSec agent acquires containerd logs from `envoy-*` Pods in the
+`envoy-gateway` namespace through its read-only `/var/log` hostPath. The
+merged Envoy Service uses `externalTrafficPolicy: Local`, and the access log
+keeps the JSON `x-forwarded-for` and `downstream_remote_address` fields needed
+to identify the client IP. This preserves the real source address only when
+the upstream load balancer or NAT path also preserves it.
+
+CrowdSec protection is applied with one Gateway-targeted `SecurityPolicy` in
+each protected Gateway namespace. The policies use gRPC external authorization
+and are fail-closed after validation. Each policy is stored in the respective
+application directory so Argo CD ownership follows the protected Gateway.
+Because the bouncer Service is in `envoy-gateway`, the single `ReferenceGrant`
+there explicitly lists the 15 allowed policy namespaces; merged Envoy
+infrastructure does not make a policy in one namespace apply to Gateways in
+another.
 
 # Velero B2 backups
 Velero creates a whole-cluster backup every day at 03:00 Europe/Lisbon. The B2
@@ -425,11 +443,16 @@ request and proxies it to Radicale.
    * rustfs-operator: RustFS storage operator, console, and STS endpoint
    * velero: whole-cluster backups after External Secrets and Longhorn
 * **Sync wave 5**
+   * crowdsec: PostgreSQL-backed CrowdSec LAPI, Envoy log agent, and AppSec WAF,
+     after CloudNativePG and External Secrets
    * openobserve: standalone logs, metrics, and traces backend
    * rustfs: shared S3-compatible storage Tenant, after the RustFS Operator,
      External Secrets, and Longhorn
    * velero-ui: web interface for Velero, after the Velero server
 * **Sync wave 6**
+   * crowdsec-envoy-bouncer: pinned community Envoy external-auth bouncer,
+     after CrowdSec and Envoy Gateway; the Gateway policies remain owned by
+     their respective application directories and are fail-closed
    * authelia: OpenCloud identity provider, after CloudNativePG, Dragonfly,
      External Secrets, and Prometheus Operator CRDs
    * homeassistant
@@ -451,6 +474,22 @@ request and proxies it to Radicale.
 ```bash
 kubectl label nodes --all node-role.kubernetes.io/homelab=homelab
 ```
+
+After syncing CrowdSec, verify the LAPI, agent, AppSec, bouncer, and
+registration Jobs before enabling or confirming fail-closed policy behavior:
+
+* Check `kubectl -n crowdsec get pods`, `kubectl -n envoy-gateway get pods`,
+  `cscli metrics`, and the CrowdSec/AppSec logs for successful Hub collection
+  installs and bouncer registration.
+* Exercise representative browser and HTTP routes, Argo CD gRPC, S3 and
+  multipart uploads, DAV, and large file uploads. Confirm the Envoy JSON logs
+  contain the expected `x-forwarded-for` and `downstream_remote_address`
+  values.
+* In a controlled maintenance window, use the documented CrowdSec HTTP and
+  AppSec test scenarios, verify alerts with `cscli alerts list`, and remove
+  the test data afterward. Create a short-lived test decision, verify that a
+  representative route is blocked through each Gateway, then delete the
+  decision and confirm recovery.
 
 # Dependency updates
 Renovate runs daily at 04:17 UTC and can also be started from the **Run
