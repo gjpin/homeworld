@@ -2,12 +2,245 @@
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: block-world-egress
+  name: default-deny
   namespace: otel-collector
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector: {}
-  egressDeny:
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-main-self-metrics
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: otel-collector-main
+      k8s:app.kubernetes.io/name: opentelemetry-collector
+      k8s:component: standalone-collector
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/instance: otel-collector-main
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: standalone-collector
+      toPorts:
+        - ports:
+            - port: "8888"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/instance: otel-collector-main
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: standalone-collector
+      toPorts:
+        - ports:
+            - port: "8888"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-main-kubernetes-api
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: otel-collector-main
+      k8s:app.kubernetes.io/name: opentelemetry-collector
+      k8s:component: standalone-collector
+  egress:
     - toEntities:
-        - world
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-deployment-self-metrics
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: otel-collector-deployment
+      k8s:app.kubernetes.io/name: opentelemetry-collector
+      k8s:component: standalone-collector
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/instance: otel-collector-deployment
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: standalone-collector
+      toPorts:
+        - ports:
+            - port: "8888"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/instance: otel-collector-deployment
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: standalone-collector
+      toPorts:
+        - ports:
+            - port: "8888"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-deployment-kubernetes-api
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: otel-collector-deployment
+      k8s:app.kubernetes.io/name: opentelemetry-collector
+      k8s:component: standalone-collector
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-main-openobserve
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: otel-collector-main
+      k8s:app.kubernetes.io/name: opentelemetry-collector
+      k8s:component: standalone-collector
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: openobserve
+            namespace: openobserve
+      toPorts:
+        - ports:
+            - port: "5080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-deployment-openobserve
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: otel-collector-deployment
+      k8s:app.kubernetes.io/name: opentelemetry-collector
+      k8s:component: standalone-collector
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: openobserve
+            namespace: openobserve
+      toPorts:
+        - ports:
+            - port: "5080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-main-velero-node-agent-metrics
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Velero's node-agent is the other current pod annotated for the OTel
+  # Prometheus receiver (8085); no unannotated receiver port is opened.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: otel-collector-main
+      k8s:app.kubernetes.io/name: opentelemetry-collector
+      k8s:component: standalone-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: velero
+            k8s:app.kubernetes.io/instance: velero
+            k8s:name: node-agent
+      toPorts:
+        - ports:
+            - port: "8085"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-main-envoy-metrics
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The Envoy Gateway control-plane is a current in-repository pod scrape
+  # target annotated for OTel.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: otel-collector-main
+      k8s:app.kubernetes.io/name: opentelemetry-collector
+      k8s:component: standalone-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/instance: envoy-gateway
+            k8s:app.kubernetes.io/name: gateway-helm
+            k8s:control-plane: envoy-gateway
+      toPorts:
+        - ports:
+            - port: "19001"
+              protocol: TCP

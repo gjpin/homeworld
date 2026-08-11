@@ -1,0 +1,406 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-kubernetes-api
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: argocd
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-server-redis
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/component: argocd-server
+      k8s:app.kubernetes.io/instance: argocd
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: argocd-argocd-redis
+            namespace: argocd
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-server-repo-server
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/component: argocd-server
+      k8s:app.kubernetes.io/instance: argocd
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: argocd-argocd-repo-server
+            namespace: argocd
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-server-dex
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/component: argocd-server
+      k8s:app.kubernetes.io/instance: argocd
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: argocd-argocd-dex-server
+            namespace: argocd
+      toPorts:
+        - ports:
+            - port: "5556"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-controller-redis
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/component: argocd-application-controller
+      k8s:app.kubernetes.io/instance: argocd
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: argocd-argocd-redis
+            namespace: argocd
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-controller-repo-server
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/component: argocd-application-controller
+      k8s:app.kubernetes.io/instance: argocd
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: argocd-argocd-repo-server
+            namespace: argocd
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-applicationset-repo-server
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/component: argocd-applicationset-controller
+      k8s:app.kubernetes.io/instance: argocd
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: argocd-argocd-repo-server
+            namespace: argocd
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-notifications-repo-server
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/component: argocd-notifications-controller
+      k8s:app.kubernetes.io/instance: argocd
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: argocd-argocd-repo-server
+            namespace: argocd
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-redis-hook
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/component: redis-secret-init
+      k8s:app.kubernetes.io/instance: argocd
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: argocd-argocd-redis
+            namespace: argocd
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-repo-server-redis
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/component: argocd-repo-server
+      k8s:app.kubernetes.io/instance: argocd
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: argocd-argocd-redis
+            namespace: argocd
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-repo-server-ingress
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/component: argocd-repo-server
+      k8s:app.kubernetes.io/instance: argocd
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: argocd
+            k8s:app.kubernetes.io/component: argocd-server
+            k8s:app.kubernetes.io/instance: argocd
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: argocd
+            k8s:app.kubernetes.io/component: argocd-application-controller
+            k8s:app.kubernetes.io/instance: argocd
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: argocd
+            k8s:app.kubernetes.io/component: argocd-applicationset-controller
+            k8s:app.kubernetes.io/instance: argocd
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: argocd
+            k8s:app.kubernetes.io/component: argocd-notifications-controller
+            k8s:app.kubernetes.io/instance: argocd
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-redis-ingress
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/component: argocd-redis
+      k8s:app.kubernetes.io/instance: argocd
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: argocd
+            k8s:app.kubernetes.io/component: argocd-server
+            k8s:app.kubernetes.io/instance: argocd
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: argocd
+            k8s:app.kubernetes.io/component: argocd-application-controller
+            k8s:app.kubernetes.io/instance: argocd
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: argocd
+            k8s:app.kubernetes.io/component: argocd-repo-server
+            k8s:app.kubernetes.io/instance: argocd
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: argocd
+            k8s:app.kubernetes.io/component: redis-secret-init
+            k8s:app.kubernetes.io/instance: argocd
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-dex-ingress
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/component: argocd-dex-server
+      k8s:app.kubernetes.io/instance: argocd
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: argocd
+            k8s:app.kubernetes.io/component: argocd-server
+            k8s:app.kubernetes.io/instance: argocd
+      toPorts:
+        - ports:
+            - port: "5556"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-server-gateway
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/component: argocd-server
+      k8s:app.kubernetes.io/instance: argocd
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-repository-sources
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Repo-server needs only the declared Git sources, pinned Helm chart
+  # repositories, and OCI registries used by this repository, all over HTTPS.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/component: argocd-repo-server
+      k8s:app.kubernetes.io/instance: argocd
+  egress:
+    - toFQDNs:
+        - matchName: github.com
+        - matchName: argoproj.github.io
+        - matchName: charts.authelia.com
+        - matchName: charts.jetstack.io
+        - matchName: cloudnative-pg.github.io
+        - matchName: collaboraonline.github.io
+        - matchName: code.forgejo.org
+        - matchName: charts.external-secrets.io
+        - matchName: charts.longhorn.io
+        - matchName: charts.openobserve.ai
+        - matchName: open-telemetry.github.io
+        - matchName: operator.rustfs.com
+        - matchName: helm.otwld.com
+        - matchName: vmware-tanzu.github.io
+        - matchName: kubernetes-sigs.github.io
+        - matchName: ghcr.io
+        - matchName: docker.io
+        - matchName: registry-1.docker.io
+        - matchName: auth.docker.io
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

@@ -2,7 +2,82 @@
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: opencloud-egress
+  name: default-deny
+  namespace: opencloud
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: opencloud
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-opencloud-rustfs
+  namespace: opencloud
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: opencloud
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: rustfs-io
+            namespace: rustfs
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-opencloud-radicale
+  namespace: opencloud
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: opencloud
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: radicale
+            namespace: radicale
+      toPorts:
+        - ports:
+            - port: "5232"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-opencloud-tika
   namespace: opencloud
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -13,41 +88,31 @@ spec:
   egress:
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kube-system
-            k8s:k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
-    - toServices:
-        - k8sService:
-            serviceName: rustfs-io
-            namespace: rustfs
-      toPorts:
-        - ports:
-            - port: "9000"
-              protocol: TCP
-    - toServices:
-        - k8sService:
-            serviceName: radicale
-            namespace: radicale
-      toPorts:
-        - ports:
-            - port: "5232"
-              protocol: TCP
-    - toEndpoints:
-        - matchLabels:
             k8s:io.kubernetes.pod.namespace: opencloud
             k8s:app.kubernetes.io/name: opencloud-tika
       toPorts:
         - ports:
             - port: "9998"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-opencloud-external-services
+  namespace: opencloud
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # These exact public hostnames are the OIDC, WOPI, and callback boundary.
+  # Browser-only CSP URLs are intentionally absent from pod egress policy.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: opencloud
+  egress:
     - toFQDNs:
         - matchName: "auth.${BASE_DOMAIN}"
         - matchName: "office.${BASE_DOMAIN}"
+        - matchName: "cloud.${BASE_DOMAIN}"
       toPorts:
         - ports:
             - port: "443"
@@ -56,7 +121,29 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: opencloud-tika-egress
+  name: allow-opencloud-gateway
+  namespace: opencloud
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: opencloud
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      toPorts:
+        - ports:
+            - port: "9200"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-opencloud-tika-ingress
   namespace: opencloud
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -64,14 +151,12 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: opencloud-tika
-  egress:
-    - toEndpoints:
+  ingress:
+    - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kube-system
-            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: opencloud
+            k8s:app.kubernetes.io/name: opencloud
       toPorts:
         - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
+            - port: "9998"
               protocol: TCP

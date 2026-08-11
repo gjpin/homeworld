@@ -1,0 +1,139 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: external-secrets
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: external-secrets
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-kubernetes-api
+  namespace: external-secrets
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: external-secrets
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-infisical
+  namespace: external-secrets
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The URL remains in the SecretStore; this hostname-only variable is used
+  # here so the URL scheme cannot widen the network exception.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: external-secrets
+      k8s:app.kubernetes.io/instance: external-secrets
+  egress:
+    - toFQDNs:
+        - matchName: "${INFISICAL_HOSTNAME}"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-external-secrets-webhook
+  namespace: external-secrets
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: external-secrets
+      k8s:app.kubernetes.io/instance: external-secrets
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: external-secrets-webhook
+            namespace: external-secrets
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-external-secrets-webhook-ingress
+  namespace: external-secrets
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: external-secrets-webhook
+      k8s:app.kubernetes.io/instance: external-secrets
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "10250"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-external-secrets-controller-webhook-ingress
+  namespace: external-secrets
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: external-secrets-webhook
+      k8s:app.kubernetes.io/instance: external-secrets
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: external-secrets
+            k8s:app.kubernetes.io/name: external-secrets
+            k8s:app.kubernetes.io/instance: external-secrets
+      toPorts:
+        - ports:
+            - port: "10250"
+              protocol: TCP

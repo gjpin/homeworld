@@ -2,14 +2,24 @@
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: authelia-egress
+  name: default-deny
   namespace: authelia
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/name: authelia
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: authelia
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
   egress:
     - toEndpoints:
         - matchLabels:
@@ -21,6 +31,20 @@ spec:
               protocol: UDP
             - port: "53"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-authelia-services
+  namespace: authelia
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: authelia
+      k8s:app.kubernetes.io/instance: authelia
+  egress:
     - toServices:
         - k8sService:
             serviceName: authelia-rw
@@ -37,6 +61,22 @@ spec:
         - ports:
             - port: "6379"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-authelia-external-services
+  namespace: authelia
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # NTP and the configured implicit-TLS SMTP notifier are the only Authelia
+  # Internet dependencies.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: authelia
+      k8s:app.kubernetes.io/instance: authelia
+  egress:
     - toFQDNs:
         - matchName: time.cloudflare.com
       toPorts:
@@ -53,7 +93,30 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: authelia-database-block-world-egress
+  name: allow-authelia-gateway
+  namespace: authelia
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: authelia
+      k8s:app.kubernetes.io/instance: authelia
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      toPorts:
+        - ports:
+            - port: "9091"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-authelia-postgres-ingress
   namespace: authelia
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -61,6 +124,36 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:cnpg.io/cluster: authelia
-  egressDeny:
-    - toEntities:
-        - world
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: authelia
+            k8s:app.kubernetes.io/name: authelia
+            k8s:app.kubernetes.io/instance: authelia
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-authelia-dragonfly-ingress
+  namespace: authelia
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: dragonfly
+      k8s:app.kubernetes.io/instance: dragonfly
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: authelia
+            k8s:app.kubernetes.io/name: authelia
+            k8s:app.kubernetes.io/instance: authelia
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP

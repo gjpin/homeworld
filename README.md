@@ -104,6 +104,7 @@ export B2_REGION=
 # external-secrets
 export INFISICAL_CLIENT_ID=
 export INFISICAL_CLIENT_SECRET=
+export INFISICAL_HOSTNAME=app.infisical.com
 export INFISICAL_HOST=https://app.infisical.com
 export INFISICAL_PROJECT_SLUG=
 export INFISICAL_ENVIRONMENT_SLUG=dev
@@ -162,15 +163,47 @@ helm repo add otwld https://helm.otwld.com/
 
 # Network egress
 Cilium and its `CiliumNetworkPolicy` CRD must be installed before Argo CD syncs
-this repository. Each protected application includes a namespaced policy that
-blocks egress to the Cilium `world` entity. `world` includes both LAN and
-Internet destinations. OpenCloud and Collabora instead use explicit egress
-allow-lists for DNS, RustFS, Tika, Radicale, Authelia discovery, and their WOPI
-HTTP boundary. Radicale accepts connections only from OpenCloud and retains its
-world-egress denial. Authelia is limited to DNS, its CloudNativePG and Dragonfly
-services, `time.cloudflare.com:123`, and `${AUTHELIA_SMTP_HOST}:465`.
+this repository. Every application namespace has a Cilium default-deny baseline
+for both ingress and egress. The only namespace-wide egress exception is DNS to
+the `kube-dns` endpoints on UDP/TCP 53; all other paths select their exact
+source, destination, and port. The Cilium `world` entity is used only for the
+public TCP 443 listener on the merged Envoy data plane. No other application
+pod has unrestricted Internet egress.
 
-Internet-capable exceptions: Argo CD (Git), cert-manager (ACME), external-dns (DNS provider), external-secrets (Infisical), and Velero (Backblaze B2).
+The merged Envoy data plane is the only public application ingress boundary.
+Gateway backends are allowed one service and listener port at a time. OTel
+receiver ports remain closed because no current in-repository sender uses them.
+The Longhorn manager and Velero node-agent retain only the rendered host-facing
+ports required for node integration; the policy comments document those
+exceptions.
+
+Documented external egress exceptions:
+
+| Workload | Destination | Reason |
+| --- | --- | --- |
+| Argo CD repo-server | Declared Git sources, pinned Helm repositories, and OCI registries over TCP 443 | Git checkout and Helm/Kustomize rendering |
+| cert-manager controller | `acme-v02.api.letsencrypt.org:443`, `acme-staging-v02.api.letsencrypt.org:443`, and `api.cloudflare.com:443` | ACME DNS-01 certificate issuance |
+| external-dns | `api.cloudflare.com:443` | Cloudflare DNS reconciliation |
+| external-secrets controller | `${INFISICAL_HOSTNAME}:443` | Infisical secret synchronization |
+| Velero server/node-agent | `s3.${B2_REGION}.backblazeb2.com:443` | Backups and CSI data movement |
+| Forgejo | `github.com:443`, `gitlab.com:443`, and `git.*.*:443` | User-requested HTTPS repository clone/fetch support |
+| Grafana pod | `zincsearch-releases.s3.us-west-2.amazonaws.com:443` | Existing plugin-loader init-container download |
+| Authelia | `time.cloudflare.com:123/UDP` and `${AUTHELIA_SMTP_HOST}:465/TCP` | NTP and SMTP |
+| OpenCloud/Collabora | Existing exact `auth.${BASE_DOMAIN}`, `cloud.${BASE_DOMAIN}`, and `office.${BASE_DOMAIN}` FQDNs over TCP 443 | OIDC, WOPI, and collaboration callbacks |
+
+The Forgejo `git.*.*` entry is intentionally limited to hostnames matching
+that pattern and TCP 443. It does not permit arbitrary hostnames or SSH. The
+OpenCloud browser CSP URLs are client-side destinations, not pod egress, and
+receive no network-policy exception.
+
+Home Assistant may use TCP/UDP ports in RFC1918 ranges
+(`10.0.0.0/8` except `10.42.0.0/16` and `10.43.0.0/16`, plus
+`172.16.0.0/12` and `192.168.0.0/16`) for device integrations. Syncthing may
+use those ranges only on TCP/UDP 22000 and UDP 21027, and may accept peer
+traffic only on TCP/UDP 22000. Its GUI remains Gateway-only on TCP 8384.
+Mosquitto and Zigbee2MQTT remain deny-by-default because no rendered or
+configured endpoint currently proves an additional path is required. No other
+application pod receives direct LAN ingress.
 
 # Velero B2 backups
 Velero creates a whole-cluster backup every day at 03:00 Europe/Lisbon. The B2
