@@ -2,12 +2,122 @@
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: block-world-egress
+  name: default-deny
   namespace: forgejo
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector: {}
-  egressDeny:
-    - toEntities:
-        - world
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: forgejo
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-forgejo-postgres
+  namespace: forgejo
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: forgejo
+      k8s:app.kubernetes.io/instance: forgejo
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: forgejo-rw
+            namespace: forgejo
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-forgejo-repositories
+  namespace: forgejo
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # User-requested repository clone/fetch is HTTPS-only. The pattern is
+  # intentionally limited to hosts beginning with git. and two labels.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: forgejo
+      k8s:app.kubernetes.io/instance: forgejo
+  egress:
+    - toFQDNs:
+        - matchName: github.com
+        - matchName: gitlab.com
+        - matchPattern: git.*.*
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-forgejo-gateway
+  namespace: forgejo
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: forgejo
+      k8s:app.kubernetes.io/instance: forgejo
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-forgejo-postgres-ingress
+  namespace: forgejo
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: forgejo
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: forgejo
+            k8s:app.kubernetes.io/instance: forgejo
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP

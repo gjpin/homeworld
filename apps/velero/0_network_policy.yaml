@@ -1,0 +1,139 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: velero
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: velero
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-velero-kubernetes-api
+  namespace: velero
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: velero
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-velero-upgrade-hook-api
+  namespace: velero
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:batch.kubernetes.io/job-name: velero-upgrade-crds
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-velero-backblaze
+  namespace: velero
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Both the server and the node-agent use the configured B2 bucket for
+  # backups and CSI data movement; no other Internet destination is allowed.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: velero
+  egress:
+    - toFQDNs:
+        - matchName: "s3.${B2_REGION}.backblazeb2.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-velero-node-agent-metrics
+  namespace: velero
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: velero
+      k8s:name: node-agent
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/instance: otel-collector-main
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: standalone-collector
+      toPorts:
+        - ports:
+            - port: "8085"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-velero-node-agent-kubelet
+  namespace: velero
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The node-agent uses kubelet host integration for filesystem backups. Keep
+  # the host exception to the kubelet HTTPS port; its hostPath mounts are not
+  # a reason to permit arbitrary host egress.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: velero
+      k8s:name: node-agent
+  egress:
+    - toEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "10250"
+              protocol: TCP

@@ -14,7 +14,7 @@ spec:
     - "grpc.argocd.${BASE_DOMAIN}"
   rules:
     - backendRefs:
-      - name: argocd-server
+      - name: argocd-argocd-server
         namespace: argocd
         kind: Service
         port: 80

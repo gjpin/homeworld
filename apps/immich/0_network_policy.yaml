@@ -2,12 +2,197 @@
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: block-world-egress
+  name: default-deny
   namespace: immich
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector: {}
-  egressDeny:
-    - toEntities:
-        - world
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-immich-server-postgres
+  namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/controller: main
+      k8s:app.kubernetes.io/instance: immich
+      k8s:app.kubernetes.io/name: server
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: immich-rw
+            namespace: immich
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-immich-server-dragonfly
+  namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/controller: main
+      k8s:app.kubernetes.io/instance: immich
+      k8s:app.kubernetes.io/name: server
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: dragonfly
+            namespace: immich
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-immich-server-machine-learning
+  namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/controller: main
+      k8s:app.kubernetes.io/instance: immich
+      k8s:app.kubernetes.io/name: server
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: immich-machine-learning
+            namespace: immich
+      toPorts:
+        - ports:
+            - port: "3003"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-immich-server-gateway
+  namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/controller: main
+      k8s:app.kubernetes.io/instance: immich
+      k8s:app.kubernetes.io/name: server
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      toPorts:
+        - ports:
+            - port: "2283"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-immich-postgres-ingress
+  namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: immich
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: immich
+            k8s:app.kubernetes.io/controller: main
+            k8s:app.kubernetes.io/instance: immich
+            k8s:app.kubernetes.io/name: server
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-immich-dragonfly-ingress
+  namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: dragonfly
+      k8s:app.kubernetes.io/instance: dragonfly
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: immich
+            k8s:app.kubernetes.io/controller: main
+            k8s:app.kubernetes.io/instance: immich
+            k8s:app.kubernetes.io/name: server
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-immich-machine-learning-ingress
+  namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/controller: main
+      k8s:app.kubernetes.io/instance: immich
+      k8s:app.kubernetes.io/name: machine-learning
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: immich
+            k8s:app.kubernetes.io/controller: main
+            k8s:app.kubernetes.io/instance: immich
+            k8s:app.kubernetes.io/name: server
+      toPorts:
+        - ports:
+            - port: "3003"
+              protocol: TCP

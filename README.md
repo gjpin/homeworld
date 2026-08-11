@@ -113,6 +113,7 @@ export B2_REGION=
 # external-secrets
 export INFISICAL_CLIENT_ID=
 export INFISICAL_CLIENT_SECRET=
+export INFISICAL_HOSTNAME=app.infisical.com
 export INFISICAL_HOST=https://app.infisical.com
 export INFISICAL_PROJECT_SLUG=
 export INFISICAL_ENVIRONMENT_SLUG=dev

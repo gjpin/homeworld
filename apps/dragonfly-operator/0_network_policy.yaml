@@ -2,12 +2,74 @@
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: block-world-egress
+  name: default-deny
   namespace: dragonfly-operator
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector: {}
-  egressDeny:
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: dragonfly-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dragonfly-operator-kubernetes-api
+  namespace: dragonfly-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: dragonfly-operator
+      k8s:app.kubernetes.io/name: dragonfly-operator
+      k8s:control-plane: controller-manager
+  egress:
     - toEntities:
-        - world
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dragonfly-operator-webhook-ingress
+  namespace: dragonfly-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: dragonfly-operator
+      k8s:app.kubernetes.io/name: dragonfly-operator
+      k8s:control-plane: controller-manager
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "8443"
+              protocol: TCP

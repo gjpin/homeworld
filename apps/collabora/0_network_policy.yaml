@@ -2,14 +2,24 @@
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: collabora-egress
+  name: default-deny
   namespace: collabora
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/name: collabora-online
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: collabora
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
   egress:
     - toEndpoints:
         - matchLabels:
@@ -21,9 +31,47 @@ spec:
               protocol: UDP
             - port: "53"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-collabora-wopi
+  namespace: collabora
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # WOPI callbacks return through the existing public OpenCloud Gateway.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: collabora-online
+      k8s:app.kubernetes.io/instance: collabora
+  egress:
     - toFQDNs:
         - matchName: "cloud.${BASE_DOMAIN}"
       toPorts:
         - ports:
             - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-collabora-gateway
+  namespace: collabora
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: collabora-online
+      k8s:app.kubernetes.io/instance: collabora
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      toPorts:
+        - ports:
+            - port: "9980"
               protocol: TCP
