@@ -4,8 +4,8 @@ set -euo pipefail
 profile="${1:-}"
 output_dir="${2:-}"
 
-if [[ "$profile" != "homelab" && "$profile" != "production" ]]; then
-  echo "usage: $0 <homelab|production> <output-directory>" >&2
+if [[ "$profile" != "homelab" ]]; then
+  echo "usage: $0 <homelab> <output-directory>" >&2
   exit 2
 fi
 
@@ -29,19 +29,10 @@ done < <(
 
 # rustfs-operator 0.0.5 ships tenants.rustfs.com twice under crds/. Kustomize
 # rejects duplicate resource IDs, while Helm handles this chart normally.
-rustfs_values=(
-  --values "$repo_root/apps/rustfs-operator/helm/rustfs-operator/base/values.yaml"
-)
-if [[ "$profile" == "production" ]]; then
-  rustfs_values+=(
-    --values "$repo_root/apps/rustfs-operator/helm/rustfs-operator/overlays/production/values.yaml"
-  )
-fi
-
 helm template rustfs-operator rustfs-operator \
   --repo https://operator.rustfs.com \
   --version 0.0.5 \
   --namespace rustfs-operator \
   --include-crds \
-  "${rustfs_values[@]}" \
+  --values "$repo_root/apps/rustfs-operator/helm/rustfs-operator/base/values.yaml" \
   >"$output_dir/rustfs-operator-rustfs-operator.yaml"
