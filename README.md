@@ -54,6 +54,14 @@ Profile resource fallbacks, applied only when an upstream value is absent:
 | Homelab | `10m` CPU, `64Mi` memory, `64Mi` ephemeral storage | `1` CPU, `2Gi` memory, `2Gi` ephemeral storage |
 | Production | `100m` CPU, `128Mi` memory, `128Mi` ephemeral storage | `2` CPU, `4Gi` memory, `4Gi` ephemeral storage |
 
+The homelab overlays set every Helm-rendered Deployment and StatefulSet to one
+replica. DaemonSets remain node-scoped and continue to run one pod per
+eligible node. Autoscaling is disabled, so no HPA, VPA, or KEDA resource can
+raise these counts. The encrypted Longhorn StorageClass uses one volume
+replica in homelab and two in production. This StorageClass setting applies to
+new volumes; existing Longhorn volumes retain their current replica count and
+may need a separate live migration.
+
 Render either profile without touching the cluster:
 
 ```bash

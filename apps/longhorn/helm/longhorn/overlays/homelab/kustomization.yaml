@@ -8,6 +8,23 @@ patches:
 - target:
     group: apps
     version: v1
+    kind: ^(Deployment|StatefulSet)$
+  patch: |-
+    - op: add
+      path: /spec/replicas
+      value: 1
+- target:
+    group: storage.k8s.io
+    version: v1
+    kind: StorageClass
+    name: ^longhorn-crypto$
+  patch: |-
+    - op: replace
+      path: /parameters/numberOfReplicas
+      value: "1"
+- target:
+    group: apps
+    version: v1
     kind: Deployment
     name: ^longhorn-driver-deployer$
     namespace: ^longhorn-system$

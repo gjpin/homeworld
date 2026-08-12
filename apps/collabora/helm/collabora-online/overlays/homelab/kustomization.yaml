@@ -7,6 +7,14 @@ commonAnnotations:
   security.homeworld/profile: homelab
 patches:
   - target:
+      group: apps
+      version: v1
+      kind: ^(Deployment|StatefulSet)$
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 1
+  - target:
       version: v1
       kind: ConfigMap
       name: ^collabora$

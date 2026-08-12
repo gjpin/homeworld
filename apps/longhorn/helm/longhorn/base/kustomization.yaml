@@ -9,6 +9,8 @@ helmCharts:
   includeCRDs: true
   skipTests: true
   valuesFile: values.yaml
+resources:
+- storage_class.yaml
 # Longhorn 1.11.1 does not expose hostUsers; opt in only non-node-integrated pods.
 patches:
 - target:
