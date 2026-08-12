@@ -33,8 +33,7 @@
 # Helm security profiles
 
 Pinned upstream charts are rendered through Kustomize overlays under each
-component's `helm/` directory. Argo CD deploys the `homelab` overlay; CI renders
-both `homelab` and `production` with the same chart version and values.
+component's `helm/` directory. Argo CD and CI use the `homelab` overlay.
 
 Argo CD must have `kustomize.buildOptions: --enable-helm` before chart
 Applications are switched to local overlay sources. Argo CD itself remains on
@@ -52,13 +51,11 @@ Profile resource fallbacks, applied only when an upstream value is absent:
 | Profile | Requests | Limits |
 | --- | --- | --- |
 | Homelab | `10m` CPU, `64Mi` memory, `64Mi` ephemeral storage | `1` CPU, `2Gi` memory, `2Gi` ephemeral storage |
-| Production | `100m` CPU, `128Mi` memory, `128Mi` ephemeral storage | `2` CPU, `4Gi` memory, `4Gi` ephemeral storage |
 
-Render either profile without touching the cluster:
+Render the profile without touching the cluster:
 
 ```bash
 scripts/render-helm-profiles.sh homelab /tmp/homeworld-homelab
-scripts/render-helm-profiles.sh production /tmp/homeworld-production
 ```
 
 # Pod Security Admission

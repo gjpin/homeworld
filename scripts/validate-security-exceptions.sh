@@ -9,7 +9,7 @@ yq -o=json '.' "$registry" |
     all(.exceptions[];
       .profiles != null and .scanner != null and .check != null and
       .control != null and .reason != null and .owner != null and
-      (.profiles | sort) == ["homelab", "production"] and
+      (.profiles | sort) == ["homelab"] and
       (.reason | length) >= 20
     )
   ' >/dev/null
