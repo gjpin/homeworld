@@ -3,7 +3,7 @@ kind: Kustomization
 helmCharts:
 - name: openobserve-standalone
   repo: https://charts.openobserve.ai
-  version: 0.91.2
+  version: 0.92.2
   releaseName: openobserve
   namespace: openobserve
   includeCRDs: true
