@@ -29,15 +29,6 @@ patches:
     name: ^velero-ui$
   patch: |-
     - op: add
-      path: /spec/template/spec/containers/0/imagePullPolicy
-      value: Always
-- target:
-    group: apps
-    version: v1
-    kind: Deployment
-    name: ^velero-ui$
-  patch: |-
-    - op: add
       path: /metadata/annotations/kube-score~1ignore
       value: container-security-context-readonlyrootfilesystem,pod-probes-identical,pod-networkpolicy,container-security-context-user-group-id,deployment-replicas
     - op: add

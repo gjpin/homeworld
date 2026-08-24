@@ -3,7 +3,7 @@ image:
   registry: ghcr.io
   repository: authelia/authelia
   tag: 4.39.20
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
 pod:
   kind: Deployment
   replicas: 1

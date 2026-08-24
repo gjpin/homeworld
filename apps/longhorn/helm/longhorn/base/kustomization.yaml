@@ -24,6 +24,72 @@ patches:
       path: /spec/template/spec/hostUsers
       value: false
 - target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^longhorn-driver-deployer$
+    namespace: ^longhorn-system$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+    - op: add
+      path: /spec/template/spec/initContainers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^longhorn-ui$
+    namespace: ^longhorn-system$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: apps
+    version: v1
+    kind: DaemonSet
+    name: ^longhorn-manager$
+    namespace: ^longhorn-system$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+    - op: replace
+      path: /spec/template/spec/containers/1/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: ^longhorn-post-upgrade$
+    namespace: ^longhorn-system$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: ^longhorn-pre-upgrade$
+    namespace: ^longhorn-system$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: ^longhorn-uninstall$
+    namespace: ^longhorn-system$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
     group: batch
     version: v1
     kind: Job

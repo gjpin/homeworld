@@ -9,3 +9,37 @@ helmCharts:
   includeCRDs: true
   skipTests: true
   valuesFile: values.yaml
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^velero$
+    namespace: ^velero$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+    - op: replace
+      path: /spec/template/spec/initContainers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: apps
+    version: v1
+    kind: DaemonSet
+    name: ^node-agent$
+    namespace: ^velero$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: ^velero-upgrade-crds$
+    namespace: ^velero$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent

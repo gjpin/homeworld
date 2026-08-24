@@ -21,6 +21,26 @@ patches:
       path: /spec/template/spec/hostUsers
       value: false
 - target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^envoy-gateway$
+    namespace: ^envoy-gateway$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: ^envoy-gateway-gateway-helm-certgen$
+    namespace: ^envoy-gateway$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
     group: batch
     version: v1
     kind: Job

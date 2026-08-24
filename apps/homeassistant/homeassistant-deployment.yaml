@@ -29,6 +29,7 @@ spec:
           type: RuntimeDefault
       containers:
         - image: ghcr.io/home-assistant/home-assistant:2025.7.0
+          imagePullPolicy: IfNotPresent
           name: homeassistant
           securityContext:
             allowPrivilegeEscalation: false

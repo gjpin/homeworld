@@ -29,6 +29,3 @@ patches:
       - op: add
         path: /metadata/annotations/security.homeworld~1exception-reason
         value: The pinned community bouncer image documents UID 1000; the bouncer remains non-root with a RuntimeDefault seccomp profile and Cilium supplies the network policy.
-      - op: replace
-        path: /spec/template/spec/containers/0/imagePullPolicy
-        value: Always

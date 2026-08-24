@@ -9,3 +9,23 @@ helmCharts:
   includeCRDs: true
   skipTests: true
   valuesFile: values.yaml
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^forgejo$
+    namespace: ^forgejo$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+    - op: replace
+      path: /spec/template/spec/initContainers/0/imagePullPolicy
+      value: IfNotPresent
+    - op: replace
+      path: /spec/template/spec/initContainers/1/imagePullPolicy
+      value: IfNotPresent
+    - op: replace
+      path: /spec/template/spec/initContainers/2/imagePullPolicy
+      value: IfNotPresent

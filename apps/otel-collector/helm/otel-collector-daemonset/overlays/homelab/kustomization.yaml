@@ -23,16 +23,6 @@ patches:
     namespace: ^otel-collector-node$
   patch: |-
     - op: add
-      path: /spec/template/spec/containers/0/imagePullPolicy
-      value: Always
-- target:
-    group: apps
-    version: v1
-    kind: DaemonSet
-    name: ^otel-collector-daemonset-agent$
-    namespace: ^otel-collector-node$
-  patch: |-
-    - op: add
       path: /metadata/annotations/kube-score~1ignore
       value: container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-probes-identical,pod-networkpolicy
     - op: add

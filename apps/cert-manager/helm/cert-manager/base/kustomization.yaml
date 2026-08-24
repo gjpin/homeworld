@@ -9,3 +9,44 @@ helmCharts:
   includeCRDs: true
   skipTests: true
   valuesFile: values.yaml
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^cert-manager$
+    namespace: ^cert-manager$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^cert-manager-cainjector$
+    namespace: ^cert-manager$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^cert-manager-webhook$
+    namespace: ^cert-manager$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: ^cert-manager-startupapicheck$
+    namespace: ^cert-manager$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent

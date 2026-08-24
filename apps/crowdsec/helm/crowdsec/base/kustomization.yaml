@@ -155,3 +155,48 @@ patches:
       - op: add
         path: /metadata/annotations/security.homeworld~1exception-reason
         value: The pinned CrowdSec image has no non-root USER and the registration hook must write its generated credentials; seccomp, dropped capabilities, and no privilege escalation remain enabled.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^crowdsec-lapi$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^crowdsec-appsec$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/initContainers/0/imagePullPolicy
+        value: IfNotPresent
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: DaemonSet
+      name: ^crowdsec-agent$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/initContainers/0/imagePullPolicy
+        value: IfNotPresent
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: batch
+      version: v1
+      kind: Job
+      name: ^crowdsec-(capi-register|lapi-cscli-register)-job$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+      - op: replace
+        path: /spec/template/spec/initContainers/0/imagePullPolicy
+        value: IfNotPresent

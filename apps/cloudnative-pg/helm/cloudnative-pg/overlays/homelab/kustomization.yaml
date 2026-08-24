@@ -31,16 +31,6 @@ patches:
     namespace: ^cloudnative-pg$
   patch: |-
     - op: add
-      path: /spec/template/spec/containers/0/imagePullPolicy
-      value: Always
-- target:
-    group: apps
-    version: v1
-    kind: Deployment
-    name: ^cloudnative-pg$
-    namespace: ^cloudnative-pg$
-  patch: |-
-    - op: add
       path: /metadata/annotations/kube-score~1ignore
       value: pod-probes-identical,pod-networkpolicy,deployment-replicas
     - op: add

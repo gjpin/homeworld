@@ -26,3 +26,16 @@ patches:
       template:
         spec:
           hostUsers: false
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^dragonfly-operator$
+    namespace: ^dragonfly-operator$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+    - op: replace
+      path: /spec/template/spec/containers/1/imagePullPolicy
+      value: IfNotPresent

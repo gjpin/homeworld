@@ -28,6 +28,7 @@ spec:
       containers:
         - name: syncthing
           image: docker.io/syncthing/syncthing:2.0.16
+          imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

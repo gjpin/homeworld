@@ -9,3 +9,90 @@ helmCharts:
   includeCRDs: true
   skipTests: true
   valuesFile: values.yaml
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^argocd-argocd-applicationset-controller$
+    namespace: ^argocd$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^argocd-argocd-dex-server$
+    namespace: ^argocd$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+    - op: replace
+      path: /spec/template/spec/initContainers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^argocd-argocd-notifications-controller$
+    namespace: ^argocd$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^argocd-argocd-redis$
+    namespace: ^argocd$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^argocd-argocd-repo-server$
+    namespace: ^argocd$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+    - op: replace
+      path: /spec/template/spec/initContainers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^argocd-argocd-server$
+    namespace: ^argocd$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: apps
+    version: v1
+    kind: StatefulSet
+    name: ^argocd-argocd-application-controller$
+    namespace: ^argocd$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: batch
+    version: v1
+    kind: Job
+    name: ^argocd-redis-secret-init$
+    namespace: ^argocd$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent

@@ -46,6 +46,7 @@ spec:
           initContainers:
             - name: openobserve-plugin-loader
               image: alpine:3.21.3
+              imagePullPolicy: IfNotPresent
               command:
                 - sh
                 - -ec
@@ -66,6 +67,7 @@ spec:
                   mountPath: /var/lib/grafana/plugins
           containers:
             - name: grafana
+              imagePullPolicy: IfNotPresent
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:

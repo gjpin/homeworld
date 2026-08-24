@@ -61,46 +61,6 @@ patches:
     namespace: ^cert-manager$
   patch: |-
     - op: add
-      path: /spec/template/spec/containers/0/imagePullPolicy
-      value: Always
-- target:
-    group: apps
-    version: v1
-    kind: Deployment
-    name: ^cert-manager-cainjector$
-    namespace: ^cert-manager$
-  patch: |-
-    - op: add
-      path: /spec/template/spec/containers/0/imagePullPolicy
-      value: Always
-- target:
-    group: apps
-    version: v1
-    kind: Deployment
-    name: ^cert-manager-webhook$
-    namespace: ^cert-manager$
-  patch: |-
-    - op: add
-      path: /spec/template/spec/containers/0/imagePullPolicy
-      value: Always
-- target:
-    group: batch
-    version: v1
-    kind: Job
-    name: ^cert-manager-startupapicheck$
-    namespace: ^cert-manager$
-  patch: |-
-    - op: add
-      path: /spec/template/spec/containers/0/imagePullPolicy
-      value: Always
-- target:
-    group: apps
-    version: v1
-    kind: Deployment
-    name: ^cert-manager$
-    namespace: ^cert-manager$
-  patch: |-
-    - op: add
       path: /metadata/annotations/kube-score~1ignore
       value: pod-networkpolicy,container-security-context-user-group-id,pod-probes,deployment-replicas
     - op: add

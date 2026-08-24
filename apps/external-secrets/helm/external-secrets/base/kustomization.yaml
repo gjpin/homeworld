@@ -9,3 +9,34 @@ helmCharts:
   includeCRDs: true
   skipTests: true
   valuesFile: values.yaml
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^external-secrets$
+    namespace: ^external-secrets$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^external-secrets-cert-controller$
+    namespace: ^external-secrets$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ^external-secrets-webhook$
+    namespace: ^external-secrets$
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent

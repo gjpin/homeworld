@@ -7,7 +7,7 @@ operator:
   image:
     repository: rustfs/operator
     tag: 0.0.5
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
   resources:
     requests:
       cpu: 10m
@@ -25,7 +25,7 @@ operator:
 console:
   enabled: true
   image:
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
   resources:
     requests:
       cpu: 10m
