@@ -3,7 +3,7 @@ container_runtime: containerd
 
 image:
   repository: crowdsecurity/crowdsec
-  tag: v1.7.8
+  tag: v1.8.1
   pullPolicy: IfNotPresent
   kubectl:
     repository: alpine/kubectl
