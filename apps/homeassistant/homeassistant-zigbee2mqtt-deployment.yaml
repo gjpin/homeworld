@@ -28,7 +28,7 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       containers:
-        - image: ghcr.io/koenkk/zigbee2mqtt:2.5.1
+        - image: ghcr.io/koenkk/zigbee2mqtt:2.14.1
           imagePullPolicy: IfNotPresent
           name: homeassistant-zigbee2mqtt
           securityContext:
