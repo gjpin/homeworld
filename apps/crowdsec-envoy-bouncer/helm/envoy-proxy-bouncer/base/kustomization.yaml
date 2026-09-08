@@ -5,7 +5,7 @@ namespace: envoy-gateway
 helmCharts:
   - name: envoy-proxy-bouncer
     repo: oci://ghcr.io/kdwils/charts
-    version: 0.6.2
+    version: 0.8.1
     releaseName: crowdsec-envoy-bouncer
     namespace: envoy-gateway
     skipTests: true
