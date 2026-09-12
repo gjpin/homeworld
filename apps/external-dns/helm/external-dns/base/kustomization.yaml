@@ -3,7 +3,7 @@ kind: Kustomization
 helmCharts:
 - name: external-dns
   repo: https://kubernetes-sigs.github.io/external-dns
-  version: 1.20.0
+  version: 1.22.0
   releaseName: external-dns
   namespace: external-dns
   includeCRDs: true
