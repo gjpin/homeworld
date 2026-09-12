@@ -8,7 +8,7 @@ configMapGenerator:
 helmCharts:
   - name: authelia
     repo: https://charts.authelia.com
-    version: 0.11.6
+    version: 0.11.22
     releaseName: authelia
     namespace: authelia
     includeCRDs: true
