@@ -45,7 +45,7 @@ spec:
               type: RuntimeDefault
           initContainers:
             - name: openobserve-plugin-loader
-              image: alpine:3.21.3
+              image: alpine:3.24.2
               imagePullPolicy: IfNotPresent
               command:
                 - sh
