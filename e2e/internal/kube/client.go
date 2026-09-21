@@ -51,6 +51,11 @@ func NewClients(opts Options) (*Clients, error) {
 	if err != nil {
 		return nil, fmt.Errorf("build kube rest config: %w", err)
 	}
+	// kind apiservers stall under load; a request timeout lets wait/assert
+	// loops retry instead of blocking until the suite deadline.
+	if restCfg.Timeout == 0 {
+		restCfg.Timeout = 30 * time.Second
+	}
 	typed, err := kubernetes.NewForConfig(restCfg)
 	if err != nil {
 		return nil, fmt.Errorf("create typed client: %w", err)

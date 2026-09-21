@@ -1,0 +1,13 @@
+collabora:
+  extra_params: >-
+    --o:ssl.enable=false
+    --o:ssl.termination=true
+    --o:welcome.enable=false
+    --o:logging.level=warning
+podSecurityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000

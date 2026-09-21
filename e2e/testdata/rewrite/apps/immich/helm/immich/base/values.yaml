@@ -1,0 +1,18 @@
+defaultPodOptions:
+  securityContext:
+    runAsNonRoot: true
+immich:
+  persistence:
+    library:
+      existingClaim: immich
+machine-learning:
+  persistence:
+    cache:
+      accessMode: ReadWriteMany
+      storageClass: longhorn-crypto
+controllers:
+  main:
+    containers:
+      main:
+        env:
+          REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local:6379

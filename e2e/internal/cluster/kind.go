@@ -16,8 +16,9 @@ const ciliumHelmRepo = "https://helm.cilium.io/"
 
 // Manager creates and deletes kind clusters with Cilium.
 type Manager struct {
-	Suite   *config.Suite
-	Timeout time.Duration
+	Suite       *config.Suite
+	Timeout     time.Duration
+	KeepCluster bool
 }
 
 // Exists reports whether a kind cluster with the suite name already exists.
@@ -42,6 +43,13 @@ func (m *Manager) Up(ctx context.Context) error {
 		return err
 	}
 	if exists {
+		if m.KeepCluster {
+			fmt.Fprintf(os.Stderr, "reusing kind cluster %q (--keep-cluster)\n", m.Suite.Spec.Cluster.Name)
+			// Cilium (often CRDs-only) is already installed. A helm upgrade
+			// against a saturated kind apiserver fails the suite before
+			// wait-argo. Prepare hooks re-apply policy CRDs.
+			return m.waitForAPI(ctx)
+		}
 		return fmt.Errorf("kind cluster %q already exists; run 'e2e cluster down -f ...' first", m.Suite.Spec.Cluster.Name)
 	}
 
@@ -86,6 +94,31 @@ func (m *Manager) Down(ctx context.Context) error {
 	return nil
 }
 
+func (m *Manager) waitForAPI(ctx context.Context) error {
+	deadline := time.Now().Add(2 * time.Minute)
+	var last error
+	for time.Now().Before(deadline) {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		err := run(ctx, "kubectl", "--request-timeout=10s", "get", "--raw=/readyz")
+		if err == nil {
+			return nil
+		}
+		last = err
+		fmt.Fprintf(os.Stderr, "waiting for apiserver: %v\n", err)
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(5 * time.Second):
+		}
+	}
+	if last == nil {
+		last = fmt.Errorf("timeout")
+	}
+	return fmt.Errorf("apiserver not ready: %w", last)
+}
+
 func (m *Manager) installCilium(ctx context.Context) error {
 	cilium := m.Suite.Spec.Cluster.Cilium
 	ns := cilium.Namespace
@@ -126,16 +159,46 @@ func (m *Manager) installCilium(ctx context.Context) error {
 		return fmt.Errorf("helm install cilium: %w", err)
 	}
 
-	// Wait for Cilium agent DaemonSet and operator.
+	// Cilium 1.17 helm chart does not include CRDs (no crds/ dir and no
+	// templates gated on crds.install). Apply policy CRDs from the matching
+	// Git tag so CiliumNetworkPolicy objects can be admitted.
+	if err := applyCiliumPolicyCRDs(ctx, cilium.ChartVersion); err != nil {
+		return err
+	}
+
+	// Wait only for workloads the chart actually created. Suites may install
+	// CRDs only (agent=false) when the host cannot mount bpffs (Docker Desktop
+	// rootless).
 	ctxWait, cancel := context.WithTimeout(ctx, waitTimeout)
 	defer cancel()
-	if err := run(ctxWait, "kubectl", "rollout", "status", "daemonset/cilium", "-n", ns, "--timeout="+waitTimeout.String()); err != nil {
+	if err := waitIfPresent(ctxWait, "daemonset", "cilium", ns, waitTimeout); err != nil {
 		return fmt.Errorf("wait for cilium daemonset: %w", err)
 	}
-	if err := run(ctxWait, "kubectl", "rollout", "status", "deployment/cilium-operator", "-n", ns, "--timeout="+waitTimeout.String()); err != nil {
+	if err := waitIfPresent(ctxWait, "deployment", "cilium-operator", ns, waitTimeout); err != nil {
 		return fmt.Errorf("wait for cilium-operator: %w", err)
 	}
 	return nil
+}
+
+func applyCiliumPolicyCRDs(ctx context.Context, version string) error {
+	base := fmt.Sprintf("https://raw.githubusercontent.com/cilium/cilium/v%s/pkg/k8s/apis/cilium.io/client/crds/v2", version)
+	args := []string{
+		"apply", "--server-side", "--force-conflicts",
+		"-f", base + "/ciliumnetworkpolicies.yaml",
+		"-f", base + "/ciliumclusterwidenetworkpolicies.yaml",
+	}
+	if err := run(ctx, "kubectl", args...); err != nil {
+		return fmt.Errorf("apply cilium policy CRDs (v%s): %w", version, err)
+	}
+	return nil
+}
+
+func waitIfPresent(ctx context.Context, kind, name, ns string, timeout time.Duration) error {
+	out, err := runOutput(ctx, "kubectl", "get", kind, name, "-n", ns, "-o", "name")
+	if err != nil || strings.TrimSpace(out) == "" {
+		return nil
+	}
+	return run(ctx, "kubectl", "rollout", "status", kind+"/"+name, "-n", ns, "--timeout="+timeout.String())
 }
 
 func run(ctx context.Context, name string, args ...string) error {

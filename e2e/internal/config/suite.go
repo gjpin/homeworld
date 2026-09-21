@@ -118,6 +118,10 @@ type HelmStep struct {
 	ValuesFiles []string          `yaml:"valuesFiles,omitempty"`
 	Wait        bool              `yaml:"wait,omitempty"`
 	Timeout     string            `yaml:"timeout,omitempty"`
+	// SkipIfPresent skips helm upgrade --install when the release already
+	// exists (any status). Used with --keep-cluster so a failed/pending
+	// bootstrap does not block reuse while workloads are already running.
+	SkipIfPresent bool `yaml:"skipIfPresent,omitempty"`
 }
 
 type WaitStep struct {
@@ -128,12 +132,22 @@ type WaitStep struct {
 	Name       string          `yaml:"name,omitempty"`
 	Selector   string          `yaml:"selector,omitempty"`
 	Conditions []WaitCondition `yaml:"conditions,omitempty"`
+	Fields     []WaitField     `yaml:"fields,omitempty"`
 	Timeout    string          `yaml:"timeout,omitempty"`
+	// Interval between wait polls. Defaults to 15s. Each poll uses a
+	// short per-attempt timeout so a hung apiserver cannot stall the loop.
+	Interval string `yaml:"interval,omitempty"`
 }
 
 type WaitCondition struct {
 	Type   string `yaml:"type"`
 	Status string `yaml:"status"`
+}
+
+// WaitField matches a dotted path under an object (e.g. status.sync.status).
+type WaitField struct {
+	Path  string `yaml:"path"`
+	Value string `yaml:"value"`
 }
 
 type Assert struct {
@@ -152,10 +166,10 @@ type Check struct {
 }
 
 type PodsReady struct {
-	Namespaces         []string `yaml:"namespaces,omitempty"`
-	ExcludeNamespaces  []string `yaml:"excludeNamespaces,omitempty"`
-	IgnoreCompletedJobs bool    `yaml:"ignoreCompletedJobs,omitempty"`
-	Selector           string   `yaml:"selector,omitempty"`
+	Namespaces          []string `yaml:"namespaces,omitempty"`
+	ExcludeNamespaces   []string `yaml:"excludeNamespaces,omitempty"`
+	IgnoreCompletedJobs bool     `yaml:"ignoreCompletedJobs,omitempty"`
+	Selector            string   `yaml:"selector,omitempty"`
 }
 
 type WorkloadsReady struct {
@@ -174,13 +188,15 @@ type ServiceProbe struct {
 }
 
 type ResourceCondition struct {
-	APIVersion string `yaml:"apiVersion"`
-	Kind       string `yaml:"kind"`
-	Name       string `yaml:"name"`
-	Namespace  string `yaml:"namespace,omitempty"`
-	Condition  string `yaml:"condition"`
-	Status     string `yaml:"status"`
-	Timeout    string `yaml:"timeout,omitempty"`
+	APIVersion string      `yaml:"apiVersion"`
+	Kind       string      `yaml:"kind"`
+	Name       string      `yaml:"name,omitempty"`
+	Namespace  string      `yaml:"namespace,omitempty"`
+	Selector   string      `yaml:"selector,omitempty"`
+	Condition  string      `yaml:"condition,omitempty"`
+	Status     string      `yaml:"status,omitempty"`
+	Fields     []WaitField `yaml:"fields,omitempty"`
+	Timeout    string      `yaml:"timeout,omitempty"`
 }
 
 type GatewayReady struct {

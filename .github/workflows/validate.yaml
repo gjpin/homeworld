@@ -18,6 +18,26 @@ jobs:
           find apps -type f -name '*.yaml' -print0 |
             xargs -0 -n1 yq eval '.' >/dev/null
 
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version-file: e2e/go.mod
+          cache-dependency-path: e2e/go.sum
+
+      - name: Test and validate e2e suite
+        working-directory: e2e
+        run: |
+          go test ./...
+          python3 testdata/rewrite/rewrite_test.py
+          go run ./cmd/e2e validate -f testdata/suite.minimal.yaml
+          go run ./cmd/e2e validate -f examples/homeworld.suite.yaml
+
   helm-security:
     runs-on: ubuntu-latest
     strategy:

@@ -2,6 +2,8 @@ package config
 
 import (
 	"testing"
+
+	"gopkg.in/yaml.v3"
 )
 
 func TestLoadMinimal(t *testing.T) {
@@ -77,6 +79,68 @@ func TestValidateAssertChecks(t *testing.T) {
 	}
 	if err := s.Validate(); err != nil {
 		t.Fatalf("unexpected: %v", err)
+	}
+}
+
+func TestValidateWaitFields(t *testing.T) {
+	s := validSuite()
+	s.Spec.Deploy = &Deploy{
+		Steps: []DeployStep{{
+			Name: "wait-argo",
+			Wait: &WaitStep{
+				Version:  "v1alpha1",
+				Group:    "argoproj.io",
+				Resource: "applications",
+				Selector: "app.kubernetes.io/part-of=homeworld",
+				Fields: []WaitField{
+					{Path: "status.sync.status", Value: "Synced"},
+					{Path: "status.health.status", Value: "Healthy"},
+				},
+			},
+		}},
+	}
+	if err := s.Validate(); err != nil {
+		t.Fatalf("unexpected: %v", err)
+	}
+
+	s.Spec.Deploy.Steps[0].Wait.Interval = "15s"
+	if err := s.Validate(); err != nil {
+		t.Fatalf("interval 15s: %v", err)
+	}
+	s.Spec.Deploy.Steps[0].Wait.Interval = "bogus"
+	if err := s.Validate(); err == nil {
+		t.Fatal("expected invalid wait.interval")
+	}
+}
+
+func TestValidateResourceConditionSelector(t *testing.T) {
+	s := validSuite()
+	s.Spec.Assert = &Assert{
+		Checks: []Check{{
+			Name: "eso",
+			ResourceCondition: &ResourceCondition{
+				APIVersion: "external-secrets.io/v1",
+				Kind:       "ExternalSecret",
+				Condition:  "Ready",
+				Status:     "True",
+			},
+		}},
+	}
+	if err := s.Validate(); err != nil {
+		t.Fatalf("unexpected: %v", err)
+	}
+}
+
+func TestHelmSkipIfPresentYAML(t *testing.T) {
+	var h HelmStep
+	if err := yaml.Unmarshal([]byte("releaseName: argocd\nchart: argo-cd\nskipIfPresent: true\n"), &h); err != nil {
+		t.Fatal(err)
+	}
+	if !h.SkipIfPresent {
+		t.Fatal("expected skipIfPresent")
+	}
+	if h.ReleaseName != "argocd" || h.Chart != "argo-cd" {
+		t.Fatalf("unexpected helm step: %+v", h)
 	}
 }
 

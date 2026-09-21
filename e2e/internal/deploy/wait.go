@@ -49,3 +49,12 @@ func conditionsOK(obj *unstructured.Unstructured, want []config.WaitCondition) e
 	}
 	return nil
 }
+
+func fieldsOK(obj *unstructured.Unstructured, want []config.WaitField) error {
+	for _, f := range want {
+		if err := kube.FieldEquals(obj, f.Path, f.Value); err != nil {
+			return err
+		}
+	}
+	return nil
+}

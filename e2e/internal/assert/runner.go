@@ -3,6 +3,7 @@ package assert
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -59,6 +60,34 @@ func (r *Runner) Run(ctx context.Context) error {
 }
 
 func (r *Runner) runCheck(ctx context.Context, check config.Check) error {
+	interval := 15 * time.Second
+	var last error
+	start := time.Now()
+	var lastLog time.Time
+	for {
+		last = r.runCheckOnce(ctx, check)
+		if last == nil {
+			if !lastLog.IsZero() {
+				fmt.Fprintf(os.Stderr, "[assert] %s: ok after %s\n", check.Name, time.Since(start).Round(time.Second))
+			}
+			return nil
+		}
+		if ctx.Err() != nil {
+			return last
+		}
+		if lastLog.IsZero() || time.Since(lastLog) >= time.Minute {
+			fmt.Fprintf(os.Stderr, "[assert] %s: still failing (%s): %v\n", check.Name, time.Since(start).Round(time.Second), last)
+			lastLog = time.Now()
+		}
+		select {
+		case <-ctx.Done():
+			return last
+		case <-time.After(interval):
+		}
+	}
+}
+
+func (r *Runner) runCheckOnce(ctx context.Context, check config.Check) error {
 	switch {
 	case check.PodsReady != nil:
 		return r.podsReady(ctx, check.PodsReady)
@@ -250,46 +279,84 @@ func (r *Runner) serviceProbe(ctx context.Context, cfg *config.ServiceProbe) err
 }
 
 func (r *Runner) resourceCondition(ctx context.Context, cfg *config.ResourceCondition) error {
-	timeout, err := config.ParseDuration(cfg.Timeout, 5*time.Minute)
-	if err != nil {
-		return err
-	}
 	group, version, err := kube.ParseAPIVersion(cfg.APIVersion)
 	if err != nil {
 		return err
 	}
 	resource := pluralize(cfg.Kind)
 	gvr := schema.GroupVersionResource{Group: group, Version: version, Resource: resource}
-	return kube.WaitForCondition(ctx, r.Clients.Dynamic, gvr, cfg.Namespace, cfg.Name, cfg.Condition, cfg.Status, timeout)
+	return r.resourceConditionOnce(ctx, gvr, cfg)
+}
+
+func (r *Runner) resourceConditionOnce(ctx context.Context, gvr schema.GroupVersionResource, cfg *config.ResourceCondition) error {
+	var objs []*unstructured.Unstructured
+	if cfg.Name != "" {
+		var u *unstructured.Unstructured
+		var err error
+		if cfg.Namespace == "" {
+			u, err = r.Clients.Dynamic.Resource(gvr).Get(ctx, cfg.Name, metav1.GetOptions{})
+		} else {
+			u, err = r.Clients.Dynamic.Resource(gvr).Namespace(cfg.Namespace).Get(ctx, cfg.Name, metav1.GetOptions{})
+		}
+		if err != nil {
+			return err
+		}
+		objs = []*unstructured.Unstructured{u}
+	} else {
+		opts := metav1.ListOptions{LabelSelector: cfg.Selector}
+		ns := cfg.Namespace
+		if ns == "" {
+			ns = metav1.NamespaceAll
+		}
+		list, err := r.Clients.Dynamic.Resource(gvr).Namespace(ns).List(ctx, opts)
+		if err != nil {
+			return err
+		}
+		for i := range list.Items {
+			objs = append(objs, &list.Items[i])
+		}
+	}
+	if len(objs) == 0 {
+		return fmt.Errorf("no %s resources matching criteria", cfg.Kind)
+	}
+	var bad []string
+	for _, obj := range objs {
+		if err := matchResource(obj, cfg); err != nil {
+			bad = append(bad, fmt.Sprintf("%s/%s: %v", obj.GetNamespace(), obj.GetName(), err))
+		}
+	}
+	if len(bad) > 0 {
+		return fmt.Errorf("%s", strings.Join(bad, "; "))
+	}
+	return nil
+}
+
+func matchResource(obj *unstructured.Unstructured, cfg *config.ResourceCondition) error {
+	if cfg.Condition != "" {
+		got := kube.ConditionStatus(obj, cfg.Condition)
+		if got != cfg.Status {
+			return fmt.Errorf("condition %s=%s, want %s", cfg.Condition, got, cfg.Status)
+		}
+	}
+	for _, f := range cfg.Fields {
+		if err := kube.FieldEquals(obj, f.Path, f.Value); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *Runner) gatewayReady(ctx context.Context, cfg *config.GatewayReady) error {
-	timeout, err := config.ParseDuration(cfg.Timeout, 5*time.Minute)
+	gvr := schema.GroupVersionResource{Group: "gateway.networking.k8s.io", Version: "v1", Resource: "gateways"}
+	obj, err := r.Clients.Dynamic.Resource(gvr).Namespace(cfg.Namespace).Get(ctx, cfg.Name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	gvr := schema.GroupVersionResource{Group: "gateway.networking.k8s.io", Version: "v1", Resource: "gateways"}
-	deadline := time.Now().Add(timeout)
-	var lastErr error
-	for {
-		obj, err := r.Clients.Dynamic.Resource(gvr).Namespace(cfg.Namespace).Get(ctx, cfg.Name, metav1.GetOptions{})
-		if err != nil {
-			lastErr = err
-		} else if kube.ConditionStatus(obj, "Accepted") == "True" && programedOK(obj) {
-			return nil
-		} else {
-			lastErr = fmt.Errorf("gateway not ready (Accepted=%s Programmed=%s)",
-				kube.ConditionStatus(obj, "Accepted"), kube.ConditionStatus(obj, "Programmed"))
-		}
-		if time.Now().After(deadline) {
-			return fmt.Errorf("gatewayReady %s/%s: %v", cfg.Namespace, cfg.Name, lastErr)
-		}
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(3 * time.Second):
-		}
+	if kube.ConditionStatus(obj, "Accepted") == "True" && programedOK(obj) {
+		return nil
 	}
+	return fmt.Errorf("gateway not ready (Accepted=%s Programmed=%s)",
+		kube.ConditionStatus(obj, "Accepted"), kube.ConditionStatus(obj, "Programmed"))
 }
 
 func programedOK(obj *unstructured.Unstructured) bool {

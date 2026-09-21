@@ -5,6 +5,8 @@ kind: Application
 metadata:
   name: prometheus-operator-crd-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -43,6 +45,8 @@ kind: Application
 metadata:
   name: envoy-gateway-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -81,6 +85,8 @@ kind: Application
 metadata:
   name: cert-manager-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -119,6 +125,8 @@ kind: Application
 metadata:
   name: external-dns-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -157,6 +165,8 @@ kind: Application
 metadata:
   name: longhorn-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -197,6 +207,8 @@ kind: Application
 metadata:
   name: velero-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -237,6 +249,8 @@ kind: Application
 metadata:
   name: velero-ui-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -273,6 +287,8 @@ kind: Application
 metadata:
   name: argocd-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -311,6 +327,8 @@ kind: Application
 metadata:
   name: cloudnative-pg-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -349,6 +367,8 @@ kind: Application
 metadata:
   name: dragonfly-operator-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -385,6 +405,8 @@ kind: Application
 metadata:
   name: rustfs-operator-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -423,6 +445,8 @@ kind: Application
 metadata:
   name: external-secrets-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -461,6 +485,8 @@ kind: Application
 metadata:
   name: crowdsec-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -501,6 +527,8 @@ kind: Application
 metadata:
   name: crowdsec-envoy-bouncer-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -531,6 +559,8 @@ kind: Application
 metadata:
   name: grafana-operator-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -567,6 +597,8 @@ kind: Application
 metadata:
   name: rustfs-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -607,6 +639,8 @@ kind: Application
 metadata:
   name: openobserve-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -643,6 +677,8 @@ kind: Application
 metadata:
   name: authelia-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -679,6 +715,8 @@ kind: Application
 metadata:
   name: homeassistant-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -715,6 +753,8 @@ kind: Application
 metadata:
   name: radicale-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -753,6 +793,8 @@ kind: Application
 metadata:
   name: syncthing-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -789,6 +831,8 @@ kind: Application
 metadata:
   name: immich-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -825,6 +869,8 @@ kind: Application
 metadata:
   name: otel-collector-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -861,6 +907,8 @@ kind: Application
 metadata:
   name: forgejo-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -897,6 +945,8 @@ kind: Application
 metadata:
   name: grafana-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -933,6 +983,8 @@ kind: Application
 metadata:
   name: collabora-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
@@ -971,6 +1023,8 @@ kind: Application
 metadata:
   name: opencloud-app
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:

@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/argocd/helm/argocd/overlays/homelab
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+    - Validate=true
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy
+  namespace: argocd
+spec:
+  template:
+    spec:
+      hostUsers: false
+    cnpg.io/podPatch: '[{"op":"add","path":"/spec/hostUsers","value":false}]'
+  listeners:
+    - allowedRoutes:
+        namespaces:
+          from: all

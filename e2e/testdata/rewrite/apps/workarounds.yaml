@@ -1,0 +1,108 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: authelia
+  namespace: authelia
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
+---
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  name: dragonfly
+  namespace: authelia
+spec:
+  podSecurityContext:
+    runAsNonRoot: true
+  containerSecurityContext:
+    runAsNonRoot: true
+    capabilities:
+      drop:
+        - ALL
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: syncthing
+  namespace: syncthing
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    spec:
+      containers:
+        - name: syncthing
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: grafana
+  namespace: grafana
+spec:
+  persistentVolumeClaim:
+    metadata:
+      name: grafana-pvc
+    spec:
+      accessModes:
+        - ReadWriteOnce
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opencloud
+  namespace: opencloud
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: external-sites
+          args:
+            - cp -R /usr/share/nginx/html/external-sites/ /apps
+        - name: importer
+          args:
+            - cp -R /usr/share/nginx/html/importer/ /apps
+      containers:
+        - name: opencloud
+          env:
+            - name: COLLABORATION_APP_INSECURE
+              value: "false"
+            - name: COLLABORATION_CS3API_DATAGATEWAY_INSECURE
+              value: "false"
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: postgres-credentials
+  namespace: authelia
+spec:
+  data:
+    - secretKey: username
+      remoteRef:
+        key: /authelia/POSTGRES_USERNAME
+        decodingStrategy: Auto
+---
+storeCAPICredentialsInSecret: true
+storeLAPICscliCredentialsInSecret: true
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: crowdsec-ext-auth
+spec:
+  extAuth:
+    failOpen: false
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: authelia
+  namespace: authelia
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: "auth.e2e.local"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: authelia

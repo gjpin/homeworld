@@ -1,0 +1,42 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: immich
+  namespace: immich
+spec:
+  instances: 1
+  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:18.1-1.0.0
+  storage:
+    storageClass: longhorn-crypto
+    size: 5Gi
+  bootstrap:
+    initdb:
+      database: immich
+      owner: immich
+      secret:
+        name: postgres-credentials
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: immich
+  namespace: immich
+spec:
+  name: immich
+  owner: immich
+  cluster:
+    name: immich
+  extensions:
+    - name: vchord
+      ensure: present
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: immich
+  namespace: immich
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: immich

@@ -15,6 +15,10 @@ spec:
       root_url: "https://grafana.${BASE_DOMAIN}"
     plugins:
       allow_loading_unsigned_plugins: openobserve
+      # Grafana 13 preinstall tries to upgrade bundled elasticsearch under
+      # read-only /usr/share/grafana/data/plugins-bundled.
+      plugin_admin_enabled: "false"
+      preinstall_disabled: "true"
   persistentVolumeClaim:
     metadata:
       name: grafana-pvc

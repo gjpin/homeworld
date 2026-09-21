@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 # Seed a local Infisical instance for homeworld E2E.
-# Pins behavior to Infisical HTTP API; requires curl and jq.
-# Optional: INFISICAL_CLI (default: infisical) if API bootstrap is awkward.
+# Pinned to Infisical HTTP API v0.162.12 (see infisical/infisical tag v0.162.12).
+#
+# Bootstrap's machine-identity JWT has no `exp`. After
+# LEGACY_IDENTITY_ACCESS_TOKEN_EXPIRATION_ENFORCED_AT (2026-05-04) Infisical
+# rejects those tokens, so this script authenticates as the admin *user*
+# (POST /api/v3/auth/login + select-organization) and uses that JWT.
 set -euo pipefail
 
 INFISICAL_HOST_LOCAL="${INFISICAL_HOST_LOCAL:-http://127.0.0.1:8080}"
@@ -13,11 +17,42 @@ ADMIN_EMAIL="${INFISICAL_ADMIN_EMAIL:-e2e-admin@example.com}"
 ADMIN_PASSWORD="${INFISICAL_ADMIN_PASSWORD:-E2eAdminPassw0rd!}"
 ORG_NAME="${INFISICAL_ORG_NAME:-homeworld-e2e}"
 OUT_DIR="${INFISICAL_E2E_OUT:-/tmp/homeworld-e2e-infisical}"
-CLI_VERSION_HINT="0.41.90"
+IDENTITY_NAME="${INFISICAL_IDENTITY_NAME:-homeworld-eso}"
+USER_AGENT="${INFISICAL_USER_AGENT:-homeworld-e2e-seed}"
 
 mkdir -p "${OUT_DIR}"
 
 log() { printf '[seed-infisical] %s\n' "$*"; }
+
+api() {
+  # api METHOD PATH [json-body] [token] — writes body to ${OUT_DIR}/last.json, prints HTTP code.
+  local method="$1" path="$2" body="${3:-}" token="${4:-}"
+  local args=(-sS -o "${OUT_DIR}/last.json" -w '%{http_code}'
+    -X "${method}" "${INFISICAL_HOST_LOCAL}${path}"
+    -H 'Content-Type: application/json'
+    -H "User-Agent: ${USER_AGENT}")
+  if [[ -n "${token}" ]]; then
+    args+=(-H "Authorization: Bearer ${token}")
+  fi
+  if [[ -n "${body}" ]]; then
+    args+=(-d "${body}")
+  fi
+  curl "${args[@]}"
+}
+
+require_ok() {
+  local code="$1" what="$2"
+  if [[ "${code}" != "200" && "${code}" != "201" ]]; then
+    log "FAILED ${what} (HTTP ${code})"
+    cat "${OUT_DIR}/last.json" >&2 || true
+    exit 1
+  fi
+}
+
+ok_or_exists() {
+  local code="$1"
+  [[ "${code}" == "200" || "${code}" == "201" || "${code}" == "400" || "${code}" == "409" ]]
+}
 
 wait_ready() {
   local deadline=$((SECONDS + 300))
@@ -36,123 +71,266 @@ require_tools() {
   command -v curl >/dev/null || { log "curl required"; exit 1; }
   command -v jq >/dev/null || { log "jq required"; exit 1; }
   command -v openssl >/dev/null || { log "openssl required"; exit 1; }
-  if ! command -v infisical >/dev/null 2>&1; then
-    log "note: infisical CLI not found; using HTTP API only (pin CLI ${CLI_VERSION_HINT} if you prefer CLI bootstrap)"
-  fi
 }
 
-# Best-effort signup / login. Infisical self-host first-run APIs evolve;
-# this script records credentials for apply-eso-credentials.sh.
-bootstrap_admin() {
-  local signup_payload login_payload token
-  signup_payload=$(jq -n \
+# First-run: POST /api/v1/admin/bootstrap. The returned identity token is
+# unusable after the 2026-05-04 legacy-token cutoff; we only need the user.
+bootstrap_instance() {
+  local code
+  code=$(api POST /api/v1/admin/bootstrap "$(jq -n \
     --arg email "${ADMIN_EMAIL}" \
     --arg password "${ADMIN_PASSWORD}" \
-    --arg firstName "E2E" \
-    --arg lastName "Admin" \
-    --arg organizationName "${ORG_NAME}" \
-    '{email:$email,password:$password,firstName:$firstName,lastName:$lastName,organizationName:$organizationName}')
-
-  # Ignore failures if admin already exists.
-  curl -sf -X POST "${INFISICAL_HOST_LOCAL}/api/v1/signup" \
-    -H 'Content-Type: application/json' \
-    -d "${signup_payload}" >"${OUT_DIR}/signup.json" 2>/dev/null || true
-
-  login_payload=$(jq -n \
-    --arg email "${ADMIN_EMAIL}" \
-    --arg password "${ADMIN_PASSWORD}" \
-    '{email:$email,password:$password}')
-
-  if ! curl -sf -X POST "${INFISICAL_HOST_LOCAL}/api/v1/auth/login" \
-    -H 'Content-Type: application/json' \
-    -d "${login_payload}" >"${OUT_DIR}/login.json"; then
-    # Try alternate login path used by newer Infisical builds.
-    curl -sf -X POST "${INFISICAL_HOST_LOCAL}/api/v1/auth/login/email" \
-      -H 'Content-Type: application/json' \
-      -d "${login_payload}" >"${OUT_DIR}/login.json" || {
-        log "login failed; write placeholder credentials and continue (manual seed may be required)"
-        write_placeholders
-        return 0
-      }
-  fi
-
-  token=$(jq -r '.token // .accessToken // .identity.accessToken // empty' "${OUT_DIR}/login.json")
-  if [[ -z "${token}" ]]; then
-    log "could not parse login token; writing placeholders"
-    write_placeholders
+    --arg organization "${ORG_NAME}" \
+    '{email:$email,password:$password,organization:$organization}')")
+  cp "${OUT_DIR}/last.json" "${OUT_DIR}/bootstrap.json"
+  if [[ "${code}" == "200" || "${code}" == "201" ]]; then
+    jq -r '.organization.id // empty' "${OUT_DIR}/bootstrap.json" >"${OUT_DIR}/org_id"
+    log "bootstrapped org=$(cat "${OUT_DIR}/org_id")"
     return 0
   fi
-  printf '%s' "${token}" >"${OUT_DIR}/token"
-
-  ensure_project "${token}"
-  ensure_identity "${token}"
-  seed_secrets "${token}"
+  log "bootstrap returned HTTP ${code}; assuming instance already initialized"
 }
 
-write_placeholders() {
-  # Deterministic placeholders so apply-eso-credentials can still run in dry setups.
-  printf 'e2e-client-id-placeholder' >"${OUT_DIR}/client_id"
-  printf 'e2e-client-secret-placeholder' >"${OUT_DIR}/client_secret"
-  printf '%s' "${INFISICAL_HOST}" >"${OUT_DIR}/host"
-  printf '%s' "${INFISICAL_PROJECT_SLUG}" >"${OUT_DIR}/project_slug"
-  printf '%s' "${INFISICAL_ENVIRONMENT_SLUG}" >"${OUT_DIR}/environment_slug"
+# User JWT (has exp). Requires User-Agent. Then bind it to the org.
+login_user() {
+  local code login_token org_id
+  code=$(api POST /api/v3/auth/login "$(jq -n \
+    --arg email "${ADMIN_EMAIL}" \
+    --arg password "${ADMIN_PASSWORD}" \
+    '{email:$email,password:$password}')")
+  require_ok "${code}" "login ${ADMIN_EMAIL}"
+  cp "${OUT_DIR}/last.json" "${OUT_DIR}/login.json"
+  login_token=$(jq -r '.accessToken // empty' "${OUT_DIR}/login.json")
+  if [[ -z "${login_token}" ]]; then
+    log "login response missing accessToken"
+    cat "${OUT_DIR}/login.json" >&2
+    exit 1
+  fi
+
+  code=$(api GET /api/v1/organization "" "${login_token}")
+  require_ok "${code}" "list organizations"
+  cp "${OUT_DIR}/last.json" "${OUT_DIR}/organizations.json"
+  org_id=$(jq -r --arg name "${ORG_NAME}" \
+    '.organizations[] | select(.name==$name) | .id' "${OUT_DIR}/organizations.json" | head -1)
+  if [[ -z "${org_id}" ]]; then
+    org_id=$(jq -r '.organizations[0].id // empty' "${OUT_DIR}/organizations.json")
+  fi
+  if [[ -z "${org_id}" ]]; then
+    log "no organization found after login"
+    cat "${OUT_DIR}/organizations.json" >&2
+    exit 1
+  fi
+  printf '%s' "${org_id}" >"${OUT_DIR}/org_id"
+
+  code=$(api POST /api/v3/auth/select-organization "$(jq -n \
+    --arg organizationId "${org_id}" \
+    '{organizationId:$organizationId}')" "${login_token}")
+  require_ok "${code}" "select-organization ${org_id}"
+  cp "${OUT_DIR}/last.json" "${OUT_DIR}/select-org.json"
+  jq -r '.token // empty' "${OUT_DIR}/select-org.json" >"${OUT_DIR}/token"
+  if [[ ! -s "${OUT_DIR}/token" ]]; then
+    log "select-organization response missing token"
+    cat "${OUT_DIR}/select-org.json" >&2
+    exit 1
+  fi
+  log "logged in org=${org_id}"
 }
 
 ensure_project() {
-  local token="$1"
-  local projects project_id
-  projects=$(curl -sf "${INFISICAL_HOST_LOCAL}/api/v1/workspace" \
-    -H "Authorization: Bearer ${token}" || echo '{"workspaces":[]}')
-  project_id=$(jq -r --arg slug "${INFISICAL_PROJECT_SLUG}" \
-    '.workspaces[]? | select(.slug==$slug or .name==$slug) | .id' <<<"${projects}" | head -n1)
+  local token org_id code project_id slug
+  token=$(cat "${OUT_DIR}/token")
+  org_id=$(cat "${OUT_DIR}/org_id")
 
-  if [[ -z "${project_id}" || "${project_id}" == "null" ]]; then
-    curl -sf -X POST "${INFISICAL_HOST_LOCAL}/api/v1/workspace" \
-      -H "Authorization: Bearer ${token}" \
-      -H 'Content-Type: application/json' \
-      -d "$(jq -n --arg name "${INFISICAL_PROJECT_SLUG}" --arg slug "${INFISICAL_PROJECT_SLUG}" '{workspaceName:$name,slug:$slug}')" \
-      >"${OUT_DIR}/project.json" || true
-    project_id=$(jq -r '.workspace.id // .id // empty' "${OUT_DIR}/project.json" 2>/dev/null || true)
+  code=$(api GET "/api/v1/projects/slug/${INFISICAL_PROJECT_SLUG}" "" "${token}")
+  if [[ "${code}" == "200" ]]; then
+    cp "${OUT_DIR}/last.json" "${OUT_DIR}/project.json"
+  else
+    code=$(api POST /api/v1/projects "$(jq -n \
+      --arg name "${INFISICAL_PROJECT_SLUG}" \
+      --arg slug "${INFISICAL_PROJECT_SLUG}" \
+      '{projectName:$name,slug:$slug,shouldCreateDefaultEnvs:true}')" "${token}")
+    require_ok "${code}" "create project ${INFISICAL_PROJECT_SLUG}"
+    cp "${OUT_DIR}/last.json" "${OUT_DIR}/project.json"
   fi
-  printf '%s' "${project_id:-}" >"${OUT_DIR}/project_id"
+
+  project_id=$(jq -r '.project.id // .id // empty' "${OUT_DIR}/project.json")
+  slug=$(jq -r '.project.slug // .slug // empty' "${OUT_DIR}/project.json")
+  if [[ -z "${project_id}" ]]; then
+    log "failed to resolve project id"
+    cat "${OUT_DIR}/project.json" >&2
+    exit 1
+  fi
+  if ! jq -e --arg env "${INFISICAL_ENVIRONMENT_SLUG}" \
+    '(.project.environments // .environments // []) | map(.slug) | index($env) != null' \
+    "${OUT_DIR}/project.json" >/dev/null; then
+    log "project ${slug} has no environment slug=${INFISICAL_ENVIRONMENT_SLUG}"
+    jq '.project.environments // .environments' "${OUT_DIR}/project.json" >&2 || true
+    exit 1
+  fi
+  printf '%s' "${project_id}" >"${OUT_DIR}/project_id"
   printf '%s' "${INFISICAL_PROJECT_SLUG}" >"${OUT_DIR}/project_slug"
   printf '%s' "${INFISICAL_ENVIRONMENT_SLUG}" >"${OUT_DIR}/environment_slug"
   printf '%s' "${INFISICAL_HOST}" >"${OUT_DIR}/host"
-  log "project slug=${INFISICAL_PROJECT_SLUG} id=${project_id:-unknown}"
+  log "project slug=${INFISICAL_PROJECT_SLUG} id=${project_id}"
 }
 
 ensure_identity() {
-  local token="$1"
-  # Universal Auth machine identity — best effort; APIs differ by version.
-  local payload resp client_id client_secret
-  payload=$(jq -n --arg name "homeworld-eso" '{name:$name,role:"admin"}')
-  resp=$(curl -sf -X POST "${INFISICAL_HOST_LOCAL}/api/v1/identities" \
-    -H "Authorization: Bearer ${token}" \
-    -H 'Content-Type: application/json' \
-    -d "${payload}" 2>/dev/null || echo '{}')
-  echo "${resp}" >"${OUT_DIR}/identity.json"
-  client_id=$(jq -r '.identity.id // .clientId // empty' <<<"${resp}")
-  client_secret=$(jq -r '.identity.clientSecret // .clientSecret // empty' <<<"${resp}")
+  local token org_id project_id code identity_id client_id client_secret
+  token=$(cat "${OUT_DIR}/token")
+  org_id=$(cat "${OUT_DIR}/org_id")
+  project_id=$(cat "${OUT_DIR}/project_id")
 
-  if [[ -z "${client_id}" || -z "${client_secret}" ]]; then
-    log "identity create did not return UA credentials; using placeholders (complete via Infisical UI/CLI ${CLI_VERSION_HINT})"
-    write_placeholders
+  code=$(api GET "/api/v1/identities?orgId=${org_id}" "" "${token}")
+  require_ok "${code}" "list identities"
+  cp "${OUT_DIR}/last.json" "${OUT_DIR}/identities.json"
+  identity_id=$(jq -r --arg name "${IDENTITY_NAME}" \
+    '.identities[] | select(.identity.name==$name) | .identity.id' \
+    "${OUT_DIR}/identities.json" | head -1)
+
+  if [[ -z "${identity_id}" ]]; then
+    code=$(api POST /api/v1/identities "$(jq -n \
+      --arg name "${IDENTITY_NAME}" \
+      --arg organizationId "${org_id}" \
+      '{name:$name,organizationId:$organizationId,role:"admin"}')" "${token}")
+    require_ok "${code}" "create identity ${IDENTITY_NAME}"
+    cp "${OUT_DIR}/last.json" "${OUT_DIR}/identity.json"
+    identity_id=$(jq -r '.identity.id // empty' "${OUT_DIR}/identity.json")
+  else
+    log "reusing identity ${IDENTITY_NAME} id=${identity_id}"
+    printf '%s\n' "{\"identity\":{\"id\":\"${identity_id}\",\"name\":\"${IDENTITY_NAME}\"}}" \
+      >"${OUT_DIR}/identity.json"
+  fi
+  if [[ -z "${identity_id}" ]]; then
+    log "failed to resolve identity id"
+    exit 1
+  fi
+  printf '%s' "${identity_id}" >"${OUT_DIR}/identity_id"
+
+  # Attach Universal Auth (open CIDRs so kind pods can login).
+  code=$(api POST "/api/v1/auth/universal-auth/identities/${identity_id}" "$(jq -n \
+    '{clientSecretTrustedIps:[{ipAddress:"0.0.0.0/0"},{ipAddress:"::/0"}],
+      accessTokenTrustedIps:[{ipAddress:"0.0.0.0/0"},{ipAddress:"::/0"}],
+      lockoutEnabled:false}')" "${token}")
+  if ! ok_or_exists "${code}"; then
+    require_ok "${code}" "attach universal-auth"
+  fi
+  if [[ "${code}" == "200" || "${code}" == "201" ]]; then
+    cp "${OUT_DIR}/last.json" "${OUT_DIR}/universal-auth.json"
+  else
+    code=$(api GET "/api/v1/auth/universal-auth/identities/${identity_id}" "" "${token}")
+    require_ok "${code}" "get universal-auth"
+    cp "${OUT_DIR}/last.json" "${OUT_DIR}/universal-auth.json"
+  fi
+  client_id=$(jq -r '.identityUniversalAuth.clientId // empty' "${OUT_DIR}/universal-auth.json")
+  if [[ -z "${client_id}" ]]; then
+    client_id="${identity_id}"
+  fi
+
+  # --keep-deps reuses OUT_DIR across Infisical recreations. Disk secrets
+  # from a previous bootstrap 401 against a new identity clientId.
+  reuse=false
+  if [[ -s "${OUT_DIR}/client_id" && -s "${OUT_DIR}/client_secret" ]]; then
+    disk_id=$(cat "${OUT_DIR}/client_id")
+    disk_secret=$(cat "${OUT_DIR}/client_secret")
+    if [[ "${disk_id}" == "${client_id}" ]]; then
+      code=$(curl -sS -o "${OUT_DIR}/ua-login.json" -w '%{http_code}' \
+        -X POST "${INFISICAL_HOST_LOCAL}/api/v1/auth/universal-auth/login" \
+        -H 'Content-Type: application/json' \
+        -H "User-Agent: ${USER_AGENT}" \
+        -d "$(jq -n --arg id "${disk_id}" --arg secret "${disk_secret}" \
+          '{clientId:$id,clientSecret:$secret}')" || true)
+      if [[ "${code}" == "200" ]]; then
+        reuse=true
+        log "reusing universal-auth credentials from ${OUT_DIR}"
+      else
+        log "stored universal-auth credentials rejected (HTTP ${code}); rotating"
+      fi
+    else
+      log "stored clientId does not match identity ${identity_id}; rotating"
+    fi
+  fi
+  if [[ "${reuse}" != true ]]; then
+    code=$(api POST "/api/v1/auth/universal-auth/identities/${identity_id}/client-secrets" \
+      '{}' "${token}")
+    require_ok "${code}" "create universal-auth client secret"
+    cp "${OUT_DIR}/last.json" "${OUT_DIR}/client-secret.json"
+    client_secret=$(jq -r '.clientSecret // empty' "${OUT_DIR}/client-secret.json")
+    if [[ -z "${client_secret}" ]]; then
+      log "client-secret create did not return clientSecret"
+      cat "${OUT_DIR}/client-secret.json" >&2
+      exit 1
+    fi
+    printf '%s' "${client_id}" >"${OUT_DIR}/client_id"
+    printf '%s' "${client_secret}" >"${OUT_DIR}/client_secret"
+  fi
+
+  code=$(api POST "/api/v1/projects/${project_id}/memberships/identities/${identity_id}" \
+    "$(jq -n '{roles:[{role:"admin",isTemporary:false}]}')" "${token}")
+  if ! ok_or_exists "${code}"; then
+    require_ok "${code}" "add identity to project"
+  fi
+  cp "${OUT_DIR}/last.json" "${OUT_DIR}/identity-membership.json"
+  log "universal-auth identity=${identity_id} clientId=$(cat "${OUT_DIR}/client_id")"
+}
+
+ensure_folder() {
+  local token="$1" project_id="$2" name="$3" code
+  token=$(cat "${OUT_DIR}/token")
+  code=$(api POST /api/v2/folders "$(jq -n \
+    --arg projectId "${project_id}" \
+    --arg environment "${INFISICAL_ENVIRONMENT_SLUG}" \
+    --arg name "${name}" \
+    '{projectId:$projectId,environment:$environment,name:$name,path:"/"}')" "${token}")
+  if ! ok_or_exists "${code}"; then
+    require_ok "${code}" "create folder /${name}"
+  fi
+}
+
+put_secret() {
+  local token="$1" project_id="$2" path="$3" value="$4"
+  local key body code
+  key="${path##*/}"
+  body=$(jq -n \
+    --arg workspaceId "${project_id}" \
+    --arg environment "${INFISICAL_ENVIRONMENT_SLUG}" \
+    --arg secretPath "${path%/*}" \
+    --arg secretValue "${value}" \
+    '{workspaceId:$workspaceId,environment:$environment,secretPath:$secretPath,type:"shared",secretValue:$secretValue}')
+  code=$(curl -sS -o "${OUT_DIR}/secret-${key}.json" -w '%{http_code}' \
+    -X POST "${INFISICAL_HOST_LOCAL}/api/v3/secrets/raw/${key}" \
+    -H "Authorization: Bearer ${token}" \
+    -H "User-Agent: ${USER_AGENT}" \
+    -H 'Content-Type: application/json' \
+    -d "${body}" || true)
+  if [[ "${code}" == "200" || "${code}" == "201" ]]; then
     return 0
   fi
-  printf '%s' "${client_id}" >"${OUT_DIR}/client_id"
-  printf '%s' "${client_secret}" >"${OUT_DIR}/client_secret"
+  code=$(curl -sS -o "${OUT_DIR}/secret-${key}.json" -w '%{http_code}' \
+    -X PATCH "${INFISICAL_HOST_LOCAL}/api/v3/secrets/raw/${key}" \
+    -H "Authorization: Bearer ${token}" \
+    -H "User-Agent: ${USER_AGENT}" \
+    -H 'Content-Type: application/json' \
+    -d "${body}" || true)
+  if [[ "${code}" == "200" || "${code}" == "201" ]]; then
+    return 0
+  fi
+  log "failed to upsert ${path} (HTTP ${code})"
+  cat "${OUT_DIR}/secret-${key}.json" >&2 || true
+  exit 1
 }
 
 seed_secrets() {
-  local token="$1"
-  local project_id authelia_jwk authelia_users
-  project_id=$(cat "${OUT_DIR}/project_id" 2>/dev/null || true)
-  if [[ -z "${project_id}" ]]; then
-    log "skip secret seed (no project id)"
-    return 0
-  fi
+  local token project_id authelia_jwk authelia_users proof_key proof_pub folder
+  token=$(cat "${OUT_DIR}/token")
+  project_id=$(cat "${OUT_DIR}/project_id")
+
+  for folder in grafana authelia immich forgejo openobserve rustfs opencloud crowdsec velero-ui velero longhorn; do
+    ensure_folder "${token}" "${project_id}" "${folder}"
+  done
 
   authelia_jwk=$(openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 2>/dev/null)
+  proof_key=$(openssl genrsa 4096 2>/dev/null)
+  proof_pub=$(printf '%s\n' "${proof_key}" | openssl rsa -pubout 2>/dev/null)
   authelia_users=$(printf '%s\n' \
     'users:' \
     '  e2e:' \
@@ -163,60 +341,53 @@ seed_secrets() {
     '    groups:' \
     '      - opencloud-admin')
 
-  # Placeholder values matching ExternalSecret remoteRef keys used by homeworld apps.
-  local secrets=(
-    "/grafana/GF_SECURITY_ADMIN_USER=admin"
-    "/grafana/GF_SECURITY_ADMIN_PASSWORD=e2e-grafana"
-    "/authelia/POSTGRES_USERNAME=authelia"
-    "/authelia/POSTGRES_PASSWORD=e2e-authelia-db"
-    "/authelia/DRAGONFLY_PASSWORD=e2e-authelia-dragonfly"
-    "/authelia/RESET_PASSWORD_JWT_SECRET=rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
-    "/authelia/SESSION_SECRET=ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
-    "/authelia/STORAGE_ENCRYPTION_KEY=eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-    "/authelia/OIDC_HMAC_SECRET=hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"
-    "/authelia/OIDC_JWK_RS256=${authelia_jwk}"
-    "/authelia/SMTP_PASSWORD=e2e-authelia-smtp"
-    "/authelia/USERS_DATABASE=${authelia_users}"
-    "/immich/POSTGRES_USERNAME=immich"
-    "/immich/POSTGRES_PASSWORD=e2e-immich-db"
-    "/immich/DRAGONFLY_PASSWORD=e2e-immich-redis"
-    "/forgejo/POSTGRES_USERNAME=forgejo"
-    "/forgejo/POSTGRES_PASSWORD=e2e-forgejo-db"
-    "/openobserve/ZO_ROOT_USER_EMAIL=e2e@example.com"
-    "/openobserve/ZO_ROOT_USER_PASSWORD=e2e-openobserve"
-    "/openobserve/OTLP_AUTHORIZATION=Basic e2e"
-    "/rustfs/RUSTFS_ACCESS_KEY=e2eaccesskey"
-    "/rustfs/RUSTFS_SECRET_KEY=e2esecretkey"
-    "/velero-ui/AUTH_SECRET_PASSPHRASE=e2e-velero-ui"
-    "/velero-ui/BASIC_AUTH_USERNAME=e2e"
-    "/velero-ui/BASIC_AUTH_PASSWORD=e2e-velero"
-    "/velero/B2_APPLICATION_KEY_ID=e2e-b2-id"
-    "/velero/B2_APPLICATION_KEY=e2e-b2-key"
-    "/velero/KOPIA_REPOSITORY_PASSWORD=e2e-kopia"
-    "/longhorn/CRYPTO_KEY_VALUE=e2e-longhorn-crypto"
-  )
-
-  local entry path key value
-  for entry in "${secrets[@]}"; do
-    path="${entry%%=*}"
-    value="${entry#*=}"
-    key="${path##*/}"
-    # Best-effort create; ignore conflicts.
-    curl -sf -X POST "${INFISICAL_HOST_LOCAL}/api/v3/secrets/raw/${key}" \
-      -H "Authorization: Bearer ${token}" \
-      -H 'Content-Type: application/json' \
-      -d "$(jq -n \
-        --arg workspaceId "${project_id}" \
-        --arg environment "${INFISICAL_ENVIRONMENT_SLUG}" \
-        --arg secretPath "${path%/*}" \
-        --arg secretValue "${value}" \
-        '{workspaceId:$workspaceId,environment:$environment,secretPath:$secretPath,type:"shared",secretValue:$secretValue}')" \
-      >/dev/null 2>&1 || true
-  done
-  log "secret seed attempted for ${#secrets[@]} keys"
+  put_secret "${token}" "${project_id}" "/grafana/GF_SECURITY_ADMIN_USER" "admin"
+  put_secret "${token}" "${project_id}" "/grafana/GF_SECURITY_ADMIN_PASSWORD" "e2e-grafana"
+  put_secret "${token}" "${project_id}" "/authelia/POSTGRES_USERNAME" "authelia"
+  put_secret "${token}" "${project_id}" "/authelia/POSTGRES_PASSWORD" "e2e-authelia-db"
+  put_secret "${token}" "${project_id}" "/authelia/DRAGONFLY_PASSWORD" "e2e-authelia-dragonfly"
+  put_secret "${token}" "${project_id}" "/authelia/RESET_PASSWORD_JWT_SECRET" "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+  put_secret "${token}" "${project_id}" "/authelia/SESSION_SECRET" "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+  put_secret "${token}" "${project_id}" "/authelia/STORAGE_ENCRYPTION_KEY" "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_HMAC_SECRET" "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_JWK_RS256" "${authelia_jwk}"
+  put_secret "${token}" "${project_id}" "/authelia/SMTP_PASSWORD" "e2e-authelia-smtp"
+  put_secret "${token}" "${project_id}" "/authelia/USERS_DATABASE" "${authelia_users}"
+  put_secret "${token}" "${project_id}" "/immich/POSTGRES_USERNAME" "immich"
+  put_secret "${token}" "${project_id}" "/immich/POSTGRES_PASSWORD" "e2e-immich-db"
+  put_secret "${token}" "${project_id}" "/immich/DRAGONFLY_PASSWORD" "e2e-immich-redis"
+  put_secret "${token}" "${project_id}" "/forgejo/POSTGRES_USERNAME" "forgejo"
+  put_secret "${token}" "${project_id}" "/forgejo/POSTGRES_PASSWORD" "e2e-forgejo-db"
+  put_secret "${token}" "${project_id}" "/openobserve/ZO_ROOT_USER_EMAIL" "e2e@example.com"
+  put_secret "${token}" "${project_id}" "/openobserve/ZO_ROOT_USER_PASSWORD" "E2e-Openobserve1!"
+  put_secret "${token}" "${project_id}" "/openobserve/OTLP_AUTHORIZATION" "Basic e2e"
+  put_secret "${token}" "${project_id}" "/rustfs/RUSTFS_ACCESS_KEY" "e2eaccesskey"
+  put_secret "${token}" "${project_id}" "/rustfs/RUSTFS_SECRET_KEY" "e2esecretkey"
+  put_secret "${token}" "${project_id}" "/opencloud/IDM_ADMIN_PASSWORD" "e2e-opencloud-admin"
+  put_secret "${token}" "${project_id}" "/opencloud/RUSTFS_ACCESS_KEY" "e2eaccesskey"
+  put_secret "${token}" "${project_id}" "/opencloud/RUSTFS_SECRET_KEY" "e2esecretkey"
+  put_secret "${token}" "${project_id}" "/opencloud/COLLABORA_ADMIN_USER" "e2e-collabora"
+  put_secret "${token}" "${project_id}" "/opencloud/COLLABORA_ADMIN_PASSWORD" "e2e-collabora-admin"
+  put_secret "${token}" "${project_id}" "/opencloud/COLLABORA_PROOF_KEY" "${proof_key}"
+  put_secret "${token}" "${project_id}" "/opencloud/COLLABORA_PROOF_KEY_PUB" "${proof_pub}"
+  put_secret "${token}" "${project_id}" "/crowdsec/DB_PASSWORD" "e2e-crowdsec-db"
+  put_secret "${token}" "${project_id}" "/crowdsec/ENROLL_KEY" "e2e-crowdsec-enroll"
+  put_secret "${token}" "${project_id}" "/crowdsec/BOUNCER_KEY_envoy" "e2e-crowdsec-bouncer"
+  put_secret "${token}" "${project_id}" "/velero-ui/AUTH_SECRET_PASSPHRASE" "e2e-velero-ui"
+  put_secret "${token}" "${project_id}" "/velero-ui/BASIC_AUTH_USERNAME" "e2e"
+  put_secret "${token}" "${project_id}" "/velero-ui/BASIC_AUTH_PASSWORD" "e2e-velero"
+  put_secret "${token}" "${project_id}" "/velero/B2_APPLICATION_KEY_ID" "e2e-b2-id"
+  put_secret "${token}" "${project_id}" "/velero/B2_APPLICATION_KEY" "e2e-b2-key"
+  put_secret "${token}" "${project_id}" "/velero/KOPIA_REPOSITORY_PASSWORD" "e2e-kopia"
+  put_secret "${token}" "${project_id}" "/longhorn/CRYPTO_KEY_VALUE" "e2e-longhorn-crypto"
+  log "secret seed completed"
 }
 
 require_tools
 wait_ready
-bootstrap_admin
+bootstrap_instance
+login_user
+ensure_project
+ensure_identity
+seed_secrets
 log "credentials written under ${OUT_DIR}"

@@ -1,0 +1,14 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-repository-sources
+  namespace: argocd
+spec:
+  egress:
+    - toFQDNs:
+        - matchName: github.com
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

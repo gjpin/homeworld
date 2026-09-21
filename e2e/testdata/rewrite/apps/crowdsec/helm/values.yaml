@@ -1,0 +1,20 @@
+lapi:
+  env:
+    - name: ENROLL_KEY
+      valueFrom:
+        secretKeyRef:
+          name: crowdsec-enrollment
+          key: ENROLL_KEY
+    - name: ENROLL_INSTANCE_NAME
+      value: homeworld
+    - name: ENROLL_TAGS
+      value: k8s linux homelab
+config:
+  config.yaml.local: |
+    api:
+      server:
+        auto_registration:
+          enabled: true
+          token: "e2e-crowdsec-registration-token"
+agent:
+  enabled: true

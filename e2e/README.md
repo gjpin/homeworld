@@ -100,7 +100,8 @@ spec:
         podsReady:
           excludeNamespaces: ["kube-system"]
           ignoreCompletedJobs: true
-      # also: workloadsReady, serviceProbe, resourceCondition,
+      # also: workloadsReady, serviceProbe, resourceCondition
+      #       (name or cluster-wide list; condition and/or fields),
       #       gatewayReady, networkProbe
 ```
 
@@ -115,11 +116,24 @@ go run ./cmd/e2e validate -f testdata/suite.minimal.yaml
 
 ## Homeworld example
 
+`examples/homeworld.suite.yaml` boots **this checkout** on kind:
+
+1. Infisical via Compose
+2. kind (Kubernetes `v1.36.1` to match PSA labels and kind 0.32's node image) with kindnet on a **single control-plane node** and `networking.kubeProxyMode: nftables` (iptables-restore hits `sendmsg EMSGSIZE` once this suite's Service count is installed, and kube-proxy then leaves stale ClusterIP DNATs after Recreate). A second kind worker doubles kubelet/containerd inotify usage. Raise `fs.inotify.max_user_instances` to 1024 on the Linux Docker VM (Lima); rootless Docker cannot write that sysctl from inside the kind node. Docker Desktop / Lima rootless cannot mount `bpffs` or idmap overlayfs, so the Cilium agent is not started and staging rewrites `hostUsers: false` to `true`. The Cilium 1.17 helm chart does not ship CRDs; `kind.go` and `apply-cilium-crds.sh` apply `CiliumNetworkPolicy` CRDs from the pinned Git tag. Staging Applications also get `SkipDryRunOnMissingResource=true` and `ServerSideApply=true` so directory apps that mix CRDs and CRs can sync on an empty cluster, and large CRDs/dashboard ConfigMaps do not hit the 256Ki last-applied annotation limit. Gateway `from: all` is rewritten to `All` for Gateway API v1. Staging also sets ExternalSecret `decodingStrategy: None` (Auto base64-decodes plaintext Infisical values such as `authelia`), flips Dragonfly `runAsNonRoot` (image USER is root), drops invalid StatefulSet `spec.strategy` and Grafana PVC `metadata.name` (SSA schema), points OpenCloud web-extension 2.x copies at `/usr/share/nginx/html/apps/` (importer-1.0.0 stays on `/usr/share/nginx/html/importer/`), disables CrowdSec `store*CredentialsInSecret` so LAPI does not deadlock on register-job secrets, pads the CrowdSec registration token to 32+ characters, disables CrowdSec console enroll, omits the amd64-only envoy-proxy-bouncer and the otel-collector app, sets SecurityPolicy `failOpen: true`, removes the duplicate RustFS `tenants.rustfs.com` CRD, disables Collabora bind-mount jails (`mount_jail_tree=false`, child roots under `/tmp`), points Immich at the `photos` RWO PVC and raises server/ML limits to 4Gi, relaxes OpenObserve probe timeouts, and disables Argo Dex/ApplicationSet/notifications plus the repo-server GPG fsnotify watcher.
+3. Seed Infisical, apply ESO credentials, create a `longhorn-crypto` StorageClass on kind's local-path provisioner, raise inotify limits, apply Cilium and Envoy Gateway CRDs, and strip stuck Argo hook-finalizers
+4. Envsubst + rewrite `apps/` (including nested Application `repoURL`s) into `/tmp/homeworld-e2e-git`, serve it with `git daemon` on `:9418`
+5. Helm-install Argo CD chart **9.5.9** with `kustomize.buildOptions: --enable-helm`. `skipIfPresent: true` skips the upgrade when `--keep-cluster` reuses a cluster that already has the release (including `failed` / `pending-upgrade`).
+6. Apply generated Applications (`e2e/examples/.generated/app-of-apps.yaml`) pointing at `git://host.docker.internal:9418/homeworld.git`
+7. Wait until those Applications are `status.sync.status=Synced` and `status.health.status=Healthy`
+8. Assert pods, in-scope workloads, ExternalSecrets, CNPG, Dragonfly, and the Envoy Gateway
+
 ```bash
 # From repo root (after building):
 /tmp/e2e validate -f e2e/examples/homeworld.suite.yaml
 /tmp/e2e run -f e2e/examples/homeworld.suite.yaml
 ```
+
+Host extra tools for the homeworld suite: `rsync`, `envsubst` (gettext), `python3`, `git`, `openssl`, `jq`, `curl`.
 
 ### Local Infisical
 
@@ -149,27 +163,59 @@ Images are pinned (`postgres:14.17-alpine`, `redis:7.4.2-alpine`) — never `lat
 
    Discover the gateway: `docker network inspect bridge -f '{{(index .IPAM.Config 0).Gateway}}'`.
 
-5. **Cilium world egress:** homeworld’s External Secrets path is an intentional
+5. The staging hook rewrites `allow-infisical` to port **8080** and adds
+   `host.docker.internal:9418` on `allow-argocd-repository-sources` so ESO and
+   Argo can reach the host-mapped Infisical API and git daemon. The same
+   `extraHosts` mapping is required on Linux for both. Staging also pads the
+   CrowdSec `auto_registration` token to ≥32 characters, leaves OpenCloud
+   `importer-1.0.0` on `/usr/share/nginx/html/importer/`, drops the duplicate
+   RustFS `tenants.rustfs.com` CRD, disables Collabora jails and the Argo
+   repo-server GPG watcher, and disables Argo Dex/ApplicationSet/
+   notifications plus scales CoreDNS to 1 replica. A deploy hook stubs
+   `*.e2e.local` in CoreDNS to the Envoy Gateway ClusterIP (there is no
+   external-dns) and staging sets OpenCloud `COLLABORATION_*_INSECURE=true`
+   so WOPI discovery accepts the self-signed Gateway cert. CrowdSec LAPI's
+   start script downloads hub dest_file data (GeoLite2, CDN/crawler lists)
+   that the image does not ship. Raise inotify on the Docker VM (Lima
+   `sysctl.d`) to 1024 so Grafana/OpenObserve/Collabora/OpenCloud/Syncthing/
+   Radicale/CrowdSec/Forgejo/Immich fit.
+
+6. **Cilium world egress:** homeworld’s External Secrets path is an intentional
    internet exception. Prefer reusing that exception and pointing `hostAPI` at
    the host-mapped URL rather than special-casing Infisical in the Go CLI.
 
-### Seed hooks
+### Seed and staging hooks
 
 | Hook | Role |
 | --- | --- |
-| `hooks/seed-infisical.sh` | Wait for API, bootstrap admin/org/project, UA identity, placeholder secrets |
+| `hooks/seed-infisical.sh` | Wait for API, bootstrap admin/org/project, UA identity, upsert every ExternalSecret key (fails the run if login, project, identity, or a secret upsert fails) |
 | `hooks/apply-eso-credentials.sh` | Apply `universal-auth-credentials` Secret for ESO |
+| `hooks/apply-operator-crds.sh` | Apply prometheus-operator, cert-manager, CNPG, Grafana Operator, Dragonfly, and RustFS CRDs (Argo excludes CRDs) |
+| `hooks/apply-storageclass.sh` | Create `StorageClass/longhorn-crypto` using `rancher.io/local-path` |
+| `hooks/stage-local-repo.sh` | Envsubst tracked placeholders, omit kind-incompatible Applications, patch Infisical/git CNPs, replace ClusterIssuers with self-signed, commit and serve `git://127.0.0.1:9418/homeworld.git` |
+| `hooks/patch-coredns-e2e-domain.sh` | After Envoy exists, stub `*.e2e.local` in CoreDNS to the Gateway ClusterIP and restart CoreDNS |
 
-Infisical first-run APIs vary by version; the seed hook is best-effort and may
-fall back to placeholders. Prefer pinning Infisical CLI **0.41.90** (or newer
-compatible) if you automate bootstrap via CLI instead of curl.
+Staging copies live under `/tmp/homeworld-e2e-git`. The kubectl-applied Application list is `e2e/examples/.generated/app-of-apps.yaml` (gitignored).
 
-### Out of scope (v1)
+### Kind-incompatible apps (omitted from e2e Applications)
 
-- Longhorn on kind (omit or substitute in asserts)
-- Real Cloudflare ACME / B2 / Zigbee
+| Application | Reason |
+| --- | --- |
+| `longhorn-app` | Longhorn needs host disks; PVCs use a local-path class of the same name instead |
+| `velero-app`, `velero-ui-app` | Real Backblaze B2 |
+| `homeassistant-app` | Zigbee / host devices |
+| `external-dns-app` | Cloudflare API |
+| `crowdsec-envoy-bouncer-app` | `ghcr.io/kdwils/envoy-proxy-bouncer` is linux/amd64 only; kind on Apple Silicon cannot run it. Staging omits SecurityPolicy documents that BackendRef the bouncer (failOpen is request-time and still logs ERROR at reconcile). CrowdSec itself (`crowdsec-app`) is included. |
+| `otel-collector-app` | Extra collectors plus Prometheus-receiver RBAC; not required to cover the leaf apps |
+
+TLS uses self-signed ClusterIssuers still named `letsencrypt-prod` / `letsencrypt-staging` so Gateway annotations keep working. There is no public DNS and no HTTP login/WOPI coverage.
+
+### Out of scope
+
+- Longhorn, Cloudflare ACME, B2, Zigbee
+- Browser / OIDC / Collabora WOPI flows
 - Embedding Infisical control-plane logic in Go
-- GitHub Actions wiring
+- Full kind e2e on GitHub Actions (CI runs `go test` and `e2e validate` only)
 
 ## Using from another repo
 
@@ -182,6 +228,8 @@ later without changing the portable contract.
 ```bash
 cd e2e
 go test ./...
+python3 testdata/rewrite/rewrite_test.py
 go build -o /tmp/e2e ./cmd/e2e
 go run ./cmd/e2e validate -f testdata/suite.minimal.yaml
+go run ./cmd/e2e validate -f examples/homeworld.suite.yaml
 ```

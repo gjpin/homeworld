@@ -1,0 +1,137 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: forgejo-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/forgejo"
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/longhorn"
+    targetRevision: HEAD
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crowdsec-envoy-bouncer-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+spec:
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/crowdsec-envoy-bouncer"
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: otel-collector-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+spec:
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/otel-collector"
+    targetRevision: HEAD
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: authelia-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+spec:
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/authelia"
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: immich-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+spec:
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/immich"
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+spec:
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/grafana"
+    targetRevision: HEAD
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: opencloud-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+spec:
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/opencloud"
+    targetRevision: HEAD
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crowdsec-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+spec:
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/crowdsec"
+    targetRevision: HEAD

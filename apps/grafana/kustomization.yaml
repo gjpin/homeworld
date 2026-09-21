@@ -63,9 +63,11 @@ configMapGenerator:
     files:
       - json=dashboards/otel-collector.json
 resources:
+  - 0_network_policy.yaml
   - 1_secrets.yaml
   - 2_gateway.yaml
   - 3_grafana.yaml
   - 4_service_monitor.yaml
   - 5_dashboards.yaml
   - 6_openobserve_datasource.yaml
+  - 7_security_policy.yaml

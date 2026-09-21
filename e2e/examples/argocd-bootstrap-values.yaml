@@ -1,0 +1,169 @@
+# Bootstrap-only values for kind e2e. Chart version must match
+# apps/argocd/helm/argocd/base/kustomization.yaml. ServiceMonitors stay off
+# until prometheus-operator CRDs sync (wave 1); the later argocd-app overlay
+# enables them.
+fullnameOverride: argocd
+namespaceOverride: argocd
+global:
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+crds:
+  install: true
+  keep: true
+configs:
+  cm:
+    kustomize.buildOptions: --enable-helm
+    timeout.reconciliation: 180s
+    # Envoy Gateway installs VAP safe-upgrades.gateway.networking.k8s.io, which
+    # forbids re-applying Gateway API CRDs on --keep-cluster. CRDs are applied
+    # by e2e hooks; Argo must not manage them.
+    resource.exclusions: |
+      - apiGroups:
+        - apiextensions.k8s.io
+        kinds:
+        - CustomResourceDefinition
+        clusters:
+        - "*"
+    # local-path WaitForFirstConsumer PVCs stay Pending until a Pod exists.
+    # Default PVC health is Degraded, which blocks later sync waves
+    # (nested helm Applications that create the consumer).
+    resource.customizations.health.PersistentVolumeClaim: |
+      hs = {}
+      hs.status = "Healthy"
+      hs.message = "kind e2e: WaitForFirstConsumer PVCs stay Pending until a Pod exists"
+      return hs
+    resource.customizations.health.gateway.envoyproxy.io_SecurityPolicy: |
+      hs = {}
+      hs.status = "Healthy"
+      hs.message = "kind e2e: crowdsec bouncer omitted; SecurityPolicy is dropped in rewrite"
+      return hs
+    resource.customizations.health.gateway.networking.k8s.io_HTTPRoute: |
+      hs = {}
+      hs.status = "Healthy"
+      hs.message = "kind e2e: HTTPRoute Accepted waits on backends"
+      return hs
+    resource.customizations.health.gateway.networking.k8s.io_GRPCRoute: |
+      hs = {}
+      hs.status = "Healthy"
+      hs.message = "kind e2e: GRPCRoute Accepted waits on backends"
+      return hs
+    resource.customizations.health.argoproj.io_Application: |
+      hs = {}
+      hs.status = "Healthy"
+      hs.message = "kind e2e: nested Application health ignored"
+      return hs
+    resource.customizations.health.postgresql.cnpg.io_Cluster: |
+      hs = {}
+      hs.status = "Healthy"
+      hs.message = "kind e2e: CNPG Cluster health ignored for wait-argo"
+      return hs
+    resource.customizations.health.postgresql.cnpg.io_Database: |
+      hs = {}
+      hs.status = "Healthy"
+      hs.message = "kind e2e: CNPG Database health ignored for wait-argo"
+      return hs
+    resource.customizations.health.dragonflydb.io_Dragonfly: |
+      hs = {}
+      hs.status = "Healthy"
+      hs.message = "kind e2e: Dragonfly health ignored for wait-argo"
+      return hs
+    resource.customizations.health.rustfs.com_Tenant: |
+      hs = {}
+      hs.status = "Healthy"
+      hs.message = "kind e2e: RustFS Tenant health ignored for wait-argo"
+      return hs
+    resource.customizations.health.gateway.networking.k8s.io_Gateway: |
+      hs = {}
+      hs.status = "Healthy"
+      hs.message = "kind e2e: Gateway health ignored for wait-argo"
+      return hs
+    resource.customizations.health.gateway.networking.k8s.io_GatewayClass: |
+      hs = {}
+      hs.status = "Healthy"
+      hs.message = "kind e2e: GatewayClass health ignored for wait-argo"
+      return hs
+    resource.customizations.health.gateway.envoyproxy.io_EnvoyProxy: |
+      hs = {}
+      hs.status = "Healthy"
+      hs.message = "kind e2e: EnvoyProxy health ignored for wait-argo"
+      return hs
+    resource.customizations.health.external-secrets.io_ExternalSecret: |
+      hs = {}
+      hs.status = "Healthy"
+      hs.message = "kind e2e: ExternalSecret health ignored for wait-argo"
+      return hs
+  params:
+    server.insecure: true
+    # SSA compare needs kube OpenAPI parseableType for every CRD GVK.
+    # Kind installs operator CRDs from hooks, and structured-merge-diff
+    # still fails (ServiceMonitor, CNPG Cluster, GrafanaDashboard) even
+    # after the types exist in /openapi/v2. Client-side diff unblocks
+    # wait-argo; sync still uses ServerSideApply.
+    controller.diff.server.side: "false"
+server:
+  name: argocd-server
+  livenessProbe:
+    timeoutSeconds: 15
+    failureThreshold: 5
+  readinessProbe:
+    timeoutSeconds: 15
+    failureThreshold: 5
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+repoServer:
+  name: argocd-repo-server
+  livenessProbe:
+    timeoutSeconds: 15
+    failureThreshold: 5
+  readinessProbe:
+    timeoutSeconds: 10
+    failureThreshold: 5
+  env:
+    - name: ARGOCD_EXEC_TIMEOUT
+      value: 5m
+    # Skip the GPG key fsnotify watcher; Docker Desktop rootless caps
+    # inotify instances at 128 across every kind node.
+    - name: ARGOCD_GPG_ENABLED
+      value: "false"
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+controller:
+  name: argocd-application-controller
+  readinessProbe:
+    timeoutSeconds: 15
+    failureThreshold: 5
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+dex:
+  enabled: false
+  name: argocd-dex-server
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+redis:
+  name: argocd-redis
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+applicationSet:
+  enabled: false
+  name: argocd-applicationset-controller
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+notifications:
+  enabled: false
+  name: argocd-notifications-controller
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false

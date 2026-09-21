@@ -14,19 +14,19 @@ import (
 	"github.com/gjpin/homeworld/e2e/internal/assert"
 	"github.com/gjpin/homeworld/e2e/internal/cluster"
 	"github.com/gjpin/homeworld/e2e/internal/config"
-	"github.com/gjpin/homeworld/e2e/internal/deps"
 	"github.com/gjpin/homeworld/e2e/internal/deploy"
+	"github.com/gjpin/homeworld/e2e/internal/deps"
 	"github.com/gjpin/homeworld/e2e/internal/kube"
 	"github.com/gjpin/homeworld/e2e/internal/report"
 )
 
 type globalFlags struct {
-	suiteFile  string
-	kubeconfig string
-	context    string
-	timeout    time.Duration
-	failFast   bool
-	output     string
+	suiteFile   string
+	kubeconfig  string
+	context     string
+	timeout     time.Duration
+	failFast    bool
+	output      string
 	keepCluster bool
 	keepDeps    bool
 }
@@ -92,7 +92,7 @@ func newRunCmd(g *globalFlags) *cobra.Command {
 			defer cancel()
 
 			depsMgr := &deps.Manager{Suite: suite}
-			clusterMgr := &cluster.Manager{Suite: suite, Timeout: g.timeout}
+			clusterMgr := &cluster.Manager{Suite: suite, Timeout: g.timeout, KeepCluster: g.keepCluster}
 
 			cleanup := func(failed bool) {
 				if failed && g.keepCluster {
@@ -159,7 +159,7 @@ func newRunCmd(g *globalFlags) *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().BoolVar(&g.keepCluster, "keep-cluster", false, "keep kind cluster on failure")
+	cmd.Flags().BoolVar(&g.keepCluster, "keep-cluster", false, "reuse an existing kind cluster and keep it on failure")
 	cmd.Flags().BoolVar(&g.keepDeps, "keep-deps", false, "keep compose deps on failure")
 	return cmd
 }

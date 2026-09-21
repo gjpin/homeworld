@@ -9,6 +9,7 @@ import (
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/gjpin/homeworld/e2e/internal/config"
@@ -117,7 +118,7 @@ func (r *Runner) runStep(ctx context.Context, step config.DeployStep) error {
 	case step.Helm != nil:
 		return r.helmInstall(ctx, step.Helm)
 	case step.Wait != nil:
-		return r.waitStep(ctx, step.Wait)
+		return r.waitStep(ctx, step.Name, step.Wait)
 	case step.Hook != nil:
 		return r.runHook(ctx, *step.Hook)
 	default:
@@ -139,6 +140,10 @@ func (r *Runner) helmInstall(ctx context.Context, h *config.HelmStep) error {
 	timeout, err := config.ParseDuration(h.Timeout, 10*time.Minute)
 	if err != nil {
 		return err
+	}
+	if shouldSkipHelm(h.SkipIfPresent, helmReleaseExists(ctx, r.Suite.WorkDir(), h)) {
+		fmt.Fprintf(os.Stderr, "[helm] %s already present; skipping upgrade\n", h.ReleaseName)
+		return nil
 	}
 	chart := h.Chart
 	if !strings.Contains(chart, "/") && !strings.HasPrefix(chart, ".") && h.RepoURL == "" {
@@ -180,10 +185,29 @@ func (r *Runner) helmInstall(ctx context.Context, h *config.HelmStep) error {
 	return runCmd(ctx, r.Suite.WorkDir(), nil, "helm", args...)
 }
 
-func (r *Runner) waitStep(ctx context.Context, w *config.WaitStep) error {
+func shouldSkipHelm(skipIfPresent, exists bool) bool {
+	return skipIfPresent && exists
+}
+
+func helmReleaseExists(ctx context.Context, dir string, h *config.HelmStep) bool {
+	args := []string{"status", h.ReleaseName}
+	if h.Namespace != "" {
+		args = append(args, "--namespace", h.Namespace)
+	}
+	return runCmd(ctx, dir, nil, "helm", args...) == nil
+}
+
+func (r *Runner) waitStep(ctx context.Context, name string, w *config.WaitStep) error {
 	timeout, err := config.ParseDuration(w.Timeout, 15*time.Minute)
 	if err != nil {
 		return err
+	}
+	interval, err := config.ParseDuration(w.Interval, 15*time.Second)
+	if err != nil {
+		return err
+	}
+	if interval < time.Second {
+		interval = time.Second
 	}
 	gvr := schema.GroupVersionResource{
 		Group:    w.Group,
@@ -191,17 +215,28 @@ func (r *Runner) waitStep(ctx context.Context, w *config.WaitStep) error {
 		Resource: w.Resource,
 	}
 
+	fmt.Fprintf(os.Stderr, "[wait] %s: polling timeout=%s interval=%s\n", name, timeout, interval)
 	deadline := time.Now().Add(timeout)
+	var lastLog time.Time
 	for {
-		if err := r.checkWait(ctx, gvr, w); err == nil {
+		actx, cancel := context.WithTimeout(ctx, 30*time.Second)
+		err := r.checkWait(actx, gvr, w)
+		cancel()
+		if err == nil {
+			fmt.Fprintf(os.Stderr, "[wait] %s: ok\n", name)
 			return nil
-		} else if time.Now().After(deadline) {
+		}
+		if time.Now().After(deadline) {
 			return fmt.Errorf("wait timeout: %w", err)
+		}
+		if lastLog.IsZero() || time.Since(lastLog) >= time.Minute {
+			fmt.Fprintf(os.Stderr, "[wait] %s: still waiting (%s left): %v\n", name, time.Until(deadline).Round(time.Second), err)
+			lastLog = time.Now()
 		}
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-time.After(5 * time.Second):
+		case <-time.After(interval):
 		}
 	}
 }
@@ -217,7 +252,7 @@ func (r *Runner) checkWait(ctx context.Context, gvr schema.GroupVersionResource,
 		if err != nil {
 			return err
 		}
-		return conditionsOK(u, w.Conditions)
+		return resourceMatches(u, w.Conditions, w.Fields)
 	}
 
 	list, err := listResources(ctx, r.Clients, gvr, w.Namespace, listOpts)
@@ -228,11 +263,18 @@ func (r *Runner) checkWait(ctx context.Context, gvr schema.GroupVersionResource,
 		return fmt.Errorf("no resources matching wait criteria")
 	}
 	for _, u := range list {
-		if err := conditionsOK(u, w.Conditions); err != nil {
+		if err := resourceMatches(u, w.Conditions, w.Fields); err != nil {
 			return fmt.Errorf("%s: %w", u.GetName(), err)
 		}
 	}
 	return nil
+}
+
+func resourceMatches(obj *unstructured.Unstructured, conditions []config.WaitCondition, fields []config.WaitField) error {
+	if err := conditionsOK(obj, conditions); err != nil {
+		return err
+	}
+	return fieldsOK(obj, fields)
 }
 
 func runCmd(ctx context.Context, dir string, env []string, name string, args ...string) error {

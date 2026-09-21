@@ -1,0 +1,13 @@
+# Kind substitute for the homelab encrypted Longhorn class. Provisioner is
+# kind's bundled local-path, which requires WaitForFirstConsumer (Immediate
+# fails with "no node was specified"). Argo treats Pending PVCs as Healthy
+# via resource.customizations in the e2e Argo CD config so wave 0 does not
+# block nested helm Applications.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: longhorn-crypto
+provisioner: rancher.io/local-path
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true

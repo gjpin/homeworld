@@ -1,0 +1,28 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-kubernetes-api
+  namespace: external-secrets
+spec:
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-infisical
+  namespace: external-secrets
+spec:
+  egress:
+    - toFQDNs:
+        - matchName: "host.docker.internal"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

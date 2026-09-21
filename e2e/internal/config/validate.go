@@ -182,9 +182,19 @@ func (d *Deploy) validate() error {
 			if step.Wait.Name == "" && step.Wait.Selector == "" {
 				errs = append(errs, prefix+".wait requires name or selector")
 			}
+			for j, f := range step.Wait.Fields {
+				if strings.TrimSpace(f.Path) == "" || f.Value == "" {
+					errs = append(errs, fmt.Sprintf("%s.wait.fields[%d] requires path and value", prefix, j))
+				}
+			}
 			if step.Wait.Timeout != "" {
 				if _, err := ParseDuration(step.Wait.Timeout, 0); err != nil {
 					errs = append(errs, prefix+".wait.timeout: "+err.Error())
+				}
+			}
+			if step.Wait.Interval != "" {
+				if _, err := ParseDuration(step.Wait.Interval, 0); err != nil {
+					errs = append(errs, prefix+".wait.interval: "+err.Error())
 				}
 			}
 		}
@@ -245,8 +255,19 @@ func (a *Assert) validate() error {
 		if check.ResourceCondition != nil {
 			kinds++
 			rc := check.ResourceCondition
-			if rc.APIVersion == "" || rc.Kind == "" || rc.Name == "" || rc.Condition == "" || rc.Status == "" {
-				errs = append(errs, prefix+".resourceCondition requires apiVersion, kind, name, condition, status")
+			if rc.APIVersion == "" || rc.Kind == "" {
+				errs = append(errs, prefix+".resourceCondition requires apiVersion and kind")
+			}
+			if rc.Condition == "" && len(rc.Fields) == 0 {
+				errs = append(errs, prefix+".resourceCondition requires condition or fields")
+			}
+			if rc.Condition != "" && rc.Status == "" {
+				errs = append(errs, prefix+".resourceCondition.condition requires status")
+			}
+			for j, f := range rc.Fields {
+				if strings.TrimSpace(f.Path) == "" || f.Value == "" {
+					errs = append(errs, fmt.Sprintf("%s.resourceCondition.fields[%d] requires path and value", prefix, j))
+				}
 			}
 		}
 		if check.GatewayReady != nil {

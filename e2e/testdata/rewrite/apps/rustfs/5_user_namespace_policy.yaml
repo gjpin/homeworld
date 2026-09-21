@@ -1,0 +1,13 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: rustfs-user-namespaces
+spec:
+  matchConditions:
+    - name: user-namespaces-not-already-enabled
+      expression: "!has(object.spec.hostUsers) || object.spec.hostUsers"
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          Object{spec: Object.spec{hostUsers: false}}

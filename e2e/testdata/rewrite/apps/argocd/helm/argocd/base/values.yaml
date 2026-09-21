@@ -1,0 +1,15 @@
+configs:
+  cm:
+    kustomize.buildOptions: --enable-helm
+server:
+  name: argocd-server
+repoServer:
+  name: argocd-repo-server
+controller:
+  name: argocd-application-controller
+dex:
+  name: argocd-dex-server
+applicationSet:
+  name: argocd-applicationset-controller
+notifications:
+  name: argocd-notifications-controller

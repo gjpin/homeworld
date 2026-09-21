@@ -18,11 +18,24 @@ spec:
 
   cluster:
     name: homeworld-e2e
+    kubeVersion: v1.36.1
     kindConfig: |
       kind: Cluster
       apiVersion: kind.x-k8s.io/v1alpha4
       networking:
-        disableDefaultCNI: true
+        # iptables-restore hits sendmsg EMSGSIZE ("Message too long") once
+        # this suite's Service count is installed; kube-proxy then leaves
+        # stale ClusterIP DNATs after Recreate (Grafana operator ping dies).
+        kubeProxyMode: nftables
+      # Keep kindnet. Rootless Docker (Lima or Desktop) cannot mount bpffs,
+      # so the Cilium datapath cannot start. The 1.17 helm chart does not
+      # ship CRDs; apply-cilium-crds (and kind.go) apply them from the Git
+      # tag. The same engine cannot idmap overlayfs, so rewrite-staging
+      # sets hostUsers: true (production stays hostUsers: false). A second
+      # kind node doubles kubelet/containerd inotify usage. Raise
+      # fs.inotify.max_user_instances on the Docker VM (Lima) to 1024
+      # before covering Grafana/OpenObserve/Collabora/OpenCloud/Syncthing/
+      # Radicale/CrowdSec/Forgejo/Immich.
       nodes:
       - role: control-plane
         kubeadmConfigPatches:
@@ -34,16 +47,17 @@ spec:
         # On Linux, also add extraHosts mapping to the docker bridge gateway IP
         # (see e2e/README.md "Kind → Infisical reachability").
         extraPortMappings: []
-      - role: worker
     cilium:
       chartVersion: "1.17.2"
       namespace: kube-system
       values:
-        image.pullPolicy: IfNotPresent
-        ipam.mode: kubernetes
-        operator.replicas: "1"
-        kubeProxyReplacement: "false"
-      waitTimeout: 10m
+        agent: "false"
+        operator.enabled: "false"
+        envoy.enabled: "false"
+        hubble.enabled: "false"
+        cni.install: "false"
+        crds.install: "true"
+      waitTimeout: 5m
 
   prepare:
     nodeLabels:
@@ -62,13 +76,69 @@ spec:
         timeout: 5m
         env:
           INFISICAL_HOST: http://host.docker.internal:8080
+      - name: apply-eso-crds
+        command: ["./e2e/examples/hooks/apply-eso-crds.sh"]
+        timeout: 2m
+      - name: apply-operator-crds
+        command: ["./e2e/examples/hooks/apply-operator-crds.sh"]
+        timeout: 5m
+      - name: apply-storageclass
+        command: ["./e2e/examples/hooks/apply-storageclass.sh"]
+        timeout: 1m
+      - name: apply-cilium-crds
+        command: ["./e2e/examples/hooks/apply-cilium-crds.sh"]
+        timeout: 2m
+        env:
+          CILIUM_VERSION: "1.17.2"
+      - name: raise-inotify-limits
+        command: ["./e2e/examples/hooks/raise-inotify-limits.sh"]
+        timeout: 1m
+      - name: apply-envoy-gateway-crds
+        command: ["./e2e/examples/hooks/apply-envoy-gateway-crds.sh"]
+        timeout: 2m
+      - name: clear-terminating-hooks
+        command: ["./e2e/examples/hooks/clear-terminating-hooks.sh"]
+        timeout: 2m
+      - name: stage-local-repo
+        command: ["./e2e/examples/hooks/stage-local-repo.sh"]
+        timeout: 10m
+        env:
+          INFISICAL_HOST: http://host.docker.internal:8080
+          INFISICAL_HOSTNAME: host.docker.internal
+          INFISICAL_PROJECT_SLUG: homeworld
+          INFISICAL_ENVIRONMENT_SLUG: prod
 
   deploy:
-    timeout: 45m
+    timeout: 120m
     steps:
+      - name: bootstrap-argocd
+        helm:
+          releaseName: argocd
+          chart: argo-cd
+          repoURL: https://argoproj.github.io/argo-helm
+          version: "9.5.9"
+          namespace: argocd
+          createNamespace: true
+          wait: true
+          timeout: 10m
+          skipIfPresent: true
+          valuesFiles:
+            - e2e/examples/argocd-bootstrap-values.yaml
       - name: apply-root
         apply:
-          paths: ["apps/app-of-apps.yaml"]
+          paths: ["e2e/examples/.generated/app-of-apps.yaml"]
+      - name: refresh-argo
+        hook:
+          name: refresh-argo
+          command: ["./e2e/examples/hooks/refresh-argo.sh"]
+          timeout: 5m
+      - name: patch-coredns
+        hook:
+          name: patch-coredns-e2e-domain
+          command: ["./e2e/examples/hooks/patch-coredns-e2e-domain.sh"]
+          timeout: 5m
+          env:
+            BASE_DOMAIN: e2e.local
       - name: wait-argo
         wait:
           group: argoproj.io
@@ -76,24 +146,53 @@ spec:
           resource: applications
           namespace: argocd
           selector: "app.kubernetes.io/part-of=homeworld"
-          conditions:
-            - type: Synced
-              status: "True"
-            - type: Healthy
-              status: "True"
-          timeout: 40m
+          fields:
+            - path: status.sync.status
+              value: Synced
+            - path: status.health.status
+              value: Healthy
+          timeout: 90m
+          interval: 15s
 
   assert:
     timeout: 20m
     checks:
       - name: pods
         podsReady:
-          excludeNamespaces: ["kube-system"]
+          excludeNamespaces:
+            - kube-system
+            # Still-omitted apps (Longhorn/Velero/HA/external-dns/otel)
+            # can linger Terminating on --keep-cluster.
+            - longhorn-system
+            - velero
+            - homeassistant
+            - external-dns
+            - otel-collector
+            - otel-collector-node
           ignoreCompletedJobs: true
       - name: workloads
         workloadsReady:
           kinds: ["Deployment", "StatefulSet", "DaemonSet"]
-          namespaces: ["argocd", "external-secrets", "cert-manager"]
+          namespaces:
+            - argocd
+            - external-secrets
+            - cert-manager
+            - envoy-gateway
+            - cloudnative-pg
+            - dragonfly-operator
+            - rustfs-operator
+            - rustfs
+            - authelia
+            - grafana-operator
+            - grafana
+            - openobserve
+            - collabora
+            - opencloud
+            - syncthing
+            - radicale
+            - crowdsec
+            - forgejo
+            - immich
       - name: eso-store
         resourceCondition:
           apiVersion: external-secrets.io/v1
@@ -102,4 +201,71 @@ spec:
           condition: Ready
           status: "True"
           timeout: 10m
-      # Longhorn/kind, Cloudflare ACME, B2, and Zigbee remain out of scope for v1.
+      - name: external-secrets
+        resourceCondition:
+          apiVersion: external-secrets.io/v1
+          kind: ExternalSecret
+          condition: Ready
+          status: "True"
+          timeout: 10m
+      - name: cnpg-authelia
+        resourceCondition:
+          apiVersion: postgresql.cnpg.io/v1
+          kind: Cluster
+          name: authelia
+          namespace: authelia
+          condition: Ready
+          status: "True"
+          timeout: 10m
+      - name: dragonfly-authelia
+        resourceCondition:
+          apiVersion: dragonflydb.io/v1alpha1
+          kind: Dragonfly
+          name: dragonfly
+          namespace: authelia
+          fields:
+            - path: status.phase
+              value: Ready
+          timeout: 10m
+      - name: cnpg-immich
+        resourceCondition:
+          apiVersion: postgresql.cnpg.io/v1
+          kind: Cluster
+          name: immich
+          namespace: immich
+          condition: Ready
+          status: "True"
+          timeout: 10m
+      - name: dragonfly-immich
+        resourceCondition:
+          apiVersion: dragonflydb.io/v1alpha1
+          kind: Dragonfly
+          name: dragonfly
+          namespace: immich
+          fields:
+            - path: status.phase
+              value: Ready
+          timeout: 10m
+      - name: cnpg-forgejo
+        resourceCondition:
+          apiVersion: postgresql.cnpg.io/v1
+          kind: Cluster
+          name: forgejo
+          namespace: forgejo
+          condition: Ready
+          status: "True"
+          timeout: 10m
+      - name: cnpg-crowdsec
+        resourceCondition:
+          apiVersion: postgresql.cnpg.io/v1
+          kind: Cluster
+          name: crowdsec
+          namespace: crowdsec
+          condition: Ready
+          status: "True"
+          timeout: 10m
+      - name: gateway-envoy
+        gatewayReady:
+          name: envoy
+          namespace: envoy-gateway
+          timeout: 10m

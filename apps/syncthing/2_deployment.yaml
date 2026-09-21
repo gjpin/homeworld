@@ -25,6 +25,42 @@ spec:
         runAsUser: 1000
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+        - name: disable-nat
+          image: docker.io/syncthing/syncthing:2.0.16
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              cfg=/var/syncthing/config/config.xml
+              mkdir -p /var/syncthing/config
+              if [ ! -f "$cfg" ]; then
+                syncthing generate --config=/var/syncthing/config --no-port-probing
+              fi
+              if [ -f "$cfg" ]; then
+                sed -i 's|<natEnabled>true</natEnabled>|<natEnabled>false</natEnabled>|' "$cfg"
+              fi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsGroup: 1000
+            runAsNonRoot: true
+            runAsUser: 1000
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+              ephemeral-storage: 2Gi
+          volumeMounts:
+            - mountPath: /var/syncthing
+              name: syncthing
       containers:
         - name: syncthing
           image: docker.io/syncthing/syncthing:2.0.16
