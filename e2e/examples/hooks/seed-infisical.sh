@@ -339,7 +339,12 @@ seed_secrets() {
     "    password: '\$argon2id\$v=19\$m=65536,t=3,p=2\$BpLnfgDsc2WD8F2q\$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM'" \
     '    email: e2e@example.com' \
     '    groups:' \
-    '      - opencloud-admin')
+    '      - opencloud-admin' \
+    '      - grafana-admin' \
+    '      - forgejo-admin' \
+    '      - argocd-admin' \
+    '      - immich-admin' \
+    '      - consoleAdmin')
 
   put_secret "${token}" "${project_id}" "/grafana/GF_SECURITY_ADMIN_USER" "admin"
   put_secret "${token}" "${project_id}" "/grafana/GF_SECURITY_ADMIN_PASSWORD" "e2e-grafana"
@@ -351,6 +356,12 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/authelia/STORAGE_ENCRYPTION_KEY" "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_HMAC_SECRET" "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_JWK_RS256" "${authelia_jwk}"
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_GRAFANA" "e2e-oidc-grafana"
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_FORGEJO" "e2e-oidc-forgejo"
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_ARGOCD" "e2e-oidc-argocd"
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_IMMICH" "e2e-oidc-immich"
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_VELERO_UI" "e2e-oidc-velero-ui"
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_RUSTFS" "e2e-oidc-rustfs"
   put_secret "${token}" "${project_id}" "/authelia/SMTP_PASSWORD" "e2e-authelia-smtp"
   put_secret "${token}" "${project_id}" "/authelia/USERS_DATABASE" "${authelia_users}"
   put_secret "${token}" "${project_id}" "/immich/POSTGRES_USERNAME" "immich"
