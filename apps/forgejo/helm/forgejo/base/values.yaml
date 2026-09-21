@@ -5,12 +5,39 @@ postgresql-ha:
 postgresql:
   enabled: false
 gitea:
+  admin:
+    username: ""
+    password: ""
+    existingSecret: ""
+  oauth:
+    - name: Authelia
+      provider: openidConnect
+      existingSecret: forgejo-oauth
+      autoDiscoverUrl: https://auth.${BASE_DOMAIN}/.well-known/openid-configuration
+      groupClaimName: groups
+      adminGroup: forgejo-admin
   config:
     database:
       DB_TYPE: postgres
       HOST: forgejo-rw.forgejo.svc.cluster.local:5432
       NAME: forgejo
       USER: forgejo
+    server:
+      DOMAIN: git.${BASE_DOMAIN}
+      ROOT_URL: https://git.${BASE_DOMAIN}/
+      SSH_DOMAIN: git.${BASE_DOMAIN}
+    service:
+      ENABLE_INTERNAL_SIGNIN: false
+      ENABLE_BASIC_AUTHENTICATION: false
+      SHOW_REGISTRATION_BUTTON: false
+      ALLOW_ONLY_EXTERNAL_REGISTRATION: true
+      DISABLE_REGISTRATION: false
+      REGISTER_EMAIL_CONFIRM: false
+    oauth2_client:
+      ENABLE_AUTO_REGISTRATION: true
+      USERNAME: preferred_username
+      OPENID_CONNECT_SCOPES: profile email groups
+      ACCOUNT_LINKING: disabled
   additionalConfigFromEnvs:
     - name: FORGEJO__DATABASE__PASSWD
       valueFrom:

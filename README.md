@@ -339,6 +339,12 @@ Create all of the following values in Infisical before syncing Authelia:
 * `/authelia/STORAGE_ENCRYPTION_KEY`
 * `/authelia/OIDC_HMAC_SECRET`
 * `/authelia/OIDC_JWK_RS256`
+* `/authelia/OIDC_CLIENT_SECRET_GRAFANA`
+* `/authelia/OIDC_CLIENT_SECRET_FORGEJO`
+* `/authelia/OIDC_CLIENT_SECRET_ARGOCD`
+* `/authelia/OIDC_CLIENT_SECRET_IMMICH`
+* `/authelia/OIDC_CLIENT_SECRET_VELERO_UI`
+* `/authelia/OIDC_CLIENT_SECRET_RUSTFS`
 * `/authelia/SMTP_PASSWORD`
 * `/authelia/USERS_DATABASE`
 
@@ -372,10 +378,13 @@ users:
 The allowed OpenCloud groups, from highest to lowest precedence, are
 `opencloud-admin`, `opencloud-spaceadmin`, `opencloud-user`, and
 `opencloud-user-light`. Users without one of these groups cannot authorize an
-OpenCloud client. To change a password, generate a new Argon2id hash, replace
-the hash inside `/authelia/USERS_DATABASE`, wait for the External Secrets
-refresh, and restart the Authelia Deployment. Self-service password reset and
-password change are disabled.
+OpenCloud client. Other Authelia clients use `grafana-admin`, `forgejo-admin`,
+`argocd-admin`, `immich-admin`, and `consoleAdmin`. Create those groups in
+`/authelia/USERS_DATABASE` before sync. `consoleAdmin` must keep that exact
+name. To change a password, generate a new Argon2id hash, replace the hash
+inside `/authelia/USERS_DATABASE`, wait for the External Secrets refresh, and
+restart the Authelia Deployment. Self-service password reset and password
+change are disabled.
 
 Create `/immich/DRAGONFLY_PASSWORD` before syncing Immich.
 
@@ -399,6 +408,94 @@ tokens, remember consent for one week, and issue refresh tokens for 30 days.
 Authelia limits authenticated elevation/email initiation per source IP to three
 requests per hour and five per day. The SMTP provider's own quota remains the
 account-wide backstop.
+
+# Authentication
+
+Authelia at `https://auth.${BASE_DOMAIN}` is the identity provider. An app that
+speaks OIDC or OAuth2 is registered as a confidential Authorization Code
+client with S256 PKCE, `client_secret_post`, RS256 access tokens, the built-in
+`two_factor` policy, and pre-configured consent for one week. Those apps do
+not keep their built-in login form. Apps that cannot speak OIDC stay on their
+existing sign-in, or have no user login. Browser redirects do not need pod
+egress. Pods that call Authelia may connect only to `auth.${BASE_DOMAIN}` on
+TCP 443.
+
+Client ids are the literals `grafana`, `forgejo`, `argocd`, `immich`,
+`velero-ui`, and `rustfs`. Each client secret above is one random line shared
+by Authelia and that app. Do not wrap it in quotes, add a backslash, or leave
+a trailing newline: Authelia templates the file and then parses YAML. The same
+claims policy, `apps`, puts `preferred_username`, `email`, `name`, and
+`groups` on ID and access tokens. Immich uses a separate policy and the
+`immich` scope so its `immich_role` claim does not change OpenCloud.
+
+| Application | Authelia OIDC | Sign-in |
+| --- | --- | --- |
+| prometheus-operator-crd | No | No user login. |
+| envoy-gateway | No | No user login. `envoy.${BASE_DOMAIN}` is the admin listener, not an OIDC app. |
+| cert-manager | No | No user login. |
+| external-dns | No | No user login. |
+| longhorn | No | The UI has no login. |
+| velero | No | Controller only. The UI is `velero-ui`. |
+| velero-ui | Yes | Authelia. Built-in basic auth is disabled. Any signed-in user can manage every backup; there is no admin group. |
+| argocd | Yes | Authelia. Local admin and Dex are disabled. `argocd-admin` is admin; everyone else is read-only. |
+| cloudnative-pg | No | No user login. |
+| dragonfly-operator | No | No user login. |
+| rustfs-operator | No | The operator uses its service account. Console login belongs to the `rustfs` Tenant. |
+| external-secrets | No | No user login. |
+| crowdsec | No | No user login. |
+| crowdsec-envoy-bouncer | No | Machine bouncer, not a user login. |
+| grafana-operator | No | No user login. Grafana itself is a separate app. |
+| rustfs | Yes | Console SSO through Authelia. S3 still uses the root access keys. `consoleAdmin` maps to the built-in console admin policy. |
+| openobserve | No | The open-source build has no SSO. Enterprise SSO expects Dex, which this repo does not add. |
+| authelia | No | This is the identity provider. |
+| homeassistant | No | Home Assistant 2025.7.0, Mosquitto 2.0.21, and Zigbee2MQTT 2.5.1 have no built-in OIDC. |
+| radicale | No | No web UI. OpenCloud proxies CalDAV and CardDAV and supplies the user. |
+| syncthing | No | Password or LDAP only. |
+| immich | Yes | Authelia. Password login is disabled. `immich-admin` is an Immich admin; everyone else is a user. |
+| otel-collector | No | No user login. |
+| forgejo | Yes | Authelia. Local sign-in, basic auth, and the local admin user are disabled. `forgejo-admin` is a site admin. Git HTTPS still accepts personal tokens; SSH is unchanged. |
+| grafana | Yes | Authelia. The password form is disabled. `grafana-admin` is a Grafana server admin; everyone else is a Viewer. The admin password secret remains so the process can start. |
+| collabora | No | The admin UI is HTTP basic auth. Document editing uses OpenCloud WOPI, which already authenticated the user. |
+| opencloud | Yes | Already an Authelia client (`web`, `OpenCloudDesktop`, `OpenCloudAndroid`, `OpenCloudIOS`). Unchanged. |
+
+Grafana's client secret is only the `GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET`
+environment variable. It is not written into the Grafana custom resource.
+
+Argo CD resolves `clientSecret: $argocd-oidc:clientSecret` from the Secret
+`argocd-oidc`. Leave that dollar reference intact. Unrestricted `envsubst`
+would remove `$argocd`; the documented substitution is only
+`envsubst < secrets.yaml`. The CLI redirect
+`http://localhost:8085/auth/callback` is registered beside
+`https://argocd.${BASE_DOMAIN}/auth/callback`.
+
+Forgejo and Authelia are both sync wave 6. Forgejo's init container registers
+the OAuth source by reading Authelia's discovery document, so it can restart
+until Authelia is up. The callback path uses the source name `Authelia`.
+
+Immich's config file contains only OAuth and password-login settings. Setting
+`IMMICH_CONFIG_FILE` stops the admin UI from editing settings that file does
+not list. Do not add the storage template: its `{{y}}` markers are Go template
+actions, and External Secrets would consume them. Web callbacks are
+`https://photos.${BASE_DOMAIN}/auth/login` and `/user-settings`. The mobile
+callback is `app.immich:///oauth-callback`.
+
+Velero UI keeps the old basic-auth keys in `velero-ui-auth` and does not put
+them in the environment. Its chart does not mount a policy file, so a
+signed-in user with no matching policy receives full access
+(`u,*,manage,all`).
+
+RustFS is sync wave 5 and Authelia is wave 6. The pinned image discovers the
+issuer once, at process start, and logs the failure instead of exiting. S3
+with the root keys keeps working. Restart the Tenant pod after Authelia is up;
+console SSO is not retried inside the same process. Do not set
+`RUSTFS_IDENTITY_OPENID_ROLE_POLICY`: that grants console admin to every user.
+Group names are used as policy names, so the admin group has to be the
+built-in name `consoleAdmin`. The issuer is `https://auth.${BASE_DOMAIN}` with
+no trailing slash. Both
+`https://console.rustfs.${BASE_DOMAIN}/rustfs/admin/v3/oidc/callback/default`
+and the same path without `/default` are registered, because this beta has
+returned 403 for an unsigned callback and has ignored the username claim on
+older builds.
 
 # OpenCloud calendars and contacts
 

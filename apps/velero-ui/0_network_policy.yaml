@@ -74,3 +74,23 @@ spec:
         - ports:
             - port: "3000"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-velero-ui-authelia
+  namespace: velero-ui
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: velero-ui
+      k8s:app.kubernetes.io/instance: velero-ui
+  egress:
+    - toFQDNs:
+        - matchName: "auth.${BASE_DOMAIN}"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

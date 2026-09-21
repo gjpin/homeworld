@@ -140,3 +140,22 @@ spec:
         - ports:
             - port: "9001"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-rustfs-authelia
+  namespace: rustfs
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:rustfs.tenant: rustfs
+  egress:
+    - toFQDNs:
+        - matchName: "auth.${BASE_DOMAIN}"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

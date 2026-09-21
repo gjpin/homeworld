@@ -13,6 +13,34 @@ spec:
   imagePullPolicy: IfNotPresent
   credsSecret:
     name: rustfs-admin-credentials
+  # Discovery runs once at process start. Authelia is a later sync wave, so
+  # console SSO appears after this pod is restarted once Authelia is up.
+  env:
+    - name: RUSTFS_IDENTITY_OPENID_ENABLE
+      value: "on"
+    - name: RUSTFS_IDENTITY_OPENID_CONFIG_URL
+      value: https://auth.${BASE_DOMAIN}
+    - name: RUSTFS_IDENTITY_OPENID_CLIENT_ID
+      value: rustfs
+    - name: RUSTFS_IDENTITY_OPENID_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: rustfs-oidc
+          key: clientSecret
+    - name: RUSTFS_IDENTITY_OPENID_SCOPES
+      value: openid,profile,email,groups
+    - name: RUSTFS_IDENTITY_OPENID_REDIRECT_URI
+      value: https://console.rustfs.${BASE_DOMAIN}/rustfs/admin/v3/oidc/callback/default
+    - name: RUSTFS_IDENTITY_OPENID_REDIRECT_URI_DYNAMIC
+      value: "off"
+    - name: RUSTFS_IDENTITY_OPENID_GROUPS_CLAIM
+      value: groups
+    - name: RUSTFS_IDENTITY_OPENID_USERNAME_CLAIM
+      value: preferred_username
+    - name: RUSTFS_IDENTITY_OPENID_DISPLAY_NAME
+      value: Authelia
+    - name: RUSTFS_BROWSER_REDIRECT_URL
+      value: https://console.rustfs.${BASE_DOMAIN}
   securityContext:
     fsGroup: 10001
     runAsGroup: 10001

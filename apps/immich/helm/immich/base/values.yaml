@@ -21,6 +21,10 @@ immich:
   persistence:
     library:
       existingClaim: immich
+  # The chart's empty configuration map is truthy and conflicts with an existing Secret.
+  configuration: null
+  existingConfiguration: immich-config
+  configurationKind: Secret
 machine-learning:
   persistence:
     cache:

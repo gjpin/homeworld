@@ -11,17 +11,30 @@ env:
         name: velero-ui-auth
         key: AUTH_SECRET_PASSPHRASE
   - name: BASIC_AUTH_ENABLED
+    value: "false"
+  - name: OAUTH_AUTH_ENABLED
     value: "true"
-  - name: BASIC_AUTH_USERNAME
+  - name: OAUTH_NAME
+    value: Authelia
+  - name: OAUTH_AUTHORIZATION_URL
+    value: https://auth.${BASE_DOMAIN}/api/oidc/authorization
+  - name: OAUTH_TOKEN_URL
+    value: https://auth.${BASE_DOMAIN}/api/oidc/token
+  - name: OAUTH_USER_INFO_URL
+    value: https://auth.${BASE_DOMAIN}/api/oidc/userinfo
+  - name: OAUTH_CLIENT_ID
+    value: velero-ui
+  - name: OAUTH_CLIENT_SECRET
     valueFrom:
       secretKeyRef:
         name: velero-ui-auth
-        key: BASIC_AUTH_USERNAME
-  - name: BASIC_AUTH_PASSWORD
-    valueFrom:
-      secretKeyRef:
-        name: velero-ui-auth
-        key: BASIC_AUTH_PASSWORD
+        key: OAUTH_CLIENT_SECRET
+  - name: OAUTH_OAUTH_SCOPE
+    value: openid profile email groups
+  - name: OAUTH_GROUP_CLAIM
+    value: groups
+  - name: OAUTH_REDIRECT_URI
+    value: https://velero.${BASE_DOMAIN}/login
   - name: DEFAULT_TIMEZONE
     value: Europe/Lisbon
 nodeSelector:

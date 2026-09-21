@@ -12,7 +12,27 @@ crds:
 # https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#ingressroute-crd
 configs:
   cm:
+    url: https://argocd.${BASE_DOMAIN}
+    admin.enabled: false
     kustomize.buildOptions: --enable-helm
+    # Argo CD reads $<secret>:<key> from a Secret labeled app.kubernetes.io/part-of: argocd.
+    # Keep this dollar reference intact; do not run it through envsubst.
+    oidc.config: |
+      name: Authelia
+      issuer: https://auth.${BASE_DOMAIN}
+      clientID: argocd
+      clientSecret: $argocd-oidc:clientSecret
+      requestedScopes:
+        - openid
+        - profile
+        - email
+        - groups
+      enablePKCEAuthentication: true
+  rbac:
+    policy.default: role:readonly
+    policy.csv: |
+      g, argocd-admin, role:admin
+    scopes: "[groups]"
   params:
     server.insecure: true
 # server
@@ -41,6 +61,7 @@ controller:
       interval: 60s
 # dex
 dex:
+  enabled: false
   name: argocd-dex-server
   metrics:
     enabled: true

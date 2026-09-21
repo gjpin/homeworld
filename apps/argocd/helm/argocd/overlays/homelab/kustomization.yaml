@@ -17,7 +17,7 @@ patches:
     group: apps
     version: v1
     kind: Deployment
-    name: ^argocd-argocd-(applicationset-controller|dex-server|notifications-controller|redis|repo-server|server)$
+    name: ^argocd-argocd-(applicationset-controller|notifications-controller|redis|repo-server|server)$
     namespace: ^argocd$
   patch: |-
     - op: add
@@ -52,19 +52,6 @@ patches:
   patch: |-
     - op: add
       path: /spec/template/spec/containers/0/resources
-      value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
-- target:
-    group: apps
-    version: v1
-    kind: Deployment
-    name: ^argocd-argocd-dex-server$
-    namespace: ^argocd$
-  patch: |-
-    - op: add
-      path: /spec/template/spec/containers/0/resources
-      value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
-    - op: add
-      path: /spec/template/spec/initContainers/0/resources
       value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
 - target:
     group: apps
@@ -191,19 +178,6 @@ patches:
     - op: add
       path: /metadata/annotations/kube-score~1ignore
       value: container-security-context-user-group-id,pod-probes,pod-networkpolicy,deployment-replicas
-    - op: add
-      path: /metadata/annotations/security.homeworld~1exception-reason
-      value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
-- target:
-    group: apps
-    version: v1
-    kind: Deployment
-    name: ^argocd-argocd-dex-server$
-    namespace: ^argocd$
-  patch: |-
-    - op: add
-      path: /metadata/annotations/kube-score~1ignore
-      value: pod-probes,pod-networkpolicy,container-security-context-user-group-id,deployment-replicas
     - op: add
       path: /metadata/annotations/security.homeworld~1exception-reason
       value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.

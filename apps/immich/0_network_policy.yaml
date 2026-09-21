@@ -196,3 +196,24 @@ spec:
         - ports:
             - port: "3003"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-immich-server-authelia
+  namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/controller: main
+      k8s:app.kubernetes.io/instance: immich
+      k8s:app.kubernetes.io/name: server
+  egress:
+    - toFQDNs:
+        - matchName: "auth.${BASE_DOMAIN}"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
