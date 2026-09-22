@@ -10,18 +10,10 @@ crds:
 config:
   apiVersion: controller.config.cert-manager.io/v1alpha1
   kind: ControllerConfiguration
-  enableGatewayAPI: true
+  gatewayAPI:
+    enabled: true
   kubernetesAPIQPS: 10000
   kubernetesAPIBurst: 10000
-  featureGates:
-    ServerSideApply: true
-# resources:
-#   requests:
-#     cpu: 100m
-#     memory: 128Mi
-#   limits:
-#     cpu: 500m
-#     memory: 256Mi
 prometheus:
   servicemonitor:
     enabled: true

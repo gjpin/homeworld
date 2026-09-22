@@ -4,6 +4,8 @@ namespaceOverride: argocd
 global:
   nodeSelector:
     node-role.kubernetes.io/homelab: homelab
+  networkPolicy:
+    create: false
 crds:
   install: true
   keep: true
@@ -63,19 +65,13 @@ controller:
 dex:
   enabled: false
   name: argocd-dex-server
-  metrics:
-    enabled: true
-    serviceMonitor:
-      enabled: true
-      interval: 60s
 # redis
 redis:
   name: argocd-redis
   metrics:
-    enabled: true
+    enabled: false
     serviceMonitor:
-      enabled: true
-      interval: 60s
+      enabled: false
 # application set
 applicationSet:
   name: argocd-applicationset-controller

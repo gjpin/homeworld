@@ -12,6 +12,11 @@ server:
             requests: 3
           - period: 1 day
             requests: 5
+      openid_connect_token:
+        enable: true
+        buckets:
+          - period: 1 minute
+            requests: 30
 log:
   level: info
   format: json
@@ -137,6 +142,7 @@ identity_providers:
         - token
         - revocation
         - userinfo
+      allowed_origins_from_client_redirect_uris: true
       allowed_origins:
         - https://cloud.${BASE_DOMAIN}
         - https://grafana.${BASE_DOMAIN}

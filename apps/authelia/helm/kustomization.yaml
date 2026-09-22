@@ -5,7 +5,7 @@ commonAnnotations:
 helmCharts:
   - name: authelia
     repo: https://charts.authelia.com
-    version: 0.11.6
+    version: 0.11.22
     releaseName: authelia
     namespace: authelia
     includeCRDs: true
@@ -40,34 +40,6 @@ patches:
       - op: add
         path: /spec/endpoints/0/interval
         value: 60s
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: ^authelia$
-      namespace: ^authelia$
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/imagePullPolicy
-        value: IfNotPresent
-  - target:
-      group: apps
-      version: v1
-      kind: ^(Deployment|StatefulSet)$
-    patch: |-
-      - op: add
-        path: /spec/replicas
-        value: 1
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: ^authelia$
-      namespace: ^authelia$
-    patch: |-
-      - op: add
-        path: /spec/template/spec/containers/0/resources
-        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
   - target:
       group: apps
       version: v1

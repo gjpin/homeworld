@@ -21,6 +21,7 @@ spec:
     - CreateNamespace=true
     - PrunePropagationPolicy=foreground
     - PruneLast=true
+    - ServerSideApply=true
   source:
     # The argo-cd chart version is pinned in helm/argocd/base/kustomization.yaml.
     repoURL: https://github.com/gjpin/homeworld.git

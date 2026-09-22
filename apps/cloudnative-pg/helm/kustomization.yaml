@@ -5,7 +5,7 @@ commonAnnotations:
 helmCharts:
   - name: cloudnative-pg
     repo: https://cloudnative-pg.github.io/charts
-    version: 0.28.0
+    version: 0.29.0
     releaseName: cloudnative-pg
     namespace: cloudnative-pg
     includeCRDs: true
@@ -22,34 +22,6 @@ patches:
       - op: add
         path: /spec/template/spec/hostUsers
         value: false
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: ^cloudnative-pg$
-      namespace: ^cloudnative-pg$
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/imagePullPolicy
-        value: IfNotPresent
-  - target:
-      group: apps
-      version: v1
-      kind: ^(Deployment|StatefulSet)$
-    patch: |-
-      - op: add
-        path: /spec/replicas
-        value: 1
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: ^cloudnative-pg$
-      namespace: ^cloudnative-pg$
-    patch: |-
-      - op: add
-        path: /spec/template/spec/containers/0/resources
-        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
   - target:
       group: apps
       version: v1
