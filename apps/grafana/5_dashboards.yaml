@@ -106,6 +106,19 @@ spec:
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
+  name: crowdsec-envoy-bouncer
+  namespace: grafana
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  configMapRef:
+    name: grafana-dashboard-crowdsec-envoy-bouncer
+    key: json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
   name: dragonfly-operator
   namespace: grafana
 spec:

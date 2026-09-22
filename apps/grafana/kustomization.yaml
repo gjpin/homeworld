@@ -29,6 +29,9 @@ configMapGenerator:
   - name: grafana-dashboard-cloudnative-pg
     files:
       - json=dashboards/cloudnative-pg.json
+  - name: grafana-dashboard-crowdsec-envoy-bouncer
+    files:
+      - json=dashboards/crowdsec-envoy-bouncer.json
   - name: grafana-dashboard-dragonfly-operator
     files:
       - json=dashboards/dragonfly-operator.json

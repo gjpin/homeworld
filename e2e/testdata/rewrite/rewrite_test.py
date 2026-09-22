@@ -115,17 +115,17 @@ def main() -> int:
             raise SystemExit("crowdsec still stores CAPI credentials in a secret")
         if "storeCAPICredentialsInSecret: false" not in work:
             raise SystemExit("crowdsec storeCAPICredentialsInSecret not flipped")
-        if "kind: SecurityPolicy" in work:
-            raise SystemExit("SecurityPolicy should be omitted when bouncer is omitted")
+        if "kind: SecurityPolicy" not in work:
+            raise SystemExit("SecurityPolicy should be kept")
         g_k = (dest / "apps" / "grafana" / "kustomization.yaml").read_text()
-        if "7_security_policy.yaml" in g_k:
-            raise SystemExit("grafana kustomization still lists omitted SecurityPolicy")
+        if "7_security_policy.yaml" not in g_k:
+            raise SystemExit("grafana kustomization dropped SecurityPolicy")
         if "3_grafana.yaml" not in g_k:
             raise SystemExit("grafana kustomization dropped unrelated resource")
-        if (dest / "apps" / "grafana" / "7_security_policy.yaml").exists():
-            raise SystemExit("grafana SecurityPolicy file not omitted")
-        if "crowdsec-envoy-bouncer-app" in apps:
-            raise SystemExit("crowdsec-envoy-bouncer-app should be omitted")
+        if not (dest / "apps" / "grafana" / "7_security_policy.yaml").exists():
+            raise SystemExit("grafana SecurityPolicy file missing")
+        if "crowdsec-envoy-bouncer-app" not in apps:
+            raise SystemExit("crowdsec-envoy-bouncer-app should be kept")
         if "otel-collector-app" in apps:
             raise SystemExit("otel-collector-app should be omitted")
         cs = (dest / "apps" / "crowdsec" / "1_secrets.yaml").read_text()
@@ -247,8 +247,9 @@ def main() -> int:
         httproute = work.split("kind: HTTPRoute", 1)[1].split("---")[0]
         if 'argocd.argoproj.io/sync-wave: "2"' not in httproute:
             raise SystemExit("HTTPRoute missing sync-wave 2")
-        if "kind: SecurityPolicy" in work:
-            raise SystemExit("SecurityPolicy should be omitted before sync-wave rewrite")
+        secpolicy = work.split("kind: SecurityPolicy", 1)[1].split("---")[0]
+        if 'argocd.argoproj.io/sync-wave: "2"' not in secpolicy:
+            raise SystemExit("SecurityPolicy missing sync-wave 2")
         cs_vals = (dest / "apps" / "crowdsec" / "helm" / "values.yaml").read_text()
         if "agent:\n  enabled: true\n" in cs_vals:
             raise SystemExit("crowdsec agent still enabled")

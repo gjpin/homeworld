@@ -4,16 +4,13 @@
 
 This repository manages a Kubernetes homelab through Argo CD. Most changes are
 declarative Kubernetes resources or Argo CD `Application` resources that install
-version-pinned Helm charts. It also contains Grafana dashboard exports and a host
-bootstrap script.
+version-pinned Helm charts. It also contains Grafana dashboard exports.
 
 ## Scope
 
-- Treat `todo/`, `secrets/`, `incubator/`, and `configs/` as out of scope.
-- Do not inspect, search, edit, validate, or derive conventions from those
-  directories unless the user explicitly asks for work in one of them.
-- The exclusion applies to those directories, not to Kubernetes resources such
-  as `apps/*/*_secrets.yaml`.
+- Treat `incubator/` as out of scope, unless explicitly asked to work on it.
+- Do not inspect, search, edit, validate, or derive conventions from that
+  directory unless the user explicitly asks for work in one of them.
 - Preserve unrelated working-tree changes.
 
 ## Layout
@@ -21,8 +18,7 @@ bootstrap script.
 - `apps/app-of-apps.yaml`: root Argo CD applications and dependency sync waves.
 - `apps/<component>/`: manifests for one component. Numbered filenames express
   the intended apply/read order.
-- `grafana-dashboards/`: imported Grafana dashboard JSON.
-- `setup.sh`: Fedora/k3s host bootstrap and initial Argo CD installation.
+- `apps/grafana/dashboards/`: imported Grafana dashboard JSON.
 - `README.md`: required environment variables, bootstrap notes, and sync-wave documentation.
 
 ## Manifest conventions
@@ -34,7 +30,7 @@ bootstrap script.
 - Pin container images, chart versions, and remote revisions. Do not introduce
   floating tags such as `latest`.
 - Helm installations are rendered from pinned upstream charts under
-  `apps/<component>/helm/` (or `apps/otel-collector/helm/{node,cluster,pod}/`
+  `apps/<component>/helm/` (or `apps/otel-collector/helm/{<helm>}/`
   when multiple releases exist). Argo CD `Application` resources and CI
   point directly to these directories.
   Preserve the existing automated sync policy and sync options unless the
@@ -150,7 +146,7 @@ bootstrap script.
 - Apply the new-component checklist as applicable.
 - Treat CRDs and operators as dependencies: they must be installed in an earlier
   sync wave than resources that use them.
-- Do not run `kubectl apply`, `helm install/upgrade`, Argo CD sync, or `setup.sh`
+- Do not run `kubectl apply`, `helm install/upgrade` or Argo CD sync
   unless the user explicitly asks to change a live system.
 
 ## Validation
@@ -165,9 +161,6 @@ find apps -type f -name '*.yaml' -print0 |
 # Parse every Grafana dashboard.
 find grafana-dashboards -type f -name '*.json' -print0 |
   xargs -0 -n1 jq empty
-
-# Check the bootstrap script after shell changes.
-shellcheck setup.sh
 ```
 
 Also inspect the diff for accidental secret substitution and verify cross-file

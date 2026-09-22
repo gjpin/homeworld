@@ -4,7 +4,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/kdwils/envoy-proxy-bouncer
-  tag: v0.6.2
+  tag: v0.8.1
   pullPolicy: IfNotPresent
 
 serviceAccount:
@@ -22,7 +22,7 @@ securityContext:
       - ALL
   readOnlyRootFilesystem: true
   runAsNonRoot: true
-  runAsUser: 1000
+  runAsUser: 65532
 
 resources:
   requests:
@@ -39,6 +39,8 @@ config:
     grpcPort: 8080
     httpPort: 8081
     logLevel: info
+  trustedProxies: []
+  exemptIPs: []
   bouncer:
     enabled: true
     metrics: true
@@ -54,6 +56,16 @@ config:
     apiKeySecretRef:
       name: crowdsec-envoy-bouncer-secrets
       key: api-key
+    httpTimeout: 5s
+    failOpen: false
+    routes: []
+  templates:
+    showDeniedPage: true
+  http:
+    maxIdleConns: 1000
+    maxIdleConnsPerHost: 100
+    idleConnTimeout: 90s
+    tlsHandshakeTimeout: 10s
   prometheus:
     enabled: true
     port: 9090
@@ -61,6 +73,20 @@ config:
       enabled: true
       interval: 60s
       scrapeTimeout: 10s
+
+probes:
+  liveness:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 3
 
 autoscaling:
   enabled: false

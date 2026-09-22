@@ -18,10 +18,6 @@ OMIT_APPS = {
     "velero-ui-app",
     "homeassistant-app",
     "external-dns-app",
-    # linux/amd64 only; kind on Apple Silicon cannot pull/run it.
-    # SecurityPolicy documents that BackendRef the bouncer are omitted
-    # below: failOpen is request-time and still logs ERROR at reconcile.
-    "crowdsec-envoy-bouncer-app",
     # Prometheus receiver + two collectors plus extra RBAC; not needed
     # to cover Grafana/OpenObserve/Collabora/OpenCloud/Syncthing/
     # Radicale/CrowdSec/Forgejo/Immich.
@@ -474,38 +470,6 @@ def rewrite_crowdsec_postgres_template(root: pathlib.Path) -> None:
         print("[rewrite-staging] crowdsec postgres-credentials template unchanged")
 
 
-def rewrite_omit_securitypolicies(root: pathlib.Path) -> None:
-    """Drop SecurityPolicy documents that BackendRef the omitted bouncer.
-
-    failOpen only covers request-time ExtAuth failures. Envoy Gateway still
-    logs ERROR on every reconcile when crowdsec-envoy-bouncer is missing
-    ("Service not found" / missing ReferenceGrant).
-    """
-    kind_re = re.compile(r"(?m)^kind: SecurityPolicy\s*$")
-    dropped = 0
-    for path in list(root.rglob("*.yaml")):
-        text = path.read_text()
-        if "kind: SecurityPolicy" not in text:
-            continue
-        docs = split_docs(text)
-        kept = [d for d in docs if not kind_re.search(d)]
-        n = len(docs) - len(kept)
-        if n == 0:
-            continue
-        dropped += n
-        if not kept:
-            path.unlink()
-            kust = path.parent / "kustomization.yaml"
-            if kust.exists():
-                ktext = kust.read_text()
-                knew = re.sub(rf"(?m)^  - {re.escape(path.name)}\n", "", ktext)
-                if knew != ktext:
-                    kust.write_text(knew)
-        else:
-            path.write_text(join_docs(kept))
-    print(f"[rewrite-staging] omitted {dropped} SecurityPolicy documents")
-
-
 def rewrite_crowdsec_skip_hooks(root: pathlib.Path) -> None:
     """CrowdSec pre-upgrade hooks are a ServiceAccount + Jobs.
 
@@ -645,7 +609,7 @@ def rewrite_argocd_disable_extras(root: pathlib.Path) -> None:
             "    resource.customizations.health.gateway.envoyproxy.io_SecurityPolicy: |\n"
             "      hs = {}\n"
             '      hs.status = "Healthy"\n'
-            '      hs.message = "kind e2e: crowdsec bouncer omitted; SecurityPolicy is dropped in rewrite"\n'
+            '      hs.message = "kind e2e: SecurityPolicy health customized for wait-argo"\n'
             "      return hs\n"
             "    resource.customizations.health.gateway.networking.k8s.io_HTTPRoute: |\n"
             "      hs = {}\n"
@@ -966,11 +930,10 @@ def rewrite_immich_memory(root: pathlib.Path) -> None:
 
 
 def rewrite_route_sync_wave(root: pathlib.Path) -> None:
-    """HTTPRoute/GRPCRoute default waves stay Degraded until backends exist.
+    """HTTPRoute/GRPCRoute/SecurityPolicy default waves stay Degraded until backends exist.
 
     Argo waits for earlier-wave health before nested Applications (wave 1),
     so authelia/forgejo/immich helm never syncs on an empty cluster.
-    SecurityPolicy documents are omitted separately (bouncer is amd64-only).
     """
     count = 0
     kind_re = r"(?m)^kind: (HTTPRoute|GRPCRoute|SecurityPolicy)\s*$"
@@ -1314,7 +1277,6 @@ def main() -> int:
     rewrite_rustfs_duplicate_tenant_crd(root)
     rewrite_argocd_disable_extras(root)
     # Controller memory patch lives in rewrite_argocd_disable_extras.
-    rewrite_omit_securitypolicies(root)
     rewrite_collabora_kind_jail(root)
     rewrite_openobserve_probes(root)
     rewrite_immich_kind_storage(root)
