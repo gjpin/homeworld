@@ -1,0 +1,61 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: velero-ui
+    repo: https://helm.otwld.com
+    version: 0.15.0
+    releaseName: velero-ui
+    namespace: velero-ui
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^velero-ui$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^velero-ui$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: ^(Deployment|StatefulSet)$
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 1
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^velero-ui$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^velero-ui$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: container-security-context-readonlyrootfilesystem,pod-probes-identical,pod-networkpolicy,container-security-context-user-group-id,deployment-replicas
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.

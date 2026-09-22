@@ -32,7 +32,7 @@
   },
   "kustomize": {
     "managerFilePatterns": [
-      "/^apps/.+/helm/.+/base/kustomization\\.yaml$/"
+      "/^apps/.+/helm(?:/.+)?/kustomization\\.yaml$/"
     ]
   },
   "customManagers": [
@@ -53,7 +53,7 @@
       "customType": "regex",
       "description": "Update the CrowdSec Helm chart",
       "managerFilePatterns": [
-        "/^apps/crowdsec/helm/crowdsec/base/kustomization\\.yaml$/"
+        "/^apps/crowdsec/helm/kustomization\\.yaml$/"
       ],
       "matchStrings": [
         "(?ms)^\\s+- name:\\s+crowdsec\\s+repo:\\s+https://crowdsecurity\\.github\\.io/helm-charts\\s+version:\\s*(?<currentValue>[^\\s#]+)"
@@ -67,7 +67,7 @@
       "customType": "regex",
       "description": "Update the CrowdSec image",
       "managerFilePatterns": [
-        "/^apps/crowdsec/helm/crowdsec/base/values\\.yaml$/"
+        "/^apps/crowdsec/helm/values\\.yaml$/"
       ],
       "matchStrings": [
         "(?ms)^image:\\s*\\n\\s+repository:\\s*(?<depName>crowdsecurity/crowdsec)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
@@ -80,7 +80,7 @@
       "customType": "regex",
       "description": "Update the CrowdSec kubectl helper image",
       "managerFilePatterns": [
-        "/^apps/crowdsec/helm/crowdsec/base/values\\.yaml$/"
+        "/^apps/crowdsec/helm/values\\.yaml$/"
       ],
       "matchStrings": [
         "(?ms)^\\s+kubectl:\\s*\\n\\s+repository:\\s*(?<depName>alpine/kubectl)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
@@ -93,7 +93,7 @@
       "customType": "regex",
       "description": "Update the Envoy bouncer Helm chart",
       "managerFilePatterns": [
-        "/^apps/crowdsec-envoy-bouncer/helm/envoy-proxy-bouncer/base/kustomization\\.yaml$/"
+        "/^apps/crowdsec-envoy-bouncer/helm/kustomization\\.yaml$/"
       ],
       "matchStrings": [
         "(?ms)^\\s+- name:\\s+envoy-proxy-bouncer\\s+repo:\\s+oci://ghcr\\.io/kdwils/charts\\s+version:\\s*(?<currentValue>[^\\s#]+)"
@@ -107,7 +107,7 @@
       "customType": "regex",
       "description": "Update the Envoy bouncer image",
       "managerFilePatterns": [
-        "/^apps/crowdsec-envoy-bouncer/helm/envoy-proxy-bouncer/base/values\\.yaml$/"
+        "/^apps/crowdsec-envoy-bouncer/helm/values\\.yaml$/"
       ],
       "matchStrings": [
         "(?ms)^image:\\s*\\n\\s+repository:\\s*(?<depName>ghcr\\.io/kdwils/envoy-proxy-bouncer)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
@@ -186,7 +186,7 @@
       "customType": "regex",
       "description": "Update the Collabora Helm chart",
       "managerFilePatterns": [
-        "/^apps/collabora/helm/collabora-online/base/kustomization\\.yaml$/"
+        "/^apps/collabora/helm/kustomization\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^    version:\\s*(?<currentValue>[^\\s#]+)\\s*$"
@@ -200,7 +200,7 @@
       "customType": "regex",
       "description": "Update the Collabora image",
       "managerFilePatterns": [
-        "/^apps/collabora/helm/collabora-online/base/values\\.yaml$/"
+        "/^apps/collabora/helm/values\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^  tag:\\s*(?<currentValue>[^\\s#]+)\\s*$"
@@ -217,7 +217,7 @@
         "/^apps/opencloud/4_deployments\\.yaml$/"
       ],
       "matchStrings": [
-        "(?m)^\\s*image:\\s*(?<depName>opencloudeu/opencloud-rolling|apache/tika|opencloudeu/web-extensions):(?<currentValue>[^\\s#]+)\\s*$"
+        "(?m)^\\s*image:\\s*(?<depName>opencloudeu/opencloud-rolling|opencloudeu/yjs|apache/tika|opencloudeu/web-extensions):(?<currentValue>[^\\s#]+)\\s*$"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",

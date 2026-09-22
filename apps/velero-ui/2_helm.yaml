@@ -23,5 +23,5 @@ spec:
 
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/velero-ui/helm/velero-ui/overlays/homelab
+    path: apps/velero-ui/helm
     targetRevision: HEAD

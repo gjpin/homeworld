@@ -592,7 +592,7 @@ def rewrite_rustfs_duplicate_tenant_crd(root: pathlib.Path) -> None:
 
 def rewrite_argocd_disable_extras(root: pathlib.Path) -> None:
     """Dex/ApplicationSet/notifications each hold inotify watches; rootless Docker cannot raise the 128 cap."""
-    path = root / "apps" / "argocd" / "helm" / "argocd" / "base" / "values.yaml"
+    path = root / "apps" / "argocd" / "helm" / "values.yaml"
     if not path.exists():
         print("[rewrite-staging] argocd helm values missing; skipping extras disable")
         return
@@ -716,7 +716,7 @@ def rewrite_argocd_disable_extras(root: pathlib.Path) -> None:
             count=1,
         )
     overlay = (
-        root / "apps" / "argocd" / "helm" / "argocd" / "overlays" / "homelab" / "kustomization.yaml"
+        root / "apps" / "argocd" / "helm" / "kustomization.yaml"
     )
     if overlay.exists():
         ot = overlay.read_text()
@@ -768,8 +768,6 @@ def rewrite_collabora_kind_jail(root: pathlib.Path) -> None:
         / "apps"
         / "collabora"
         / "helm"
-        / "collabora-online"
-        / "base"
         / "values.yaml"
     )
     if not path.exists():
@@ -824,7 +822,7 @@ def rewrite_openobserve_probes(root: pathlib.Path) -> None:
         path.write_text(text.replace(needle, insert))
         count_tpl += 1
     values = (
-        root / "apps" / "openobserve" / "helm" / "openobserve" / "base" / "values.yaml"
+        root / "apps" / "openobserve" / "helm" / "values.yaml"
     )
     if values.exists():
         text = values.read_text()
@@ -919,7 +917,7 @@ def rewrite_immich_vchord(root: pathlib.Path) -> None:
 
 def rewrite_immich_kind_storage(root: pathlib.Path) -> None:
     """Kind local-path is RWO; the library PVC in git is named photos, not immich."""
-    path = root / "apps" / "immich" / "helm" / "immich" / "base" / "values.yaml"
+    path = root / "apps" / "immich" / "helm" / "values.yaml"
     if not path.exists():
         print("[rewrite-staging] immich values missing; skipping storage rewrite")
         return
@@ -953,9 +951,6 @@ def rewrite_immich_memory(root: pathlib.Path) -> None:
         / "apps"
         / "immich"
         / "helm"
-        / "immich"
-        / "overlays"
-        / "homelab"
         / "kustomization.yaml"
     )
     if not path.exists():
@@ -1007,7 +1002,7 @@ def rewrite_authelia_rolling_update(root: pathlib.Path) -> None:
     strings which are valid for both Helm and the Deployment API. Unquoted
     integers fail that schema; quoted count-strings fail Kubernetes 1.36.
     """
-    path = root / "apps" / "authelia" / "helm" / "authelia" / "base" / "values.yaml"
+    path = root / "apps" / "authelia" / "helm" / "values.yaml"
     if not path.exists():
         print("[rewrite-staging] authelia values missing; skipping rollingUpdate")
         return
@@ -1097,7 +1092,7 @@ def rewrite_operator_probes(root: pathlib.Path) -> None:
         else:
             print("[rewrite-staging] CNPG operator template probes already set")
     cnpg_vals = (
-        root / "apps" / "cloudnative-pg" / "helm" / "cloudnative-pg" / "base" / "values.yaml"
+        root / "apps" / "cloudnative-pg" / "helm" / "values.yaml"
     )
     if _append_values_map(
         cnpg_vals,
@@ -1125,8 +1120,6 @@ def rewrite_operator_probes(root: pathlib.Path) -> None:
         / "apps"
         / "grafana-operator"
         / "helm"
-        / "grafana-operator"
-        / "base"
         / "values.yaml"
     )
     if _append_values_map(
@@ -1147,8 +1140,6 @@ def rewrite_operator_probes(root: pathlib.Path) -> None:
         / "apps"
         / "dragonfly-operator"
         / "helm"
-        / "dragonfly-operator"
-        / "base"
         / "values.yaml"
     )
     if _append_values_map(

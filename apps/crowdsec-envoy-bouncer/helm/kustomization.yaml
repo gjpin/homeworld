@@ -1,0 +1,85 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: envoy-gateway
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: envoy-proxy-bouncer
+    repo: oci://ghcr.io/kdwils/charts
+    version: 0.6.2
+    releaseName: crowdsec-envoy-bouncer
+    namespace: envoy-gateway
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  - target:
+      version: v1
+      kind: ^(ConfigMap|Service|ServiceAccount)$
+      name: ^crowdsec-envoy-bouncer(-config)?$
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: envoy-gateway
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^crowdsec-envoy-bouncer$
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: envoy-gateway
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^crowdsec-envoy-bouncer$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+      - op: add
+        path: /spec/template/spec/nodeSelector
+        value:
+          node-role.kubernetes.io/homelab: homelab
+      - op: add
+        path: /spec/template/spec/securityContext
+        value:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+      - op: add
+        path: /spec/template/spec/automountServiceAccountToken
+        value: false
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^crowdsec-envoy-bouncer$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: ^(Deployment|StatefulSet)$
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 1
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^crowdsec-envoy-bouncer$
+    patch: |-
+      - op: add
+        path: /metadata/annotations
+        value: {}
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: container-security-context-user-group-id,pod-networkpolicy,deployment-replicas
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: The pinned community bouncer image documents UID 1000; the bouncer remains non-root with a RuntimeDefault seccomp profile and Cilium supplies the network policy.

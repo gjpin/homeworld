@@ -51,20 +51,20 @@ kubectl apply --server-side --force-conflicts \
 echo "[apply-operator-crds] prometheus-operator CRDs from ${PROM_VER}"
 
 apply_helm_crds cert-manager \
-  "$(chart_dir "${ROOT}/apps/cert-manager/helm/cert-manager/base/charts/cert-manager-*/cert-manager")" \
+  "$(chart_dir "${ROOT}/apps/cert-manager/helm/charts/cert-manager-*/cert-manager")" \
   --set crds.enabled=true --set crds.keep=true
 
 apply_helm_crds cloudnative-pg \
-  "$(chart_dir "${ROOT}/apps/cloudnative-pg/helm/cloudnative-pg/base/charts/cloudnative-pg-*/cloudnative-pg")"
+  "$(chart_dir "${ROOT}/apps/cloudnative-pg/helm/charts/cloudnative-pg-*/cloudnative-pg")"
 
-GRAFANA_CRDS="$(chart_dir "${ROOT}/apps/grafana-operator/helm/grafana-operator/base/charts/grafana-operator-*/grafana-operator/charts/crds/crds")"
+GRAFANA_CRDS="$(chart_dir "${ROOT}/apps/grafana-operator/helm/charts/grafana-operator-*/grafana-operator/charts/crds/crds")"
 kubectl apply --server-side --force-conflicts -f "${GRAFANA_CRDS}"
 echo "[apply-operator-crds] grafana-operator CRDs applied"
 
 apply_helm_crds dragonfly-operator \
-  "$(chart_dir "${ROOT}/apps/dragonfly-operator/helm/dragonfly-operator/base/charts/dragonfly-operator-*/dragonfly-operator")"
+  "$(chart_dir "${ROOT}/apps/dragonfly-operator/helm/charts/dragonfly-operator-*/dragonfly-operator")"
 
-RUSTFS_CRDS="$(chart_dir "${ROOT}/apps/rustfs-operator/helm/rustfs-operator/base/charts/rustfs-operator-*/rustfs-operator/crds")"
+RUSTFS_CRDS="$(chart_dir "${ROOT}/apps/rustfs-operator/helm/charts/rustfs-operator-*/rustfs-operator/crds")"
 # Chart 0.0.5 ships identical tenants.rustfs.com CRDs; skip tenant.yaml.
 kubectl apply --server-side --force-conflicts \
   -f "${RUSTFS_CRDS}/tenant-crd.yaml" \

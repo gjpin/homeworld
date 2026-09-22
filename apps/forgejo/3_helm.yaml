@@ -27,5 +27,5 @@ spec:
 
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/forgejo/helm/forgejo/overlays/homelab
+    path: apps/forgejo/helm
     targetRevision: HEAD

@@ -3,7 +3,7 @@
 # exceed the 256Ki last-applied-configuration annotation under client-side apply.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-CHART="${ROOT}/apps/external-secrets/helm/external-secrets/base/charts/external-secrets-2.4.1/external-secrets"
+CHART="${ROOT}/apps/external-secrets/helm/charts/external-secrets-2.4.1/external-secrets"
 
 helm template eso-crds "${CHART}" \
   --set installCRDs=true \

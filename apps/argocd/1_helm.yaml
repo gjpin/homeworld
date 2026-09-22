@@ -24,5 +24,5 @@ spec:
   source:
     # The argo-cd chart version is pinned in helm/argocd/base/kustomization.yaml.
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/argocd/helm/argocd/overlays/homelab
+    path: apps/argocd/helm
     targetRevision: HEAD

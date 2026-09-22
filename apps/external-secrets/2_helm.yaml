@@ -26,5 +26,5 @@ spec:
 
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/external-secrets/helm/external-secrets/overlays/homelab
+    path: apps/external-secrets/helm
     targetRevision: HEAD

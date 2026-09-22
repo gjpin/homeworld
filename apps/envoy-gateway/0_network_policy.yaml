@@ -170,7 +170,7 @@ spec:
             k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
-            k8s:app.kubernetes.io/instance: otel-collector-main
+            k8s:app.kubernetes.io/instance: otel-collector-pod
             k8s:app.kubernetes.io/name: opentelemetry-collector
             k8s:component: standalone-collector
       toPorts:

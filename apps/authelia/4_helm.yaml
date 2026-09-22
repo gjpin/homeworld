@@ -25,5 +25,5 @@ spec:
       - PruneLast=true
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/authelia/helm/authelia/overlays/homelab
+    path: apps/authelia/helm
     targetRevision: HEAD

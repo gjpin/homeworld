@@ -1,0 +1,289 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: argo-cd
+    repo: https://argoproj.github.io/argo-helm
+    version: 9.5.9
+    releaseName: argocd
+    namespace: argocd
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-applicationset-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-notifications-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-redis$
+      namespace: ^argocd$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-repo-server$
+      namespace: ^argocd$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+      - op: replace
+        path: /spec/template/spec/initContainers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-server$
+      namespace: ^argocd$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: ^argocd-argocd-application-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: batch
+      version: v1
+      kind: Job
+      name: ^argocd-redis-secret-init$
+      namespace: ^argocd$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: ^(Deployment|StatefulSet)$
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 1
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-(applicationset-controller|notifications-controller|redis|repo-server|server)$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: ^argocd-argocd-application-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+  - target:
+      group: batch
+      version: v1
+      kind: Job
+      name: ^argocd-redis-secret-init$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-applicationset-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-notifications-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-redis$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-repo-server$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+      - op: add
+        path: /spec/template/spec/initContainers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-server$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: ^argocd-argocd-application-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+  - target:
+      group: batch
+      version: v1
+      kind: Job
+      name: ^argocd-redis-secret-init$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-server$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: container-security-context-user-group-id,pod-networkpolicy,deployment-replicas
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+  - target:
+      group: batch
+      version: v1
+      kind: Job
+      name: ^argocd-redis-secret-init$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: pod-networkpolicy,container-security-context-user-group-id
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-notifications-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: pod-probes,pod-networkpolicy,container-security-context-user-group-id,deployment-strategy,deployment-replicas
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-repo-server$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: pod-networkpolicy,container-security-context-user-group-id,deployment-replicas
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-applicationset-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: container-security-context-user-group-id,pod-probes,pod-networkpolicy,deployment-replicas
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: ^argocd-argocd-application-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: pod-probes,pod-networkpolicy,container-security-context-user-group-id,statefulset-has-servicename
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-redis$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: pod-networkpolicy,container-security-context-user-group-id,pod-probes,deployment-replicas
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.

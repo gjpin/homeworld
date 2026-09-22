@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://github.com/gjpin/homeworld.git
     targetRevision: HEAD
-    path: apps/crowdsec-envoy-bouncer/helm/envoy-proxy-bouncer/overlays/homelab
+    path: apps/crowdsec-envoy-bouncer/helm
   destination:
     server: https://kubernetes.default.svc
     namespace: envoy-gateway

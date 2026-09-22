@@ -145,7 +145,7 @@ def main() -> int:
             raise SystemExit("duplicate rustfs tenant.yaml CRD not removed")
         if not (rustfs_crds / "tenant-crd.yaml").exists():
             raise SystemExit("rustfs tenant-crd.yaml should be kept")
-        argocd_vals = (dest / "apps" / "argocd" / "helm" / "argocd" / "base" / "values.yaml").read_text()
+        argocd_vals = (dest / "apps" / "argocd" / "helm" / "values.yaml").read_text()
         if "enabled: false" not in argocd_vals.split("dex:", 1)[1].split("\n", 2)[1]:
             raise SystemExit("argocd dex not disabled")
         if "enabled: false" not in argocd_vals.split("applicationSet:", 1)[1].split("\n", 2)[1]:
@@ -181,7 +181,7 @@ def main() -> int:
         if "timeoutSeconds: 15" not in argocd_vals.split("server:", 1)[1]:
             raise SystemExit("argocd-server probe timeout not relaxed")
         cool = (
-            dest / "apps" / "collabora" / "helm" / "collabora-online" / "base" / "values.yaml"
+            dest / "apps" / "collabora" / "helm" / "values.yaml"
         ).read_text()
         if "mount_jail_tree=false" not in cool:
             raise SystemExit("collabora mount_jail_tree not disabled")
@@ -191,7 +191,7 @@ def main() -> int:
             raise SystemExit("collabora still runAsUser 1000; coolforkit needs uid 1001")
         if "runAsUser: 1001" not in cool:
             raise SystemExit("collabora runAsUser not set to image USER 1001")
-        immich = (dest / "apps" / "immich" / "helm" / "immich" / "base" / "values.yaml").read_text()
+        immich = (dest / "apps" / "immich" / "helm" / "values.yaml").read_text()
         if "existingClaim: photos" not in immich:
             raise SystemExit("immich existingClaim not rewritten to photos")
         if "existingClaim: immich" in immich:
@@ -213,9 +213,6 @@ def main() -> int:
             / "apps"
             / "immich"
             / "helm"
-            / "immich"
-            / "overlays"
-            / "homelab"
             / "kustomization.yaml"
         ).read_text()
         if '"memory":"2Gi"' in overlay:
@@ -232,7 +229,7 @@ def main() -> int:
         if "name: earthdistance" not in pg:
             raise SystemExit("immich Database missing earthdistance extension")
         oo_vals = (
-            dest / "apps" / "openobserve" / "helm" / "openobserve" / "base" / "values.yaml"
+            dest / "apps" / "openobserve" / "helm" / "values.yaml"
         ).read_text()
         if "timeoutSeconds: 15" not in oo_vals:
             raise SystemExit("openobserve probe timeoutSeconds missing")
@@ -275,7 +272,7 @@ def main() -> int:
         if "name: openobserve" not in sts_ignore:
             raise SystemExit("StatefulSet ignoreDifferences must be named openobserve")
         authelia = (
-            dest / "apps" / "authelia" / "helm" / "authelia" / "base" / "values.yaml"
+            dest / "apps" / "authelia" / "helm" / "values.yaml"
         ).read_text()
         if 'maxSurge: "1"' in authelia or "maxSurge: '1'" in authelia:
             raise SystemExit("authelia maxSurge still count-string")
@@ -288,8 +285,6 @@ def main() -> int:
             / "apps"
             / "cloudnative-pg"
             / "helm"
-            / "cloudnative-pg"
-            / "base"
             / "values.yaml"
         ).read_text()
         if "failurePolicy: Ignore" not in cnpg_vals:
@@ -304,8 +299,6 @@ def main() -> int:
             / "apps"
             / "grafana-operator"
             / "helm"
-            / "grafana-operator"
-            / "base"
             / "values.yaml"
         ).read_text()
         if "timeoutSeconds: 15" not in go_vals:
@@ -315,8 +308,6 @@ def main() -> int:
             / "apps"
             / "dragonfly-operator"
             / "helm"
-            / "dragonfly-operator"
-            / "base"
             / "values.yaml"
         ).read_text()
         if "timeoutSeconds: 15" not in df_vals:

@@ -1,0 +1,126 @@
+fullnameOverride: otel-collector-node
+namespaceOverride: otel-collector-node
+mode: daemonset
+image:
+  repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+service:
+  enabled: true
+  type: ClusterIP
+  trafficDistribution: PreferClose
+extraEnvs:
+  - name: OPENOBSERVE_AUTHORIZATION
+    valueFrom:
+      secretKeyRef:
+        name: openobserve
+        key: OTLP_AUTHORIZATION
+# resources:
+#   requests:
+#     cpu: 100m
+#     memory: 256Mi
+#   limits:
+#     cpu: 250m
+#     memory: 512Mi
+presets:
+  # filelog receiver
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver
+  logsCollection:
+    enabled: true
+    includeCollectorLogs: false
+  # hostmetrics receiver
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver
+  hostMetrics:
+    enabled: true
+  # kubeletstats receiver
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kubeletstatsreceiver
+  kubeletMetrics:
+    enabled: true
+  # k8sattributes processor
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/k8sattributesprocessor
+  kubernetesAttributes:
+    enabled: true
+    extractAllPodLabels: true
+    extractAllPodAnnotations: true
+config:
+  receivers:
+    jaeger: null
+    zipkin: null
+    prometheus:
+      config:
+        scrape_configs:
+          - job_name: otel-collector-node
+            scrape_interval: 10s
+            static_configs:
+              - targets:
+                  - ${env:MY_POD_IP}:8888
+    otlp:
+      protocols:
+        grpc:
+          endpoint: ${env:MY_POD_IP}:4317
+        http:
+          endpoint: ${env:MY_POD_IP}:4318
+  processors:
+    batch: {}
+    memory_limiter:
+      check_interval: 5s
+      limit_percentage: 80
+      spike_limit_percentage: 25
+  exporters:
+    debug: null
+    otlphttp/openobserve:
+      endpoint: http://openobserve.openobserve.svc.cluster.local:5080/api/default
+      headers:
+        Authorization: ${env:OPENOBSERVE_AUTHORIZATION}
+        stream-name: kubernetes
+      compression: gzip
+  extensions:
+    health_check:
+      endpoint: ${env:MY_POD_IP}:13133
+  service:
+    telemetry:
+      metrics:
+        readers:
+          - pull:
+              exporter:
+                prometheus:
+                  host: ${env:MY_POD_IP}
+                  port: 8888
+    extensions:
+      - health_check
+    pipelines:
+      logs:
+        receivers:
+          - otlp
+        processors:
+          - memory_limiter
+          - batch
+        exporters:
+          - otlphttp/openobserve
+      metrics:
+        receivers:
+          - otlp
+          - prometheus
+        processors:
+          - memory_limiter
+          - batch
+        exporters:
+          - otlphttp/openobserve
+      traces:
+        receivers:
+          - otlp
+        processors:
+          - memory_limiter
+          - batch
+        exporters:
+          - otlphttp/openobserve

@@ -4,7 +4,7 @@
 # EnvoyProxy/SecurityPolicy. Apply the vendored chart CRDs up front.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-CRDS="${ROOT}/apps/envoy-gateway/helm/envoy-gateway/base/charts/gateway-helm-v1.7.2/gateway-helm/crds"
+CRDS="${ROOT}/apps/envoy-gateway/helm/charts/gateway-helm-v1.7.2/gateway-helm/crds"
 
 kubectl apply --server-side --force-conflicts -f "${CRDS}/generated"
 # Gateway API CRDs (HTTPRoute/Gateway/GRPCRoute) live beside the Envoy

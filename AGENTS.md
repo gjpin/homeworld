@@ -34,8 +34,9 @@ bootstrap script.
 - Pin container images, chart versions, and remote revisions. Do not introduce
   floating tags such as `latest`.
 - Helm installations are rendered from pinned upstream charts under
-  `apps/<component>/helm/<release>/`. Argo CD `Application` resources and CI
-  use the `homelab` overlay.
+  `apps/<component>/helm/` (or `apps/otel-collector/helm/{node,cluster,pod}/`
+  when multiple releases exist). Argo CD `Application` resources and CI
+  point directly to these directories.
   Preserve the existing automated sync policy and sync options unless the
   change specifically requires otherwise.
 - Keep service names, selectors, labels, PVC references, route backends, and

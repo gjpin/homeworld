@@ -23,5 +23,5 @@ spec:
     - PruneLast=true
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/longhorn/helm/longhorn/overlays/homelab
+    path: apps/longhorn/helm
     targetRevision: HEAD

@@ -26,5 +26,5 @@ spec:
 
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/immich/helm/immich/overlays/homelab
+    path: apps/immich/helm
     targetRevision: HEAD

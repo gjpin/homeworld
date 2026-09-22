@@ -23,5 +23,5 @@ spec:
       - PruneLast=true
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/collabora/helm/collabora-online/overlays/homelab
+    path: apps/collabora/helm
     targetRevision: HEAD

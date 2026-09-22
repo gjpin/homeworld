@@ -23,5 +23,5 @@ spec:
 
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/cloudnative-pg/helm/cloudnative-pg/overlays/homelab
+    path: apps/cloudnative-pg/helm
     targetRevision: HEAD

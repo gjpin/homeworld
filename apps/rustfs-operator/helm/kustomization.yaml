@@ -1,0 +1,42 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: rustfs-operator
+    repo: https://operator.rustfs.com
+    version: 0.0.5
+    releaseName: rustfs-operator
+    namespace: rustfs-operator
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^rustfs-operator(-console)?$
+      namespace: ^rustfs-operator$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^rustfs-operator(-console)?$
+      namespace: ^rustfs-operator$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: ^(Deployment|StatefulSet)$
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 1

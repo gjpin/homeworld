@@ -224,7 +224,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       },
@@ -399,7 +399,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-deployment$",
+          "name": "^otel-collector-cluster$",
           "namespace": "^otel-collector$"
         }
       },
@@ -407,7 +407,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-main$",
+          "name": "^otel-collector-pod$",
           "namespace": "^otel-collector$"
         }
       },
@@ -732,7 +732,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       },
@@ -795,7 +795,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-deployment$",
+          "name": "^otel-collector-cluster$",
           "namespace": "^otel-collector$"
         }
       },
@@ -803,7 +803,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-main$",
+          "name": "^otel-collector-pod$",
           "namespace": "^otel-collector$"
         }
       },
@@ -882,7 +882,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       },
@@ -961,7 +961,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-deployment$",
+          "name": "^otel-collector-cluster$",
           "namespace": "^otel-collector$"
         }
       },
@@ -969,7 +969,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-main$",
+          "name": "^otel-collector-pod$",
           "namespace": "^otel-collector$"
         }
       },
@@ -1247,7 +1247,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       },
@@ -1446,7 +1446,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-deployment$",
+          "name": "^otel-collector-cluster$",
           "namespace": "^otel-collector$"
         }
       },
@@ -1454,7 +1454,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-main$",
+          "name": "^otel-collector-pod$",
           "namespace": "^otel-collector$"
         }
       },
@@ -1641,7 +1641,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       },
@@ -1840,7 +1840,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-deployment$",
+          "name": "^otel-collector-cluster$",
           "namespace": "^otel-collector$"
         }
       },
@@ -1848,7 +1848,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-main$",
+          "name": "^otel-collector-pod$",
           "namespace": "^otel-collector$"
         }
       },
@@ -2103,7 +2103,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       }
@@ -2173,7 +2173,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       },
@@ -2373,14 +2373,14 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^ClusterRoleBinding$",
-          "name": "^otel-collector-daemonset$"
+          "name": "^otel-collector-node$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^ClusterRoleBinding$",
-          "name": "^otel-collector-deployment$"
+          "name": "^otel-collector-cluster$"
         }
       },
       {
@@ -2606,7 +2606,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       },
@@ -2685,7 +2685,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-deployment$",
+          "name": "^otel-collector-cluster$",
           "namespace": "^otel-collector$"
         }
       },
@@ -2693,7 +2693,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-main$",
+          "name": "^otel-collector-pod$",
           "namespace": "^otel-collector$"
         }
       },
@@ -3076,7 +3076,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       },
@@ -3227,7 +3227,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-deployment$",
+          "name": "^otel-collector-cluster$",
           "namespace": "^otel-collector$"
         }
       },
@@ -3235,7 +3235,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-main$",
+          "name": "^otel-collector-pod$",
           "namespace": "^otel-collector$"
         }
       },
@@ -3695,7 +3695,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       },
@@ -3894,7 +3894,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-deployment$",
+          "name": "^otel-collector-cluster$",
           "namespace": "^otel-collector$"
         }
       },
@@ -3902,7 +3902,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-main$",
+          "name": "^otel-collector-pod$",
           "namespace": "^otel-collector$"
         }
       },
@@ -4066,7 +4066,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       },
@@ -4129,7 +4129,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-deployment$",
+          "name": "^otel-collector-cluster$",
           "namespace": "^otel-collector$"
         }
       },
@@ -4137,7 +4137,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-main$",
+          "name": "^otel-collector-pod$",
           "namespace": "^otel-collector$"
         }
       },
@@ -4200,7 +4200,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       },
@@ -4279,7 +4279,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-deployment$",
+          "name": "^otel-collector-cluster$",
           "namespace": "^otel-collector$"
         }
       },
@@ -4287,7 +4287,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-main$",
+          "name": "^otel-collector-pod$",
           "namespace": "^otel-collector$"
         }
       },
@@ -4374,7 +4374,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       },
@@ -4573,7 +4573,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-deployment$",
+          "name": "^otel-collector-cluster$",
           "namespace": "^otel-collector$"
         }
       },
@@ -4581,7 +4581,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-main$",
+          "name": "^otel-collector-pod$",
           "namespace": "^otel-collector$"
         }
       },
@@ -4985,7 +4985,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       },
@@ -5049,7 +5049,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-deployment$",
+          "name": "^otel-collector-cluster$",
           "namespace": "^otel-collector$"
         }
       },
@@ -5057,7 +5057,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-main$",
+          "name": "^otel-collector-pod$",
           "namespace": "^otel-collector$"
         }
       },
@@ -5104,7 +5104,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       },
@@ -5303,7 +5303,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-deployment$",
+          "name": "^otel-collector-cluster$",
           "namespace": "^otel-collector$"
         }
       },
@@ -5311,7 +5311,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-main$",
+          "name": "^otel-collector-pod$",
           "namespace": "^otel-collector$"
         }
       },
@@ -5446,7 +5446,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^otel-collector-daemonset-agent$",
+          "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
       },
@@ -5590,7 +5590,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-deployment$",
+          "name": "^otel-collector-cluster$",
           "namespace": "^otel-collector$"
         }
       },

@@ -53,17 +53,17 @@ spec:
             k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
-            k8s:app.kubernetes.io/instance: otel-collector-main
+            k8s:app.kubernetes.io/instance: otel-collector-pod
             k8s:app.kubernetes.io/name: opentelemetry-collector
             k8s:component: standalone-collector
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
-            k8s:app.kubernetes.io/instance: otel-collector-deployment
+            k8s:app.kubernetes.io/instance: otel-collector-cluster
             k8s:app.kubernetes.io/name: opentelemetry-collector
             k8s:component: standalone-collector
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector-node
-            k8s:app.kubernetes.io/instance: otel-collector-daemonset
+            k8s:app.kubernetes.io/instance: otel-collector-node
             k8s:app.kubernetes.io/name: opentelemetry-collector
             k8s:component: agent-collector
         - matchLabels:

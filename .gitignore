@@ -1,4 +1,4 @@
-apps/**/helm/**/base/charts/
+apps/**/helm/**/charts/
 security-reports/
 new/
 e2e/examples/.generated/

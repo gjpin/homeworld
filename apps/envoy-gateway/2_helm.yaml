@@ -28,5 +28,5 @@ spec:
     - ServerSideApply=true
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/envoy-gateway/helm/envoy-gateway/overlays/homelab
+    path: apps/envoy-gateway/helm
     targetRevision: HEAD

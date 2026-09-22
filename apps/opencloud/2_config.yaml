@@ -22,6 +22,9 @@ data:
     additional_policies:
       - name: default
         routes:
+          - endpoint: /yjs
+            backend: http://127.0.0.1:1234
+            unprotected: true
           - endpoint: /caldav/
             backend: http://radicale.radicale.svc.cluster.local:5232
             remote_user_header: X-Remote-User
@@ -108,16 +111,23 @@ data:
             color: "#E2BAFF"
             icon: cloud
             priority: 50
+    maps:
+      config:
+        folderViewEnabled: true
   csp.yaml: |
     directives:
       child-src:
         - '''self'''
+        - 'blob:'
       connect-src:
         - '''self'''
         - 'blob:'
+        - 'data:'
+        - 'https://tile.openstreetmap.org/'
         - 'https://auth.${BASE_DOMAIN}/'
         - 'https://office.${BASE_DOMAIN}/'
         - 'wss://office.${BASE_DOMAIN}/'
+        - 'wss://cloud.${BASE_DOMAIN}/'
         - 'https://raw.githubusercontent.com/opencloud-eu/awesome-apps/'
       default-src:
         - '''none'''
@@ -147,6 +157,12 @@ data:
       script-src:
         - '''self'''
         - '''unsafe-inline'''
+        - '''unsafe-eval'''
+        - 'blob:'
+        - 'https://www.gstatic.com/'
       style-src:
         - '''self'''
         - '''unsafe-inline'''
+      worker-src:
+        - '''self'''
+        - 'blob:'

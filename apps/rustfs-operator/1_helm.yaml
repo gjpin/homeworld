@@ -36,5 +36,5 @@ spec:
         - /spec/template/metadata/annotations/checksum~1secret
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/rustfs-operator/helm/rustfs-operator/overlays/homelab
+    path: apps/rustfs-operator/helm
     targetRevision: HEAD

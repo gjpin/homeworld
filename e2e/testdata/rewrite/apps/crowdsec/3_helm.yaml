@@ -6,7 +6,7 @@ metadata:
 spec:
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/crowdsec/helm/crowdsec/overlays/homelab
+    path: apps/crowdsec/helm
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc

@@ -32,11 +32,11 @@
 
 # Helm security profiles
 
-Pinned upstream charts are rendered through Kustomize overlays under each
-component's `helm/` directory. Argo CD and CI use the `homelab` overlay.
+Pinned upstream charts are rendered through Kustomize under each
+component's `helm/` directory.
 
 Argo CD must have `kustomize.buildOptions: --enable-helm` before chart
-Applications are switched to local overlay sources. Argo CD itself remains on
+Applications are switched to local Kustomize sources. Argo CD itself remains on
 the direct Helm bootstrap source until that setting has been synced, and should
 be migrated last. RustFS Operator remains direct Helm because chart `0.0.5`
 contains a duplicate CRD; CI renders it with Helm until upstream fixes the
@@ -52,7 +52,7 @@ Profile resource fallbacks, applied only when an upstream value is absent:
 | --- | --- | --- |
 | Homelab | `10m` CPU, `64Mi` memory, `64Mi` ephemeral storage | `1` CPU, `2Gi` memory, `2Gi` ephemeral storage |
 
-The homelab overlays set every Helm-rendered Deployment and StatefulSet to one
+The homelab configurations set every Helm-rendered Deployment and StatefulSet to one
 replica. DaemonSets remain node-scoped and continue to run one pod per
 eligible node. Autoscaling is disabled, so no HPA, VPA, or KEDA resource can
 raise these counts. The encrypted Longhorn StorageClass uses one volume replica
@@ -512,18 +512,23 @@ access. Radicale has no public hostname or web UI; the retired
 
 ## DAVx⁵ on Android
 
-To sync calendars and contacts with DAVx⁵, create an app token in the user's
-OpenCloud settings. In DAVx⁵, add an account using the URL and username/password
-login method with the following values:
+Standard CalDAV/CardDAV mobile clients cannot handle web-based OIDC login popups
+during background sync, so OpenCloud provides app tokens (HTTP basic auth passwords)
+for client authentication:
 
-* URL: `https://cloud.${BASE_DOMAIN}`
-* Username: the OpenCloud username
-* Password: the generated OpenCloud app token
+1. **Generate an app token**:
+   - Log in to OpenCloud via browser at `https://cloud.${BASE_DOMAIN}`.
+   - Go to **User Settings** → **Security** → **App Tokens** (or App Passwords) and create a token for DAVx⁵.
+2. **Configure DAVx⁵**:
+   - In DAVx⁵, select **Add Account** → **Login with URL and user name**.
+   - **Base URL**: `https://cloud.${BASE_DOMAIN}` (DAVx⁵ will automatically discover `/.well-known/caldav` and `/.well-known/carddav`).
+   - **Username**: Your OpenCloud username.
+   - **Password**: The generated OpenCloud app token.
+3. DAVx⁵ will automatically detect the **Personal Calendar** and **Personal Address Book** and sync them with your native Android calendar and contacts apps.
 
-The root URL supports automatic CalDAV and CardDAV discovery. If discovery does
-not work, use `https://cloud.${BASE_DOMAIN}/caldav/` and
-`https://cloud.${BASE_DOMAIN}/carddav/` as separate account URLs. Do not use the
-Authelia password or connect to Radicale directly; OpenCloud authenticates the
+If automatic discovery does not work, use `https://cloud.${BASE_DOMAIN}/caldav/`
+and `https://cloud.${BASE_DOMAIN}/carddav/` as separate account URLs. Do not use
+the Authelia password or connect to Radicale directly; OpenCloud authenticates the
 request and proxies it to Radicale.
 
 # ArgoCD

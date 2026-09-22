@@ -35,21 +35,21 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-otel-main-self-metrics
+  name: allow-otel-pod-self-metrics
   namespace: otel-collector
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/instance: otel-collector-main
+      k8s:app.kubernetes.io/instance: otel-collector-pod
       k8s:app.kubernetes.io/name: opentelemetry-collector
       k8s:component: standalone-collector
   ingress:
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
-            k8s:app.kubernetes.io/instance: otel-collector-main
+            k8s:app.kubernetes.io/instance: otel-collector-pod
             k8s:app.kubernetes.io/name: opentelemetry-collector
             k8s:component: standalone-collector
       toPorts:
@@ -60,7 +60,7 @@ spec:
     - toEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
-            k8s:app.kubernetes.io/instance: otel-collector-main
+            k8s:app.kubernetes.io/instance: otel-collector-pod
             k8s:app.kubernetes.io/name: opentelemetry-collector
             k8s:component: standalone-collector
       toPorts:
@@ -71,14 +71,14 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-otel-main-kubernetes-api
+  name: allow-otel-pod-kubernetes-api
   namespace: otel-collector
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/instance: otel-collector-main
+      k8s:app.kubernetes.io/instance: otel-collector-pod
       k8s:app.kubernetes.io/name: opentelemetry-collector
       k8s:component: standalone-collector
   egress:
@@ -92,21 +92,21 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-otel-deployment-self-metrics
+  name: allow-otel-cluster-self-metrics
   namespace: otel-collector
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/instance: otel-collector-deployment
+      k8s:app.kubernetes.io/instance: otel-collector-cluster
       k8s:app.kubernetes.io/name: opentelemetry-collector
       k8s:component: standalone-collector
   ingress:
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
-            k8s:app.kubernetes.io/instance: otel-collector-deployment
+            k8s:app.kubernetes.io/instance: otel-collector-cluster
             k8s:app.kubernetes.io/name: opentelemetry-collector
             k8s:component: standalone-collector
       toPorts:
@@ -117,7 +117,7 @@ spec:
     - toEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
-            k8s:app.kubernetes.io/instance: otel-collector-deployment
+            k8s:app.kubernetes.io/instance: otel-collector-cluster
             k8s:app.kubernetes.io/name: opentelemetry-collector
             k8s:component: standalone-collector
       toPorts:
@@ -128,14 +128,14 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-otel-deployment-kubernetes-api
+  name: allow-otel-cluster-kubernetes-api
   namespace: otel-collector
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/instance: otel-collector-deployment
+      k8s:app.kubernetes.io/instance: otel-collector-cluster
       k8s:app.kubernetes.io/name: opentelemetry-collector
       k8s:component: standalone-collector
   egress:
@@ -149,14 +149,14 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-otel-main-openobserve
+  name: allow-otel-pod-openobserve
   namespace: otel-collector
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/instance: otel-collector-main
+      k8s:app.kubernetes.io/instance: otel-collector-pod
       k8s:app.kubernetes.io/name: opentelemetry-collector
       k8s:component: standalone-collector
   egress:
@@ -172,14 +172,14 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-otel-deployment-openobserve
+  name: allow-otel-cluster-openobserve
   namespace: otel-collector
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/instance: otel-collector-deployment
+      k8s:app.kubernetes.io/instance: otel-collector-cluster
       k8s:app.kubernetes.io/name: opentelemetry-collector
       k8s:component: standalone-collector
   egress:
@@ -195,7 +195,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-otel-main-velero-node-agent-metrics
+  name: allow-otel-pod-velero-node-agent-metrics
   namespace: otel-collector
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -204,7 +204,7 @@ spec:
   # Prometheus receiver (8085); no unannotated receiver port is opened.
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/instance: otel-collector-main
+      k8s:app.kubernetes.io/instance: otel-collector-pod
       k8s:app.kubernetes.io/name: opentelemetry-collector
       k8s:component: standalone-collector
   egress:
@@ -221,7 +221,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-otel-main-envoy-metrics
+  name: allow-otel-pod-envoy-metrics
   namespace: otel-collector
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -230,7 +230,7 @@ spec:
   # target annotated for OTel.
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/instance: otel-collector-main
+      k8s:app.kubernetes.io/instance: otel-collector-pod
       k8s:app.kubernetes.io/name: opentelemetry-collector
       k8s:component: standalone-collector
   egress:

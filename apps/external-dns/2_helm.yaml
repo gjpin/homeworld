@@ -23,5 +23,5 @@ spec:
     - PruneLast=true
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/external-dns/helm/external-dns/overlays/homelab
+    path: apps/external-dns/helm
     targetRevision: HEAD

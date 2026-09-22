@@ -23,5 +23,5 @@ spec:
 
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/openobserve/helm/openobserve/overlays/homelab
+    path: apps/openobserve/helm
     targetRevision: HEAD

@@ -14,8 +14,6 @@ spec:
       app.kubernetes.io/name: opencloud
   template:
     metadata:
-      annotations:
-        checksum/proxy-config: radicale-integration-v1
       labels:
         app.kubernetes.io/name: opencloud
         app.kubernetes.io/component: server
@@ -37,7 +35,7 @@ spec:
             - /bin/sh
             - -c
           args:
-            - cp -R /usr/share/nginx/html/external-sites/ /apps
+            - cp -R /web/apps/external-sites/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/external-sites/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/apps/external-sites/ /apps
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -67,7 +65,7 @@ spec:
             - /bin/sh
             - -c
           args:
-            - cp -R /usr/share/nginx/html/json-viewer/ /apps
+            - cp -R /web/apps/json-viewer/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/json-viewer/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/apps/json-viewer/ /apps
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -97,7 +95,7 @@ spec:
             - /bin/sh
             - -c
           args:
-            - cp -R /usr/share/nginx/html/progress-bars/ /apps
+            - cp -R /web/apps/progress-bars/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/progress-bars/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/apps/progress-bars/ /apps
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -121,13 +119,13 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: unzip
-          image: opencloudeu/web-extensions:unzip-2.1.0
+          image: opencloudeu/web-extensions:unzip-2.2.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
             - -c
           args:
-            - cp -R /usr/share/nginx/html/unzip/ /apps
+            - cp -R /web/apps/unzip/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/unzip/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/apps/unzip/ /apps
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -151,13 +149,13 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: draw-io
-          image: opencloudeu/web-extensions:draw-io-2.1.0
+          image: opencloudeu/web-extensions:draw-io-2.2.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
             - -c
           args:
-            - cp -R /usr/share/nginx/html/draw-io/ /apps
+            - cp -R /web/apps/draw-io/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/draw-io/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/apps/draw-io/ /apps
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -180,14 +178,164 @@ spec:
           volumeMounts:
             - name: opencloud-apps
               mountPath: /apps
-        - name: importer
-          image: opencloudeu/web-extensions:importer-1.0.0
+        - name: calculator
+          image: opencloudeu/web-extensions:calculator-2.1.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
             - -c
           args:
-            - cp -R /usr/share/nginx/html/importer/ /apps
+            - cp -R /web/apps/calculator/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/calculator/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/apps/calculator/ /apps
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsGroup: 1000
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+              ephemeral-storage: 2Gi
+          volumeMounts:
+            - name: opencloud-apps
+              mountPath: /apps
+        - name: pastebin
+          image: opencloudeu/web-extensions:pastebin-2.1.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - cp -R /web/apps/pastebin/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/pastebin/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/apps/pastebin/ /apps
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsGroup: 1000
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+              ephemeral-storage: 2Gi
+          volumeMounts:
+            - name: opencloud-apps
+              mountPath: /apps
+        - name: bpmn
+          image: opencloudeu/web-extensions:bpmn-1.1.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - cp -R /web/apps/bpmn/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/bpmn/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/apps/bpmn/ /apps
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsGroup: 1000
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+              ephemeral-storage: 2Gi
+          volumeMounts:
+            - name: opencloud-apps
+              mountPath: /apps
+        - name: maps
+          image: opencloudeu/web-extensions:maps-3.1.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - cp -R /web/apps/maps/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/maps/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/apps/maps/ /apps
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsGroup: 1000
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+              ephemeral-storage: 2Gi
+          volumeMounts:
+            - name: opencloud-apps
+              mountPath: /apps
+        - name: arcade
+          image: opencloudeu/web-extensions:arcade-3.0.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - cp -R /web/apps/arcade/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/arcade/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/apps/arcade/ /apps
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsGroup: 1000
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+              ephemeral-storage: 2Gi
+          volumeMounts:
+            - name: opencloud-apps
+              mountPath: /apps
+        - name: cast
+          image: opencloudeu/web-extensions:cast-1.0.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - cp -R /web/apps/cast/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/cast/ /apps 2>/dev/null || cp -R /usr/share/nginx/html/apps/cast/ /apps
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -212,7 +360,7 @@ spec:
               mountPath: /apps
       containers:
         - name: opencloud
-          image: opencloudeu/opencloud-rolling:7.4.0
+          image: opencloudeu/opencloud-rolling:8.0.1
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -233,6 +381,12 @@ spec:
           env:
             - name: OC_ADD_RUN_SERVICES
               value: collaboration
+            - name: WEB_OPTION_DISABLE_SPONSOR_LINK
+              value: "true"
+            - name: WEB_OPTION_YJS_SERVER_URL
+              value: wss://cloud.${BASE_DOMAIN}/yjs
+            - name: FRONTEND_APP_HANDLER_SECURE_VIEW_APP_ADDR
+              value: eu.opencloud.api.collaboration
             - name: OC_URL
               value: https://cloud.${BASE_DOMAIN}
             - name: OC_LOG_LEVEL
@@ -422,6 +576,56 @@ spec:
               mountPath: /var/lib/opencloud
             - name: opencloud-apps
               mountPath: /var/lib/opencloud/web/assets/apps
+        - name: yjs
+          image: opencloudeu/yjs:1.0.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: PORT
+              value: "1234"
+            - name: OPENCLOUD_URL
+              value: http://127.0.0.1:9200
+            - name: SHUTDOWN_GRACE_PERIOD_MS
+              value: "15000"
+          ports:
+            - name: yjs
+              containerPort: 1234
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /healthz/ready
+              port: yjs
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz/ready
+              port: yjs
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+              ephemeral-storage: 1Gi
       volumes:
         - name: opencloud-config
           persistentVolumeClaim:

@@ -1,5 +1,5 @@
 # Bootstrap-only values for kind e2e. Chart version must match
-# apps/argocd/helm/argocd/base/kustomization.yaml. ServiceMonitors stay off
+# apps/argocd/helm/kustomization.yaml. ServiceMonitors stay off
 # until prometheus-operator CRDs sync (wave 1); the later argocd-app overlay
 # enables them.
 fullnameOverride: argocd
