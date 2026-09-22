@@ -27,7 +27,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: disable-nat
-          image: docker.io/syncthing/syncthing:2.0.16
+          image: docker.io/syncthing/syncthing:2.1.5
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -63,7 +63,7 @@ spec:
               name: syncthing
       containers:
         - name: syncthing
-          image: docker.io/syncthing/syncthing:2.0.16
+          image: docker.io/syncthing/syncthing:2.1.5
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
