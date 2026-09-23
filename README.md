@@ -31,4 +31,7 @@
 | Velero UI | `velero.${BASE_DOMAIN}` | Web interface for managing Velero. |
 
 # Features
+- Gitops with [ArgoCD](docs/argocd.md)
 - Tight [network policies](docs/network-policies.md)
+- [OIDC](docs/oidc.md)
+- Automated encrypted [Velero backups](docs/velero.md) to Backblaze B2
