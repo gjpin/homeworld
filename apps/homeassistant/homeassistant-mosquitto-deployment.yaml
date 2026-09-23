@@ -1,12 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: kompose convert -f /Users/zero/src/homelab/homelab/applications/homeassistant/docker-compose.yaml
-    kompose.version: 1.37.0 (HEAD)
-  labels:
-    io.kompose.service: homeassistant-mosquitto
   name: homeassistant-mosquitto
+  namespace: homeassistant
+  labels:
+    app.kubernetes.io/name: mosquitto
+    io.kompose.service: homeassistant-mosquitto
 spec:
   replicas: 1
   selector:
@@ -16,52 +15,59 @@ spec:
     type: Recreate
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert -f /Users/zero/src/homelab/homelab/applications/homeassistant/docker-compose.yaml
-        kompose.version: 1.37.0 (HEAD)
       labels:
+        app.kubernetes.io/name: mosquitto
         io.kompose.service: homeassistant-mosquitto
     spec:
       hostUsers: false
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab
       securityContext:
         runAsNonRoot: true
+        runAsUser: 1883
+        runAsGroup: 1883
+        fsGroup: 1883
         seccompProfile:
           type: RuntimeDefault
       containers:
-        - image: docker.io/library/eclipse-mosquitto:2.0.21
+        - image: docker.io/library/eclipse-mosquitto:2.1.2
           imagePullPolicy: IfNotPresent
           name: homeassistant-mosquitto
+          ports:
+            - name: mqtt
+              containerPort: 1883
+              protocol: TCP
+          env:
+            - name: TZ
+              value: UTC
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
               drop:
                 - ALL
             runAsNonRoot: true
+            runAsUser: 1883
+            runAsGroup: 1883
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+              ephemeral-storage: 1Gi
           volumeMounts:
-            - mountPath: /mosquitto/config
-              name: homeassistant-mosquitto-claim0
+            - mountPath: /mosquitto/config/mosquitto.conf
+              name: mosquitto-config
+              subPath: mosquitto.conf
             - mountPath: /mosquitto/data
               name: homeassistant-mosquitto-claim1
-            - mountPath: /mosquitto/log
-              name: homeassistant-mosquitto-claim2
-            - mountPath: /etc/localtime
-              name: homeassistant-mosquitto-cm3
-              readOnly: true
-              subPath: localtime
       restartPolicy: Always
       volumes:
-        - name: homeassistant-mosquitto-claim0
-          persistentVolumeClaim:
-            claimName: homeassistant-mosquitto-claim0
+        - name: mosquitto-config
+          configMap:
+            name: homeassistant-mosquitto-config
         - name: homeassistant-mosquitto-claim1
           persistentVolumeClaim:
             claimName: homeassistant-mosquitto-claim1
-        - name: homeassistant-mosquitto-claim2
-          persistentVolumeClaim:
-            claimName: homeassistant-mosquitto-claim2
-        - configMap:
-            items:
-              - key: localtime
-                path: localtime
-            name: homeassistant-mosquitto-cm3
-          name: homeassistant-mosquitto-cm3

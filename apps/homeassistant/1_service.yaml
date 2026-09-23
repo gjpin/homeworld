@@ -4,6 +4,8 @@ kind: Service
 metadata:
   name: homeassistant
   namespace: homeassistant
+  labels:
+    app.kubernetes.io/name: homeassistant
 spec:
   type: ClusterIP
   ports:
@@ -13,3 +15,20 @@ spec:
       targetPort: 8123
   selector:
     io.kompose.service: homeassistant
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homeassistant-mosquitto
+  namespace: homeassistant
+  labels:
+    app.kubernetes.io/name: mosquitto
+spec:
+  type: ClusterIP
+  ports:
+    - name: mqtt
+      port: 1883
+      protocol: TCP
+      targetPort: 1883
+  selector:
+    io.kompose.service: homeassistant-mosquitto

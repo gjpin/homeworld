@@ -160,3 +160,26 @@ spec:
         - ports:
             - port: "9998"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-opencloud-metrics-ingress
+  namespace: opencloud
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: opencloud
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/instance: otel-collector-pod
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: standalone-collector
+      toPorts:
+        - ports:
+            - port: "9205"
+              protocol: TCP

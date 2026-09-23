@@ -107,3 +107,24 @@ spec:
         - ports:
             - port: "8384"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-syncthing-metrics
+  namespace: syncthing
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app: syncthing
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "8384"
+              protocol: TCP

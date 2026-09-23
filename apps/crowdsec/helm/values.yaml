@@ -3,11 +3,11 @@ container_runtime: containerd
 
 image:
   repository: crowdsecurity/crowdsec
-  tag: v1.7.8
+  tag: v1.8.1
   pullPolicy: IfNotPresent
   kubectl:
     repository: alpine/kubectl
-    tag: "1.36.3"
+    tag: 1.36.4
     pullPolicy: IfNotPresent
 
 lapi:
@@ -27,9 +27,11 @@ lapi:
     requests:
       cpu: 500m
       memory: 500Mi
+      ephemeral-storage: 64Mi
     limits:
       cpu: 500m
       memory: 500Mi
+      ephemeral-storage: 2Gi
   persistentVolume:
     data:
       enabled: false
@@ -100,9 +102,11 @@ agent:
     requests:
       cpu: 500m
       memory: 250Mi
+      ephemeral-storage: 64Mi
     limits:
       cpu: 500m
       memory: 250Mi
+      ephemeral-storage: 2Gi
   wait_for_lapi:
     securityContext:
       allowPrivilegeEscalation: false
@@ -129,6 +133,7 @@ agent:
 
 appsec:
   enabled: true
+  replicas: 1
   nodeSelector:
     node-role.kubernetes.io/homelab: homelab
   podSecurityContext:
@@ -144,9 +149,11 @@ appsec:
     requests:
       cpu: 500m
       memory: 250Mi
+      ephemeral-storage: 64Mi
     limits:
       cpu: 500m
       memory: 250Mi
+      ephemeral-storage: 2Gi
   wait_for_lapi:
     securityContext:
       allowPrivilegeEscalation: false

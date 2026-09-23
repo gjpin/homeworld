@@ -37,13 +37,15 @@ presets:
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8sobjectsreceiver
   kubernetesEvents:
     enabled: true
-# resources:
-#   requests:
-#     cpu: 100m
-#     memory: 256Mi
-#   limits:
-#     cpu: 250m
-#     memory: 512Mi
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+    ephemeral-storage: 64Mi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+    ephemeral-storage: 2Gi
 config:
   receivers:
     jaeger: null

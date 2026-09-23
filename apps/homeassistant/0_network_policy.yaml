@@ -83,3 +83,117 @@ spec:
         - ports:
             - port: "8123"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-homeassistant-world
+  namespace: homeassistant
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:io.kompose.service: homeassistant
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "123"
+              protocol: UDP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-mosquitto-ingress
+  namespace: homeassistant
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:io.kompose.service: homeassistant-mosquitto
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: homeassistant
+            k8s:io.kompose.service: homeassistant
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: homeassistant
+            k8s:io.kompose.service: homeassistant-zigbee2mqtt
+      toPorts:
+        - ports:
+            - port: "1883"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-homeassistant-mosquitto-egress
+  namespace: homeassistant
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:io.kompose.service: homeassistant
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: homeassistant
+            k8s:io.kompose.service: homeassistant-mosquitto
+      toPorts:
+        - ports:
+            - port: "1883"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-zigbee2mqtt-mosquitto-egress
+  namespace: homeassistant
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:io.kompose.service: homeassistant-zigbee2mqtt
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: homeassistant
+            k8s:io.kompose.service: homeassistant-mosquitto
+      toPorts:
+        - ports:
+            - port: "1883"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-zigbee2mqtt-lan
+  namespace: homeassistant
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:io.kompose.service: homeassistant-zigbee2mqtt
+  egress:
+    - toCIDRSet:
+        - cidr: 10.0.0.0/8
+          except:
+            - 10.42.0.0/16
+            - 10.43.0.0/16
+        - cidr: 172.16.0.0/12
+        - cidr: 192.168.0.0/16
+      toPorts:
+        - ports:
+            - port: "1"
+              endPort: 65535
+              protocol: TCP

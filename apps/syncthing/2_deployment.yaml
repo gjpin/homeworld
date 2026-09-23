@@ -1,10 +1,13 @@
 # https://hub.docker.com/r/syncthing/syncthing/tags
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: syncthing
   namespace: syncthing
+  labels:
+    app: syncthing
+    app.kubernetes.io/name: syncthing
 spec:
   replicas: 1
   selector:
@@ -16,8 +19,12 @@ spec:
     metadata:
       labels:
         app: syncthing
+        app.kubernetes.io/name: syncthing
     spec:
+      automountServiceAccountToken: false
       hostUsers: false
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab
       securityContext:
         fsGroup: 1000
         runAsGroup: 1000
@@ -27,7 +34,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: disable-nat
-          image: docker.io/syncthing/syncthing:2.0.16
+          image: docker.io/syncthing/syncthing:2.1.5
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -40,6 +47,8 @@ spec:
               fi
               if [ -f "$cfg" ]; then
                 sed -i 's|<natEnabled>true</natEnabled>|<natEnabled>false</natEnabled>|' "$cfg"
+                sed -i 's|<globalAnnounceEnabled>true</globalAnnounceEnabled>|<globalAnnounceEnabled>false</globalAnnounceEnabled>|' "$cfg"
+                sed -i 's|<relaysEnabled>true</relaysEnabled>|<relaysEnabled>false</relaysEnabled>|' "$cfg"
               fi
           securityContext:
             allowPrivilegeEscalation: false
@@ -63,7 +72,7 @@ spec:
               name: syncthing
       containers:
         - name: syncthing
-          image: docker.io/syncthing/syncthing:2.0.16
+          image: docker.io/syncthing/syncthing:2.1.5
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -80,6 +89,10 @@ spec:
               value: "1000"
             - name: STGUIADDRESS
               value: "0.0.0.0:8384"
+            - name: STNOUPGRADE
+              value: "1"
+            - name: STNORESTART
+              value: "1"
           ports:
             - containerPort: 8384
               protocol: TCP
@@ -87,6 +100,15 @@ spec:
               protocol: TCP
             - containerPort: 22000
               protocol: UDP
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+              ephemeral-storage: 2Gi
           volumeMounts:
             - mountPath: /var/syncthing
               name: syncthing

@@ -2,6 +2,12 @@ namespaceOverride: longhorn-system # mandatory namespace for this helm chart
 # disable default storage class
 persistence:
   defaultClass: false
+  defaultClassReplicaCount: 1
+defaultSettings:
+  systemManagedComponentsNodeSelector: "node-role.kubernetes.io/homelab:homelab"
+  defaultReplicaCount: 1
+networkPolicies:
+  enabled: false
 metrics:
   serviceMonitor:
     enabled: true

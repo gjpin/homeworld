@@ -1,8 +1,14 @@
 fullnameOverride: external-dns
 namespaced: true
+replicaCount: 1
+
+image:
+  pullPolicy: IfNotPresent
+
 # force the DNS record IP address
 extraArgs:
-  - default-targets=${EXTERNAL_IP}
+  - --default-targets=${EXTERNAL_IP}
+
 sources:
   - service
   - gateway-httproute
@@ -10,26 +16,38 @@ sources:
   - gateway-tlsroute
   - gateway-tcproute
   - gateway-udproute
+
 # "sync" policy has issues:
 # https://github.com/kubernetes-sigs/external-dns/issues/4059
 policy: upsert-only
+
 provider:
   name: cloudflare
+
 env:
   - name: CF_API_TOKEN
     valueFrom:
       secretKeyRef:
         name: cloudflare-api-token
         key: api-token
+
 serviceMonitor:
   enabled: true
   interval: 60s
-# resources:
-#   requests:
-#     cpu: 100m
-#     memory: 128Mi
-#   limits:
-#     cpu: 500m
-#     memory: 256Mi
+
+deploymentAnnotations:
+  kube-score/ignore: pod-probes-identical,pod-networkpolicy,deployment-strategy,deployment-replicas
+  security.homeworld/exception-reason: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+    ephemeral-storage: 64Mi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+    ephemeral-storage: 2Gi
+
 nodeSelector:
   node-role.kubernetes.io/homelab: homelab

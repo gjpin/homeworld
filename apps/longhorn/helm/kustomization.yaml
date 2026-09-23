@@ -5,7 +5,7 @@ commonAnnotations:
 helmCharts:
   - name: longhorn
     repo: https://charts.longhorn.io
-    version: 1.11.1
+    version: 1.12.1
     releaseName: longhorn
     namespace: longhorn-system
     includeCRDs: true
@@ -108,15 +108,6 @@ patches:
       - op: add
         path: /spec/replicas
         value: 1
-  - target:
-      group: storage.k8s.io
-      version: v1
-      kind: StorageClass
-      name: ^longhorn-crypto$
-    patch: |-
-      - op: replace
-        path: /parameters/numberOfReplicas
-        value: "1"
   - target:
       group: apps
       version: v1

@@ -20,7 +20,7 @@ immich:
     enabled: true
   persistence:
     library:
-      existingClaim: immich
+      existingClaim: photos
   # The chart's empty configuration map is truthy and conflicts with an existing Secret.
   configuration: null
   existingConfiguration: immich-config
@@ -31,62 +31,29 @@ machine-learning:
       enabled: true
       size: 10Gi
       type: persistentVolumeClaim
-      accessMode: ReadWriteMany
+      accessMode: ReadWriteOnce
       storageClass: longhorn-crypto
-  controllers:
-    main:
-      # Longhorn RWX volumes are NFS-backed and cannot be mounted by user-namespaced Pods.
-      pod:
-        hostUsers: true
-      containers:
-        main:
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            runAsNonRoot: true
-            seccompProfile:
-              type: RuntimeDefault
 server:
   service:
     main:
       ports:
         http:
           port: 80
-  controllers:
-    main:
-      containers:
-        main:
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            runAsNonRoot: true
-            seccompProfile:
-              type: RuntimeDefault
 controllers:
   main:
     containers:
       main:
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
-          runAsNonRoot: true
-          seccompProfile:
-            type: RuntimeDefault
         env:
-          REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local:6379
+          REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local
+          REDIS_PORT: "6379"
           REDIS_PASSWORD:
             valueFrom:
               secretKeyRef:
                 name: dragonfly
                 key: password
-          IMMICH_MACHINE_LEARNING_URL: immich-machine-learning.immich.svc.cluster.local:3003
-          DB_HOSTNAME: immich-rw.immich.svc.cluster.local:5432
+          IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
+          DB_HOSTNAME: immich-rw.immich.svc.cluster.local
+          DB_PORT: "5432"
           DB_DATABASE_NAME: immich
           DB_USERNAME: immich
           DB_PASSWORD:

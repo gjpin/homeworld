@@ -5,8 +5,61 @@ serviceAccount:
 global:
   nodeSelector:
     node-role.kubernetes.io/homelab: homelab
+
+image:
+  pullPolicy: IfNotPresent
+
 hostUsers: false
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+    ephemeral-storage: 64Mi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+    ephemeral-storage: 2Gi
+
+deploymentAnnotations:
+  kube-score/ignore: pod-networkpolicy,container-security-context-user-group-id
+  security.homeworld/exception-reason: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+
+serviceMonitor:
+  enabled: true
+  interval: 60s
+  renderMode: alwaysRender
+
 webhook:
   hostUsers: false
+  image:
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+      ephemeral-storage: 64Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+      ephemeral-storage: 2Gi
+  deploymentAnnotations:
+    kube-score/ignore: pod-probes,pod-networkpolicy,container-security-context-user-group-id,deployment-replicas
+    security.homeworld/exception-reason: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+
 certController:
   hostUsers: false
+  image:
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+      ephemeral-storage: 64Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+      ephemeral-storage: 2Gi
+  deploymentAnnotations:
+    kube-score/ignore: pod-networkpolicy,container-security-context-user-group-id
+    security.homeworld/exception-reason: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.

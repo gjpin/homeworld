@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: grafana
     dashboards: grafana
 spec:
-  version: docker.io/grafana/grafana:13.0.1-security-01
+  version: docker.io/grafana/grafana:13.2.2
   disableDefaultAdminSecret: true
   config:
     server:
@@ -21,11 +21,11 @@ spec:
       preinstall_disabled: "true"
     auth:
       disable_login_form: "true"
-      oauth_auto_login: "true"
     auth.basic:
       enabled: "false"
     auth.generic_oauth:
       enabled: "true"
+      auto_login: "true"
       name: Authelia
       client_id: grafana
       scopes: "openid profile email groups"
@@ -71,7 +71,7 @@ spec:
               type: RuntimeDefault
           initContainers:
             - name: openobserve-plugin-loader
-              image: alpine:3.21.3
+              image: alpine:3.24.2
               imagePullPolicy: IfNotPresent
               command:
                 - sh
@@ -88,6 +88,15 @@ spec:
                 runAsGroup: 1000
                 runAsNonRoot: true
                 runAsUser: 1000
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 64Mi
+                  ephemeral-storage: 64Mi
+                limits:
+                  cpu: "1"
+                  memory: 2Gi
+                  ephemeral-storage: 2Gi
               volumeMounts:
                 - name: openobserve-plugin
                   mountPath: /var/lib/grafana/plugins
@@ -100,6 +109,15 @@ spec:
                   drop:
                     - ALL
                 runAsNonRoot: true
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                  ephemeral-storage: 64Mi
+                limits:
+                  cpu: "2"
+                  memory: 2Gi
+                  ephemeral-storage: 2Gi
               volumeMounts:
                 - name: openobserve-plugin
                   mountPath: /var/lib/grafana/plugins

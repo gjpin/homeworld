@@ -9,6 +9,7 @@ image:
 
 serviceAccount:
   create: true
+  automount: false
 
 podSecurityContext:
   runAsNonRoot: true
@@ -94,3 +95,6 @@ autoscaling:
 referenceGrant:
   create: false
   fromNamespaces: []
+
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab

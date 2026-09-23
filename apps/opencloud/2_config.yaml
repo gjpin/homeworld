@@ -145,6 +145,7 @@ data:
         - '''self'''
         - 'data:'
         - 'blob:'
+        - 'https://tile.openstreetmap.org/'
         - 'https://office.${BASE_DOMAIN}/'
         - 'https://raw.githubusercontent.com/opencloud-eu/awesome-apps/'
       manifest-src:

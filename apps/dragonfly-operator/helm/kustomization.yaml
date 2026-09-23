@@ -5,7 +5,7 @@ commonAnnotations:
 helmCharts:
   - name: dragonfly-operator
     repo: oci://ghcr.io/dragonflydb/dragonfly-operator/helm
-    version: v1.5.0
+    version: v1.6.1
     releaseName: dragonfly-operator
     namespace: dragonfly-operator
     includeCRDs: true
@@ -28,50 +28,3 @@ patches:
         template:
           spec:
             hostUsers: false
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: ^dragonfly-operator$
-      namespace: ^dragonfly-operator$
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/imagePullPolicy
-        value: IfNotPresent
-      - op: replace
-        path: /spec/template/spec/containers/1/imagePullPolicy
-        value: IfNotPresent
-  - target:
-      group: apps
-      version: v1
-      kind: ^(Deployment|StatefulSet)$
-    patch: |-
-      - op: add
-        path: /spec/replicas
-        value: 1
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: ^dragonfly-operator$
-      namespace: ^dragonfly-operator$
-    patch: |-
-      - op: add
-        path: /spec/template/spec/containers/0/resources
-        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"500m","memory":"128Mi","ephemeral-storage":"2Gi"}}
-      - op: add
-        path: /spec/template/spec/containers/1/resources
-        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: ^dragonfly-operator$
-      namespace: ^dragonfly-operator$
-    patch: |-
-      - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-replicas
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.

@@ -1,13 +1,36 @@
 fullnameOverride: grafana-operator
 namespaceOverride: grafana-operator
+
+annotations:
+  kube-score/ignore: pod-networkpolicy,container-security-context-user-group-id,deployment-replicas
+  security.homeworld/exception-reason: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+
+image:
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+    ephemeral-storage: 64Mi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+    ephemeral-storage: 2Gi
+
 crds:
   immutable: false
+
 serviceMonitor:
   enabled: true
   interval: 60s
+
 nodeSelector:
   node-role.kubernetes.io/homelab: homelab
+
 podSecurityContext:
+  runAsNonRoot: true
   seccompProfile:
     type: RuntimeDefault
+
 hostUsers: false

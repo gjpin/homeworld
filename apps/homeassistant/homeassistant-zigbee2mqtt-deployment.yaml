@@ -1,12 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: kompose convert -f /Users/zero/src/homelab/homelab/applications/homeassistant/docker-compose.yaml
-    kompose.version: 1.37.0 (HEAD)
-  labels:
-    io.kompose.service: homeassistant-zigbee2mqtt
   name: homeassistant-zigbee2mqtt
+  namespace: homeassistant
+  labels:
+    app.kubernetes.io/name: zigbee2mqtt
+    io.kompose.service: homeassistant-zigbee2mqtt
 spec:
   replicas: 1
   selector:
@@ -16,49 +15,53 @@ spec:
     type: Recreate
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert -f /Users/zero/src/homelab/homelab/applications/homeassistant/docker-compose.yaml
-        kompose.version: 1.37.0 (HEAD)
       labels:
+        app.kubernetes.io/name: zigbee2mqtt
         io.kompose.service: homeassistant-zigbee2mqtt
     spec:
       hostUsers: false
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab
       securityContext:
         runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
       containers:
-        - image: ghcr.io/koenkk/zigbee2mqtt:2.5.1
+        - image: ghcr.io/koenkk/zigbee2mqtt:2.14.1
           imagePullPolicy: IfNotPresent
           name: homeassistant-zigbee2mqtt
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: TZ
+              value: UTC
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
               drop:
                 - ALL
             runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+          resources:
+            requests:
+              cpu: 10m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+              ephemeral-storage: 1Gi
           volumeMounts:
             - mountPath: /app/data
               name: homeassistant-zigbee2mqtt-claim0
-            - mountPath: /run/udev
-              name: homeassistant-zigbee2mqtt-claim1
-              readOnly: true
-            - mountPath: /etc/localtime
-              name: homeassistant-zigbee2mqtt-cm2
-              readOnly: true
-              subPath: localtime
       restartPolicy: Always
       volumes:
         - name: homeassistant-zigbee2mqtt-claim0
           persistentVolumeClaim:
             claimName: homeassistant-zigbee2mqtt-claim0
-        - name: homeassistant-zigbee2mqtt-claim1
-          persistentVolumeClaim:
-            claimName: homeassistant-zigbee2mqtt-claim1
-            readOnly: true
-        - configMap:
-            items:
-              - key: localtime
-                path: localtime
-            name: homeassistant-zigbee2mqtt-cm2
-          name: homeassistant-zigbee2mqtt-cm2

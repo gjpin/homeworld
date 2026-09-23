@@ -1,9 +1,38 @@
 namespace: forgejo
-# Disable inbuilt postgres
+replicaCount: 1
+
+# Disable inbuilt databases
 postgresql-ha:
   enabled: false
 postgresql:
   enabled: false
+redis-cluster:
+  enabled: false
+
+image:
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+    ephemeral-storage: 64Mi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+    ephemeral-storage: 2Gi
+
+initContainers:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+      ephemeral-storage: 64Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+      ephemeral-storage: 2Gi
+
 gitea:
   admin:
     username: ""
@@ -14,6 +43,7 @@ gitea:
       provider: openidConnect
       existingSecret: forgejo-oauth
       autoDiscoverUrl: https://auth.${BASE_DOMAIN}/.well-known/openid-configuration
+      scopes: "openid profile email groups"
       groupClaimName: groups
       adminGroup: forgejo-admin
   config:
@@ -26,6 +56,9 @@ gitea:
       DOMAIN: git.${BASE_DOMAIN}
       ROOT_URL: https://git.${BASE_DOMAIN}/
       SSH_DOMAIN: git.${BASE_DOMAIN}
+    security:
+      REVERSE_PROXY_TRUSTED_PROXIES: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.1/8
+      REVERSE_PROXY_LIMIT: 1
     service:
       ENABLE_INTERNAL_SIGNIN: false
       ENABLE_BASIC_AUTHENTICATION: false
@@ -36,7 +69,7 @@ gitea:
     oauth2_client:
       ENABLE_AUTO_REGISTRATION: true
       USERNAME: preferred_username
-      OPENID_CONNECT_SCOPES: profile email groups
+      OPENID_CONNECT_SCOPES: openid profile email groups
       ACCOUNT_LINKING: disabled
   additionalConfigFromEnvs:
     - name: FORGEJO__DATABASE__PASSWD
@@ -45,16 +78,19 @@ gitea:
           name: postgres-credentials
           key: password
   metrics:
+    enabled: true
     serviceMonitor:
       enabled: true
-      interval: 60s
+
 nodeSelector:
   node-role.kubernetes.io/homelab: homelab
+
 podSecurityContext:
   fsGroup: 1000
   runAsNonRoot: true
   seccompProfile:
     type: RuntimeDefault
+
 containerSecurityContext:
   allowPrivilegeEscalation: false
   capabilities:
@@ -65,5 +101,6 @@ containerSecurityContext:
   runAsGroup: 1000
   seccompProfile:
     type: RuntimeDefault
+
 test:
   enabled: false

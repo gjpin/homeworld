@@ -53,9 +53,23 @@ spec:
           type: StrategicMerge
           value:
             spec:
+              replicas: 1
               template:
                 spec:
                   hostUsers: false
+                  nodeSelector:
+                    node-role.kubernetes.io/homelab: homelab
+                  containers:
+                    - name: envoy
+                      resources:
+                        requests:
+                          cpu: 100m
+                          memory: 256Mi
+                          ephemeral-storage: 64Mi
+                        limits:
+                          cpu: "1"
+                          memory: 1024Mi
+                          ephemeral-storage: 2Gi
       envoyService:
         patch:
           type: StrategicMerge

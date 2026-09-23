@@ -9,7 +9,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
     security.homeworld/exception-reason: Pinned RustFS Operator does not emit all Restricted pod and container security fields for Tenant pods.
 spec:
-  image: rustfs/rustfs:1.0.0-beta.12
+  image: rustfs/rustfs:1.0.0
   imagePullPolicy: IfNotPresent
   credsSecret:
     name: rustfs-admin-credentials
