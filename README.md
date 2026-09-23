@@ -32,6 +32,7 @@
 
 # Features
 - Gitops with [ArgoCD](docs/argocd.md)
+- [App-of-Apps sync wave orchestration](docs/argocd.md#application-health-checks) via custom Application health checks
 - Tight [network policies](docs/network-policies.md)
 - [OIDC](docs/oidc.md)
 - Automated encrypted [Velero backups](docs/velero.md) to Backblaze B2

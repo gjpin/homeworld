@@ -646,8 +646,6 @@ def rewrite_argocd_disable_extras(root: pathlib.Path) -> None:
         ),
     ):
         key = f"resource.customizations.health.{gvk}"
-        if key in new:
-            continue
         block = (
             f"    {key}: |\n"
             "      hs = {}\n"
@@ -655,6 +653,17 @@ def rewrite_argocd_disable_extras(root: pathlib.Path) -> None:
             f'      hs.message = "{msg}"\n'
             "      return hs\n"
         )
+        if key in new:
+            if msg in new:
+                continue
+            new = re.sub(
+                rf"(?m)^    {re.escape(key)}: \|.*?\n(?=  \S|\Z)",
+                block,
+                new,
+                count=1,
+                flags=re.DOTALL,
+            )
+            continue
         new = new.replace("configs:\n  cm:\n", "configs:\n  cm:\n" + block, 1)
     if re.search(r"(?m)^controller:\n", new) and "controller:\n  readinessProbe:" not in new:
         new = re.sub(

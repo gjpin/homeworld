@@ -1,4 +1,6 @@
 # ArgoCD
+
+## Sync waves
 * **Sync wave 0**
    * argocd: enables Helm inflation for the Kustomize-rendered chart profiles
 * **Sync wave 1**
@@ -42,3 +44,30 @@
 * **Sync wave 8**
    * opencloud: OpenCloud, Tika, RustFS storage integration, authenticated DAV
      proxy, and routes
+
+## Application Health Checks
+
+Argo CD does not evaluate the health of `argoproj.io/Application` CRDs by default; custom resources without a defined health check are treated as immediately `Healthy` upon creation. In an App-of-Apps pattern, this default causes the parent application to advance through sync waves immediately without waiting for child applications or their underlying workloads to reconcile.
+
+To enforce strict sync-wave gating, `apps/argocd/helm/values.yaml` configures a custom Lua health check (`resource.customizations.health.argoproj.io_Application`) in `argocd-cm`:
+
+```yaml
+resource.customizations.health.argoproj.io_Application: |
+  hs = {}
+  hs.status = "Progressing"
+  hs.message = ""
+  if obj.status ~= nil then
+    if obj.status.health ~= nil then
+      hs.status = obj.status.health.status
+      if obj.status.health.message ~= nil then
+        hs.message = obj.status.health.message
+      end
+    end
+  end
+  return hs
+```
+
+### Behavior
+- **Default State:** A newly declared or reconciling child application reports `Progressing`.
+- **Status Rollup:** Once the child application and all its managed resources reconcile, its health status (`Healthy`, `Progressing`, `Degraded`) is bubbled up to the parent application.
+- **Wave Gating:** Sync waves in `apps/app-of-apps.yaml` pause at wave $N$ until every application in that wave reaches `Healthy` before proceeding to wave $N+1$.
