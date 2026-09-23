@@ -5,7 +5,7 @@ commonAnnotations:
 helmCharts:
   - name: openobserve-standalone
     repo: https://charts.openobserve.ai
-    version: 0.92.2
+    version: 1.0.1
     releaseName: openobserve
     namespace: openobserve
     includeCRDs: true
