@@ -8,6 +8,8 @@ metadata:
   labels:
     app: syncthing
     app.kubernetes.io/name: syncthing
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: 1
   selector:

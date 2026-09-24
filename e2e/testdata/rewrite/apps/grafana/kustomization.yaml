@@ -1,3 +1,3 @@
 resources:
-  - 3_grafana.yaml
-  - 7_security_policy.yaml
+  - 0_grafana.yaml
+  - 2_security_policy.yaml

@@ -1,0 +1,18 @@
+# https://cloudnative-pg.io/docs/1.28/declarative_database_management/
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: immich
+  namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  name: immich
+  owner: immich
+  databaseReclaimPolicy: retain
+  cluster:
+    name: immich
+  extensions:
+    - name: vchord
+      ensure: present

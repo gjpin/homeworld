@@ -70,7 +70,7 @@ def main() -> int:
         nested_app = nested.split("kind: Application", 1)[1].split("---")[0]
         if 'argocd.argoproj.io/sync-wave: "2"' in nested_app:
             raise SystemExit("nested Application should not gain HTTPRoute sync-wave")
-        inf = (dest / "apps" / "external-secrets" / "0_network_policy.yaml").read_text()
+        inf = (dest / "apps" / "external-secrets" / "-2_network_policy.yaml").read_text()
         inf_doc = inf.split("name: allow-infisical", 1)[1].split("---")[0]
         if 'port: "8080"' not in inf_doc or "toEntities:" not in inf_doc:
             raise SystemExit("allow-infisical not patched to host/world :8080")
@@ -78,7 +78,7 @@ def main() -> int:
             raise SystemExit("allow-infisical still uses toFQDNs")
         if inf.split("name: allow-kubernetes-api")[1].split("---")[0].count('port: "443"') < 1:
             raise SystemExit("non-infisical 443 port was removed")
-        argocd = (dest / "apps" / "argocd" / "0_network_policy.yaml").read_text()
+        argocd = (dest / "apps" / "argocd" / "-2_network_policy.yaml").read_text()
         if "toEntities:" not in argocd or 'port: "9418"' not in argocd:
             raise SystemExit("git daemon egress not added")
         work = (dest / "apps" / "workarounds.yaml").read_text()
@@ -118,17 +118,17 @@ def main() -> int:
         if "kind: SecurityPolicy" not in work:
             raise SystemExit("SecurityPolicy should be kept")
         g_k = (dest / "apps" / "grafana" / "kustomization.yaml").read_text()
-        if "7_security_policy.yaml" not in g_k:
+        if "2_security_policy.yaml" not in g_k:
             raise SystemExit("grafana kustomization dropped SecurityPolicy")
-        if "3_grafana.yaml" not in g_k:
+        if "0_grafana.yaml" not in g_k:
             raise SystemExit("grafana kustomization dropped unrelated resource")
-        if not (dest / "apps" / "grafana" / "7_security_policy.yaml").exists():
+        if not (dest / "apps" / "grafana" / "2_security_policy.yaml").exists():
             raise SystemExit("grafana SecurityPolicy file missing")
         if "crowdsec-envoy-bouncer-app" not in apps:
             raise SystemExit("crowdsec-envoy-bouncer-app should be kept")
         if "otel-collector-app" in apps:
             raise SystemExit("otel-collector-app should be omitted")
-        cs = (dest / "apps" / "crowdsec" / "1_secrets.yaml").read_text()
+        cs = (dest / "apps" / "crowdsec" / "-1_secrets.yaml").read_text()
         if '{{ .password }}' not in cs:
             raise SystemExit("crowdsec postgres template missing password")
         token = (dest / "apps" / "crowdsec" / "helm" / "values.yaml").read_text()
@@ -219,7 +219,7 @@ def main() -> int:
             raise SystemExit("immich overlay still limits memory to 2Gi")
         if '"memory":"4Gi"' not in overlay:
             raise SystemExit("immich overlay memory not bumped to 4Gi")
-        pg = (dest / "apps" / "immich" / "3_postgres.yaml").read_text()
+        pg = (dest / "apps" / "immich" / "0_postgres.yaml").read_text()
         if "shared_preload_libraries:" not in pg or "- vchord" not in pg:
             raise SystemExit("immich Cluster missing vchord shared_preload_libraries")
         if "superuser: true" not in pg:
@@ -238,7 +238,7 @@ def main() -> int:
         ).read_text()
         if "timeoutSeconds:" not in oo_tpl:
             raise SystemExit("openobserve statefulset template missing timeoutSeconds")
-        rustfs_map = (dest / "apps" / "rustfs" / "5_user_namespace_policy.yaml").read_text()
+        rustfs_map = (dest / "apps" / "rustfs" / "-3_user_namespace_policy.yaml").read_text()
         if "hostUsers: false" in rustfs_map:
             raise SystemExit("rustfs MAP still patches hostUsers false")
         if 'expression: "true"' not in rustfs_map:
@@ -255,7 +255,7 @@ def main() -> int:
             raise SystemExit("crowdsec agent still enabled")
         if "agent:\n  enabled: false\n" not in cs_vals:
             raise SystemExit("crowdsec agent not disabled")
-        cs_app = (dest / "apps" / "crowdsec" / "3_helm.yaml").read_text()
+        cs_app = (dest / "apps" / "crowdsec" / "1_helm.yaml").read_text()
         if "SkipHooks=true" not in cs_app:
             raise SystemExit("crowdsec Application missing SkipHooks")
         cnpg = work.split("kind: Cluster", 1)[1].split("---")[0]
@@ -313,7 +313,7 @@ def main() -> int:
         ).read_text()
         if "timeoutSeconds: 15" not in df_vals:
             raise SystemExit("dragonfly-operator probe timeout missing")
-        rustfs_map = (dest / "apps" / "rustfs" / "5_user_namespace_policy.yaml").read_text()
+        rustfs_map = (dest / "apps" / "rustfs" / "-3_user_namespace_policy.yaml").read_text()
         if "timeoutSeconds: 15" not in rustfs_map:
             raise SystemExit("rustfs MAP missing probe timeouts")
         sc = (ROOT / "examples" / "manifests" / "longhorn-crypto-storageclass.yaml").read_text()

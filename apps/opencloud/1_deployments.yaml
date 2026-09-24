@@ -7,6 +7,8 @@ metadata:
   labels:
     app.kubernetes.io/name: opencloud
     app.kubernetes.io/component: server
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: 1
   selector:
@@ -647,6 +649,8 @@ metadata:
   labels:
     app.kubernetes.io/name: opencloud-tika
     app.kubernetes.io/component: search
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: 1
   selector:

@@ -93,7 +93,7 @@ subst_files() {
 
 apply_static_overlays() {
   cp "${ROOT}/e2e/examples/manifests/selfsigned-cluster-issuer.yaml" \
-    "${STAGING}/apps/cert-manager/4_cluster_issuer.yaml"
+    "${STAGING}/apps/cert-manager/1_cluster_issuer.yaml"
   python3 "${ROOT}/e2e/examples/hooks/rewrite-staging.py" "${STAGING}"
 }
 

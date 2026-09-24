@@ -455,7 +455,7 @@ def rewrite_crowdsec_credential_secrets(root: pathlib.Path) -> None:
 
 def rewrite_crowdsec_postgres_template(root: pathlib.Path) -> None:
     """CrowdSec ES template.data lists only username, so ESO drops the password key."""
-    path = root / "apps" / "crowdsec" / "1_secrets.yaml"
+    path = root / "apps" / "crowdsec" / "-1_secrets.yaml"
     if not path.exists():
         return
     text = path.read_text()
@@ -476,7 +476,7 @@ def rewrite_crowdsec_skip_hooks(root: pathlib.Path) -> None:
     Argo waits forever for the SA hook when before-hook-creation deleted it
     and SSA cannot recreate it under a stuck operation.
     """
-    path = root / "apps" / "crowdsec" / "3_helm.yaml"
+    path = root / "apps" / "crowdsec" / "1_helm.yaml"
     if not path.exists():
         print("[rewrite-staging] crowdsec Application missing; skipping SkipHooks")
         return
@@ -826,7 +826,7 @@ def rewrite_immich_vchord(root: pathlib.Path) -> None:
     CREATE EXTENSION as the app role (not a superuser) and CrashLoops even
     after the Database CR has applied the extension.
     """
-    path = root / "apps" / "immich" / "3_postgres.yaml"
+    path = root / "apps" / "immich" / "0_postgres.yaml"
     if not path.exists():
         print("[rewrite-staging] immich postgres missing; skipping vchord rewrite")
         return
@@ -1188,7 +1188,7 @@ def rewrite_rustfs_map_hostusers(root: pathlib.Path) -> None:
     Also relax kubelet probe timeouts: the operator emits timeoutSeconds 1,
     which kills a healthy rustfs process on a saturated kind node.
     """
-    path = root / "apps" / "rustfs" / "5_user_namespace_policy.yaml"
+    path = root / "apps" / "rustfs" / "-3_user_namespace_policy.yaml"
     if not path.exists():
         return
     text = path.read_text()
@@ -1296,8 +1296,8 @@ def main() -> int:
     rewrite_cnpg_probes(root)
     rewrite_authelia_rolling_update(root)
     rewrite_operator_probes(root)
-    patch_infisical_cnp(root / "apps" / "external-secrets" / "0_network_policy.yaml")
-    patch_argocd_repo_cnp(root / "apps" / "argocd" / "0_network_policy.yaml")
+    patch_infisical_cnp(root / "apps" / "external-secrets" / "-2_network_policy.yaml")
+    patch_argocd_repo_cnp(root / "apps" / "argocd" / "-2_network_policy.yaml")
     return 0
 
 
