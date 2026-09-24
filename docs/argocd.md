@@ -87,6 +87,33 @@ syncPolicy:
 - **CRD and Schema Evolution:** Server-Side Apply offloads merge calculation and field ownership to the Kubernetes API server (`fieldManager: argocd`). This enables declarative CRD upgrades and schema changes without requiring manual kubectl intervention.
 - **Universal Uniformity:** Enforcing SSA globally prevents future CRD additions from failing silently or encountering annotation overflow.
 
+## CRD Lifecycle and Upgrade Management
+
+CRD lifecycles are orchestrated through a combination of sync waves, health checks, and Server-Side Apply to guarantee that Custom Resource Definitions are established and upgraded before the workloads that depend on them:
+
+### Consumer Workload Sequencing (App-of-Apps Waves)
+In `apps/app-of-apps.yaml`, CRD-providing infrastructure and operators are sequenced strictly ahead of consuming applications:
+- **Wave 1:** `prometheus-operator-crd` (ServiceMonitors) and `external-secrets`
+- **Wave 2:** `envoy-gateway` (Gateway API and Envoy Gateway CRDs)
+- **Wave 3:** `cert-manager` (Certificates and ClusterIssuers)
+- **Wave 4:** Datastore operators (`cloudnative-pg`, `dragonfly-operator`, `rustfs-operator`, `grafana-operator`)
+- **Waves 5–8:** Applications and workloads consuming those CRDs (`authelia`, `immich`, `forgejo`, `grafana`, `opencloud`, etc.)
+
+Argo CD's custom Lua Application health check pauses wave advancement until all applications in Wave $N$ report `Healthy`, preventing downstream workloads from encountering missing CRD errors during initial deployment or cluster-wide upgrades.
+
+### Declarative CRD Upgrades via Server-Side Apply
+Standard Helm (`helm upgrade`) intentionally ignores the `crds/` directory, preventing declarative CRD upgrades. In this repository:
+- Operator charts are rendered via Kustomize with `includeCRDs: true`.
+- Every `Application` enforces `ServerSideApply=true`.
+- On chart version bumps, Argo CD detects CRD schema changes and applies them directly to the Kubernetes API server using Server-Side Apply (`fieldManager: argocd`), avoiding the 256 KB `kubectl.kubernetes.io/last-applied-configuration` annotation limit.
+
+### Resource Ordering Within Sync Waves
+Within an individual sync wave, Argo CD sorts manifests by Kubernetes `Kind` priority, applying `CustomResourceDefinition` resources before controller workloads (`Deployment`, `StatefulSet`, `DaemonSet`).
+
+### Dedicated CRD Applications vs. Bundled Helm Releases
+- **Standalone CRDs:** Shared ecosystem CRD suites without local controller dependencies (`prometheus-operator-crd` and `gateway-api-crd`) are separated into dedicated Argo CD applications and sync waves.
+- **Bundled Operator CRDs:** Operators (`cloudnative-pg`, `cert-manager`, `external-secrets`, `dragonfly-operator`, etc.) bundle their upstream CRDs within their Helm charts, relying on Server-Side Apply and Kind-based sorting for in-place schema upgrades.
+
 ## Intra-Component Sync Wave Architecture
 
 While `apps/app-of-apps.yaml` coordinates dependencies across broad system waves (0 through 8), individual component directories use a standardized 5-tier intra-component wave model to sequence dependencies within that component's namespace:

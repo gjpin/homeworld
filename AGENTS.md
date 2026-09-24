@@ -86,7 +86,10 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - CRDs must always precede custom resources: when CRDs and custom resources
   coexist in the same directory, use sync waves to apply CRDs first and retain
   `SkipDryRunOnMissingResource=true` under sync options or annotations to avoid
-  pre-sync OpenAPI validation failures.
+  pre-sync OpenAPI validation failures. Newly added apps with CRDs must ensure
+  CRDs are installed and upgraded before the application or dependent workloads
+  (via earlier sync waves and `ServerSideApply=true`), and `docs/argocd.md`
+  must be updated within the existing text to reflect the new CRD provider or consumer.
 
 ## Pod security conventions
 
@@ -172,6 +175,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - `ServerSideApply=true` in `spec.syncPolicy.syncOptions` for all `Application` resources
 - Standard intra-component sync waves (-2 network policy, -1 secrets, 0 datastore/gateway, 1 workload, 2 routes)
   with manifest filenames strictly matching `<wave>_<descriptor>.yaml`.
+- CRD ordering: newly added apps with CRDs must install CRDs before workloads (and support declarative upgrades via `ServerSideApply=true`), with `docs/argocd.md` updated within the existing text.
 - Document Pod Security Standards compliance and User Namespaces status in `docs/pod-security.md`.
 - Add the destination namespace to the world-egress policy selector, or explicitly justify an egress exception.
 - Set requests and limits on all regular, init, and sidecar containers. Preserve
@@ -203,7 +207,10 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - Keep `docs/pod-security.md` updated with any changes or additions to Pod Security
   Standards compliance and User Namespaces status.
 - Treat CRDs and operators as dependencies: they must be installed in an earlier
-  sync wave than resources that use them.
+  sync wave than resources that use them. Newly added apps with CRDs must follow
+  this rule both on initial deployment and during upgrades (ensuring CRDs precede
+  applications and support declarative upgrades via `ServerSideApply=true`), and
+  `docs/argocd.md` must be updated within the existing text.
 - Do not run `kubectl apply`, `helm install/upgrade` or Argo CD sync
   unless the user explicitly asks to change a live system.
 
@@ -235,6 +242,7 @@ resources rather than claiming full cluster compatibility.
 - Update documentation when environment variables, public domains, bootstrap
   steps, component inventory, or sync ordering change.
 - Update documentation in `docs/` (including `docs/pod-security.md` for Pod
-  Security Standards and User Namespaces changes) whenever architectural
-  changes, operational workflows, sync ordering, or manifest conventions
-  affect, invalidate, or alter the descriptions there.
+  Security Standards and User Namespaces changes, and `docs/argocd.md` within
+  its existing text for sync waves and CRD lifecycle updates) whenever
+  architectural changes, operational workflows, sync ordering, or manifest
+  conventions affect, invalidate, or alter the descriptions there.
