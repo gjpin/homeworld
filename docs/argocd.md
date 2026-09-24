@@ -38,7 +38,6 @@
    * grafana
    * radicale: internal CalDAV and CardDAV backend, before OpenCloud's
      authenticated DAV proxy
-   * syncthing
 * **Sync wave 7**
    * collabora: standalone Collabora chart and WOPI endpoint
 * **Sync wave 8**

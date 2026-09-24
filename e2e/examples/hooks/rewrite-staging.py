@@ -19,7 +19,7 @@ OMIT_APPS = {
     "homeassistant-app",
     "external-dns-app",
     # Prometheus receiver + two collectors plus extra RBAC; not needed
-    # to cover Grafana/OpenObserve/Collabora/OpenCloud/Syncthing/
+    # to cover Grafana/OpenObserve/Collabora/OpenCloud/
     # Radicale/CrowdSec/Forgejo/Immich.
     "otel-collector-app",
 }

@@ -32,3 +32,20 @@ spec:
       targetPort: 1883
   selector:
     io.kompose.service: homeassistant-mosquitto
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homeassistant-zigbee2mqtt
+  namespace: homeassistant
+  labels:
+    app.kubernetes.io/name: zigbee2mqtt
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    io.kompose.service: homeassistant-zigbee2mqtt

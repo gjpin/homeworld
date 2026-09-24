@@ -177,7 +177,7 @@ Images are pinned (`postgres:14.17-alpine`, `redis:7.4.2-alpine`) — never `lat
    so WOPI discovery accepts the self-signed Gateway cert. CrowdSec LAPI's
    start script downloads hub dest_file data (GeoLite2, CDN/crawler lists)
    that the image does not ship. Raise inotify on the Docker VM (Lima
-   `sysctl.d`) to 1024 so Grafana/OpenObserve/Collabora/OpenCloud/Syncthing/
+   `sysctl.d`) to 1024 so Grafana/OpenObserve/Collabora/OpenCloud/
    Radicale/CrowdSec/Forgejo/Immich fit.
 
 6. **Cilium world egress:** homeworld’s External Secrets path is an intentional

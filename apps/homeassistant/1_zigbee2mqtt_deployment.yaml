@@ -8,6 +8,7 @@ metadata:
     io.kompose.service: homeassistant-zigbee2mqtt
   annotations:
     argocd.argoproj.io/sync-wave: "1"
+    security.homeworld/exception-reason: "Zigbee2MQTT requires hostPath access to /dev/serial/by-id and supplemental group 20 to communicate with the physical Zigbee USB coordinator."
 spec:
   replicas: 1
   selector:
@@ -23,12 +24,14 @@ spec:
     spec:
       hostUsers: false
       nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
+        environment: zigbee
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
+        supplementalGroups:
+          - 20
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -62,8 +65,14 @@ spec:
           volumeMounts:
             - mountPath: /app/data
               name: homeassistant-zigbee2mqtt-claim0
+            - mountPath: /dev/serial/by-id
+              name: zigbee-adapter
       restartPolicy: Always
       volumes:
         - name: homeassistant-zigbee2mqtt-claim0
           persistentVolumeClaim:
             claimName: homeassistant-zigbee2mqtt-claim0
+        - name: zigbee-adapter
+          hostPath:
+            path: /dev/serial/by-id
+            type: DirectoryOrCreate

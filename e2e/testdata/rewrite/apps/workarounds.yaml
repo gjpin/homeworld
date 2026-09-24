@@ -22,20 +22,6 @@ spec:
       drop:
         - ALL
 ---
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: syncthing
-  namespace: syncthing
-spec:
-  replicas: 1
-  strategy:
-    type: Recreate
-  template:
-    spec:
-      containers:
-        - name: syncthing
----
 apiVersion: grafana.integreatly.org/v1beta1
 kind: Grafana
 metadata:

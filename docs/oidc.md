@@ -22,7 +22,6 @@
 | authelia | No | This is the identity provider. |
 | homeassistant | No | Home Assistant 2025.7.0, Mosquitto 2.0.21, and Zigbee2MQTT 2.5.1 have no built-in OIDC. |
 | radicale | No | No web UI. OpenCloud proxies CalDAV and CardDAV and supplies the user. |
-| syncthing | No | Password or LDAP only. |
 | immich | Yes | Authelia. Password login is disabled. `immich-admin` is an Immich admin; everyone else is a user. |
 | otel-collector | No | No user login. |
 | forgejo | Yes | Authelia. Local sign-in, basic auth, and the local admin user are disabled. `forgejo-admin` is a site admin. Git HTTPS still accepts personal tokens; SSH is unchanged. |

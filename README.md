@@ -19,7 +19,7 @@
 - Automated encrypted [Velero backups](docs/velero.md) to Backblaze B2
 - Unified telemetry pipeline with OpenTelemetry Collector and OpenObserve
 - Declarative dashboards and monitoring via Grafana Operator and Prometheus Operator ServiceMonitors
-- Automated dependency updates via Renovate
+- Automated dependency updates and [upgrade procedures](docs/upgrades.md) via Renovate
 
 ## Apps
 | App | Domain(s) | Description |
@@ -38,7 +38,7 @@
 | Forgejo | `git.${BASE_DOMAIN}` | Git forge. |
 | Grafana | `grafana.${BASE_DOMAIN}` | Dashboards and observability visualization. |
 | Grafana Operator | — | Grafana instance, dashboard, and datasource operator. |
-| Home Assistant | `home.${BASE_DOMAIN}` | Home automation. |
+| Home Assistant | `home.${BASE_DOMAIN}`<br>`z2m.${BASE_DOMAIN}` | Home automation and Zigbee bridge. |
 | Immich | `photos.${BASE_DOMAIN}` | Photo and video management. |
 | Longhorn | `longhorn.${BASE_DOMAIN}` | Distributed block-storage management. |
 | OpenObserve | `openobserve.${BASE_DOMAIN}` | Logs, metrics, and traces backend. |
@@ -48,6 +48,14 @@
 | Radicale | — | Internal CalDAV and CardDAV backend authenticated by OpenCloud. |
 | RustFS | `s3.${BASE_DOMAIN}`<br>`console.rustfs.${BASE_DOMAIN}` | Shared S3-compatible object storage and Tenant console. |
 | RustFS Operator | `rustfs.${BASE_DOMAIN}` | RustFS storage operator and management console. |
-| Syncthing | `sync.${BASE_DOMAIN}` | Peer-to-peer file synchronization. |
 | Velero | — | Whole-cluster backups to Backblaze B2. |
 | Velero UI | `velero.${BASE_DOMAIN}` | Web interface for managing Velero. |
+
+## Node Setup
+
+### Zigbee Coordinator
+Label the node with the physical Zigbee USB adapter attached:
+```bash
+kubectl label node <node-name> environment=zigbee
+```
+This pins `homeassistant-zigbee2mqtt` to the host hardware where the serial dongle is connected.

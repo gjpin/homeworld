@@ -20,6 +20,65 @@
   "separateMajorMinor": false,
   "separateMinorPatch": false,
   "separateMultipleMajor": false,
+  "packageRules": [
+    {
+      "description": "Forgejo requires sequential major upgrades to execute database schema migrations",
+      "matchPackageNames": [
+        "code.forgejo.org/forgejo-helm/forgejo"
+      ],
+      "separateMajorMinor": true,
+      "separateMultipleMajor": true,
+      "prBodyNotes": [
+        "⚠️ **Forgejo Upgrade Requirement**: Upstream requires upgrading major releases sequentially (e.g. 7.x → 8.x → 9.x) to execute database migrations in sequence. Do not skip major versions."
+      ]
+    },
+    {
+      "description": "Immich requires review of breaking changes and migration checkpoints",
+      "matchPackageNames": [
+        "ghcr.io/immich-app/immich-charts/immich",
+        "immich"
+      ],
+      "separateMajorMinor": true,
+      "separateMultipleMajor": true,
+      "prBodyNotes": [
+        "⚠️ **Immich Upgrade Requirement**: Review the [Immich Release Notes](https://github.com/immich-app/immich/releases) for breaking changes and verify all migration jobs are completed before proceeding to subsequent releases."
+      ]
+    },
+    {
+      "description": "Longhorn requires sequential minor version upgrades",
+      "matchPackageNames": [
+        "longhorn"
+      ],
+      "separateMajorMinor": true,
+      "separateMinorPatch": true,
+      "prBodyNotes": [
+        "⚠️ **Longhorn Upgrade Requirement**: Upstream requires sequential minor version upgrades (e.g. 1.10 → 1.11 → 1.12). Skipping minor versions is unsupported. Note: volume engine upgrades are automated via `concurrentAutomaticEngineUpgradePerNodeLimit`."
+      ]
+    },
+    {
+      "description": "cert-manager recommends sequential minor version upgrades for CRD/webhook alignment",
+      "matchPackageNames": [
+        "cert-manager"
+      ],
+      "separateMajorMinor": true,
+      "separateMinorPatch": true,
+      "prBodyNotes": [
+        "⚠️ **cert-manager Upgrade Requirement**: Upstream recommends upgrading minor versions sequentially (e.g. 1.15 → 1.16 → 1.17) to ensure CRD schema and webhook compatibility."
+      ]
+    },
+    {
+      "description": "CloudNativePG operand major upgrades trigger automated in-place pg_upgrade",
+      "matchPackageNames": [
+        "ghcr.io/cloudnative-pg/postgresql",
+        "ghcr.io/tensorchord/cloudnative-vectorchord"
+      ],
+      "separateMajorMinor": true,
+      "separateMultipleMajor": true,
+      "prBodyNotes": [
+        "ℹ️ **CloudNativePG Major Upgrade**: Minor versions roll with zero downtime. Major PostgreSQL version upgrades trigger CloudNativePG's automated in-place `pg_upgrade` process upon syncing, which shuts down the cluster while data is upgraded. Ensure a recent Velero backup exists before merging."
+      ]
+    }
+  ],
   "argocd": {
     "managerFilePatterns": [
       "/^apps/.+\\.ya?ml$/"
@@ -347,19 +406,6 @@
       ],
       "matchStrings": [
         "(?m)^\\s*image:\\s*(?<depName>docker\\.io/opencloudeu/radicale):(?<currentValue>[^\\s#]+)\\s*$"
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
-      "registryUrlTemplate": "https://index.docker.io"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Syncthing image",
-      "managerFilePatterns": [
-        "/^apps/syncthing/1_deployment\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?m)^\\s*image:\\s*(?<depName>docker\\.io/syncthing/syncthing):(?<currentValue>[^\\s#]+)\\s*$"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",

@@ -47,9 +47,6 @@ spec:
       namespace: rustfs
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
-      namespace: syncthing
-    - group: gateway.envoyproxy.io
-      kind: SecurityPolicy
       namespace: velero-ui
   to:
     - group: ""

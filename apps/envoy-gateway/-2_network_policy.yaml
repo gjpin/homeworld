@@ -314,6 +314,28 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: allow-envoy-backend-zigbee2mqtt
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: homeassistant-zigbee2mqtt
+            namespace: homeassistant
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-envoy-backend-immich
   namespace: envoy-gateway
   annotations:
@@ -485,28 +507,6 @@ spec:
       toPorts:
         - ports:
             - port: "9001"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: allow-envoy-backend-syncthing
-  namespace: envoy-gateway
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
-  egress:
-    - toServices:
-        - k8sService:
-            serviceName: syncthing
-            namespace: syncthing
-      toPorts:
-        - ports:
-            - port: "8384"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2

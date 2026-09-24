@@ -19,3 +19,24 @@ spec:
           namespace: homeassistant
           kind: Service
           port: 8123
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: zigbee2mqtt
+  namespace: homeassistant
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    external-dns.alpha.kubernetes.io/hostname: "z2m.${BASE_DOMAIN}"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: homeassistant
+  hostnames:
+    - "z2m.${BASE_DOMAIN}"
+  rules:
+    - backendRefs:
+        - name: homeassistant-zigbee2mqtt
+          namespace: homeassistant
+          kind: Service
+          port: 8080

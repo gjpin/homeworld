@@ -29,3 +29,15 @@ spec:
         certificateRefs:
           - name: homeassistant-tls-cert
             kind: Secret
+    - name: zigbee2mqtt-https
+      protocol: HTTPS
+      port: 443
+      hostname: "z2m.${BASE_DOMAIN}"
+      allowedRoutes:
+        namespaces:
+          from: all
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: zigbee2mqtt-tls-cert
+            kind: Secret
