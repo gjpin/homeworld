@@ -59,8 +59,6 @@ kind: PodMonitor
 metadata:
   name: immich
   namespace: immich
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
 spec:
   selector:
     matchLabels:

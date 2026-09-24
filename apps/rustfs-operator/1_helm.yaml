@@ -6,6 +6,8 @@ kind: Application
 metadata:
   name: rustfs-operator
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:
@@ -22,6 +24,7 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
     - RespectIgnoreDifferences=true
+    - ServerSideApply=true
   ignoreDifferences:
     - kind: Secret
       name: rustfs-operator-console-secret

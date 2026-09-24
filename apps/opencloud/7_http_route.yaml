@@ -5,6 +5,7 @@ metadata:
   name: opencloud
   namespace: opencloud
   annotations:
+    argocd.argoproj.io/sync-wave: "2"
     external-dns.alpha.kubernetes.io/hostname: "cloud.${BASE_DOMAIN}"
 spec:
   parentRefs:

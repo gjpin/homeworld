@@ -42,8 +42,6 @@ kind: PodMonitor
 metadata:
   name: forgejo
   namespace: forgejo
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
 spec:
   selector:
     matchLabels:

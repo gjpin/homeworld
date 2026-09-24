@@ -5,6 +5,7 @@ metadata:
   name: immich
   namespace: immich
   annotations:
+    argocd.argoproj.io/sync-wave: "2"
     external-dns.alpha.kubernetes.io/hostname: "photos.${BASE_DOMAIN}"
 spec:
   parentRefs:

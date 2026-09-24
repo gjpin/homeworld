@@ -5,6 +5,7 @@ metadata:
   name: rustfs-operator-console
   namespace: rustfs-operator
   annotations:
+    argocd.argoproj.io/sync-wave: "2"
     external-dns.alpha.kubernetes.io/hostname: "rustfs.${BASE_DOMAIN}"
 spec:
   parentRefs:

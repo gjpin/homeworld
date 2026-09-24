@@ -6,6 +6,8 @@ kind: Application
 metadata:
   name: longhorn
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:
@@ -21,6 +23,7 @@ spec:
     - CreateNamespace=true
     - PrunePropagationPolicy=foreground
     - PruneLast=true
+    - ServerSideApply=true
   source:
     repoURL: https://github.com/gjpin/homeworld.git
     path: apps/longhorn/helm

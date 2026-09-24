@@ -53,6 +53,23 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   instance; do not deploy application-bundled PostgreSQL.
 - Every Redis or Redis-compatible datastore must be provisioned as Dragonfly;
   do not deploy application-bundled Redis.
+- Every Argo CD `Application` resource (root in `apps/app-of-apps.yaml` and child
+  manifests under `apps/<component>/`) must declare `ServerSideApply=true` under
+  `spec.syncPolicy.syncOptions` by default to prevent client-side apply
+  annotation size limit errors (e.g. 256 KB `kubectl.kubernetes.io/last-applied-configuration`)
+  on large custom resources and CRD updates.
+- Intra-component manifests must follow the standard 5-phase sync wave sequence
+  when ordering dependencies exist:
+  - Wave `-2`: `CiliumNetworkPolicy` (and `-3` for early bootstrap policies)
+  - Wave `-1`: `ExternalSecret`
+  - Wave `0`: Datastores (CNPG `Cluster`, Dragonfly, Tenant), foundational Gateway listeners, PVCs
+  - Wave `1`: Workload child `Application`s, Deployments, StatefulSets
+  - Wave `2`: `HTTPRoute`, `GRPCRoute`, and `SecurityPolicy`
+  Omit `sync-wave` on resources that do not have ordering dependencies (defaulting to wave 0). Do not keep redundant `sync-wave: "0"` annotations on standalone resources like `ReferenceGrant` or `PodMonitor`.
+- CRDs must always precede custom resources: when CRDs and custom resources
+  coexist in the same directory, use sync waves to apply CRDs first and retain
+  `SkipDryRunOnMissingResource=true` under sync options or annotations to avoid
+  pre-sync OpenAPI validation failures.
 
 ## Pod security conventions
 
@@ -121,6 +138,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - `nodeSelector`
 - Gateway listener and `HTTPRoute` (if applicable)
 - `ServiceMonitor`
+- `ServerSideApply=true` in `spec.syncPolicy.syncOptions` for all `Application` resources
+- Standard intra-component sync waves (-2 network policy, -1 secrets, 0 datastore/gateway, 1 workload, 2 routes)
 - Add the destination namespace to the world-egress policy selector, or explicitly justify an egress exception.
 - Set requests and limits on all regular, init, and sidecar containers. Preserve
   higher upstream values; use the documented profile fallbacks when absent.
@@ -155,11 +174,11 @@ Run checks relevant to the files changed:
 
 ```bash
 # Parse every in-scope Kubernetes YAML file.
-find apps -type f -name '*.yaml' -print0 |
+find apps -type f -name '*.yaml' -not -path '*/charts/*' -print0 |
   xargs -0 -n1 yq eval '.' >/dev/null
 
 # Parse every Grafana dashboard.
-find grafana-dashboards -type f -name '*.json' -print0 |
+find apps/grafana/dashboards -type f -name '*.json' -print0 |
   xargs -0 -n1 jq empty
 ```
 
@@ -176,3 +195,6 @@ resources rather than claiming full cluster compatibility.
 - Do not rename or reorganize existing resources merely for consistency.
 - Update documentation when environment variables, public domains, bootstrap
   steps, component inventory, or sync ordering change.
+- Update documentation in `docs/` whenever architectural changes, operational
+  workflows, sync ordering, or manifest conventions affect, invalidate, or alter
+  the descriptions there.

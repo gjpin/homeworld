@@ -5,6 +5,7 @@ metadata:
   name: velero-ui
   namespace: velero-ui
   annotations:
+    argocd.argoproj.io/sync-wave: "2"
     external-dns.alpha.kubernetes.io/hostname: "velero.${BASE_DOMAIN}"
 spec:
   parentRefs:

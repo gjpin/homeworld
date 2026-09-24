@@ -7,6 +7,7 @@ metadata:
   name: letsencrypt-prod
   annotations:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   acme:
     email: ${ACME_EMAIL}
@@ -27,6 +28,7 @@ metadata:
   name: letsencrypt-staging
   annotations:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   acme:
     email: ${ACME_EMAIL}

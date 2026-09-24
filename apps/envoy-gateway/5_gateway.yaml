@@ -9,6 +9,7 @@ metadata:
   name: envoy
   namespace: envoy-gateway
   annotations:
+    argocd.argoproj.io/sync-wave: "2"
     cert-manager.io/cluster-issuer: letsencrypt-prod
     kubernetes.io/tls-acme: "true"
 spec:

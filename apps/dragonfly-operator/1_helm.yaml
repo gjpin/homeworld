@@ -22,6 +22,7 @@ spec:
     - CreateNamespace=true
     - PrunePropagationPolicy=foreground
     - PruneLast=true
+    - ServerSideApply=true
   source:
     repoURL: https://github.com/gjpin/homeworld.git
     path: apps/dragonfly-operator/helm

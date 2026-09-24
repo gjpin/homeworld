@@ -5,6 +5,7 @@ metadata:
   name: authelia
   namespace: authelia
   annotations:
+    argocd.argoproj.io/sync-wave: "2"
     external-dns.alpha.kubernetes.io/hostname: "auth.${BASE_DOMAIN}"
 spec:
   parentRefs:

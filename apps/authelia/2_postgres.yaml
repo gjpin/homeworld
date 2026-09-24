@@ -41,8 +41,6 @@ kind: PodMonitor
 metadata:
   name: authelia
   namespace: authelia
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
 spec:
   selector:
     matchLabels:

@@ -5,6 +5,7 @@ metadata:
   name: rustfs-s3
   namespace: rustfs
   annotations:
+    argocd.argoproj.io/sync-wave: "2"
     external-dns.alpha.kubernetes.io/hostname: "s3.${BASE_DOMAIN}"
 spec:
   parentRefs:
@@ -26,6 +27,7 @@ metadata:
   name: rustfs-console
   namespace: rustfs
   annotations:
+    argocd.argoproj.io/sync-wave: "2"
     external-dns.alpha.kubernetes.io/hostname: "console.rustfs.${BASE_DOMAIN}"
 spec:
   parentRefs:
