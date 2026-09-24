@@ -6,6 +6,7 @@ persistence:
 defaultSettings:
   systemManagedComponentsNodeSelector: "node-role.kubernetes.io/homelab:homelab"
   defaultReplicaCount: 1
+  concurrentAutomaticEngineUpgradePerNodeLimit: 2
 networkPolicies:
   enabled: false
 metrics:
