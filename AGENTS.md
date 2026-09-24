@@ -60,6 +60,18 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   instance; do not deploy application-bundled PostgreSQL.
 - Every Redis or Redis-compatible datastore must be provisioned as Dragonfly;
   do not deploy application-bundled Redis.
+- Every `StorageClass` provisioning filesystem volumes must declare the Talos
+  SELinux mount option:
+
+  ```yaml
+  mountOptions:
+    - context=system_u:object_r:ephemeral_t:s0
+  ```
+
+  This ensures the CSI driver mounts filesystems with the `ephemeral_t` label
+  required for unprivileged and Restricted pod access under Talos SELinux.
+  Volumes requested as `volumeMode: Block` contain no filesystem, so they need
+  no label.
 - Every Argo CD `Application` resource (root in `apps/app-of-apps.yaml` and child
   manifests under `apps/<component>/`) must declare `ServerSideApply=true` under
   `spec.syncPolicy.syncOptions` by default to prevent client-side apply
@@ -175,6 +187,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - `ServerSideApply=true` in `spec.syncPolicy.syncOptions` for all `Application` resources
 - Standard intra-component sync waves (-2 network policy, -1 secrets, 0 datastore/gateway, 1 workload, 2 routes)
   with manifest filenames strictly matching `<wave>_<descriptor>.yaml`.
+- StorageClass SELinux mount options (`context=system_u:object_r:ephemeral_t:s0`) for CSI filesystem volumes
 - CRD ordering: newly added apps with CRDs must install CRDs before workloads (and support declarative upgrades via `ServerSideApply=true`), with `docs/argocd.md` updated within the existing text.
 - Document Pod Security Standards compliance and User Namespaces status in `docs/pod-security.md`.
 - Add the destination namespace to the world-egress policy selector, or explicitly justify an egress exception.

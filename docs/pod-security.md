@@ -80,3 +80,19 @@ The table below details user namespace implementation across all cluster workloa
 | **Velero (Server)** | `velero` | **Enabled** (`false`) | Kustomize patch | Applied to `velero` controller Deployment and `velero-upgrade-crds` Job. |
 | **Velero (Node Agent)** | `velero` | **Disabled** (`true`) | *None (Host integration)* | **Why not enabled:** Node agent requires hostPath mounts to `/var/lib/kubelet/pods` to perform volume backups. |
 | **Velero UI** | `velero-ui` | **Enabled** (`false`) | Kustomize patch | Applied to `velero-ui` Deployment. |
+
+---
+
+## SELinux & CSI Storage Classes
+
+On Talos Linux, CSI drivers mount the volumes they provision directly, preventing the OS from automatically labelling those volumes. Without an explicit SELinux context, pods cannot access the volume contents.
+
+To enable unprivileged and Restricted workloads to access mounted volumes, all `StorageClass` resources provisioning filesystems declare the `ephemeral_t` SELinux context in `mountOptions`:
+
+```yaml
+mountOptions:
+  - context=system_u:object_r:ephemeral_t:s0
+```
+
+Volumes requested as `volumeMode: Block` contain no filesystem, so they need no label.
+
