@@ -1,5 +1,26 @@
-# Apps
+# Homeworld
 
+## Features
+- Gitops with [ArgoCD](docs/argocd.md)
+- [App-of-Apps sync wave orchestration](docs/argocd.md#application-health-checks) via custom Application health checks
+- [Restricted Pod Security Standards](docs/pod-security.md#pod-security-standards)
+- [Kubernetes 1.36 User Namespaces](docs/pod-security.md#user-namespaces) (`hostUsers: false`)
+- Tight [network policies](docs/network-policies.md)
+- Ingress protection via CrowdSec Security Engine and AppSec WAF
+- Gateway API routing with Envoy Gateway
+- Automated DNS and TLS certificate management via ExternalDNS and cert-manager
+- Zero-secret GitOps with Infisical and External Secrets Operator
+- [OIDC](docs/oidc.md)
+- Operator-managed PostgreSQL clusters via CloudNativePG
+- Redis-compatible in-memory caching via Dragonfly Operator
+- S3-compatible object storage via RustFS Operator
+- Distributed block storage with Longhorn
+- Automated encrypted [Velero backups](docs/velero.md) to Backblaze B2
+- Unified telemetry pipeline with OpenTelemetry Collector and OpenObserve
+- Declarative dashboards and monitoring via Grafana Operator and Prometheus Operator ServiceMonitors
+- Automated dependency updates via Renovate
+
+## Apps
 | App | Domain(s) | Description |
 | --- | --- | --- |
 | Argo CD | `argocd.${BASE_DOMAIN}`<br>`grpc.argocd.${BASE_DOMAIN}` | GitOps continuous delivery and its gRPC API. |
@@ -29,10 +50,3 @@
 | Syncthing | `sync.${BASE_DOMAIN}` | Peer-to-peer file synchronization. |
 | Velero | — | Whole-cluster backups to Backblaze B2. |
 | Velero UI | `velero.${BASE_DOMAIN}` | Web interface for managing Velero. |
-
-# Features
-- Gitops with [ArgoCD](docs/argocd.md)
-- [App-of-Apps sync wave orchestration](docs/argocd.md#application-health-checks) via custom Application health checks
-- Tight [network policies](docs/network-policies.md)
-- [OIDC](docs/oidc.md)
-- Automated encrypted [Velero backups](docs/velero.md) to Backblaze B2
