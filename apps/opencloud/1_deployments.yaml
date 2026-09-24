@@ -366,9 +366,7 @@ spec:
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
-            - -c
-          args:
-            - opencloud init || true; opencloud server
+            - /entrypoint.sh
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -558,6 +556,10 @@ spec:
           volumeMounts:
             - name: opencloud-config
               mountPath: /etc/opencloud
+            - name: opencloud-config-files
+              mountPath: /entrypoint.sh
+              subPath: entrypoint.sh
+              readOnly: true
             - name: opencloud-config-files
               mountPath: /etc/opencloud/proxy.yaml
               subPath: proxy.yaml

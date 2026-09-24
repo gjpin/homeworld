@@ -5,6 +5,96 @@ metadata:
   name: opencloud-config-files
   namespace: opencloud
 data:
+  entrypoint.sh: |
+    #!/bin/sh
+    set -e
+
+    check_health() {
+      if command -v curl >/dev/null 2>&1; then
+        curl -sf http://127.0.0.1:9200/health >/dev/null 2>&1
+      elif command -v wget >/dev/null 2>&1; then
+        wget -q -O - http://127.0.0.1:9200/health >/dev/null 2>&1
+      else
+        (echo > /dev/tcp/127.0.0.1/9200) >/dev/null 2>&1
+      fi
+    }
+
+    # --- 1. Configuration Verification & Migration ---
+    CONFIG_FILE="/etc/opencloud/opencloud.yaml"
+    PATCH_FILE="/etc/opencloud/opencloud.config.patch"
+
+    if [ ! -f "$CONFIG_FILE" ]; then
+      echo "[init] No opencloud.yaml found. Generating initial configuration..."
+      opencloud init || true
+    else
+      echo "[init] Existing configuration found. Checking for required upgrade changes..."
+      opencloud init --diff || true
+
+      if [ -s "$PATCH_FILE" ]; then
+        echo "[init] Configuration differences found. Validating patch dry-run..."
+        if patch --dry-run "$CONFIG_FILE" < "$PATCH_FILE"; then
+          BACKUP_FILE="${CONFIG_FILE}.$(date +%Y%m%d%H%M%S).bak"
+          echo "[init] Backing up configuration to $BACKUP_FILE..."
+          cp "$CONFIG_FILE" "$BACKUP_FILE"
+          echo "[init] Applying configuration patch..."
+          patch "$CONFIG_FILE" < "$PATCH_FILE"
+          rm -f "$PATCH_FILE"
+          echo "[init] Configuration patch applied successfully."
+          CONFIG_PATCHED=true
+        else
+          echo "[init] WARNING: Patch dry-run failed. Skipping automated patch; manual review required."
+        fi
+      else
+        echo "[init] Configuration is up to date."
+      fi
+    fi
+
+    # --- 2. Upgrade Detection ---
+    VERSION_FILE="/var/lib/opencloud/.installed_version"
+    FLAG_FILE="/var/lib/opencloud/.reindex_in_progress"
+    CURRENT_VERSION=$(opencloud version 2>/dev/null | head -n1 || opencloud --version 2>/dev/null | head -n1 || sha256sum "$(which opencloud)" | awk '{print $1}')
+
+    NEEDS_REINDEX=false
+    if [ -f "$VERSION_FILE" ]; then
+      LAST_VERSION=$(cat "$VERSION_FILE")
+      if [ "$LAST_VERSION" != "$CURRENT_VERSION" ] || [ "$CONFIG_PATCHED" = "true" ]; then
+        echo "[upgrade] Upgrade detected: '$LAST_VERSION' -> '$CURRENT_VERSION'."
+        NEEDS_REINDEX=true
+      fi
+    else
+      echo "$CURRENT_VERSION" > "$VERSION_FILE"
+    fi
+
+    if [ -f "$FLAG_FILE" ]; then
+      echo "[upgrade] Found interrupted re-index marker ($FLAG_FILE). Resuming..."
+      NEEDS_REINDEX=true
+    fi
+
+    # --- 3. Asynchronous Post-Upgrade Search Indexing ---
+    if [ "$NEEDS_REINDEX" = "true" ]; then
+      touch "$FLAG_FILE"
+      (
+        echo "[reindex] Waiting for OpenCloud server to report healthy..."
+        until check_health; do
+          sleep 5
+        done
+        echo "[reindex] Server is healthy. Waiting 15s for microservices to settle..."
+        sleep 15
+
+        echo "[reindex] Executing search re-index across all spaces..."
+        if opencloud search index --all-spaces --force-rescan --insecure; then
+          echo "[reindex] Search re-indexing completed successfully."
+          echo "$CURRENT_VERSION" > "$VERSION_FILE"
+          rm -f "$FLAG_FILE"
+        else
+          echo "[reindex] ERROR: Search re-indexing exited with an error. Will retry on next startup."
+        fi
+      ) &
+    fi
+
+    # --- 4. Foreground Server Execution ---
+    echo "[server] Starting OpenCloud server..."
+    exec opencloud server
   proxy.yaml: |
     role_assignment:
       driver: oidc
