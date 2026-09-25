@@ -1,7 +1,7 @@
 fullnameOverride: openobserve
 image:
   oss:
-    tag: v0.92.2
+    tag: v1.0.4
   pullPolicy: IfNotPresent
 auth:
   existingRootUserSecret:
