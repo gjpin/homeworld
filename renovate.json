@@ -99,7 +99,7 @@
       "customType": "regex",
       "description": "Update CloudNativePG Cluster images",
       "managerFilePatterns": [
-        "/^apps/(?:authelia|crowdsec|forgejo|immich)/0_postgres\\.yaml$/"
+        "/^apps/(?:authelia|crowdsec|forgejo|immich|woodpecker)/0_postgres\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^\\s*imageName:\\s*(?<depName>ghcr\\.io/[^:\\s]+):(?<currentValue>[^\\s#]+)\\s*$"
@@ -465,6 +465,20 @@
       "datasourceTemplate": "helm",
       "versioningTemplate": "helm",
       "registryUrlTemplate": "https://helm.otwld.com"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Woodpecker Helm chart",
+      "managerFilePatterns": [
+        "/^apps/woodpecker/helm/kustomization\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^\\s+- name:\\s+woodpecker\\s+repo:\\s+https://woodpecker-ci\\.org/\\s+version:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "depNameTemplate": "woodpecker",
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm",
+      "registryUrlTemplate": "https://woodpecker-ci.org/"
     }
   ]
 }

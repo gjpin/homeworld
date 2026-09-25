@@ -56,6 +56,8 @@ gitea:
       DOMAIN: git.${BASE_DOMAIN}
       ROOT_URL: https://git.${BASE_DOMAIN}/
       SSH_DOMAIN: git.${BASE_DOMAIN}
+    webhook:
+      ALLOWED_HOST_LIST: "external,loopback,private"
     security:
       REVERSE_PROXY_TRUSTED_PROXIES: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.1/8
       REVERSE_PROXY_LIMIT: 1

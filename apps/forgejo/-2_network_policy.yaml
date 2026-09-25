@@ -165,4 +165,32 @@ spec:
         - ports:
             - port: "3000"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-forgejo-woodpecker
+  namespace: forgejo
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: forgejo
+      k8s:app.kubernetes.io/instance: forgejo
+  egress:
+    - toFQDNs:
+        - matchName: "ci.${BASE_DOMAIN}"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    - toServices:
+        - k8sService:
+            serviceName: woodpecker-server
+            namespace: woodpecker
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
 

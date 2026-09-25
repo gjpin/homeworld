@@ -50,6 +50,23 @@
 | RustFS Operator | `rustfs.${BASE_DOMAIN}` | RustFS storage operator and management console. |
 | Velero | — | Whole-cluster backups to Backblaze B2. |
 | Velero UI | `velero.${BASE_DOMAIN}` | Web interface for managing Velero. |
+| Woodpecker CI | `ci.${BASE_DOMAIN}` | Continuous integration engine integrated with Forgejo. |
+
+## Manual Setup
+
+### Forgejo OAuth Application for Woodpecker CI
+Woodpecker CI authenticates users and receives repository webhooks via Forgejo OAuth2:
+1. In Forgejo, navigate to **Site Administration** -> **Applications** -> **Create OAuth2 Application**.
+   - **Application Name**: `Woodpecker CI`
+   - **Redirect URI**: `https://ci.${BASE_DOMAIN}/authorize`
+2. Save the generated credentials into Infisical:
+   - `/woodpecker/FORGEJO_CLIENT`: `<Client ID>`
+   - `/woodpecker/FORGEJO_SECRET`: `<Client Secret>`
+3. Set the agent shared secret, metrics token, and database credentials in Infisical:
+   - `/woodpecker/AGENT_SECRET`: `<secure-random-token>`
+   - `/woodpecker/POSTGRES_USERNAME`: `woodpecker`
+   - `/woodpecker/POSTGRES_PASSWORD`: `<secure-password>`
+   - `/woodpecker/PROMETHEUS_AUTH_TOKEN`: `<secure-token>`
 
 ## Node Setup
 

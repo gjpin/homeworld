@@ -40,6 +40,7 @@ The table below outlines the Pod Security Standard compliance level for every co
 | **RustFS Operator** | `rustfs-operator` | Restricted | **Restricted** | Storage operator runs non-root with dropped capabilities (`ALL`), `allowPrivilegeEscalation: false`, and `RuntimeDefault` seccomp. |
 | **Velero** | `velero` | Baseline | **Mixed** | **Restricted:** `velero` controller Deployment and `velero-upgrade-crds` Job run non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp.<br><br>**Exception (Baseline):** `velero-node-agent` (DaemonSet) requires hostPath mounts to `/var/lib/kubelet/pods` to execute file-level (Kopia) volume backups of persistent volumes. |
 | **Velero UI** | `velero-ui` | Restricted | **Restricted** | Web management interface runs non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
+| **Woodpecker CI** | `woodpecker` | Restricted | **Restricted** | Server and agent StatefulSets run as non-root (UID `1000`, GID `1000`) with dropped capabilities (`ALL`), `allowPrivilegeEscalation: false`, and `RuntimeDefault` seccomp. Attached PostgreSQL instance also conforms to Restricted. |
 
 ---
 
@@ -55,7 +56,7 @@ The table below details user namespace implementation across all cluster workloa
 | **Authelia** | `authelia` | **Enabled** (`false`) | Kustomize patch | Applied to Authelia Deployment. Attached CNPG and Dragonfly pods use standard host namespaces. |
 | **cert-manager** | `cert-manager` | **Enabled** (`false`) | Helm `values.yaml` | `global.hostUsers: false` applied across controller, cainjector, and webhook. |
 | **CloudNativePG Operator** | `cloudnative-pg` | **Enabled** (`false`) | Kustomize patch | Applied to operator Deployment. |
-| **CloudNativePG Clusters** | `crowdsec`, `forgejo` | **Enabled** (`false`) | CNPG `podPatch` annotation | `cnpg.io/podPatch` injects `hostUsers: false` into PostgreSQL instance pods. |
+| **CloudNativePG Clusters** | `crowdsec`, `forgejo`, `woodpecker` | **Enabled** (`false`) | CNPG `podPatch` annotation | `cnpg.io/podPatch` injects `hostUsers: false` into PostgreSQL instance pods. |
 | **Collabora** | `collabora` | **Enabled** (`false`) | Kustomize patch | Applied to Collabora Deployment. |
 | **CrowdSec** | `crowdsec` | **Enabled** (`false`) | Kustomize patch | Applied to LAPI, AppSec, Agent DaemonSet, and registration jobs. |
 | **CrowdSec Envoy Bouncer** | `envoy-gateway` | **Enabled** (`false`) | Kustomize patch | Applied to bouncer Deployment. |
@@ -80,6 +81,7 @@ The table below details user namespace implementation across all cluster workloa
 | **Velero (Server)** | `velero` | **Enabled** (`false`) | Kustomize patch | Applied to `velero` controller Deployment and `velero-upgrade-crds` Job. |
 | **Velero (Node Agent)** | `velero` | **Disabled** (`true`) | *None (Host integration)* | **Why not enabled:** Node agent requires hostPath mounts to `/var/lib/kubelet/pods` to perform volume backups. |
 | **Velero UI** | `velero-ui` | **Enabled** (`false`) | Kustomize patch | Applied to `velero-ui` Deployment. |
+| **Woodpecker CI** | `woodpecker` | **Enabled** (`false`) | Kustomize patch | Applied to Woodpecker server and agent StatefulSets. Attached CNPG cluster uses `podPatch`. |
 
 ---
 

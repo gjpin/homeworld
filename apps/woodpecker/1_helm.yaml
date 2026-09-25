@@ -1,0 +1,30 @@
+# https://woodpecker-ci.org/
+# https://github.com/woodpecker-ci/helm
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: woodpecker
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: woodpecker
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/woodpecker/helm
+    targetRevision: HEAD

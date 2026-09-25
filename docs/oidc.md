@@ -28,3 +28,4 @@
 | grafana | Yes | Authelia. The password form is disabled. `grafana-admin` is a Grafana server admin; everyone else is a Viewer. The admin password secret remains so the process can start. |
 | collabora | No | The admin UI is HTTP basic auth. Document editing uses OpenCloud WOPI, which already authenticated the user. |
 | opencloud | Yes | Already an Authelia client (`web`, `OpenCloudDesktop`, `OpenCloudAndroid`, `OpenCloudIOS`). Unchanged. |
+| woodpecker | Delegated (via Forgejo) | User authentication is delegated to Forgejo via OAuth2, which in turn authenticates via Authelia OIDC. Direct generic OIDC is not used because Woodpecker requires Forgejo access tokens to manage webhooks, repository permissions, and commit statuses. |

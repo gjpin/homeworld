@@ -1,0 +1,27 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy
+  namespace: woodpecker
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    kubernetes.io/tls-acme: "true"
+spec:
+  gatewayClassName: envoy-merged
+  addresses:
+    - type: IPAddress
+      value: ${EXTERNAL_IP}
+  listeners:
+    - name: woodpecker-https
+      protocol: HTTPS
+      port: 443
+      hostname: "ci.${BASE_DOMAIN}"
+      allowedRoutes:
+        namespaces:
+          from: all
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: woodpecker-tls-cert
+            kind: Secret
