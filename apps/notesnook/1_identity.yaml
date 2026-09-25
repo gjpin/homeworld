@@ -93,8 +93,18 @@ spec:
               value: "https://auth.notes.${BASE_DOMAIN}"
             - name: NOTESNOOK_APP_HOST
               value: "https://notes.${BASE_DOMAIN}"
+            - name: DOCUMENTDB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: notesnook-documentdb-credentials
+                  key: username
+            - name: DOCUMENTDB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: notesnook-documentdb-credentials
+                  key: password
             - name: MONGODB_CONNECTION_STRING
-              value: "mongodb://notesnook-mongodb:27017/identity?replSet=rs0"
+              value: "mongodb://$(DOCUMENTDB_USERNAME):$(DOCUMENTDB_PASSWORD)@documentdb-service-notesnook:10260/identity?directConnection=true&authMechanism=SCRAM-SHA-256&tls=true&tlsAllowInvalidCertificates=true&replicaSet=rs0"
             - name: MONGODB_DATABASE_NAME
               value: "identity"
             - name: NOTESNOOK_API_SECRET

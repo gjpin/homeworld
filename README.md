@@ -13,7 +13,8 @@
 - Automated DNS and TLS certificate management via ExternalDNS and cert-manager
 - Zero-secret GitOps with Infisical and External Secrets Operator ([required secrets](docs/secrets.md))
 - [OIDC](docs/oidc.md)
-- Operator-managed PostgreSQL clusters via CloudNativePG
+- [Operator-managed PostgreSQL clusters via CloudNativePG](docs/upgrades.md#1-automated-major-database-upgrades-cloudnativepg)
+- [MongoDB-compatible document storage via DocumentDB Operator](docs/upgrades.md#7-documentdb-engine-upgrades)
 - Redis-compatible in-memory caching via Dragonfly Operator
 - S3-compatible object storage via RustFS Operator
 - Distributed block storage with Longhorn
@@ -21,7 +22,7 @@
 - Unified telemetry pipeline with OpenTelemetry Collector and OpenObserve
 - Declarative dashboards and monitoring via Grafana Operator and Prometheus Operator ServiceMonitors
 - Automated dependency updates and [upgrade procedures](docs/upgrades.md) via Renovate
-- Persistent AI agent workspace ([OpenChamber](docs/openchamber.md), OpenCode, Codex CLI, Pi agent on Debian 13) with PR-gated daily package refreshes
+- Persistent AI agent workspace ([OpenChamber](docs/openchamber.md), OpenCode, Codex CLI, Pi agent, Grok Build, Antigravity CLI, Copilot CLI on Debian 13) with PR-gated daily package refreshes
 
 ## Apps
 | App | Domain(s) | Description |
@@ -33,6 +34,7 @@
 | CloudNativePG | — | PostgreSQL operator. |
 | Collabora | `office.${BASE_DOMAIN}` | WOPI office editor for OpenCloud. |
 | CrowdSec | — | Security Engine, PostgreSQL-backed LAPI, and AppSec WAF. |
+| DocumentDB Operator | — | DocumentDB, a MongoDB-compatible datastore, operator. |
 | CrowdSec Envoy Bouncer | — | Envoy Gateway external-authorization bouncer. |
 | Dragonfly Operator | — | Dragonfly, a Redis-compatible datastore, operator. |
 | Envoy Gateway | `envoy.${BASE_DOMAIN}` | Gateway API implementation and control-plane metrics. |
@@ -45,7 +47,7 @@
 | Immich | `photos.${BASE_DOMAIN}` | Photo and video management. |
 | Longhorn | `longhorn.${BASE_DOMAIN}` | Distributed block-storage management. |
 | Notesnook | `notes.${BASE_DOMAIN}`<br>`auth.notes.${BASE_DOMAIN}`<br>`sse.notes.${BASE_DOMAIN}`<br>`monograph.notes.${BASE_DOMAIN}`<br>`themes.notes.${BASE_DOMAIN}`<br>`cors.notes.${BASE_DOMAIN}`<br>`inbox.notes.${BASE_DOMAIN}` | End-to-end encrypted note-taking sync server with auth, SSE, Monograph, Themes, CORS proxy, and Inbox API. |
-| OpenChamber | `openchamber.${BASE_DOMAIN}` | Persistent AI agent workspace: OpenChamber web server, OpenCode, Codex CLI, and the Pi agent on Debian 13 with a PVC-backed HOME. |
+| OpenChamber | `openchamber.${BASE_DOMAIN}` | Persistent AI agent workspace: OpenChamber web server, OpenCode, Codex CLI, the Pi agent, Grok Build, the Antigravity CLI, and the Copilot CLI on Debian 13 with a PVC-backed HOME. |
 | OpenObserve | `openobserve.${BASE_DOMAIN}` | Logs, metrics, and traces backend. |
 | OpenTelemetry Collector | — | Telemetry collection and export. |
 | OpenCloud | `cloud.${BASE_DOMAIN}` | Files, sharing, search, collaboration, CalDAV, and CardDAV. |
@@ -85,8 +87,11 @@ After the `openchamber` workspace deploys (see [docs/openchamber.md](docs/opench
   opencode auth login   # OpenCode
   codex login           # Codex CLI
   pi                    # then run /login inside the Pi session
+  grok login --device-auth  # Grok Build (device-code flow for the headless pod; works with a SuperGrok subscription)
+  agy                   # Antigravity CLI (prints an auth URL + code on first launch for the headless pod)
+  copilot login         # Copilot CLI (device-code flow)
   ```
-  `/openchamber/OPENAI_API_KEY` and `/openchamber/GITHUB_TOKEN` are injected as environment variables, so Codex and OpenCode also work without interactive login.
+  `/openchamber/OPENAI_API_KEY` and `/openchamber/GITHUB_TOKEN` are injected as environment variables, so Codex and OpenCode also work without interactive login. Copilot CLI checks `COPILOT_GITHUB_TOKEN`, then `GH_TOKEN`, then `GITHUB_TOKEN` before its stored login, so the injected `GITHUB_TOKEN` takes precedence: it must carry the Copilot Requests permission, otherwise `copilot login` appears to succeed but is silently shadowed.
 
 ## Node Setup
 

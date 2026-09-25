@@ -1,7 +1,8 @@
 # Persistent AI agent workspace.
 #
 # Debian 13 (trixie) with development toolchain, the
-# OpenChamber web server, OpenCode, Codex CLI, and the Pi coding agent, all
+# OpenChamber web server, OpenCode, Codex CLI, the Pi coding agent, Grok Build,
+# the Antigravity CLI, and the GitHub Copilot CLI, all
 # running as the non-root `agent` user with a PVC-backed HOME.
 #
 # Every version below is pinned. Updates arrive exclusively as PRs:
@@ -35,6 +36,9 @@ ARG PLAYWRIGHT_TEST_VERSION=1.63.0
 ARG PLAYWRIGHT_CLI_VERSION=0.1.21
 ARG CHROME_DEVTOOLS_MCP_VERSION=1.10.1
 ARG SKILLS_VERSION=1.7.0
+ARG GROK_VERSION=1.0.41
+ARG ANTIGRAVITY_VERSION=1.2.11
+ARG COPILOT_VERSION=1.0.88
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
@@ -211,6 +215,70 @@ RUN set -eux; \
     rm -rf /tmp/codex-install; \
     codex --version
 
+# Grok Build CLI, pinned by version through a direct artifact download.
+# Upstream publishes no checksums; TLS plus a `--version` smoke test is the
+# same verification the official installer performs.
+RUN set -eux; \
+    arch="$(uname -m)"; \
+    case "$arch" in \
+      x86_64) grok_arch="x86_64" ;; \
+      aarch64) grok_arch="aarch64" ;; \
+      *) echo >&2 "unsupported architecture for Grok: $arch"; exit 1 ;; \
+    esac; \
+    curl -fsSL "https://x.ai/cli/grok-${GROK_VERSION}-linux-${grok_arch}.zst" -o /tmp/grok.zst; \
+    zstd -dc /tmp/grok.zst > /usr/local/bin/grok; \
+    rm -f /tmp/grok.zst; \
+    chmod 0755 /usr/local/bin/grok; \
+    ln -sf grok /usr/local/bin/agent; \
+    grok --version
+
+# Antigravity CLI (`agy`), pinned by version via Google's per-arch release
+# manifest for the build architecture. The manifest supplies a versioned
+# artifact URL plus a SHA-512 checksum; the build asserts the manifest
+# version equals the pinned ARG so a silent upstream roll never slips past
+# the pin. The `agy install` shell handoff from the official installer is
+# intentionally skipped: the binary is placed directly in /usr/local/bin.
+RUN set -eux; \
+    arch="$(uname -m)"; \
+    case "$arch" in \
+      x86_64) agy_arch="amd64" ;; \
+      aarch64) agy_arch="arm64" ;; \
+      *) echo >&2 "unsupported architecture for Antigravity: $arch"; exit 1 ;; \
+    esac; \
+    manifest="$(curl -fsSL "https://antigravity-cli-auto-updater-974169037036.us-central1.run.app/manifests/linux_${agy_arch}.json")"; \
+    manifest_version="$(printf '%s' "$manifest" | jq -r .version)"; \
+    test "$manifest_version" = "${ANTIGRAVITY_VERSION}"; \
+    agy_url="$(printf '%s' "$manifest" | jq -r .url)"; \
+    agy_sha512="$(printf '%s' "$manifest" | jq -r .sha512)"; \
+    curl -fsSL "$agy_url" -o /tmp/agy.tar.gz; \
+    printf '%s  /tmp/agy.tar.gz\n' "$agy_sha512" | sha512sum -c -; \
+    tar -xzf /tmp/agy.tar.gz -C /tmp antigravity; \
+    install -m 0755 /tmp/antigravity /usr/local/bin/agy; \
+    rm -f /tmp/agy.tar.gz /tmp/antigravity; \
+    agy --version
+
+# GitHub Copilot CLI, pinned by release tarball with SHA-256 verification.
+# The tarball and SHA256SUMS.txt keep their upstream names so
+# `sha256sum -c --ignore-missing` validates the pinned artifact.
+RUN set -eux; \
+    arch="$(uname -m)"; \
+    case "$arch" in \
+      x86_64) copilot_arch="x64" ;; \
+      aarch64) copilot_arch="arm64" ;; \
+      *) echo >&2 "unsupported architecture for Copilot: $arch"; exit 1 ;; \
+    esac; \
+    install -d -m 0755 /tmp/copilot-install; \
+    cd /tmp/copilot-install; \
+    curl -fsSLO "https://github.com/github/copilot-cli/releases/download/v${COPILOT_VERSION}/copilot-linux-${copilot_arch}.tar.gz"; \
+    curl -fsSLO "https://github.com/github/copilot-cli/releases/download/v${COPILOT_VERSION}/SHA256SUMS.txt"; \
+    sha256sum -c --ignore-missing SHA256SUMS.txt; \
+    tar -tzf "copilot-linux-${copilot_arch}.tar.gz"; \
+    tar -xzf "copilot-linux-${copilot_arch}.tar.gz"; \
+    test -f copilot; \
+    install -m 0755 copilot /usr/local/bin/copilot; \
+    cd /; rm -rf /tmp/copilot-install; \
+    copilot --version
+
 COPY openchamber-entrypoint.sh /usr/local/bin/openchamber-entrypoint
 
 # Non-root agent user. HOME defaults to the PVC-mounted /home/agent at
@@ -223,6 +291,9 @@ RUN set -eux; \
     command -v opencode; \
     command -v codex; \
     command -v pi; \
+    command -v grok; \
+    command -v agy; \
+    command -v copilot; \
     command -v google-chrome-stable
 
 ENV HOME=/home/agent \

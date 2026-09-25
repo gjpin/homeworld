@@ -1,0 +1,149 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    cnpg.io/pluginClientSecret: sidecarinjector-client-tls
+    cnpg.io/pluginPort: "9090"
+    cnpg.io/pluginServerSecret: sidecarinjector-server-tls
+  labels:
+    app: sidecar-injector
+    cnpg.io/pluginName: cnpg-i-sidecar-injector.documentdb.io
+    app.kubernetes.io/name: {{ include "documentdb-chart.name" . }}
+  name: sidecar-injector
+  namespace: {{ .Values.pluginNamespace | default "cloudnative-pg" }}
+spec:
+  ports:
+  - port: 9090
+    protocol: TCP
+    targetPort: 9090
+  selector:
+    app: sidecar-injector
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: sidecar-injector
+  name: sidecar-injector
+  namespace: {{ .Values.pluginNamespace | default "cloudnative-pg" }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sidecar-injector
+  template:
+    metadata:
+      labels:
+        app: sidecar-injector
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sidecarInjector.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.sidecarInjector.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sidecarInjector.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sidecarInjector.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sidecarInjector.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sidecarInjector.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - args:
+        - plugin
+        - --server-cert=/server/tls.crt
+        - --server-key=/server/tls.key
+        - --client-cert=/client/tls.crt
+        - --server-address=:9090
+        image: "{{ .Values.image.sidecarinjector.repository }}:{{ .Values.image.sidecarinjector.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: "{{ .Values.image.sidecarinjector.pullPolicy }}"
+        name: cnpg-i-sidecar-injector
+        {{- with .Values.sidecarInjector.containerSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        env:
+        {{- if .Values.documentDbVersion }}
+        - name: DOCUMENTDB_VERSION
+          value: "{{ .Values.documentDbVersion }}"
+        {{- end }}
+        ports:
+        - containerPort: 9090
+          protocol: TCP
+        {{- with .Values.sidecarInjector.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        volumeMounts:
+        - mountPath: /server
+          name: server
+        - mountPath: /client
+          name: client
+      volumes:
+      - name: server
+        secret:
+          secretName: sidecarinjector-server-tls
+      - name: client
+        secret:
+          secretName: sidecarinjector-client-tls
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: sidecarinjector-client
+  namespace: {{ .Values.pluginNamespace | default "cloudnative-pg" }}
+spec:
+  commonName: sidecarinjector-client
+  duration: 2160h
+  isCA: false
+  issuerRef:
+    group: cert-manager.io
+    kind: Issuer
+    name: selfsigned-issuer
+  renewBefore: 360h
+  secretName: sidecarinjector-client-tls
+  usages:
+  - client auth
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: sidecarinjector-server
+  namespace: {{ .Values.pluginNamespace | default "cloudnative-pg" }}
+spec:
+  commonName: sidecar-injector
+  dnsNames:
+  - sidecar-injector
+  duration: 2160h
+  isCA: false
+  issuerRef:
+    group: cert-manager.io
+    kind: Issuer
+    name: selfsigned-issuer
+  renewBefore: 360h
+  secretName: sidecarinjector-server-tls
+  usages:
+  - server auth
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned-issuer
+  namespace: {{ .Values.pluginNamespace | default "cloudnative-pg" }}
+spec:
+  selfSigned: {}

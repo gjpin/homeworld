@@ -11,6 +11,7 @@
 | velero-ui | Yes | Authelia. Built-in basic auth is disabled. Any signed-in user can manage every backup; there is no admin group. |
 | argocd | Yes | Authelia. Local admin and Dex are disabled. `argocd-admin` is admin; everyone else is read-only. |
 | cloudnative-pg | No | No user login. |
+| documentdb-operator | No | No user login. |
 | dragonfly-operator | No | No user login. |
 | rustfs-operator | No | The operator uses its service account. Console login belongs to the `rustfs` Tenant. |
 | external-secrets | No | No user login. |

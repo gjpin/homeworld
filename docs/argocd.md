@@ -22,6 +22,8 @@
    * rustfs-operator: RustFS storage operator, console, and STS endpoint
    * velero: whole-cluster backups after External Secrets and Longhorn
 * **Sync wave 5**
+   * documentdb-operator: DocumentDB (MongoDB-compatible) operator and its
+     CNPG-I sidecar injector plugin, after CloudNativePG
    * crowdsec: PostgreSQL-backed CrowdSec LAPI, Envoy log agent, and AppSec WAF,
      after CloudNativePG and External Secrets
    * openobserve: standalone logs, metrics, and traces backend
@@ -103,7 +105,10 @@ In `apps/app-of-apps.yaml`, CRD-providing infrastructure and operators are seque
 - **Wave 2:** `envoy-gateway` (Gateway API and Envoy Gateway CRDs)
 - **Wave 3:** `cert-manager` (Certificates and ClusterIssuers)
 - **Wave 4:** Datastore operators (`cloudnative-pg`, `dragonfly-operator`, `rustfs-operator`, `grafana-operator`)
-- **Waves 5–8:** Applications and workloads consuming those CRDs (`authelia`, `immich`, `forgejo`, `grafana`, `opencloud`, etc.)
+- **Wave 5:** The `documentdb-operator` (DocumentDB CRDs plus the CNPG-I sidecar
+  injector plugin, which must live in the `cloudnative-pg` namespace for
+  CloudNativePG plugin discovery) alongside wave 4 CRD consumers
+- **Waves 6–8:** Applications and workloads consuming those CRDs (`authelia`, `immich`, `forgejo`, `grafana`, `notesnook` via `DocumentDB`, `opencloud`, etc.)
 
 Argo CD's custom Lua Application health check pauses wave advancement until all applications in Wave $N$ report `Healthy`, preventing downstream workloads from encountering missing CRD errors during initial deployment or cluster-wide upgrades.
 
@@ -118,7 +123,7 @@ Within an individual sync wave, Argo CD sorts manifests by Kubernetes `Kind` pri
 
 ### Dedicated CRD Applications vs. Bundled Helm Releases
 - **Standalone CRDs:** Shared ecosystem CRD suites without local controller dependencies (`prometheus-operator-crd` and `gateway-api-crd`) are separated into dedicated Argo CD applications and sync waves.
-- **Bundled Operator CRDs:** Operators (`cloudnative-pg`, `cert-manager`, `external-secrets`, `dragonfly-operator`, etc.) bundle their upstream CRDs within their Helm charts, relying on Server-Side Apply and Kind-based sorting for in-place schema upgrades.
+- **Bundled Operator CRDs:** Operators (`cloudnative-pg`, `cert-manager`, `external-secrets`, `dragonfly-operator`, `documentdb-operator`, etc.) bundle their upstream CRDs within their Helm charts, relying on Server-Side Apply and Kind-based sorting for in-place schema upgrades. The `documentdb-operator` chart is vendored and patched under `apps/documentdb-operator/helm/local-charts` (see `scripts/vendor-documentdb-operator.sh`): the bundled CloudNativePG subchart is stripped and the CNPG-I sidecar injector is scoped to the `cloudnative-pg` namespace, which CloudNativePG requires for plugin discovery.
 
 ## Intra-Component Sync Wave Architecture
 

@@ -1,0 +1,55 @@
+# https://documentdb.io/documentdb-kubernetes-operator/latest/preview/
+# DocumentDB (MongoDB wire-protocol on PostgreSQL) replaces the standalone
+# MongoDB StatefulSet. The operator (wave 5) generates a CloudNativePG Cluster
+# named `notesnook` and injects the documentdb-gateway sidecar (:10260).
+# Fresh install; no data migration.
+---
+apiVersion: documentdb.io/preview
+kind: DocumentDB
+metadata:
+  name: notesnook
+  namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  nodeCount: 1
+  instancesPerNode: 1
+  # Pinned engine/gateway version (extension + gateway images). Chart 0.3.0
+  # defaults to 0.110.0, which segfaults on writes under PostgreSQL 18.6.
+  # https://github.com/documentdb/documentdb/releases (tag vX.Y-0 ↔ X.Y.0)
+  documentDBVersion: "0.117.0"
+  documentDbCredentialSecret: notesnook-documentdb-credentials
+  image:
+    # Must stay trixie-based to match the extension's GLIBC requirements.
+    postgres: ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie
+  affinity:
+    nodeSelector:
+      node-role.kubernetes.io/homelab: homelab
+  resource:
+    storage:
+      pvcSize: 10Gi
+      storageClass: longhorn-crypto
+    cpu: "500m"
+    memory: 2Gi
+  exposeViaService:
+    serviceType: ClusterIP
+  monitoring:
+    enabled: true
+    exporter:
+      prometheus:
+        # Upstream recommendation: avoid CNPG instance-manager metrics port 9187.
+        port: 9188
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: notesnook-documentdb
+  namespace: notesnook
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: notesnook
+  podMetricsEndpoints:
+    - port: prom-metrics
+      path: /metrics
+      interval: 60s

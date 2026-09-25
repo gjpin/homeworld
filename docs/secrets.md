@@ -36,6 +36,8 @@ All cluster secrets are synchronized from [Infisical](https://infisical.com) by 
 | | `/immich/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for cache and job queues. |
 | **Longhorn** | `/longhorn/CRYPTO_KEY_VALUE` | Storage encryption key for the `longhorn-crypto` StorageClass. |
 | **Notesnook** | `/notesnook/NOTESNOOK_API_SECRET` | API session signing secret. |
+| | `/notesnook/DOCUMENTDB_USERNAME` | DocumentDB gateway username. |
+| | `/notesnook/DOCUMENTDB_PASSWORD` | DocumentDB gateway password. |
 | | `/notesnook/RUSTFS_ACCESS_KEY` | RustFS S3 access key for note attachments. |
 | | `/notesnook/RUSTFS_SECRET_KEY` | RustFS S3 secret key for note attachments. |
 | | `/notesnook/SMTP_USERNAME` | SMTP relay username for invitation and notification emails. |

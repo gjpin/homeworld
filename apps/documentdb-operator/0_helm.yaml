@@ -1,0 +1,32 @@
+# https://documentdb.io/kubernetes-operator/
+# https://github.com/documentdb/documentdb-kubernetes-operator
+# The upstream chart is vendored and patched under helm/local-charts (see
+# scripts/vendor-documentdb-operator.sh): the bundled CloudNativePG subchart is
+# stripped and the CNPG-I sidecar injector is scoped to the `cloudnative-pg`
+# namespace, which CloudNativePG requires for plugin discovery.
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: documentdb-operator
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: documentdb-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/documentdb-operator/helm
+    targetRevision: HEAD

@@ -1,0 +1,214 @@
+{{- if .Values.walReplica }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: wal-replica
+    cnpg.io/pluginName: cnpg-i-wal-replica.documentdb.io
+    app.kubernetes.io/name: {{ include "documentdb-chart.name" . }}
+  annotations:
+    cnpg.io/pluginClientSecret: walreplica-client-tls
+    cnpg.io/pluginServerSecret: walreplica-server-tls
+    cnpg.io/pluginPort: "9090"
+  name: wal-replica
+  namespace: {{ .Values.pluginNamespace | default "cloudnative-pg" }}
+spec:
+  ports:
+  - port: 9090
+    protocol: TCP
+    targetPort: 9090
+  selector:
+    app: wal-replica
+
+---
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: walreplica-client
+  namespace: {{ .Values.pluginNamespace | default "cloudnative-pg" }}
+spec:
+  secretName: walreplica-client-tls
+  commonName: "walreplica-client"
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+
+  isCA: false
+  usages:
+    - client auth
+
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io
+
+---
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: walreplica-server
+  namespace: {{ .Values.pluginNamespace | default "cloudnative-pg" }}
+spec:
+  secretName: walreplica-server-tls
+  commonName: "wal-replica"
+  dnsNames:
+    - wal-replica
+
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+
+  isCA: false
+  usages:
+    - server auth
+
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: wal-replica
+  name: wal-replica
+  namespace: {{ .Values.pluginNamespace | default "cloudnative-pg" }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wal-replica
+  template:
+    metadata:
+      labels:
+        app: wal-replica
+    spec:
+      serviceAccountName: wal-replica-manager
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.walReplicaPlugin.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.walReplicaPlugin.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.walReplicaPlugin.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.walReplicaPlugin.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.walReplicaPlugin.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.walReplicaPlugin.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - image: "{{ .Values.image.walreplica.repository }}:{{ .Values.image.walreplica.tag | default .Chart.AppVersion }}"  
+        imagePullPolicy: "{{ .Values.image.walreplica.pullPolicy }}"
+        name: cnpg-i-wal-replica
+        {{- with .Values.walReplicaPlugin.containerSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        ports:
+        - containerPort: 9090
+          protocol: TCP
+        args:
+        - receivewal
+        - --server-cert=/server/tls.crt
+        - --server-key=/server/tls.key
+        - --client-cert=/client/tls.crt
+        - --server-address=:9090
+        volumeMounts:
+        - mountPath: /server
+          name: server
+        - mountPath: /client
+          name: client
+        {{- with .Values.walReplicaPlugin.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      volumes:
+      - name: server
+        secret:
+          secretName: walreplica-server-tls
+      - name: client
+        secret:
+          secretName: walreplica-client-tls
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/name: {{ include "documentdb-chart.name" . }}
+    app.kubernetes.io/managed-by: "Helm"
+  name: wal-replica-manager-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: wal-replica-manager
+subjects:
+- kind: ServiceAccount
+  name: wal-replica-manager
+  namespace: {{ .Values.pluginNamespace | default "cloudnative-pg" }}
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: wal-replica-manager
+  labels:
+    app.kubernetes.io/name: {{ include "documentdb-chart.name" . }}
+rules:
+# wal-replica plugin source lives in the cnpg-i-wal-replica repo; we cannot
+# grep its exact verb usage from here. Below is the previous grant minus
+# rules that are obviously dead in any controller-runtime-based plugin
+# (`""/leases` is the wrong API group — leases live in coordination.k8s.io,
+# and `""/endpoints` was never referenced). The remaining rules should be
+# audited and tightened once the plugin's RBAC markers are wired to ship
+# alongside the chart. Tracked in #381.
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["services", "pods", "endpoints", "serviceaccounts", "configmaps"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "rolebindings"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["secrets", "persistentvolumeclaims"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["postgresql.cnpg.io"]
+  resources: ["clusters", "publications", "subscriptions"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: wal-replica-manager
+  namespace: {{ .Values.pluginNamespace | default "cloudnative-pg" }}
+  labels:
+    app.kubernetes.io/name: {{ include "documentdb-chart.name" . }}
+    app.kubernetes.io/managed-by: "Helm"
+{{- end }}

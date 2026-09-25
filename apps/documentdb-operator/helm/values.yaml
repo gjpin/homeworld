@@ -1,0 +1,35 @@
+# Pinned DocumentDB engine/gateway version (extension + gateway images).
+# Chart 0.3.0 defaults to 0.110.0, which segfaults on writes under PostgreSQL
+# 18.6; 0.117.0 is the latest stable (upstream tag v0.117-0).
+# https://github.com/documentdb/documentdb/releases
+certManager:
+  preflightCheck: false
+documentDbVersion: "0.117.0"
+walReplica: false
+# CNPG-I only discovers plugin Services in the CloudNativePG operator's own
+# namespace, so the sidecar injector must live in `cloudnative-pg`.
+pluginNamespace: cloudnative-pg
+operator:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+      ephemeral-storage: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+      ephemeral-storage: 2Gi
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+sidecarInjector:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+      ephemeral-storage: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+      ephemeral-storage: 2Gi
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab

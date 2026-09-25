@@ -79,6 +79,24 @@
       ]
     },
     {
+      "description": "Re-vendor the patched DocumentDB operator chart on version bumps so the PR contains the complete tree",
+      "matchPackageNames": [
+        "ghcr.io/documentdb/documentdb-operator"
+      ],
+      "postUpgradeTasks": {
+        "commands": [
+          "bash scripts/vendor-documentdb-operator.sh"
+        ],
+        "fileFilters": [
+          "apps/documentdb-operator/helm/local-charts/**"
+        ],
+        "executionMode": "update",
+        "installTools": {
+          "helm": {}
+        }
+      }
+    },
+    {
       "description": "Node.js major bumps change the OpenChamber agent workspace runtime; verify OpenChamber's Node.js requirement (currently >= 22) before merging",
       "matchPackageNames": [
         "nodejs/node"
@@ -105,6 +123,19 @@
       "/^apps/.+/helm(?:/.+)?/kustomization\\.yaml$/"
     ]
   },
+  "customDatasources": {
+    "grok-cli": {
+      "defaultRegistryUrlTemplate": "https://x.ai/cli/stable",
+      "format": "plain"
+    },
+    "antigravity-cli": {
+      "defaultRegistryUrlTemplate": "https://antigravity-cli-auto-updater-974169037036.us-central1.run.app/manifests/linux_amd64.json",
+      "format": "json",
+      "transformTemplates": [
+        "{\"releases\": [{\"version\": version}]}"
+      ]
+    }
+  },
   "customManagers": [
     {
       "customType": "regex",
@@ -114,6 +145,62 @@
       ],
       "matchStrings": [
         "(?m)^\\s*imageName:\\s*(?<depName>ghcr\\.io/[^:\\s]+):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the DocumentDB Operator vendored chart version",
+      "managerFilePatterns": [
+        "/^apps/documentdb-operator/helm/local-charts/documentdb-operator/Chart\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^version:\\s*(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "depNameTemplate": "ghcr.io/documentdb/documentdb-operator",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the DocumentDB engine/gateway version for the operator",
+      "managerFilePatterns": [
+        "/^apps/documentdb-operator/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^documentDbVersion:\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "ghcr.io/documentdb/documentdb/documentdb-local",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io",
+      "extractVersionTemplate": "^pg18-(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the DocumentDB engine version for DocumentDB clusters",
+      "managerFilePatterns": [
+        "/^apps/notesnook/0_documentdb\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*documentDBVersion:\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "ghcr.io/documentdb/documentdb/documentdb-local",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io",
+      "extractVersionTemplate": "^pg18-(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Update DocumentDB Cluster postgres images",
+      "managerFilePatterns": [
+        "/^apps/notesnook/0_documentdb\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*postgres:\\s*(?<depName>ghcr\\.io/[^:\\s]+):(?<currentValue>[^\\s#]+)\\s*$"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
@@ -655,6 +742,45 @@
       "depNameTemplate": "skills",
       "datasourceTemplate": "npm",
       "registryUrlTemplate": "https://registry.npmjs.org"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Grok Build CLI in the OpenChamber workspace image",
+      "managerFilePatterns": [
+        "/^images/openchamber/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG GROK_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "grok-cli",
+      "datasourceTemplate": "custom.grok-cli",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Antigravity CLI in the OpenChamber workspace image",
+      "managerFilePatterns": [
+        "/^images/openchamber/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG ANTIGRAVITY_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "antigravity-cli",
+      "datasourceTemplate": "custom.antigravity-cli",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the GitHub Copilot CLI in the OpenChamber workspace image",
+      "managerFilePatterns": [
+        "/^images/openchamber/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG COPILOT_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "github/copilot-cli",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver"
     }
   ]
 }

@@ -73,6 +73,58 @@ To prevent breaking jumps while keeping standard application updates streamlined
 
 The persistent AI agent workspace (`apps/openchamber`) runs a custom image built from `images/openchamber/Dockerfile`. The running pod never updates itself: every change to the workspace arrives as a PR you approve, and merging rolls the pod at a moment you choose (merge when the agents are idle; session state, worktrees, and credentials persist on the `openchamber-agent-home` PVC).
 
-* **Pinned tool versions** (base image digest, Node.js, pnpm, uv, OpenChamber, OpenCode, Codex CLI, Pi agent, Playwright packages, chrome-devtools-mcp, skills): Renovate opens one PR per updated dependency via `customManagers` in `renovate.json`.
+* **Pinned tool versions** (base image digest, Node.js, pnpm, uv, OpenChamber, OpenCode, Codex CLI, Pi agent, Grok Build, Antigravity CLI, Copilot CLI, Playwright packages, chrome-devtools-mcp, skills): Renovate opens one PR per updated dependency via `customManagers` in `renovate.json`.
 * **Debian packages and Google Chrome** (not visible to Renovate): the daily [package refresh check](../.github/workflows/check-openchamber-apt-updates.yaml) runs `apt-get --simulate full-upgrade` inside the published image and opens a PR bumping `ARG APT_REFRESH` whenever packages are outdated.
 * **Image builds** ([Build OpenChamber workspace image](../.github/workflows/build-openchamber.yaml)): merging a PR that touches `images/openchamber/**` builds `linux/amd64` + `linux/arm64`, pushes `ghcr.io/gjpin/openchamber:main-<shortsha>`, and commits the new tag into `apps/openchamber/1_deployment.yaml`. Argo CD then rolls the agent pod.
+
+---
+
+## 7. DocumentDB Engine Upgrades
+
+Notesnook's document database runs on the DocumentDB Kubernetes Operator
+(`apps/notesnook/0_documentdb.yaml`), which layers a MongoDB-compatible gateway
+over a generated CloudNativePG `Cluster`.
+
+### Version Pins (three places, two tracks)
+
+* **Operator track** (controller, sidecar injector, WAL replica images):
+  `apps/documentdb-operator/helm/local-charts/documentdb-operator/Chart.yaml`
+  `version` (currently `0.3.0`). Upgrades are fully automated: Renovate bumps
+  the version and runs `scripts/vendor-documentdb-operator.sh` on the PR
+  branch (a `postUpgradeTasks` command allowed via `RENOVATE_ALLOWED_COMMANDS`
+  in the Renovate workflow), so the PR contains the complete re-vendored tree
+  with the homeworld patches re-applied (subchart strip, `cloudnative-pg`
+  plugin namespace) — approve and merge. The script fails closed if upstream
+  renames templates or namespaces, surfacing the needed script fix as an
+  artifact error on the Renovate PR; it can also be run locally at any time
+  (no arguments re-vendor the currently pinned version).
+* **Database track** (extension + gateway images): `documentDbVersion` in
+  `apps/documentdb-operator/helm/values.yaml` sets the operator-wide default,
+  and `documentDBVersion` in `apps/notesnook/0_documentdb.yaml` pins the
+  cluster explicitly so an operator chart bump cannot silently change the
+  engine version. Engine `X.Y.0` ↔ upstream tag `vX.Y-0` at
+  [documentdb/documentdb releases](https://github.com/documentdb/documentdb/releases).
+
+Renovate tracks all four fields via `customManagers` in `renovate.json`
+(the engine managers follow `pg18-*` tags on
+`ghcr.io/documentdb/documentdb/documentdb-local`, matching the pinned
+PostgreSQL 18 base image).
+
+### Schema Upgrades Are Two-Phase
+
+Binary (image) upgrades do **not** run `ALTER EXTENSION` automatically. After
+the new images roll, finalize the schema explicitly:
+
+1. Ensure a recent [Velero backup](velero.md) exists.
+2. Merge the Renovate engine PR and wait for the cluster to report Ready.
+3. Set `spec.schemaVersion` to the new version (or `"auto"` to track the
+   binary; `"auto"` skips the rollback safety window and is not recommended).
+4. Once the schema is updated, the operator blocks image rollback below the
+   installed schema version — verify application health before committing.
+
+### PostgreSQL Base Image
+
+`spec.image.postgres` (`ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie`)
+is tracked by the CloudNativePG package rule: minor bumps roll with zero
+downtime, major bumps trigger CNPG's automated offline `pg_upgrade`. The image
+must stay trixie-based to match the extension's GLIBC requirements.
