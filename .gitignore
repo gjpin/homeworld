@@ -1,6 +1,5 @@
 apps/**/helm/**/charts/
 security-reports/
-new/
 e2e/examples/.generated/
 **/__pycache__/
 *.pyc
