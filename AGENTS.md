@@ -204,6 +204,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - StorageClass SELinux mount options (`context=system_u:object_r:ephemeral_t:s0`) for CSI filesystem volumes
 - CRD ordering: newly added apps with CRDs must install CRDs before workloads (and support declarative upgrades via `ServerSideApply=true`), with `docs/argocd.md` updated within the existing text.
 - Document Pod Security Standards compliance and User Namespaces status in `docs/pod-security.md`.
+- Document Authelia OIDC integration status or sign-in behavior in `docs/oidc.md`.
 - Add the destination namespace to the world-egress policy selector, or explicitly justify an egress exception.
 - Set requests and limits on all regular, init, and sidecar containers. Preserve
   higher upstream values; use the documented profile fallbacks when absent.
@@ -235,6 +236,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - Apply the new-component checklist as applicable.
 - Keep `docs/pod-security.md` updated with any changes or additions to Pod Security
   Standards compliance and User Namespaces status.
+- Keep `docs/oidc.md` updated with any changes or additions to Authelia OIDC
+  integration status or sign-in behavior when onboarding or modifying an app.
 - Treat CRDs and operators as dependencies: they must be installed in an earlier
   sync wave than resources that use them. Newly added apps with CRDs must follow
   this rule both on initial deployment and during upgrades (ensuring CRDs precede
@@ -271,7 +274,8 @@ resources rather than claiming full cluster compatibility.
 - Update documentation when environment variables, public domains, bootstrap
   steps, component inventory, or sync ordering change.
 - Update documentation in `docs/` (including `docs/pod-security.md` for Pod
-  Security Standards and User Namespaces changes, and `docs/argocd.md` within
+  Security Standards and User Namespaces changes, `docs/oidc.md` for Authelia
+  OIDC integration status and sign-in behavior, and `docs/argocd.md` within
   its existing text for sync waves and CRD lifecycle updates) whenever
   architectural changes, operational workflows, sync ordering, or manifest
   conventions affect, invalidate, or alter the descriptions there.

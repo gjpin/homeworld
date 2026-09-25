@@ -479,6 +479,19 @@
       "datasourceTemplate": "helm",
       "versioningTemplate": "helm",
       "registryUrlTemplate": "https://woodpecker-ci.org/"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Trivy version in validate workflow",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/validate\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "(?ms)uses:\\s+aquasecurity/setup-trivy@[^\\n]+\\n\\s+with:\\s*\\n\\s+version:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "depNameTemplate": "aquasecurity/trivy",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver"
     }
   ]
 }

@@ -1,0 +1,140 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notesnook-identity
+  namespace: notesnook
+  labels:
+    app.kubernetes.io/name: notesnook-identity
+    app.kubernetes.io/instance: notesnook
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8264
+      targetPort: 8264
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: notesnook-identity
+    app.kubernetes.io/instance: notesnook
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notesnook-identity
+  namespace: notesnook
+  labels:
+    app.kubernetes.io/name: notesnook-identity
+    app.kubernetes.io/instance: notesnook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: notesnook-identity
+      app.kubernetes.io/instance: notesnook
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: notesnook-identity
+        app.kubernetes.io/instance: notesnook
+    spec:
+      runtimeClassName: gvisor
+      hostUsers: false
+      automountServiceAccountToken: false
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: identity
+          image: streetwriters/identity:v1.0-beta.38
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8264
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          env:
+            - name: SELF_HOSTED
+              value: "1"
+            - name: INSTANCE_NAME
+              value: "homeworld"
+            - name: DISABLE_SIGNUPS
+              value: "false"
+            - name: NOTESNOOK_SERVER_HOST
+              value: "notesnook-sync"
+            - name: NOTESNOOK_SERVER_PORT
+              value: "5264"
+            - name: IDENTITY_SERVER_HOST
+              value: "notesnook-identity"
+            - name: IDENTITY_SERVER_PORT
+              value: "8264"
+            - name: SSE_SERVER_HOST
+              value: "notesnook-sse"
+            - name: SSE_SERVER_PORT
+              value: "7264"
+            - name: IDENTITY_SERVER_URL
+              value: "https://auth.notes.${BASE_DOMAIN}"
+            - name: NOTESNOOK_APP_HOST
+              value: "https://notes.${BASE_DOMAIN}"
+            - name: MONGODB_CONNECTION_STRING
+              value: "mongodb://notesnook-mongodb:27017/identity?replSet=rs0"
+            - name: MONGODB_DATABASE_NAME
+              value: "identity"
+            - name: NOTESNOOK_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: notesnook-secrets
+                  key: NOTESNOOK_API_SECRET
+            - name: SMTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: notesnook-secrets
+                  key: SMTP_USERNAME
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: notesnook-secrets
+                  key: SMTP_PASSWORD
+            - name: SMTP_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: notesnook-secrets
+                  key: SMTP_HOST
+            - name: SMTP_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: notesnook-secrets
+                  key: SMTP_PORT
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3

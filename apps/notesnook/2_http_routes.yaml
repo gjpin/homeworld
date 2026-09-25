@@ -1,0 +1,154 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: notesnook-sync
+  namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    external-dns.alpha.kubernetes.io/hostname: "notes.${BASE_DOMAIN}"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: notesnook
+      sectionName: notes-https
+  hostnames:
+    - "notes.${BASE_DOMAIN}"
+  rules:
+    - backendRefs:
+        - name: notesnook-sync
+          namespace: notesnook
+          kind: Service
+          port: 5264
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: notesnook-identity
+  namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    external-dns.alpha.kubernetes.io/hostname: "auth.notes.${BASE_DOMAIN}"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: notesnook
+      sectionName: notes-auth-https
+  hostnames:
+    - "auth.notes.${BASE_DOMAIN}"
+  rules:
+    - backendRefs:
+        - name: notesnook-identity
+          namespace: notesnook
+          kind: Service
+          port: 8264
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: notesnook-sse
+  namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    external-dns.alpha.kubernetes.io/hostname: "sse.notes.${BASE_DOMAIN}"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: notesnook
+      sectionName: notes-sse-https
+  hostnames:
+    - "sse.notes.${BASE_DOMAIN}"
+  rules:
+    - backendRefs:
+        - name: notesnook-sse
+          namespace: notesnook
+          kind: Service
+          port: 7264
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: notesnook-monograph
+  namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    external-dns.alpha.kubernetes.io/hostname: "monograph.notes.${BASE_DOMAIN}"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: notesnook
+      sectionName: notes-monograph-https
+  hostnames:
+    - "monograph.notes.${BASE_DOMAIN}"
+  rules:
+    - backendRefs:
+        - name: notesnook-monograph
+          namespace: notesnook
+          kind: Service
+          port: 3000
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: notesnook-themes
+  namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    external-dns.alpha.kubernetes.io/hostname: "themes.notes.${BASE_DOMAIN}"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: notesnook
+      sectionName: notes-themes-https
+  hostnames:
+    - "themes.notes.${BASE_DOMAIN}"
+  rules:
+    - backendRefs:
+        - name: notesnook-themes
+          namespace: notesnook
+          kind: Service
+          port: 9000
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: notesnook-cors-proxy
+  namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    external-dns.alpha.kubernetes.io/hostname: "cors.notes.${BASE_DOMAIN}"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: notesnook
+      sectionName: notes-cors-https
+  hostnames:
+    - "cors.notes.${BASE_DOMAIN}"
+  rules:
+    - backendRefs:
+        - name: notesnook-cors-proxy
+          namespace: notesnook
+          kind: Service
+          port: 3000
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: notesnook-inbox
+  namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    external-dns.alpha.kubernetes.io/hostname: "inbox.notes.${BASE_DOMAIN}"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: notesnook
+      sectionName: notes-inbox-https
+  hostnames:
+    - "inbox.notes.${BASE_DOMAIN}"
+  rules:
+    - backendRefs:
+        - name: notesnook-inbox
+          namespace: notesnook
+          kind: Service
+          port: 5181

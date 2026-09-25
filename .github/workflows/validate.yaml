@@ -101,9 +101,9 @@ jobs:
           fetch-depth: 0
 
       - name: Install Trivy
-        uses: aquasecurity/setup-trivy@v0.2.2
+        uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
         with:
-          version: v0.59.1
+          version: v0.74.0
 
       - name: Scan PR-updated container images
         run: scripts/scan-images.sh

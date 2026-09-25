@@ -43,6 +43,7 @@
 | Home Assistant | `home.${BASE_DOMAIN}`<br>`z2m.${BASE_DOMAIN}` | Home automation and Zigbee bridge. |
 | Immich | `photos.${BASE_DOMAIN}` | Photo and video management. |
 | Longhorn | `longhorn.${BASE_DOMAIN}` | Distributed block-storage management. |
+| Notesnook | `notes.${BASE_DOMAIN}`<br>`auth.notes.${BASE_DOMAIN}`<br>`sse.notes.${BASE_DOMAIN}`<br>`monograph.notes.${BASE_DOMAIN}`<br>`themes.notes.${BASE_DOMAIN}`<br>`cors.notes.${BASE_DOMAIN}`<br>`inbox.notes.${BASE_DOMAIN}` | End-to-end encrypted note-taking sync server with auth, SSE, Monograph, Themes, CORS proxy, and Inbox API. |
 | OpenObserve | `openobserve.${BASE_DOMAIN}` | Logs, metrics, and traces backend. |
 | OpenTelemetry Collector | — | Telemetry collection and export. |
 | OpenCloud | `cloud.${BASE_DOMAIN}` | Files, sharing, search, collaboration, CalDAV, and CardDAV. |
@@ -56,6 +57,16 @@
 | Woodpecker CI | `ci.${BASE_DOMAIN}` | Continuous integration engine integrated with Forgejo. |
 
 ## Manual Setup
+
+### Notesnook Infisical Secrets
+Configure the following secrets under `/notesnook` in Infisical:
+- `/notesnook/NOTESNOOK_API_SECRET`: `<secure-random-32-char-string>`
+- `/notesnook/RUSTFS_ACCESS_KEY`: `<rustfs-access-key>`
+- `/notesnook/RUSTFS_SECRET_KEY`: `<rustfs-secret-key>`
+- `/notesnook/SMTP_USERNAME`: `<smtp-username>`
+- `/notesnook/SMTP_PASSWORD`: `<smtp-password>`
+- `/notesnook/SMTP_HOST`: `<smtp-host>`
+- `/notesnook/SMTP_PORT`: `<smtp-port>`
 
 ### Forgejo OAuth Application for Woodpecker CI
 Woodpecker CI authenticates users and receives repository webhooks via Forgejo OAuth2:

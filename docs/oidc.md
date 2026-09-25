@@ -26,6 +26,7 @@
 | otel-collector | No | No user login. |
 | forgejo | Yes | Authelia. Local sign-in, basic auth, and the local admin user are disabled. `forgejo-admin` is a site admin. Git HTTPS still accepts personal tokens; SSH is unchanged. |
 | grafana | Yes | Authelia. The password form is disabled. `grafana-admin` is a Grafana server admin; everyone else is a Viewer. The admin password secret remains so the process can start. |
+| notesnook | No | Notesnook manages authentication via its dedicated Identity service (`auth.notes.${BASE_DOMAIN}`). End-to-end zero-knowledge encryption requires client-side key derivation from the user password, which is incompatible with external OIDC providers. |
 | collabora | No | The admin UI is HTTP basic auth. Document editing uses OpenCloud WOPI, which already authenticated the user. |
 | opencloud | Yes | Already an Authelia client (`web`, `OpenCloudDesktop`, `OpenCloudAndroid`, `OpenCloudIOS`). Unchanged. |
 | woodpecker | Delegated (via Forgejo) | User authentication is delegated to Forgejo via OAuth2, which in turn authenticates via Authelia OIDC. Direct generic OIDC is not used because Woodpecker requires Forgejo access tokens to manage webhooks, repository permissions, and commit statuses. |

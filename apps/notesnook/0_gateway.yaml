@@ -1,0 +1,103 @@
+# TODO: each application has a gateway, which are merged into a single one till
+# cert-manager supports http routes for automatic certificates
+# https://github.com/cert-manager/cert-manager/issues/6051
+# https://gateway.envoyproxy.io/docs/tasks/security/tls-cert-manager/
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy
+  namespace: notesnook
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    kubernetes.io/tls-acme: "true"
+spec:
+  gatewayClassName: envoy-merged
+  addresses:
+    - type: IPAddress
+      value: ${EXTERNAL_IP}
+  listeners:
+    - name: notes-https
+      protocol: HTTPS
+      port: 443
+      hostname: "notes.${BASE_DOMAIN}"
+      allowedRoutes:
+        namespaces:
+          from: all
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: notes-tls-cert
+            kind: Secret
+    - name: notes-auth-https
+      protocol: HTTPS
+      port: 443
+      hostname: "auth.notes.${BASE_DOMAIN}"
+      allowedRoutes:
+        namespaces:
+          from: all
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: notes-auth-tls-cert
+            kind: Secret
+    - name: notes-sse-https
+      protocol: HTTPS
+      port: 443
+      hostname: "sse.notes.${BASE_DOMAIN}"
+      allowedRoutes:
+        namespaces:
+          from: all
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: notes-sse-tls-cert
+            kind: Secret
+    - name: notes-monograph-https
+      protocol: HTTPS
+      port: 443
+      hostname: "monograph.notes.${BASE_DOMAIN}"
+      allowedRoutes:
+        namespaces:
+          from: all
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: notes-monograph-tls-cert
+            kind: Secret
+    - name: notes-themes-https
+      protocol: HTTPS
+      port: 443
+      hostname: "themes.notes.${BASE_DOMAIN}"
+      allowedRoutes:
+        namespaces:
+          from: all
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: notes-themes-tls-cert
+            kind: Secret
+    - name: notes-cors-https
+      protocol: HTTPS
+      port: 443
+      hostname: "cors.notes.${BASE_DOMAIN}"
+      allowedRoutes:
+        namespaces:
+          from: all
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: notes-cors-tls-cert
+            kind: Secret
+    - name: notes-inbox-https
+      protocol: HTTPS
+      port: 443
+      hostname: "inbox.notes.${BASE_DOMAIN}"
+      allowedRoutes:
+        namespaces:
+          from: all
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: notes-inbox-tls-cert
+            kind: Secret

@@ -39,6 +39,7 @@
    * otel-collector
    * forgejo
    * grafana
+   * notesnook: fully featured encrypted notes sync server with MongoDB, SSE, Monograph, Themes, CORS proxy, and Inbox API
    * radicale: internal CalDAV and CardDAV backend, before OpenCloud's
      authenticated DAV proxy
 * **Sync wave 7**
