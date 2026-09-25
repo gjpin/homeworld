@@ -4,6 +4,7 @@ persistence:
   defaultClass: false
   defaultClassReplicaCount: 1
 defaultSettings:
+  upgradeChecker: false
   systemManagedComponentsNodeSelector: "node-role.kubernetes.io/homelab:homelab"
   defaultReplicaCount: 1
   concurrentAutomaticEngineUpgradePerNodeLimit: 2

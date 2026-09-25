@@ -48,6 +48,13 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `node-role.kubernetes.io/homelab: homelab` where the chart or manifest supports
   a node selector.
 - Enable metrics and a `ServiceMonitor` when the component supports them; always set the ServiceMonitor interval to `60s`.
+- Application telemetry, anonymous usage statistics, upgrade checkers, and
+  external phone-home mechanisms must be completely disabled across all
+  manifests and Helm values unless explicitly requested and documented.
+  Applications must not phone home in the background. However, core application
+  features and functionality must NOT be disabled or broken in the process;
+  when in doubt whether a mechanism is pure telemetry or required for features,
+  ask the user.
 - Public HTTP/gRPC endpoints use Gateway API resources plus the
   `external-dns.alpha.kubernetes.io/hostname` annotation. Keep Gateway listeners,
   route hostnames, TLS hostnames, and backend ports aligned.
@@ -193,6 +200,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - Add the destination namespace to the world-egress policy selector, or explicitly justify an egress exception.
 - Set requests and limits on all regular, init, and sidecar containers. Preserve
   higher upstream values; use the documented profile fallbacks when absent.
+- Application telemetry, anonymous usage metrics, and upgrade checkers disabled
+  (without breaking functionality)
 - Autoscaling (HPA/KEDA) is intentionally disabled unless the user requests a policy change.
 
 ## Adding or changing a component
