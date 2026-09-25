@@ -32,6 +32,7 @@ The table below outlines the Pod Security Standard compliance level for every co
 | **Immich** | `immich` | Restricted | **Restricted** | Server and machine-learning pods run non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. Attached PostgreSQL and Dragonfly instances also conform to Restricted. |
 | **Longhorn** | `longhorn-system` | Privileged | **Exception** | **Why not Restricted:** `longhorn-manager` (DaemonSet), CSI plugins (`longhorn-csi-plugin`), and engine/replica instance managers require privileged containers, hostPath volume mounts (`/var/lib/longhorn`, `/dev`, `/sys`, `/proc`), bidirectionally shared mounts, and raw host block-device access to manage distributed storage, kernel block devices, and iscsi/spdk engines.<br><br>*Mitigations:* Isolated in dedicated `longhorn-system` namespace. Auxiliary pods (`longhorn-ui`, `longhorn-driver-deployer`, upgrade jobs) run non-root with user namespaces enabled. |
 | **Notesnook** | `notesnook` | Restricted | **Restricted** | All components (`sync`, `identity`, `sse`, `monograph`, `themes`, `cors-proxy`, `inbox-api`, `mongodb`) run non-root (UID `1000` / MongoDB UID `999`) with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
+| **OpenChamber** | `openchamber` | Restricted | **Restricted** | Agent workspace pod runs non-root (UID `1000`) with dropped capabilities (`ALL`), `RuntimeDefault` seccomp, and a writable PVC-backed HOME that agent work requires. |
 | **OpenCloud** | `opencloud` | Restricted | **Restricted** | OpenCloud server, all web extension init containers (`external-sites`, `json-viewer`, `progress-bars`, `unzip`), and OpenCloud Tika search run non-root (UID `1000`) with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
 | **OpenObserve** | `openobserve` | Restricted | **Restricted** | Runs non-root (UID `10000`, GID `3000`, fsGroup `2000`) with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
 | **OpenTelemetry Collector** | `otel-collector` / `otel-collector-node` | Mixed | **Mixed** | **Restricted:** `otel-collector-cluster` and `otel-collector-pod` Deployments run non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp.<br><br>**Exception (Baseline):** `otel-collector-node-agent` (DaemonSet in `otel-collector-node`) requires hostPath volume mounts (`/var/log`, `/var/lib/docker/containers`, `/proc`, `/sys`) and host metrics/log collection permissions to collect host and node telemetry. |
@@ -73,6 +74,7 @@ The table below details user namespace implementation across all cluster workloa
 | **Longhorn (Auxiliary)** | `longhorn-system` | **Enabled** (`false`) | Kustomize patch | Applied to `longhorn-ui`, `longhorn-driver-deployer`, and upgrade/uninstall jobs. |
 | **Longhorn (Storage Node)** | `longhorn-system` | **Disabled** (`true`) | *None (Host integration)* | **Why not enabled:** Kubernetes user namespaces prohibit `hostUsers: false` on pods utilizing `hostNetwork`, `hostPID`, `hostIPC`, or raw block-volume devices. Longhorn storage manager requires direct node device and kernel integration. |
 | **Notesnook** | `notesnook` | **Enabled** (`false`) | Manifest | Declared in Pod templates across MongoDB and all microservice Deployments (`sync`, `identity`, `sse`, `monograph`, `themes`, `cors-proxy`, `inbox-api`). |
+| **OpenChamber** | `openchamber` | **Enabled** (`false`) | Manifest | Declared in the agent workspace Deployment. |
 | **OpenCloud** | `opencloud` | **Enabled** (`false`) | Manifest | Declared in Deployments for `opencloud` server and `opencloud-tika`. |
 | **OpenObserve** | `openobserve` | **Enabled** (`false`) | Kustomize patch | Applied to OpenObserve Deployment. |
 | **OTel Collector (Cluster/Pod)** | `otel-collector` | **Enabled** (`false`) | Kustomize patch | Applied to cluster and pod collector Deployments. |
@@ -104,7 +106,7 @@ Volumes requested as `volumeMode: Block` contain no filesystem, so they need no 
 
 ## gVisor Runtime Sandboxing
 
-To provide kernel-level defense-in-depth against container breakout vulnerabilities, the cluster utilizes [gVisor](https://gvisor.dev/) (`runsc`) via the `RuntimeClass/gvisor` definition installed in sync wave `-1`. Compatible workloads across all 27 application namespaces declare `spec.runtimeClassName: gvisor`.
+To provide kernel-level defense-in-depth against container breakout vulnerabilities, the cluster utilizes [gVisor](https://gvisor.dev/) (`runsc`) via the `RuntimeClass/gvisor` definition installed in sync wave `-1`. Compatible workloads across all 28 application namespaces declare `spec.runtimeClassName: gvisor`.
 
 Only workloads requiring direct host device access, raw block devices, or kernel filesystem hooks retain the standard container runtime.
 
@@ -131,6 +133,7 @@ Only workloads requiring direct host device access, raw block devices, or kernel
 | **Longhorn (UI)** | `longhorn-system` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `longhorn-ui` Deployment. |
 | **Longhorn (Storage Node)** | `longhorn-system` | **Disabled** | *None (Host integration)* | **Exception:** Storage engine, CSI node plugin, and instance managers require raw host block devices, iscsi/spdk engines, and bidirectional mount propagation. |
 | **Notesnook** | `notesnook` | **Enabled** (`gvisor`) | Manifest | Declared across MongoDB StatefulSet and all microservice Deployments. |
+| **OpenChamber** | `openchamber` | **Enabled** (`gvisor`) | Manifest | Declared in the agent workspace Deployment; gVisor isolates arbitrary model-generated code executed by the coding agents. |
 | **OpenCloud** | `opencloud` | **Enabled** (`gvisor`) | Manifest | Declared in `opencloud` server and `opencloud-tika` Deployments. |
 | **OpenObserve** | `openobserve` | **Enabled** (`gvisor`) | Kustomize patch | Applied to OpenObserve StatefulSet. |
 | **OTel Collector (Cluster/Pod)** | `otel-collector` | **Enabled** (`gvisor`) | Kustomize patch | Applied to cluster and pod collector Deployments. |

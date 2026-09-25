@@ -65,3 +65,14 @@ To prevent breaking jumps while keeping standard application updates streamlined
 * **Strict Components:** Forgejo, Immich, Longhorn, cert-manager, and CloudNativePG operand images have `separateMajorMinor: true`, `separateMultipleMajor: true`, or `separateMinorPatch: true` enabled. This guarantees:
   * Renovate opens individual PRs for each major or minor increment rather than jumping to the highest version.
   * PR bodies include automated notices linking to upstream release notes, breaking change checklists, and backup reminders.
+* **OpenChamber Workspace Image:** Node.js major bumps are separated (`separateMajorMinor: true`) because OpenChamber requires a minimum Node.js version; the PR body reminds you to verify it before merging.
+
+---
+
+## 6. OpenChamber Agent Workspace Image Refreshes
+
+The persistent AI agent workspace (`apps/openchamber`) runs a custom image built from `images/openchamber/Dockerfile`. The running pod never updates itself: every change to the workspace arrives as a PR you approve, and merging rolls the pod at a moment you choose (merge when the agents are idle; session state, worktrees, and credentials persist on the `openchamber-agent-home` PVC).
+
+* **Pinned tool versions** (base image digest, Node.js, pnpm, uv, OpenChamber, OpenCode, Codex CLI, Pi agent, Playwright packages, chrome-devtools-mcp, skills): Renovate opens one PR per updated dependency via `customManagers` in `renovate.json`.
+* **Debian packages and Google Chrome** (not visible to Renovate): the daily [package refresh check](../.github/workflows/check-openchamber-apt-updates.yaml) runs `apt-get --simulate full-upgrade` inside the published image and opens a PR bumping `ARG APT_REFRESH` whenever packages are outdated.
+* **Image builds** ([Build OpenChamber workspace image](../.github/workflows/build-openchamber.yaml)): merging a PR that touches `images/openchamber/**` builds `linux/amd64` + `linux/arm64`, pushes `ghcr.io/gjpin/openchamber:main-<shortsha>`, and commits the new tag into `apps/openchamber/1_deployment.yaml`. Argo CD then rolls the agent pod.

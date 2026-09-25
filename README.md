@@ -11,7 +11,7 @@
 - Ingress protection via CrowdSec Security Engine and AppSec WAF
 - Gateway API routing with Envoy Gateway
 - Automated DNS and TLS certificate management via ExternalDNS and cert-manager
-- Zero-secret GitOps with Infisical and External Secrets Operator
+- Zero-secret GitOps with Infisical and External Secrets Operator ([required secrets](docs/secrets.md))
 - [OIDC](docs/oidc.md)
 - Operator-managed PostgreSQL clusters via CloudNativePG
 - Redis-compatible in-memory caching via Dragonfly Operator
@@ -21,6 +21,7 @@
 - Unified telemetry pipeline with OpenTelemetry Collector and OpenObserve
 - Declarative dashboards and monitoring via Grafana Operator and Prometheus Operator ServiceMonitors
 - Automated dependency updates and [upgrade procedures](docs/upgrades.md) via Renovate
+- Persistent AI agent workspace ([OpenChamber](docs/openchamber.md), OpenCode, Codex CLI, Pi agent on Debian 13) with PR-gated daily package refreshes
 
 ## Apps
 | App | Domain(s) | Description |
@@ -44,6 +45,7 @@
 | Immich | `photos.${BASE_DOMAIN}` | Photo and video management. |
 | Longhorn | `longhorn.${BASE_DOMAIN}` | Distributed block-storage management. |
 | Notesnook | `notes.${BASE_DOMAIN}`<br>`auth.notes.${BASE_DOMAIN}`<br>`sse.notes.${BASE_DOMAIN}`<br>`monograph.notes.${BASE_DOMAIN}`<br>`themes.notes.${BASE_DOMAIN}`<br>`cors.notes.${BASE_DOMAIN}`<br>`inbox.notes.${BASE_DOMAIN}` | End-to-end encrypted note-taking sync server with auth, SSE, Monograph, Themes, CORS proxy, and Inbox API. |
+| OpenChamber | `openchamber.${BASE_DOMAIN}` | Persistent AI agent workspace: OpenChamber web server, OpenCode, Codex CLI, and the Pi agent on Debian 13 with a PVC-backed HOME. |
 | OpenObserve | `openobserve.${BASE_DOMAIN}` | Logs, metrics, and traces backend. |
 | OpenTelemetry Collector | — | Telemetry collection and export. |
 | OpenCloud | `cloud.${BASE_DOMAIN}` | Files, sharing, search, collaboration, CalDAV, and CardDAV. |
@@ -58,17 +60,13 @@
 
 ## Manual Setup
 
-### Notesnook Infisical Secrets
-Configure the following secrets under `/notesnook` in Infisical:
-- `/notesnook/NOTESNOOK_API_SECRET`: `<secure-random-32-char-string>`
-- `/notesnook/RUSTFS_ACCESS_KEY`: `<rustfs-access-key>`
-- `/notesnook/RUSTFS_SECRET_KEY`: `<rustfs-secret-key>`
-- `/notesnook/SMTP_USERNAME`: `<smtp-username>`
-- `/notesnook/SMTP_PASSWORD`: `<smtp-password>`
-- `/notesnook/SMTP_HOST`: `<smtp-host>`
-- `/notesnook/SMTP_PORT`: `<smtp-port>`
+### 1. Bootstrap the Talos Cluster (Single Node)
+Before deploying any application, bring up the Talos control plane: ISO installation, machine configuration generation, etcd bootstrap, enabling workloads on the control plane, WireGuard, and Longhorn disk provisioning. Follow [docs/talos.md](docs/talos.md).
 
-### Forgejo OAuth Application for Woodpecker CI
+### 2. Provision Infisical Secrets
+Every component synchronizes its secrets from Infisical via the External Secrets Operator. The complete list of required keys, per component, is documented in [docs/secrets.md](docs/secrets.md). Create the keys for a component in Infisical before deploying it; a missing key leaves the generated `Secret` incomplete and the pod fails with `CreateContainerConfigError`.
+
+### 3. Create the Forgejo OAuth Application for Woodpecker CI
 Woodpecker CI authenticates users and receives repository webhooks via Forgejo OAuth2:
 1. In Forgejo, navigate to **Site Administration** -> **Applications** -> **Create OAuth2 Application**.
    - **Application Name**: `Woodpecker CI`
@@ -76,11 +74,19 @@ Woodpecker CI authenticates users and receives repository webhooks via Forgejo O
 2. Save the generated credentials into Infisical:
    - `/woodpecker/FORGEJO_CLIENT`: `<Client ID>`
    - `/woodpecker/FORGEJO_SECRET`: `<Client Secret>`
-3. Set the agent shared secret, metrics token, and database credentials in Infisical:
-   - `/woodpecker/AGENT_SECRET`: `<secure-random-token>`
-   - `/woodpecker/POSTGRES_USERNAME`: `woodpecker`
-   - `/woodpecker/POSTGRES_PASSWORD`: `<secure-password>`
-   - `/woodpecker/PROMETHEUS_AUTH_TOKEN`: `<secure-token>`
+
+### 4. Access OpenChamber and Log In to the Coding Agents
+After the `openchamber` workspace deploys (see [docs/openchamber.md](docs/openchamber.md) for the architecture, bootstrap, and PR-gated update flow):
+
+- **OpenChamber remote access**: reachable only over WireGuard at `https://openchamber.${BASE_DOMAIN}`; sign in with the `/openchamber/OPENCHAMBER_UI_PASSWORD` Infisical secret. Desktop and mobile apps connect to the same URL directly via QR-code pairing (*Settings → Remote Instances*); no relay or tunnel is needed.
+- **Coding agent logins**: exec into the workspace and authenticate once per agent — the artifacts persist on the `openchamber-agent-home` PVC across pod restarts and image updates:
+  ```bash
+  kubectl exec -it -n openchamber deploy/openchamber -- bash
+  opencode auth login   # OpenCode
+  codex login           # Codex CLI
+  pi                    # then run /login inside the Pi session
+  ```
+  `/openchamber/OPENAI_API_KEY` and `/openchamber/GITHUB_TOKEN` are injected as environment variables, so Codex and OpenCode also work without interactive login.
 
 ## Node Setup
 

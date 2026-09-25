@@ -1,0 +1,21 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: openchamber
+  namespace: openchamber
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    external-dns.alpha.kubernetes.io/hostname: "openchamber.${BASE_DOMAIN}"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: openchamber
+  hostnames:
+    - "openchamber.${BASE_DOMAIN}"
+  rules:
+    - backendRefs:
+        - name: openchamber
+          namespace: openchamber
+          kind: Service
+          port: 3000

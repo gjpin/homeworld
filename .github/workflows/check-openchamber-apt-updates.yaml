@@ -1,0 +1,142 @@
+name: Check OpenChamber workspace package updates
+
+# Daily check for outdated packages inside the published agent workspace
+# image: Debian trixie apt packages plus everything installed from the
+# third-party apt repositories (Google Chrome, helm, tofu, terraform,
+# temurin-25-jdk). Renovate cannot see apt repositories, so this workflow
+# covers them: when the image contains upgradable packages it opens a PR that
+# bumps APT_REFRESH in images/openchamber/Dockerfile. Merging the PR rebuilds
+# the image with refreshed packages; nothing updates without your approval.
+#
+# Renovate PRs (base image digest, pinned tool versions) complement this:
+# every merged PR rebuilds the image with `apt-get update` at build time.
+
+on:
+  schedule:
+    - cron: '43 3 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: check-openchamber-apt-updates
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  apt-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub App installation token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+
+      - name: Detect pending package updates in the workspace image
+        id: check
+        run: |
+          set -euo pipefail
+          image="$(grep -oE 'ghcr\.io/[^[:space:]]+/openchamber:[^[:space:]]+' apps/openchamber/1_deployment.yaml | head -1)"
+          if [ -z "$image" ]; then
+            echo "no workspace image reference found in apps/openchamber/1_deployment.yaml" >&2
+            exit 1
+          fi
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+
+          if ! docker pull "$image"; then
+            echo "workspace image $image is not published yet (bootstrap pending); skipping check"
+            echo "updates=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! updates="$(docker run --rm --user 0 --entrypoint /bin/bash --platform linux/amd64 "$image" -c '
+            set -euo pipefail
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update -qq -o Acquire::Retries=3
+            apt-get --simulate full-upgrade > /tmp/openchamber-upgrades.txt
+            grep "^Inst " /tmp/openchamber-upgrades.txt | awk "{print \$2}" | sort || true
+          ')"; then
+            echo "package check failed inside the workspace image" >&2
+            exit 1
+          fi
+
+          if [ -n "$updates" ]; then
+            count="$(printf '%s\n' "$updates" | wc -l)"
+            echo "$count packages have newer versions available"
+            echo "updates=$count" >> "$GITHUB_OUTPUT"
+            {
+              echo "list<<EOF"
+              printf '%s\n' "$updates"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "all packages are up to date"
+            echo "updates=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open an apt refresh PR
+        if: steps.check.outputs.updates != '0'
+        env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          IMAGE: ${{ steps.check.outputs.image }}
+        run: |
+          set -euo pipefail
+          today="$(date -u +%F)"
+          if grep -q "^ARG APT_REFRESH=${today}$" images/openchamber/Dockerfile; then
+            echo "APT_REFRESH already bumped to ${today}; nothing to do"
+            exit 0
+          fi
+          branch="openchamber-apt-refresh-${today}"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+            echo "branch ${branch} already exists; nothing to do"
+            exit 0
+          fi
+
+          git config user.name "openchamber-apt-refresh[bot]"
+          git config user.email "actions@github.com"
+          sed -i "s/^ARG APT_REFRESH=.*/ARG APT_REFRESH=${today}/" images/openchamber/Dockerfile
+          git checkout -b "$branch"
+          git add images/openchamber/Dockerfile
+          git commit -m "chore(openchamber): refresh apt packages (${today})"
+
+          git remote set-url origin "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "$branch"
+
+          count="${{ steps.check.outputs.updates }}"
+          packages="${{ steps.check.outputs.list }}"
+          body_file="$(mktemp)"
+          {
+            echo "Daily package refresh check found ${count} upgradable package(s) in \`${IMAGE}\`."
+            echo
+            echo "This PR bumps \`APT_REFRESH\` in \`images/openchamber/Dockerfile\`, which rebuilds the agent workspace image with refreshed apt packages. Merging rolls the agent pod: merge when the agents are idle."
+            echo
+            echo "<details><summary>Upgradable packages</summary>"
+            echo
+            echo '```'
+            printf '%s\n' "$packages"
+            echo '```'
+            echo
+            echo "</details>"
+          } > "$body_file"
+
+          export GH_TOKEN="$APP_TOKEN"
+          gh pr create \
+            --title "chore(openchamber): refresh apt packages in the workspace image (${today})" \
+            --body-file "$body_file" \
+            --base main \
+            --head "$branch"

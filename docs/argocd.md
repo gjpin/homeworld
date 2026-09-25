@@ -44,6 +44,9 @@
      authenticated DAV proxy
 * **Sync wave 7**
    * collabora: standalone Collabora chart and WOPI endpoint
+   * openchamber: persistent AI agent workspace (OpenChamber, OpenCode, Codex
+     CLI, Pi agent), after Envoy Gateway, cert-manager, External Secrets,
+     Longhorn, and the CrowdSec Envoy bouncer
 * **Sync wave 8**
    * opencloud: OpenCloud, Tika, RustFS storage integration, authenticated DAV
      proxy, and routes

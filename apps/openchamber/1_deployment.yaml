@@ -1,0 +1,111 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openchamber
+  namespace: openchamber
+  labels:
+    app.kubernetes.io/name: openchamber
+    app.kubernetes.io/instance: openchamber
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: 3000
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: openchamber
+    app.kubernetes.io/instance: openchamber
+---
+# Persistent AI agent workspace. The image tag is committed by the
+# build-openchamber workflow whenever a version/refresh PR merges; the initial
+# `main-bootstrap` placeholder only exists until the first image build lands
+# (expect ImagePullBackOff until then).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openchamber
+  namespace: openchamber
+  labels:
+    app.kubernetes.io/name: openchamber
+    app.kubernetes.io/instance: openchamber
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: openchamber
+      app.kubernetes.io/instance: openchamber
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: openchamber
+        app.kubernetes.io/instance: openchamber
+    spec:
+      runtimeClassName: gvisor
+      hostUsers: false
+      automountServiceAccountToken: false
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: openchamber
+          image: ghcr.io/gjpin/openchamber:main-bootstrap
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+            limits:
+              cpu: "8"
+              memory: 16Gi
+          env:
+            - name: OPENCHAMBER_HOST
+              value: "0.0.0.0"
+          envFrom:
+            - secretRef:
+                name: openchamber-credentials
+          volumeMounts:
+            - name: agent-home
+              mountPath: /home/agent
+          startupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 60
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+      volumes:
+        - name: agent-home
+          persistentVolumeClaim:
+            claimName: openchamber-agent-home

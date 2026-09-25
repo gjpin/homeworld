@@ -77,6 +77,17 @@
       "prBodyNotes": [
         "ℹ️ **CloudNativePG Major Upgrade**: Minor versions roll with zero downtime. Major PostgreSQL version upgrades trigger CloudNativePG's automated in-place `pg_upgrade` process upon syncing, which shuts down the cluster while data is upgraded. Ensure a recent Velero backup exists before merging."
       ]
+    },
+    {
+      "description": "Node.js major bumps change the OpenChamber agent workspace runtime; verify OpenChamber's Node.js requirement (currently >= 22) before merging",
+      "matchPackageNames": [
+        "nodejs/node"
+      ],
+      "separateMajorMinor": true,
+      "separateMultipleMajor": false,
+      "prBodyNotes": [
+        "⚠️ **Node.js Upgrade Requirement**: OpenChamber currently requires Node.js 22+. Confirm the OpenChamber release notes support the new major before merging, and expect the agent pod to restart when this PR merges."
+      ]
     }
   ],
   "argocd": {
@@ -492,6 +503,158 @@
       "depNameTemplate": "aquasecurity/trivy",
       "datasourceTemplate": "github-releases",
       "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the OpenChamber workspace base image digest",
+      "managerFilePatterns": [
+        "/^images/openchamber/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "FROM (?<depName>debian):(?<currentValue>trixie-slim)@sha256:(?<currentDigest>[a-f0-9]{64})"
+      ],
+      "datasourceTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io",
+      "versioningTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Node.js in the OpenChamber workspace image",
+      "managerFilePatterns": [
+        "/^images/openchamber/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG NODE_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "nodejs/node",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
+      "description": "Update pnpm in the OpenChamber workspace image",
+      "managerFilePatterns": [
+        "/^images/openchamber/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG PNPM_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "pnpm/pnpm",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
+      "description": "Update uv in the OpenChamber workspace image",
+      "managerFilePatterns": [
+        "/^images/openchamber/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG UV_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "astral-sh/uv",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
+      "description": "Update OpenChamber in the workspace image",
+      "managerFilePatterns": [
+        "/^images/openchamber/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG OPENCHAMBER_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "openchamber/openchamber",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
+      "description": "Update OpenCode in the OpenChamber workspace image",
+      "managerFilePatterns": [
+        "/^images/openchamber/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG OPENCODE_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "anomalyco/opencode",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Codex CLI in the OpenChamber workspace image",
+      "managerFilePatterns": [
+        "/^images/openchamber/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG CODEX_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "openai/codex",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^rust-v(?<version>.*)$",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Pi coding agent in the OpenChamber workspace image",
+      "managerFilePatterns": [
+        "/^images/openchamber/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG PI_AGENT_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "@earendil-works/pi-coding-agent",
+      "datasourceTemplate": "npm",
+      "registryUrlTemplate": "https://registry.npmjs.org"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Playwright Test in the OpenChamber workspace image",
+      "managerFilePatterns": [
+        "/^images/openchamber/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG PLAYWRIGHT_TEST_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "@playwright/test",
+      "datasourceTemplate": "npm",
+      "registryUrlTemplate": "https://registry.npmjs.org"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Playwright Agent CLI in the OpenChamber workspace image",
+      "managerFilePatterns": [
+        "/^images/openchamber/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG PLAYWRIGHT_CLI_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "@playwright/cli",
+      "datasourceTemplate": "npm",
+      "registryUrlTemplate": "https://registry.npmjs.org"
+    },
+    {
+      "customType": "regex",
+      "description": "Update chrome-devtools-mcp in the OpenChamber workspace image",
+      "managerFilePatterns": [
+        "/^images/openchamber/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG CHROME_DEVTOOLS_MCP_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "chrome-devtools-mcp",
+      "datasourceTemplate": "npm",
+      "registryUrlTemplate": "https://registry.npmjs.org"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the skills CLI in the OpenChamber workspace image",
+      "managerFilePatterns": [
+        "/^images/openchamber/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG SKILLS_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "skills",
+      "datasourceTemplate": "npm",
+      "registryUrlTemplate": "https://registry.npmjs.org"
     }
   ]
 }
