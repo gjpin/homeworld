@@ -20,6 +20,9 @@ spec:
         app.kubernetes.io/name: opencloud
         app.kubernetes.io/component: server
     spec:
+      serviceAccountName: opencloud
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
       nodeSelector:
         node-role.kubernetes.io/homelab: homelab
       hostUsers: false
@@ -664,6 +667,9 @@ spec:
         app.kubernetes.io/name: opencloud-tika
         app.kubernetes.io/component: search
     spec:
+      serviceAccountName: opencloud
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
       nodeSelector:
         node-role.kubernetes.io/homelab: homelab
       hostUsers: false

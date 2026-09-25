@@ -22,6 +22,9 @@ spec:
         app.kubernetes.io/name: homeassistant
         io.kompose.service: homeassistant
     spec:
+      serviceAccountName: homeassistant
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
       hostUsers: false
       nodeSelector:
         node-role.kubernetes.io/homelab: homelab

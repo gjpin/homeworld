@@ -98,3 +98,64 @@ mountOptions:
 
 Volumes requested as `volumeMode: Block` contain no filesystem, so they need no label.
 
+---
+
+## gVisor Runtime Sandboxing
+
+To provide kernel-level defense-in-depth against container breakout vulnerabilities, the cluster utilizes [gVisor](https://gvisor.dev/) (`runsc`) via the `RuntimeClass/gvisor` definition installed in sync wave `-1`. Compatible workloads across all 27 application namespaces declare `spec.runtimeClassName: gvisor`.
+
+Only workloads requiring direct host device access, raw block devices, or kernel filesystem hooks retain the standard container runtime.
+
+| Workload | Namespace | gVisor Sandboxing | Implementation Mechanism | Details & Rationale |
+| :--- | :--- | :---: | :--- | :--- |
+| **Argo CD** | `argocd` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `server`, `repo-server`, `application-controller`, `redis`, `applicationset-controller`, and `notifications-controller`. |
+| **Authelia** | `authelia` | **Enabled** (`gvisor`) | Kustomize patch | Applied to Authelia Deployment. |
+| **cert-manager** | `cert-manager` | **Enabled** (`gvisor`) | Kustomize patch | Applied across `controller`, `cainjector`, and `webhook` Deployments. |
+| **CloudNativePG Operator** | `cloudnative-pg` | **Enabled** (`gvisor`) | Kustomize patch | Applied to operator Deployment. |
+| **Collabora** | `collabora` | **Enabled** (`gvisor`) | Kustomize patch | Applied to Collabora Deployment. |
+| **CrowdSec (LAPI / AppSec)** | `crowdsec` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `crowdsec-lapi` and `crowdsec-appsec` Deployments. |
+| **CrowdSec (Agent)** | `crowdsec` | **Disabled** | *None (Host integration)* | **Exception:** Agent DaemonSet requires hostPath volume mounts (`/var/log`) to read node and container engine logs. |
+| **CrowdSec Envoy Bouncer** | `envoy-gateway` | **Enabled** (`gvisor`) | Kustomize patch | Applied to bouncer Deployment. |
+| **Dragonfly Operator** | `dragonfly-operator` | **Enabled** (`gvisor`) | Kustomize patch | Applied to operator Deployment. |
+| **Envoy Gateway** | `envoy-gateway` | **Enabled** (`gvisor`) | Kustomize patch / `EnvoyProxy` | Applied to gateway controller Deployment and `EnvoyProxy` data-plane pods. |
+| **ExternalDNS** | `external-dns` | **Enabled** (`gvisor`) | Kustomize patch | Applied to ExternalDNS Deployment. |
+| **External Secrets** | `external-secrets` | **Enabled** (`gvisor`) | Kustomize patch | Applied across `controller`, `webhook`, and `cert-controller` Deployments. |
+| **Forgejo** | `forgejo` | **Enabled** (`gvisor`) | Kustomize patch | Applied to Forgejo Deployment. |
+| **Grafana** | `grafana` | **Enabled** (`gvisor`) | Grafana CR manifest | Declared in `spec.deployment.spec.template.spec.runtimeClassName`. |
+| **Grafana Operator** | `grafana-operator` | **Enabled** (`gvisor`) | Kustomize patch | Applied to operator Deployment. |
+| **Home Assistant (Core / Mosquitto)** | `homeassistant` | **Enabled** (`gvisor`) | Manifest | Declared in `homeassistant` Core and `mosquitto` Deployments. |
+| **Home Assistant (Zigbee2MQTT)** | `homeassistant` | **Disabled** | *None (Host integration)* | **Exception:** Zigbee2MQTT requires direct hostPath access to physical USB serial adapter (`/dev/serial/by-id`). |
+| **Immich** | `immich` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `immich-server` and `immich-machine-learning` Deployments. |
+| **Longhorn (UI)** | `longhorn-system` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `longhorn-ui` Deployment. |
+| **Longhorn (Storage Node)** | `longhorn-system` | **Disabled** | *None (Host integration)* | **Exception:** Storage engine, CSI node plugin, and instance managers require raw host block devices, iscsi/spdk engines, and bidirectional mount propagation. |
+| **OpenCloud** | `opencloud` | **Enabled** (`gvisor`) | Manifest | Declared in `opencloud` server and `opencloud-tika` Deployments. |
+| **OpenObserve** | `openobserve` | **Enabled** (`gvisor`) | Kustomize patch | Applied to OpenObserve StatefulSet. |
+| **OTel Collector (Cluster/Pod)** | `otel-collector` | **Enabled** (`gvisor`) | Kustomize patch | Applied to cluster and pod collector Deployments. |
+| **OTel Collector (Node)** | `otel-collector-node` | **Disabled** | *None (Host integration)* | **Exception:** Node collector DaemonSet requires hostPath mounts (`/proc`, `/sys`, `/var/log`) and host metrics access. |
+| **Radicale** | `radicale` | **Enabled** (`gvisor`) | Manifest | Declared in Radicale Deployment. |
+| **RustFS Operator** | `rustfs-operator` | **Enabled** (`gvisor`) | Kustomize patch | Applied to storage operator Deployment. |
+| **Velero (Server)** | `velero` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `velero` controller Deployment. |
+| **Velero (Node Agent)** | `velero` | **Disabled** | *None (Host integration)* | **Exception:** Node agent requires hostPath mounts to `/var/lib/kubelet/pods` for file-level volume backups. |
+| **Velero UI** | `velero-ui` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `velero-ui` Deployment. |
+| **Woodpecker CI** | `woodpecker` | **Enabled** (`gvisor`) | Kustomize patch / Helm values | Applied to server and agent StatefulSets, and configured via `WOODPECKER_BACKEND_K8S_POD_RUNTIME_CLASS_NAME: "gvisor"` for all dynamically spawned pipeline pods. |
+
+---
+
+## ServiceAccount Hygiene & Token Automounting
+
+To minimize attack surface and prevent credential exfiltration in the event of pod compromise, workloads that do not interact with the Kubernetes API disable API token projection via `automountServiceAccountToken: false`.
+
+Standalone applications use dedicated ServiceAccounts rather than the namespace `default` ServiceAccount:
+- `opencloud`: Dedicated `opencloud` ServiceAccount with `automountServiceAccountToken: false`.
+- `homeassistant`: Dedicated `homeassistant` ServiceAccount with `automountServiceAccountToken: false` applied to `homeassistant`, `mosquitto`, and `zigbee2mqtt`.
+- `radicale`: Dedicated `radicale` ServiceAccount with `automountServiceAccountToken: false`.
+
+Helm workloads with API access disabled via patches or values:
+- `forgejo`: `automountServiceAccountToken: false`
+- `openobserve`: `automountServiceAccountToken: false`
+- `longhorn-ui`: `automountServiceAccountToken: false`
+- `collabora`: `automountServiceAccountToken: false`
+- `crowdsec-envoy-bouncer`: `automountServiceAccountToken: false`
+- `authelia`: `automountServiceAccountToken: false`
+
+

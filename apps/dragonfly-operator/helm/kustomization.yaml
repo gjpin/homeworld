@@ -28,3 +28,4 @@ patches:
         template:
           spec:
             hostUsers: false
+            runtimeClassName: gvisor

@@ -1,4 +1,68 @@
 ---
+# runtime-class
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: runtime-class-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/runtime-class"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+---
+# admission-policies
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: admission-policies-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/admission-policies"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+---
 # prometheus-operator-crd
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -406,6 +470,8 @@ spec:
     - ServerSideApply=true
     managedNamespaceMetadata:
       labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.36
         pod-security.kubernetes.io/audit: restricted
         pod-security.kubernetes.io/audit-version: v1.36
         pod-security.kubernetes.io/warn: restricted
@@ -603,6 +669,8 @@ spec:
     - ServerSideApply=true
     managedNamespaceMetadata:
       labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.36
         pod-security.kubernetes.io/audit: restricted
         pod-security.kubernetes.io/audit-version: v1.36
         pod-security.kubernetes.io/warn: restricted
@@ -685,6 +753,8 @@ spec:
     - ServerSideApply=true
     managedNamespaceMetadata:
       labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.36
         pod-security.kubernetes.io/audit: restricted
         pod-security.kubernetes.io/audit-version: v1.36
         pod-security.kubernetes.io/warn: restricted
@@ -724,6 +794,8 @@ spec:
     - ServerSideApply=true
     managedNamespaceMetadata:
       labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.36
         pod-security.kubernetes.io/audit: restricted
         pod-security.kubernetes.io/audit-version: v1.36
         pod-security.kubernetes.io/warn: restricted
@@ -763,6 +835,8 @@ spec:
     - ServerSideApply=true
     managedNamespaceMetadata:
       labels:
+        pod-security.kubernetes.io/enforce: baseline
+        pod-security.kubernetes.io/enforce-version: v1.36
         pod-security.kubernetes.io/audit: restricted
         pod-security.kubernetes.io/audit-version: v1.36
         pod-security.kubernetes.io/warn: restricted
@@ -843,6 +917,8 @@ spec:
     - ServerSideApply=true
     managedNamespaceMetadata:
       labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.36
         pod-security.kubernetes.io/audit: restricted
         pod-security.kubernetes.io/audit-version: v1.36
         pod-security.kubernetes.io/warn: restricted
@@ -882,6 +958,8 @@ spec:
     - ServerSideApply=true
     managedNamespaceMetadata:
       labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.36
         pod-security.kubernetes.io/audit: restricted
         pod-security.kubernetes.io/audit-version: v1.36
         pod-security.kubernetes.io/warn: restricted
@@ -921,6 +999,8 @@ spec:
     - ServerSideApply=true
     managedNamespaceMetadata:
       labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.36
         pod-security.kubernetes.io/audit: restricted
         pod-security.kubernetes.io/audit-version: v1.36
         pod-security.kubernetes.io/warn: restricted
@@ -960,6 +1040,8 @@ spec:
     - ServerSideApply=true
     managedNamespaceMetadata:
       labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.36
         pod-security.kubernetes.io/audit: restricted
         pod-security.kubernetes.io/audit-version: v1.36
         pod-security.kubernetes.io/warn: restricted
@@ -1040,6 +1122,8 @@ spec:
     - ServerSideApply=true
     managedNamespaceMetadata:
       labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.36
         pod-security.kubernetes.io/audit: restricted
         pod-security.kubernetes.io/audit-version: v1.36
         pod-security.kubernetes.io/warn: restricted
@@ -1079,6 +1163,8 @@ spec:
     - ServerSideApply=true
     managedNamespaceMetadata:
       labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.36
         pod-security.kubernetes.io/audit: restricted
         pod-security.kubernetes.io/audit-version: v1.36
         pod-security.kubernetes.io/warn: restricted

@@ -24,6 +24,26 @@ patches:
       group: apps
       version: v1
       kind: Deployment
+      name: ^immich-(server|machine-learning)$
+      namespace: ^immich$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext
+        value:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
       name: ^immich-machine-learning$
       namespace: ^immich$
     patch: |-

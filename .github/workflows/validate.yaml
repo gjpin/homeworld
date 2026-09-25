@@ -91,3 +91,19 @@ jobs:
         with:
           name: security-${{ matrix.profile }}
           path: security-reports/${{ matrix.profile }}
+
+  trivy-image-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.2
+        with:
+          version: v0.59.1
+
+      - name: Scan PR-updated container images
+        run: scripts/scan-images.sh

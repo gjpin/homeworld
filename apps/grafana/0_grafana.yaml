@@ -66,6 +66,7 @@ spec:
       template:
         spec:
           hostUsers: false
+          runtimeClassName: gvisor
           nodeSelector:
             node-role.kubernetes.io/homelab: homelab
           securityContext:

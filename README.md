@@ -6,6 +6,7 @@
 - Declarative CRD lifecycle and upgrade management via [Server-Side Apply and sync waves](docs/argocd.md#crd-lifecycle-and-upgrade-management)
 - [Restricted Pod Security Standards](docs/pod-security.md#pod-security-standards)
 - [Kubernetes 1.36 User Namespaces](docs/pod-security.md#user-namespaces) (`hostUsers: false`)
+- [gVisor runtime sandboxing](docs/pod-security.md#gvisor-runtime-sandboxing) with Talos `runsc`
 - Tight [network policies](docs/network-policies.md)
 - Ingress protection via CrowdSec Security Engine and AppSec WAF
 - Gateway API routing with Envoy Gateway
@@ -24,6 +25,7 @@
 ## Apps
 | App | Domain(s) | Description |
 | --- | --- | --- |
+| Admission Policies | — | CEL ValidatingAdmissionPolicies protecting Pod Security Admission labels. |
 | Argo CD | `argocd.${BASE_DOMAIN}`<br>`grpc.argocd.${BASE_DOMAIN}` | GitOps continuous delivery and its gRPC API. |
 | Authelia | `auth.${BASE_DOMAIN}` | Identity provider for OpenCloud. |
 | cert-manager | — | TLS certificate management. |
@@ -46,6 +48,7 @@
 | OpenCloud | `cloud.${BASE_DOMAIN}` | Files, sharing, search, collaboration, CalDAV, and CardDAV. |
 | Prometheus Operator CRDs | — | Custom resource definitions required for monitoring resources. |
 | Radicale | — | Internal CalDAV and CardDAV backend authenticated by OpenCloud. |
+| Runtime Class | — | Cluster-scoped RuntimeClass for gVisor sandboxing. |
 | RustFS | `s3.${BASE_DOMAIN}`<br>`console.rustfs.${BASE_DOMAIN}` | Shared S3-compatible object storage and Tenant console. |
 | RustFS Operator | `rustfs.${BASE_DOMAIN}` | RustFS storage operator and management console. |
 | Velero | — | Whole-cluster backups to Backblaze B2. |

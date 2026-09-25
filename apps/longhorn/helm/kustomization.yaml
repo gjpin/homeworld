@@ -47,6 +47,12 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+      - op: add
+        path: /spec/template/spec/automountServiceAccountToken
+        value: false
   - target:
       group: apps
       version: v1

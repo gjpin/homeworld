@@ -63,6 +63,9 @@ patches:
       - op: add
         path: /spec/template/spec/hostUsers
         value: false
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
   - target:
       group: batch
       version: v1

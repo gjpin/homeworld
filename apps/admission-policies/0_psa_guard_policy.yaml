@@ -1,0 +1,31 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: protect-pod-security-labels
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["UPDATE", "CREATE"]
+        resources: ["namespaces"]
+  validations:
+    - expression: >-
+        (request.userInfo.groups.exists(g, g == 'system:masters') ||
+         request.userInfo.username == 'system:serviceaccount:argocd:argocd-application-controller' ||
+         request.userInfo.username == 'system:serviceaccount:argocd:argocd-argocd-application-controller') ||
+        (oldObject == null ?
+          (!has(object.metadata.labels) || !object.metadata.labels.exists(k, k.startsWith('pod-security.kubernetes.io/'))) :
+          ((has(object.metadata.labels) ? object.metadata.labels.filter(k, k.startsWith('pod-security.kubernetes.io/')) : {}) ==
+           (has(oldObject.metadata.labels) ? oldObject.metadata.labels.filter(k, k.startsWith('pod-security.kubernetes.io/')) : {})))
+      message: "Modifying Pod Security Admission labels requires cluster administrator or Argo CD privileges."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: protect-pod-security-labels
+spec:
+  policyName: protect-pod-security-labels
+  validationActions: [Deny]

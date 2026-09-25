@@ -41,6 +41,9 @@ patches:
       - op: add
         path: /spec/template/spec/automountServiceAccountToken
         value: false
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
   - target:
       group: apps
       version: v1

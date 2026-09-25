@@ -1,4 +1,7 @@
 fullnameOverride: velero-ui
+rbac:
+  create: true
+  clusterAdministrator: false
 configuration:
   general:
     secretPassPhrase:

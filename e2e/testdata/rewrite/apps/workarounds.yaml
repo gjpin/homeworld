@@ -22,6 +22,20 @@ spec:
       drop:
         - ALL
 ---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sample-statefulset
+  namespace: sample
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    spec:
+      containers:
+        - name: sample
+---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: Grafana
 metadata:
