@@ -127,14 +127,28 @@ jobs:
           set -euo pipefail
           tag="main-${SHA::7}"
           manifest="apps/openchamber/1_deployment.yaml"
-          grep -q "image: ${IMAGE}:" "$manifest"
-          sed -i "s|image: ${IMAGE}:.*|image: ${IMAGE}:${tag}|" "$manifest"
-          if git diff --quiet -- "$manifest"; then
-            echo "tag ${tag} already deployed"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "$manifest"
-          git commit -m "chore(openchamber): deploy workspace image ${tag}"
-          git push
+          # Build runs queue behind each other, but main can advance while a
+          # build runs. Retry the tag commit on the latest main instead of
+          # failing the push with a non-fast-forward rejection.
+          for attempt in 1 2 3; do
+            if [ "$attempt" -gt 1 ]; then
+              echo "push rejected (main moved); retrying on the latest main"
+              git fetch origin main
+              git reset --hard origin/main
+            fi
+            grep -q "image: ${IMAGE}:" "$manifest"
+            sed -i "s|image: ${IMAGE}:.*|image: ${IMAGE}:${tag}|" "$manifest"
+            if git diff --quiet -- "$manifest"; then
+              echo "tag ${tag} already deployed"
+              exit 0
+            fi
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add "$manifest"
+            git commit -m "chore(openchamber): deploy workspace image ${tag}"
+            if git push; then
+              exit 0
+            fi
+          done
+          echo "failed to deploy image tag ${tag}" >&2
+          exit 1
