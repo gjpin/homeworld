@@ -55,7 +55,14 @@ jobs:
 
       - name: Merge eligible PRs
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          # Reads (pr list/view/checks) use the workflow token, which carries
+          # the checks, statuses, and actions read permissions below - the
+          # GitHub App installation does not grant actions:read.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Only the merge runs as the GitHub App: pushes made with the
+          # workflow's GITHUB_TOKEN never trigger workflow runs, so the
+          # multi-arch build would not fire for the merged PR.
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           set -euo pipefail
 
@@ -118,7 +125,7 @@ jobs:
             fi
 
             echo "PR #${number} (${branch}): all checks green; merging"
-            if gh pr merge -R "${GITHUB_REPOSITORY}" "$number" --merge; then
+            if GH_TOKEN="${APP_TOKEN}" gh pr merge -R "${GITHUB_REPOSITORY}" "$number" --merge; then
               merged=$((merged + 1))
             else
               echo "PR #${number} (${branch}): merge failed (likely already merged); continuing"
