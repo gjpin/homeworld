@@ -604,7 +604,7 @@
         "/^images/openchamber/Dockerfile$/"
       ],
       "matchStrings": [
-        "FROM (?<depName>debian):(?<currentValue>trixie-slim)@sha256:(?<currentDigest>[a-f0-9]{64})"
+        "FROM (?<depName>debian):(?<currentValue>trixie-slim)@(?<currentDigest>sha256:[a-f0-9]{64})"
       ],
       "datasourceTemplate": "docker",
       "registryUrlTemplate": "https://index.docker.io",
