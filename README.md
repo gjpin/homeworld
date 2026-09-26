@@ -5,7 +5,7 @@
 - [App-of-Apps sync wave orchestration](docs/argocd.md#application-health-checks) via custom Application health checks
 - Declarative CRD lifecycle and upgrade management via [Server-Side Apply and sync waves](docs/argocd.md#crd-lifecycle-and-upgrade-management)
 - [Restricted Pod Security Standards](docs/pod-security.md#pod-security-standards)
-- [Kubernetes 1.36 User Namespaces](docs/pod-security.md#user-namespaces) (`hostUsers: false`)
+- [Kubernetes 1.37 User Namespaces](docs/pod-security.md#user-namespaces) (`hostUsers: false`)
 - [gVisor runtime sandboxing](docs/pod-security.md#gvisor-runtime-sandboxing) with Talos `runsc`
 - Tight [network policies](docs/network-policies.md)
 - Ingress protection via CrowdSec Security Engine and AppSec WAF

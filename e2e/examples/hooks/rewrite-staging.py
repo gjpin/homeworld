@@ -1043,11 +1043,11 @@ def rewrite_route_sync_wave(root: pathlib.Path) -> None:
 
 
 def rewrite_authelia_rolling_update(root: pathlib.Path) -> None:
-    """k8s 1.36 IntOrString: a quoted '0'/'1' is parsed as a percent, not a count.
+    """k8s 1.37 IntOrString: a quoted '0'/'1' is parsed as a percent, not a count.
 
     The Authelia chart schema still types these as string, so use percent
     strings which are valid for both Helm and the Deployment API. Unquoted
-    integers fail that schema; quoted count-strings fail Kubernetes 1.36.
+    integers fail that schema; quoted count-strings fail Kubernetes 1.37.
     """
     path = root / "apps" / "authelia" / "helm" / "values.yaml"
     if not path.exists():
@@ -1242,7 +1242,7 @@ def rewrite_cnpg_probes(root: pathlib.Path) -> None:
 
 
 def rewrite_crowdsec_disable_agent(root: pathlib.Path) -> None:
-    """k8s 1.36 Baseline forbids hostPath; kind also has no useful /var/log tree."""
+    """k8s 1.37 Baseline forbids hostPath; kind also has no useful /var/log tree."""
     count = 0
     for path in root.rglob("*.yaml"):
         if "crowdsec" not in path.as_posix():

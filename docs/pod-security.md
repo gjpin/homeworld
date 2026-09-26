@@ -1,6 +1,6 @@
 # Pod Security & User Namespaces
 
-Workloads in this cluster are secured according to the [Kubernetes Pod Security Standards (PSS)](https://kubernetes.io/docs/concepts/security/pod-security-standards/) and opted into [Kubernetes 1.36 User Namespaces](https://kubernetes.io/docs/concepts/workloads/pods/user-namespaces/) (`hostUsers: false`) wherever supported.
+Workloads in this cluster are secured according to the [Kubernetes Pod Security Standards (PSS)](https://kubernetes.io/docs/concepts/security/pod-security-standards/) and opted into [Kubernetes 1.37 User Namespaces](https://kubernetes.io/docs/concepts/workloads/pods/user-namespaces/) (`hostUsers: false`) wherever supported.
 
 Namespace-level Pod Security Admission (PSA) labels are managed declaratively in `apps/app-of-apps.yaml` through `syncPolicy.managedNamespaceMetadata`. Changes stage with Restricted `audit` and `warn` labels, with Restricted enforcement enabled once rendered and live admission results are verified clean.
 
@@ -49,7 +49,7 @@ The table below outlines the Pod Security Standard compliance level for every co
 
 ## User Namespaces
 
-Kubernetes 1.36 User Namespaces (`spec.hostUsers: false`) map container UIDs/GIDs to unprivileged ranges on the host node. This ensures that even if a container process runs as UID `0` internally, it operates without root privileges on the underlying host node.
+Kubernetes 1.37 User Namespaces (`spec.hostUsers: false`) map container UIDs/GIDs to unprivileged ranges on the host node. This ensures that even if a container process runs as UID `0` internally, it operates without root privileges on the underlying host node.
 
 The table below details user namespace implementation across all cluster workloads:
 
