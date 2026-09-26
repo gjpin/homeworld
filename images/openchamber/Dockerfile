@@ -5,13 +5,14 @@
 # the Antigravity CLI, and the GitHub Copilot CLI, all
 # running as the non-root `agent` user with a PVC-backed HOME.
 #
-# Every version below is pinned. Updates arrive exclusively as PRs:
-#   - Renovate updates the base image digest and every ARG via custom regex
-#     managers (renovate.json).
+# Every version below is pinned. Updates arrive as PRs:
+#   - Renovate groups the base image digest and every ARG update into one
+#     openchamber-workspace-image PR via custom regex managers (renovate.json).
 #   - The daily check-openchamber-apt-updates workflow bumps APT_REFRESH when
 #     Debian publishes newer packages than the image currently contains.
-# Merging a PR rebuilds this image; the running agent pod only changes when
-# you approve and merge.
+# Each PR must pass the PR-side amd64 smoke build (smoke-openchamber.yaml);
+# the automerge-openchamber workflow then merges it, and this image rebuilds
+# from main with every pending update included.
 #
 # Multi-arch: linux/amd64 and linux/arm64, built per-platform on native runners.
 
