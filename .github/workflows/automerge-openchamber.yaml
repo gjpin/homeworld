@@ -1,0 +1,104 @@
+name: Automerge OpenChamber workspace image PRs
+
+# Merge gate for OpenChamber workspace image update PRs. GitHub's native
+# auto-merge is unavailable for private repositories on a free plan, so this
+# workflow performs the merge itself: whenever a check finishes on an
+# eligible PR, it merges the PR if every check is green. The
+# smoke-openchamber PR build is what makes unattended merges safe — a release
+# that breaks the image build fails its checks and the PR stays open for
+# manual recovery instead of breaking main.
+#
+# Eligibility, all of which must hold:
+#   - authored by the Renovate GitHub App (renovate-homeworld)
+#   - head branch is renovate/openchamber-workspace-image* (Renovate's
+#     grouped workspace image update) or openchamber-apt-refresh-* (the
+#     daily package refresh from check-openchamber-apt-updates.yaml)
+#   - every changed file is images/openchamber/Dockerfile
+#   - the PR is mergeable and every check passes (none failing or pending)
+# Anything failing or unexpected stays open for manual review.
+
+on:
+  workflow_run:
+    workflows:
+      - "Validate manifests"
+      - "Build OpenChamber workspace image"
+      - "Smoke build OpenChamber workspace image"
+    types: [completed]
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: automerge-openchamber
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    name: Merge green workspace image PRs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge eligible PRs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          merged=0
+          prs="$(gh pr list -R "${GITHUB_REPOSITORY}" --state open \
+            --json number,headRefName,author \
+            --jq '.[] | select(.author.login | test("renovate-homeworld")) | [.number, .headRefName] | @tsv')"
+
+          if [ -z "$prs" ]; then
+            echo "no open workspace image update PRs; nothing to do"
+            exit 0
+          fi
+
+          while IFS=$'\t' read -r number branch; do
+            case "$branch" in
+              renovate/openchamber-workspace-image*|openchamber-apt-refresh-*) ;;
+              *)
+                echo "PR #${number} (${branch}): not a workspace image update; skipping"
+                continue
+                ;;
+            esac
+
+            files="$(gh pr view -R "${GITHUB_REPOSITORY}" "$number" \
+              --json files --jq '[.files[].path] | unique')"
+            if [ "$(jq -r 'length' <<<"$files")" -ne 1 ] || \
+               [ "$(jq -r '.[0]' <<<"$files")" != "images/openchamber/Dockerfile" ]; then
+              echo "PR #${number} (${branch}): touches files beyond images/openchamber/Dockerfile; skipping"
+              continue
+            fi
+
+            if [ "$(gh pr view -R "${GITHUB_REPOSITORY}" "$number" \
+                   --json mergeable --jq .mergeable)" != "MERGEABLE" ]; then
+              echo "PR #${number} (${branch}): conflicting or unknown merge state; skipping"
+              continue
+            fi
+
+            # gh pr checks exits 0 when every check passes, 1 when any check
+            # fails, and 8 while checks are pending; a PR with no checks at
+            # all never merges either.
+            set +e
+            checks="$(gh pr checks -R "${GITHUB_REPOSITORY}" "$number" 2>&1)"
+            rc=$?
+            set -e
+            if [ "$rc" -ne 0 ] || [ -z "$checks" ] || \
+               grep -q "no checks reported" <<<"$checks"; then
+              echo "PR #${number} (${branch}): checks missing, failing, or pending; skipping"
+              continue
+            fi
+
+            echo "PR #${number} (${branch}): all checks green; merging"
+            if gh pr merge -R "${GITHUB_REPOSITORY}" "$number" --merge; then
+              merged=$((merged + 1))
+            else
+              echo "PR #${number} (${branch}): merge failed (likely already merged); continuing"
+            fi
+          done <<<"$prs"
+
+          echo "merged ${merged} workspace image PR(s)"

@@ -98,11 +98,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # envoy-gateway
 apiVersion: argoproj.io/v1alpha1
@@ -139,11 +139,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # cert-manager
 apiVersion: argoproj.io/v1alpha1
@@ -180,11 +180,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # external-dns
 apiVersion: argoproj.io/v1alpha1
@@ -221,11 +221,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # longhorn
 apiVersion: argoproj.io/v1alpha1
@@ -262,11 +262,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: privileged
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
       annotations:
         security.homeworld/exception-reason: Longhorn node integration requires privileged containers and hostPath volumes.
 ---
@@ -308,11 +308,11 @@ spec:
         # mounts /var/lib/kubelet/{pods,plugins}, so the namespace follows
         # the Longhorn node-integration exception profile.
         pod-security.kubernetes.io/enforce: privileged
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
       annotations:
         security.homeworld/exception-reason: Velero node-agent requires kubelet hostPath volumes for filesystem backups.
 ---
@@ -351,11 +351,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # argocd
 apiVersion: argoproj.io/v1alpha1
@@ -392,11 +392,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # cloudnative-pg
 apiVersion: argoproj.io/v1alpha1
@@ -433,11 +433,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # dragonfly-operator
 apiVersion: argoproj.io/v1alpha1
@@ -474,11 +474,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # rustfs-operator
 apiVersion: argoproj.io/v1alpha1
@@ -515,11 +515,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # external-secrets
 apiVersion: argoproj.io/v1alpha1
@@ -556,11 +556,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # documentdb-operator
 apiVersion: argoproj.io/v1alpha1
@@ -597,11 +597,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # crowdsec
 apiVersion: argoproj.io/v1alpha1
@@ -638,11 +638,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: privileged
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
       annotations:
         security.homeworld/exception-reason: The pinned CrowdSec image requires root for staged startup configuration, and the agent reads container logs through its chart-managed read-only /var/log hostPath, which PSS baseline forbids.
 ---
@@ -714,11 +714,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # rustfs
 apiVersion: argoproj.io/v1alpha1
@@ -755,11 +755,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: baseline
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
       annotations:
         security.homeworld/exception-reason: RustFS Tenant pods lack operator support for all Restricted security fields.
 ---
@@ -798,11 +798,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # authelia
 apiVersion: argoproj.io/v1alpha1
@@ -839,11 +839,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # homeassistant
 apiVersion: argoproj.io/v1alpha1
@@ -883,11 +883,11 @@ spec:
         # coordinator and Home Assistant runs as container UID 0 under
         # s6-overlay; PSS baseline forbids hostPath volumes.
         pod-security.kubernetes.io/enforce: privileged
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
       annotations:
         security.homeworld/exception-reason: Home Assistant runs as container UID 0 under s6-overlay and Zigbee2MQTT needs a /dev/serial/by-id hostPath for the USB coordinator; PSS baseline forbids those host integrations.
 ---
@@ -926,11 +926,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # immich
 apiVersion: argoproj.io/v1alpha1
@@ -967,11 +967,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # otel-collector
 apiVersion: argoproj.io/v1alpha1
@@ -1008,11 +1008,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # forgejo
 apiVersion: argoproj.io/v1alpha1
@@ -1049,11 +1049,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # grafana
 apiVersion: argoproj.io/v1alpha1
@@ -1090,11 +1090,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # notesnook
 apiVersion: argoproj.io/v1alpha1
@@ -1131,11 +1131,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # collabora
 apiVersion: argoproj.io/v1alpha1
@@ -1172,11 +1172,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # woodpecker
 apiVersion: argoproj.io/v1alpha1
@@ -1213,11 +1213,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # openchamber
 apiVersion: argoproj.io/v1alpha1
@@ -1254,11 +1254,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # opencloud
 apiVersion: argoproj.io/v1alpha1
@@ -1295,8 +1295,8 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.36
+        pod-security.kubernetes.io/enforce-version: v1.37
         pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.36
+        pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.36
+        pod-security.kubernetes.io/warn-version: v1.37

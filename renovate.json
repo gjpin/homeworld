@@ -97,15 +97,11 @@
       }
     },
     {
-      "description": "Node.js major bumps change the OpenChamber agent workspace runtime; verify OpenChamber's Node.js requirement (currently >= 22) before merging",
-      "matchPackageNames": [
-        "nodejs/node"
+      "description": "Group every OpenChamber workspace image update (base image digest and all pinned tools, majors included) into one PR; automerge-openchamber.yaml merges it once the PR smoke build passes",
+      "matchFileNames": [
+        "images/openchamber/Dockerfile"
       ],
-      "separateMajorMinor": true,
-      "separateMultipleMajor": false,
-      "prBodyNotes": [
-        "⚠️ **Node.js Upgrade Requirement**: OpenChamber currently requires Node.js 22+. Confirm the OpenChamber release notes support the new major before merging, and expect the agent pod to restart when this PR merges."
-      ]
+      "groupName": "openchamber-workspace-image"
     }
   ],
   "argocd": {

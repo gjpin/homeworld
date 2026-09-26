@@ -169,7 +169,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   capabilities. Prefer splitting node-level or host-integrated workloads from
   ordinary Restricted workloads rather than weakening an entire namespace.
 
-## Kubernetes 1.36 user namespaces
+## Kubernetes 1.37 user namespaces
 
 - Opt every compatible Pod into user namespaces with `spec.hostUsers: false`.
   For Helm workloads, use the chart's exact value key (preferred) or a Kustomize

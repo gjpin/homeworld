@@ -5,8 +5,9 @@ name: Check OpenChamber workspace package updates
 # third-party apt repositories (Google Chrome, helm, tofu, terraform,
 # temurin-25-jdk). Renovate cannot see apt repositories, so this workflow
 # covers them: when the image contains upgradable packages it opens a PR that
-# bumps APT_REFRESH in images/openchamber/Dockerfile. Merging the PR rebuilds
-# the image with refreshed packages; nothing updates without your approval.
+# bumps APT_REFRESH in images/openchamber/Dockerfile. The
+# automerge-openchamber workflow merges that PR once the PR-side smoke build
+# passes, so refreshed packages reach the image without manual approval.
 #
 # Renovate PRs (base image digest, pinned tool versions) complement this:
 # every merged PR rebuilds the image with `apt-get update` at build time.
@@ -123,7 +124,7 @@ jobs:
           {
             echo "Daily package refresh check found ${count} upgradable package(s) in \`${IMAGE}\`."
             echo
-            echo "This PR bumps \`APT_REFRESH\` in \`images/openchamber/Dockerfile\`, which rebuilds the agent workspace image with refreshed apt packages. Merging rolls the agent pod: merge when the agents are idle."
+            echo "This PR bumps \`APT_REFRESH\` in \`images/openchamber/Dockerfile\`, which rebuilds the agent workspace image with refreshed apt packages. The automerge-openchamber workflow merges this PR once the PR-side smoke build passes; the agent pod rolls when the rebuilt image deploys."
             echo
             echo "<details><summary>Upgradable packages</summary>"
             echo
