@@ -760,11 +760,11 @@ spec:
       annotations:
         security.homeworld/exception-reason: RustFS Tenant pods lack operator support for all Restricted security fields.
 ---
-# openobserve
+# victoria-metrics
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: openobserve-app
+  name: victoria-metrics-app
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: homeworld
@@ -776,11 +776,11 @@ spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/openobserve"
+    path: "apps/victoria-metrics"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
-    namespace: openobserve
+    namespace: victoria-metrics
   syncPolicy:
     automated:
       prune: true

@@ -38,7 +38,7 @@ spec:
       namespace: opencloud
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
-      namespace: openobserve
+      namespace: victoria-metrics
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: rustfs-operator

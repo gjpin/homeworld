@@ -1,9 +1,9 @@
-# https://github.com/openobserve/openobserve-helm-chart/tree/main/charts/openobserve-standalone
+# https://docs.victoriametrics.com/helm/victoria-metrics-single/
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: openobserve
+  name: victoria-metrics
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "1"
@@ -11,7 +11,7 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: openobserve
+    namespace: victoria-metrics
   syncPolicy:
     automated:
       prune: true
@@ -26,5 +26,5 @@ spec:
 
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/openobserve/helm
+    path: apps/victoria-metrics/helm/metrics
     targetRevision: HEAD

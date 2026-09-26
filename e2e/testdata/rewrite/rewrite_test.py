@@ -86,12 +86,13 @@ def main() -> int:
             raise SystemExit("decodingStrategy Auto left in place")
         if "decodingStrategy: None" not in work:
             raise SystemExit("decodingStrategy not set to None")
-        if "kind: Dragonfly" in work and "runAsNonRoot: true" in work.split("kind: Dragonfly", 1)[1].split("---")[0]:
-            raise SystemExit("Dragonfly still runAsNonRoot true")
-        if "runAsNonRoot: false" not in work:
-            raise SystemExit("Dragonfly runAsNonRoot not flipped")
-        if "SETUID" not in work:
-            raise SystemExit("Dragonfly missing SETUID capability")
+        dfly = work.split("kind: Dragonfly", 1)[1].split("---")[0]
+        if "runAsNonRoot: false" in dfly:
+            raise SystemExit("Dragonfly must not run as root under Restricted PSA")
+        if "runAsUser: 999" not in dfly:
+            raise SystemExit("Dragonfly missing dfly runAsUser")
+        if "SETUID" in dfly:
+            raise SystemExit("Dragonfly must not add SETUID under Restricted PSA")
         if "strategy:" in work.split("kind: StatefulSet", 1)[1].split("---")[0]:
             raise SystemExit("StatefulSet spec.strategy not removed")
         if "persistentVolumeClaim:" in work.split("kind: Grafana", 1)[1].split("---")[0]:
@@ -104,6 +105,10 @@ def main() -> int:
             raise SystemExit("importer-1.0.0 path should not gain apps/")
         if "/usr/share/nginx/html/importer/" not in work:
             raise SystemExit("importer-1.0.0 original path missing")
+        if "/usr/share/nginx/html/apps/cast/" in work:
+            raise SystemExit("cast-1.0.0 path should not gain apps/")
+        if "/usr/share/nginx/html/cast/" not in work:
+            raise SystemExit("cast-1.0.0 original path missing")
         oc_deploy = work.split("name: opencloud\n  namespace: opencloud", 1)[1].split("---")[0]
         if 'name: COLLABORATION_APP_INSECURE\n              value: "false"' in oc_deploy:
             raise SystemExit("opencloud COLLABORATION_APP_INSECURE still false")
@@ -228,16 +233,13 @@ def main() -> int:
             raise SystemExit("immich postInitSQL missing vchord")
         if "name: earthdistance" not in pg:
             raise SystemExit("immich Database missing earthdistance extension")
-        oo_vals = (
-            dest / "apps" / "openobserve" / "helm" / "values.yaml"
-        ).read_text()
-        if "timeoutSeconds: 15" not in oo_vals:
-            raise SystemExit("openobserve probe timeoutSeconds missing")
-        oo_tpl = next(
-            (dest / "apps" / "openobserve").rglob("openobserve-statefulset.yaml")
-        ).read_text()
-        if "timeoutSeconds:" not in oo_tpl:
-            raise SystemExit("openobserve statefulset template missing timeoutSeconds")
+        vm_vals = dest / "apps" / "victoria-metrics" / "helm" / "metrics" / "values.yaml"
+        if not vm_vals.exists():
+            raise SystemExit("victoria-metrics helm values missing")
+        if "runtimeClassName" in vm_vals.read_text():
+            raise SystemExit("victoria-metrics runtimeClassName not removed for kind")
+        if (dest / "apps" / "openobserve").exists():
+            raise SystemExit("openobserve directory still present after rewrite")
         rustfs_map = (dest / "apps" / "rustfs" / "-3_user_namespace_policy.yaml").read_text()
         if "hostUsers: false" in rustfs_map:
             raise SystemExit("rustfs MAP still patches hostUsers false")
@@ -269,9 +271,9 @@ def main() -> int:
             raise SystemExit("parent Applications missing MAP ignoreDifferences")
         if ".spec.volumeClaimTemplates" not in apps:
             raise SystemExit("parent Applications missing StatefulSet volumeClaimTemplates ignore")
-        sts_ignore = apps.split("kind: StatefulSet", 1)[1].split("kind:", 1)[0]
-        if "name: openobserve" not in sts_ignore:
-            raise SystemExit("StatefulSet ignoreDifferences must be named openobserve")
+        for vm_name in ("victoria-metrics", "victoria-logs", "victoria-traces"):
+            if f"name: {vm_name}" not in apps:
+                raise SystemExit(f"StatefulSet ignoreDifferences must include {vm_name}")
         authelia = (
             dest / "apps" / "authelia" / "helm" / "values.yaml"
         ).read_text()
@@ -316,6 +318,77 @@ def main() -> int:
         rustfs_map = (dest / "apps" / "rustfs" / "-3_user_namespace_policy.yaml").read_text()
         if "timeoutSeconds: 15" not in rustfs_map:
             raise SystemExit("rustfs MAP missing probe timeouts")
+        if "documentdb-operator-app" not in apps:
+            raise SystemExit("documentdb-operator-app should be kept")
+        if "notesnook-app" not in apps:
+            raise SystemExit("notesnook-app should be kept")
+        if "woodpecker-app" not in apps:
+            raise SystemExit("woodpecker-app should be kept")
+        if "openchamber-app" in apps:
+            raise SystemExit("openchamber-app should be omitted (private GHCR image)")
+        if "kind: DocumentDB" not in apps:
+            raise SystemExit("parent Applications missing DocumentDB ignoreDifferences")
+        if "resource.customizations.health.documentdb.io_DocumentDB" not in argocd_vals:
+            raise SystemExit("argocd DocumentDB health customization missing")
+        doc_webhook = (
+            dest
+            / "apps"
+            / "documentdb-operator"
+            / "helm"
+            / "local-charts"
+            / "documentdb-operator"
+            / "templates"
+            / "10_documentdb_webhook.yaml"
+        ).read_text()
+        if "failurePolicy: Fail" in doc_webhook:
+            raise SystemExit("documentdb webhook failurePolicy still Fail")
+        if "failurePolicy: Ignore" not in doc_webhook:
+            raise SystemExit("documentdb webhook failurePolicy not Ignore")
+        doc_op = (
+            dest
+            / "apps"
+            / "documentdb-operator"
+            / "helm"
+            / "local-charts"
+            / "documentdb-operator"
+            / "templates"
+            / "09_documentdb_operator.yaml"
+        ).read_text()
+        if "timeoutSeconds: 15" not in doc_op:
+            raise SystemExit("documentdb operator probe timeout missing")
+        oc_pvc = (dest / "apps" / "openchamber" / "0_pvc.yaml").read_text()
+        if "storage: 100Gi" in oc_pvc:
+            raise SystemExit("openchamber PVC still 100Gi")
+        if "storage: 10Gi" not in oc_pvc:
+            raise SystemExit("openchamber PVC not shrunk to 10Gi")
+        work_after = (dest / "apps" / "workarounds.yaml").read_text()
+        if "runtimeClassName: gvisor" in work_after:
+            raise SystemExit("runtimeClassName gvisor not removed for kind")
+        wood_k = (
+            dest / "apps" / "woodpecker-fixture" / "helm" / "kustomization.yaml"
+        ).read_text()
+        if "runtimeClassName" in wood_k and "gvisor" in wood_k:
+            raise SystemExit("kustomize runtimeClassName gvisor patch not removed")
+        eso_k = (
+            dest / "apps" / "eso-fixture" / "helm" / "kustomization.yaml"
+        ).read_text()
+        if "gvisor" in eso_k:
+            raise SystemExit("single-op gvisor patch not removed")
+        if "patch: |-\n" in eso_k:
+            raise SystemExit("emptied kustomize patch block left behind")
+        oc_dep = (dest / "apps" / "openchamber" / "1_deployment.yaml").read_text()
+        if 'cpu: "2"' in oc_dep and "memory: 4Gi" in oc_dep and 'cpu: "8"' in oc_dep:
+            raise SystemExit("openchamber resources not relaxed for kind")
+        if 'cpu: "500m"' not in oc_dep:
+            raise SystemExit("openchamber requests not relaxed")
+        fj = (dest / "apps" / "forgejo" / "helm" / "values.yaml").read_text()
+        if "http://authelia.authelia.svc.cluster.local" in fj:
+            raise SystemExit("forgejo OIDC must keep Gateway HTTPS (Authelia rejects plain HTTP)")
+        if "https://auth.${BASE_DOMAIN}/.well-known/openid-configuration" not in fj:
+            raise SystemExit("forgejo OIDC discovery URL unexpectedly changed")
+        fj_k = (dest / "apps" / "forgejo" / "helm" / "kustomization.yaml").read_text()
+        if "gateway-ca" not in fj_k or "SSL_CERT_FILE" not in fj_k:
+            raise SystemExit("forgejo OIDC init missing Gateway CA trust patch")
         sc = (ROOT / "examples" / "manifests" / "longhorn-crypto-storageclass.yaml").read_text()
         if "volumeBindingMode: WaitForFirstConsumer" not in sc:
             raise SystemExit("kind longhorn-crypto StorageClass not WaitForFirstConsumer")

@@ -18,7 +18,6 @@ spec:
       check_for_updates: "false"
       check_for_plugin_updates: "false"
     plugins:
-      allow_loading_unsigned_plugins: openobserve
       # Grafana 13 preinstall tries to upgrade bundled elasticsearch under
       # read-only /usr/share/grafana/data/plugins-bundled.
       plugin_admin_enabled: "false"
@@ -26,7 +25,11 @@ spec:
     auth:
       disable_login_form: "true"
     auth.basic:
-      enabled: "false"
+      # The Grafana Operator provisions datasources/dashboards through the
+      # HTTP API with basic auth; disabling it breaks reconciliation
+      # (401 on /api/login/ping). The login form stays hidden via
+      # disable_login_form + OIDC auto_login above.
+      enabled: "true"
     auth.generic_oauth:
       enabled: "true"
       auto_login: "true"
@@ -75,16 +78,26 @@ spec:
             seccompProfile:
               type: RuntimeDefault
           initContainers:
-            - name: openobserve-plugin-loader
+            - name: victoria-plugins-loader
               image: alpine:3.24.2
               imagePullPolicy: IfNotPresent
               command:
                 - sh
                 - -ec
                 - |
-                  wget -O /var/lib/grafana/plugins/zo_gp.tar.gz https://zincsearch-releases.s3.us-west-2.amazonaws.com/zo_gp/zo_gp.tar.gz
-                  echo '85e7542749e17a437b84547215b63e73286570ad917b0b472de47e5398dee5d1  /var/lib/grafana/plugins/zo_gp.tar.gz' | sha256sum -c -
-                  tar -xzf /var/lib/grafana/plugins/zo_gp.tar.gz -C /var/lib/grafana/plugins
+                  # Renovate tracks both plugin versions below (github-releases).
+                  # When bumping a version, refresh the sha256 from the release assets page.
+                  wget -O /var/lib/grafana/plugins/vm-metrics.tar.gz \
+                    https://github.com/VictoriaMetrics/victoriametrics-datasource/releases/download/v0.26.1/victoriametrics-metrics-datasource-v0.26.1.tar.gz
+                  echo '682363839837b6fbed3a9a79a7c84228b43cec46cabacd1380bc695ec25adda4  /var/lib/grafana/plugins/vm-metrics.tar.gz' | sha256sum -c -
+                  tar -xzf /var/lib/grafana/plugins/vm-metrics.tar.gz -C /var/lib/grafana/plugins
+                  rm /var/lib/grafana/plugins/vm-metrics.tar.gz
+
+                  wget -O /var/lib/grafana/plugins/vm-logs.tar.gz \
+                    https://github.com/VictoriaMetrics/victorialogs-datasource/releases/download/v0.32.0/victoriametrics-logs-datasource-v0.32.0.tar.gz
+                  echo 'e100b767f19cd614ac8ac3860458a3fb33f5aa7a876e924d0340010e40d1c0d4  /var/lib/grafana/plugins/vm-logs.tar.gz' | sha256sum -c -
+                  tar -xzf /var/lib/grafana/plugins/vm-logs.tar.gz -C /var/lib/grafana/plugins
+                  rm /var/lib/grafana/plugins/vm-logs.tar.gz
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:
@@ -103,7 +116,7 @@ spec:
                   memory: 2Gi
                   ephemeral-storage: 2Gi
               volumeMounts:
-                - name: openobserve-plugin
+                - name: victoria-plugins
                   mountPath: /var/lib/grafana/plugins
           containers:
             - name: grafana
@@ -124,7 +137,7 @@ spec:
                   memory: 2Gi
                   ephemeral-storage: 2Gi
               volumeMounts:
-                - name: openobserve-plugin
+                - name: victoria-plugins
                   mountPath: /var/lib/grafana/plugins
               env:
                 - name: GF_SECURITY_ADMIN_USER
@@ -143,7 +156,7 @@ spec:
                       name: grafana-oidc
                       key: clientSecret
           volumes:
-            - name: openobserve-plugin
+            - name: victoria-plugins
               emptyDir: {}
   httpRoute:
     metadata:

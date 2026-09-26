@@ -30,12 +30,6 @@ securityContext:
 service:
   enabled: true
   type: ClusterIP
-extraEnvs:
-  - name: OPENOBSERVE_AUTHORIZATION
-    valueFrom:
-      secretKeyRef:
-        name: openobserve
-        key: OTLP_AUTHORIZATION
 config:
   receivers:
     jaeger: null
@@ -73,12 +67,18 @@ config:
       spike_limit_percentage: 25
   exporters:
     debug: null
-    otlphttp/openobserve:
-      endpoint: http://openobserve.openobserve.svc.cluster.local:5080/api/default
-      headers:
-        Authorization: ${env:OPENOBSERVE_AUTHORIZATION}
-        stream-name: kubernetes
+    otlphttp/victoriametrics:
       compression: gzip
+      encoding: proto
+      metrics_endpoint: http://victoria-metrics.victoria-metrics.svc.cluster.local:8428/opentelemetry/v1/metrics
+    otlphttp/victorialogs:
+      compression: gzip
+      encoding: proto
+      logs_endpoint: http://victoria-logs.victoria-metrics.svc.cluster.local:9428/insert/opentelemetry/v1/logs
+    otlphttp/victoriatraces:
+      compression: gzip
+      encoding: proto
+      traces_endpoint: http://victoria-traces.victoria-metrics.svc.cluster.local:10428/insert/opentelemetry/v1/traces
   extensions:
     health_check:
       endpoint: ${env:MY_POD_IP}:13133
@@ -101,7 +101,7 @@ config:
           - memory_limiter
           - batch
         exporters:
-          - otlphttp/openobserve
+          - otlphttp/victorialogs
       metrics:
         receivers:
           - otlp
@@ -110,7 +110,7 @@ config:
           - memory_limiter
           - batch
         exporters:
-          - otlphttp/openobserve
+          - otlphttp/victoriametrics
       traces:
         receivers:
           - otlp
@@ -118,4 +118,4 @@ config:
           - memory_limiter
           - batch
         exporters:
-          - otlphttp/openobserve
+          - otlphttp/victoriatraces

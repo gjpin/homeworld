@@ -57,6 +57,7 @@ metadata:
 spec:
   template:
     spec:
+      runtimeClassName: gvisor
       initContainers:
         - name: external-sites
           args:
@@ -64,6 +65,9 @@ spec:
         - name: importer
           args:
             - cp -R /usr/share/nginx/html/importer/ /apps
+        - name: cast
+          args:
+            - cp -R /usr/share/nginx/html/cast/ /apps
       containers:
         - name: opencloud
           env:

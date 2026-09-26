@@ -1,0 +1,30 @@
+# https://docs.victoriametrics.com/helm/victoria-logs-single/
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: victoria-logs
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: victoria-metrics
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/victoria-metrics/helm/logs
+    targetRevision: HEAD

@@ -65,6 +65,15 @@ configMapGenerator:
   - name: grafana-dashboard-otel-collector
     files:
       - json=dashboards/otel-collector.json
+  - name: grafana-dashboard-victorialogs
+    files:
+      - json=dashboards/victorialogs.json
+  - name: grafana-dashboard-victoriametrics
+    files:
+      - json=dashboards/victoriametrics.json
+  - name: grafana-dashboard-victoriatraces
+    files:
+      - json=dashboards/victoriatraces.json
 resources:
   - -2_network_policy.yaml
   - -1_secrets.yaml
@@ -72,5 +81,8 @@ resources:
   - 0_grafana.yaml
   - 0_service_monitor.yaml
   - 0_dashboards.yaml
-  - 0_openobserve_datasource.yaml
+  - 0_victoriametrics_datasource.yaml
+  - 0_victorialogs_datasource.yaml
+  - 0_victoriatraces_jaeger_datasource.yaml
+  - 0_victoriatraces_tempo_datasource.yaml
   - 2_security_policy.yaml

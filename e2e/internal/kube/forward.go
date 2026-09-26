@@ -137,10 +137,19 @@ func ExecInPod(ctx context.Context, cfg *rest.Config, typed kubernetes.Interface
 
 // HTTPGet performs an HTTP GET with timeout.
 func HTTPGet(ctx context.Context, rawURL string, timeout time.Duration) (int, []byte, error) {
+	return HTTPGetWithBasicAuth(ctx, rawURL, timeout, "", "")
+}
+
+// HTTPGetWithBasicAuth performs an HTTP GET with timeout, adding an
+// Authorization header when username is non-empty.
+func HTTPGetWithBasicAuth(ctx context.Context, rawURL string, timeout time.Duration, username, password string) (int, []byte, error) {
 	client := &http.Client{Timeout: timeout}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
 	if err != nil {
 		return 0, nil, err
+	}
+	if username != "" {
+		req.SetBasicAuth(username, password)
 	}
 	resp, err := client.Do(req)
 	if err != nil {

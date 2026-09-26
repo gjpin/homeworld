@@ -324,7 +324,7 @@ seed_secrets() {
   token=$(cat "${OUT_DIR}/token")
   project_id=$(cat "${OUT_DIR}/project_id")
 
-  for folder in grafana authelia immich forgejo openobserve rustfs opencloud crowdsec velero-ui velero longhorn; do
+  for folder in grafana authelia immich forgejo victoria-metrics rustfs opencloud crowdsec velero-ui velero longhorn notesnook woodpecker openchamber; do
     ensure_folder "${token}" "${project_id}" "${folder}"
   done
 
@@ -369,9 +369,6 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/immich/DRAGONFLY_PASSWORD" "e2e-immich-redis"
   put_secret "${token}" "${project_id}" "/forgejo/POSTGRES_USERNAME" "forgejo"
   put_secret "${token}" "${project_id}" "/forgejo/POSTGRES_PASSWORD" "e2e-forgejo-db"
-  put_secret "${token}" "${project_id}" "/openobserve/ZO_ROOT_USER_EMAIL" "e2e@example.com"
-  put_secret "${token}" "${project_id}" "/openobserve/ZO_ROOT_USER_PASSWORD" "E2e-Openobserve1!"
-  put_secret "${token}" "${project_id}" "/openobserve/OTLP_AUTHORIZATION" "Basic e2e"
   put_secret "${token}" "${project_id}" "/rustfs/RUSTFS_ACCESS_KEY" "e2eaccesskey"
   put_secret "${token}" "${project_id}" "/rustfs/RUSTFS_SECRET_KEY" "e2esecretkey"
   put_secret "${token}" "${project_id}" "/opencloud/IDM_ADMIN_PASSWORD" "e2e-opencloud-admin"
@@ -391,6 +388,24 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/velero/B2_APPLICATION_KEY" "e2e-b2-key"
   put_secret "${token}" "${project_id}" "/velero/KOPIA_REPOSITORY_PASSWORD" "e2e-kopia"
   put_secret "${token}" "${project_id}" "/longhorn/CRYPTO_KEY_VALUE" "e2e-longhorn-crypto"
+  put_secret "${token}" "${project_id}" "/notesnook/NOTESNOOK_API_SECRET" "e2e-notesnook-api-secret-0123456789abcdef0123456789abcdef"
+  put_secret "${token}" "${project_id}" "/notesnook/DOCUMENTDB_USERNAME" "notesnook"
+  put_secret "${token}" "${project_id}" "/notesnook/DOCUMENTDB_PASSWORD" "e2e-notesnook-db"
+  put_secret "${token}" "${project_id}" "/notesnook/RUSTFS_ACCESS_KEY" "e2eaccesskey"
+  put_secret "${token}" "${project_id}" "/notesnook/RUSTFS_SECRET_KEY" "e2esecretkey"
+  put_secret "${token}" "${project_id}" "/notesnook/SMTP_USERNAME" "e2e"
+  put_secret "${token}" "${project_id}" "/notesnook/SMTP_PASSWORD" "e2e-notesnook-smtp"
+  put_secret "${token}" "${project_id}" "/notesnook/SMTP_HOST" "smtp.e2e.local"
+  put_secret "${token}" "${project_id}" "/notesnook/SMTP_PORT" "587"
+  put_secret "${token}" "${project_id}" "/woodpecker/POSTGRES_USERNAME" "woodpecker"
+  put_secret "${token}" "${project_id}" "/woodpecker/POSTGRES_PASSWORD" "e2e-woodpecker-db"
+  put_secret "${token}" "${project_id}" "/woodpecker/AGENT_SECRET" "e2e-woodpecker-agent-secret"
+  put_secret "${token}" "${project_id}" "/woodpecker/FORGEJO_CLIENT" "e2e-woodpecker-forgejo-client"
+  put_secret "${token}" "${project_id}" "/woodpecker/FORGEJO_SECRET" "e2e-woodpecker-forgejo-secret"
+  put_secret "${token}" "${project_id}" "/woodpecker/PROMETHEUS_AUTH_TOKEN" "e2e-woodpecker-metrics"
+  put_secret "${token}" "${project_id}" "/openchamber/OPENCHAMBER_UI_PASSWORD" "e2e-openchamber"
+  put_secret "${token}" "${project_id}" "/openchamber/OPENAI_API_KEY" "e2e-openai-key"
+  put_secret "${token}" "${project_id}" "/openchamber/GITHUB_TOKEN" "e2e-github-token"
   log "secret seed completed"
 }
 

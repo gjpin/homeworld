@@ -35,7 +35,7 @@ The table below outlines the Pod Security Standard compliance level for every co
 | **Notesnook** | `notesnook` | Restricted | **Restricted** | All components (`sync`, `identity`, `sse`, `monograph`, `themes`, `cors-proxy`, `inbox-api`) run non-root (UID `1000`) with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. DocumentDB operand pods (managed by CloudNativePG) run non-root (PostgreSQL UID `105`, gateway UID `1000`) with dropped capabilities (`ALL`), `allowPrivilegeEscalation: false`, and `RuntimeDefault` seccomp via CNPG hardened defaults and the injector's hardened sidecar context. |
 | **OpenChamber** | `openchamber` | Restricted | **Restricted** | Agent workspace pod runs non-root (UID `1000`) with dropped capabilities (`ALL`), `RuntimeDefault` seccomp, and a writable PVC-backed HOME that agent work requires. |
 | **OpenCloud** | `opencloud` | Restricted | **Restricted** | OpenCloud server, all web extension init containers (`external-sites`, `json-viewer`, `progress-bars`, `unzip`), and OpenCloud Tika search run non-root (UID `1000`) with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
-| **OpenObserve** | `openobserve` | Restricted | **Restricted** | Runs non-root (UID `10000`, GID `3000`, fsGroup `2000`) with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
+| **VictoriaMetrics** | `victoria-metrics` | Restricted | **Restricted** | VictoriaMetrics, VictoriaLogs, and VictoriaTraces StatefulSets run non-root (UID `1000`, GID `1000`, fsGroup `2000`) with dropped capabilities (`ALL`), `RuntimeDefault` seccomp, and `readOnlyRootFilesystem`. |
 | **OpenTelemetry Collector** | `otel-collector` / `otel-collector-node` | Mixed | **Mixed** | **Restricted:** `otel-collector-cluster` and `otel-collector-pod` Deployments run non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp.<br><br>**Exception (Baseline):** `otel-collector-node-agent` (DaemonSet in `otel-collector-node`) requires hostPath volume mounts (`/var/log`, `/var/lib/docker/containers`, `/proc`, `/sys`) and host metrics/log collection permissions to collect host and node telemetry. |
 | **Prometheus Operator CRDs** | `prometheus-operator-crd` | Restricted | **Restricted** | CRD definitions only; no workload pods deployed. |
 | **Radicale** | `radicale` | Restricted | **Restricted** | Internal CalDAV/CardDAV backend runs non-root (UID `2999`) with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
@@ -78,7 +78,7 @@ The table below details user namespace implementation across all cluster workloa
 | **Notesnook** | `notesnook` | **Enabled** (`false`) | Manifest | Declared in Pod templates across all microservice Deployments (`sync`, `identity`, `sse`, `monograph`, `themes`, `cors-proxy`, `inbox-api`). DocumentDB operand pods (CNPG Clusters) run in standard host namespaces. |
 | **OpenChamber** | `openchamber` | **Enabled** (`false`) | Manifest | Declared in the agent workspace Deployment. |
 | **OpenCloud** | `opencloud` | **Enabled** (`false`) | Manifest | Declared in Deployments for `opencloud` server and `opencloud-tika`. |
-| **OpenObserve** | `openobserve` | **Enabled** (`false`) | Kustomize patch | Applied to OpenObserve Deployment. |
+| **VictoriaMetrics** | `victoria-metrics` | **Enabled** (`false`) | Kustomize patch | Applied to VictoriaMetrics, VictoriaLogs, and VictoriaTraces StatefulSets. |
 | **OTel Collector (Cluster/Pod)** | `otel-collector` | **Enabled** (`false`) | Kustomize patch | Applied to cluster and pod collector Deployments. |
 | **OTel Collector (Node)** | `otel-collector-node` | **Disabled** (`true`) | *None (Host integration)* | **Why not enabled:** Node agent requires hostPath mounts, `HostToContainer` mount propagation, host ports, and host telemetry access that conflict with user namespaces. |
 | **Radicale** | `radicale` | **Enabled** (`false`) | Manifest | Declared in Radicale Deployment. |
@@ -138,7 +138,7 @@ Only workloads requiring direct host device access, raw block devices, or kernel
 | **Notesnook** | `notesnook` | **Enabled** (`gvisor`) | Manifest | Declared across all microservice Deployments. DocumentDB operand pods inherit the CNPG default runtime. |
 | **OpenChamber** | `openchamber` | **Enabled** (`gvisor`) | Manifest | Declared in the agent workspace Deployment; gVisor isolates arbitrary model-generated code executed by the coding agents. |
 | **OpenCloud** | `opencloud` | **Enabled** (`gvisor`) | Manifest | Declared in `opencloud` server and `opencloud-tika` Deployments. |
-| **OpenObserve** | `openobserve` | **Enabled** (`gvisor`) | Kustomize patch | Applied to OpenObserve StatefulSet. |
+| **VictoriaMetrics** | `victoria-metrics` | **Enabled** (`gvisor`) | Helm values | `server.runtimeClassName: gvisor` on VictoriaMetrics, VictoriaLogs, and VictoriaTraces. |
 | **OTel Collector (Cluster/Pod)** | `otel-collector` | **Enabled** (`gvisor`) | Kustomize patch | Applied to cluster and pod collector Deployments. |
 | **OTel Collector (Node)** | `otel-collector-node` | **Disabled** | *None (Host integration)* | **Exception:** Node collector DaemonSet requires hostPath mounts (`/proc`, `/sys`, `/var/log`) and host metrics access. |
 | **Radicale** | `radicale` | **Enabled** (`gvisor`) | Manifest | Declared in Radicale Deployment. |
@@ -161,7 +161,7 @@ Standalone applications use dedicated ServiceAccounts rather than the namespace 
 
 Helm workloads with API access disabled via patches or values:
 - `forgejo`: `automountServiceAccountToken: false`
-- `openobserve`: `automountServiceAccountToken: false`
+- `victoria-metrics`: `automountServiceAccountToken: false`
 - `longhorn-ui`: `automountServiceAccountToken: false`
 - `collabora`: `automountServiceAccountToken: false`
 - `crowdsec-envoy-bouncer`: `automountServiceAccountToken: false`

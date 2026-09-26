@@ -3,7 +3,7 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: default-deny
-  namespace: openobserve
+  namespace: victoria-metrics
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
@@ -15,7 +15,7 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: allow-dns
-  namespace: openobserve
+  namespace: victoria-metrics
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
@@ -35,16 +35,12 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-openobserve-ingress
-  namespace: openobserve
+  name: allow-victoria-ingress
+  namespace: victoria-metrics
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/component: openobserve
-      k8s:app.kubernetes.io/instance: openobserve
-      k8s:app.kubernetes.io/name: openobserve-standalone
+  endpointSelector: {}
   ingress:
     - fromEndpoints:
         - matchLabels:
@@ -71,5 +67,9 @@ spec:
             k8s:app.kubernetes.io/name: grafana
       toPorts:
         - ports:
-            - port: "5080"
+            - port: "8428"
+              protocol: TCP
+            - port: "9428"
+              protocol: TCP
+            - port: "10428"
               protocol: TCP

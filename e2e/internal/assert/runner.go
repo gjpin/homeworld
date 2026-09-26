@@ -256,15 +256,16 @@ func (r *Runner) serviceProbe(ctx context.Context, cfg *config.ServiceProbe) err
 			lastErr = err
 		} else {
 			url := fmt.Sprintf("%s://127.0.0.1:%d%s", scheme, localPort, path)
-			code, _, err := kube.HTTPGet(ctx, url, 10*time.Second)
+			code, body, err := kube.HTTPGetWithBasicAuth(ctx, url, 10*time.Second, cfg.Username, cfg.Password)
 			stop()
-			if err == nil && code >= 200 && code < 400 {
-				return nil
-			}
-			if err != nil {
-				lastErr = err
+			if err == nil {
+				if err := matchServiceBody(code, body, cfg.BodyContains); err == nil {
+					return nil
+				} else {
+					lastErr = err
+				}
 			} else {
-				lastErr = fmt.Errorf("HTTP %d", code)
+				lastErr = err
 			}
 		}
 		if time.Now().After(deadline) {
@@ -276,6 +277,18 @@ func (r *Runner) serviceProbe(ctx context.Context, cfg *config.ServiceProbe) err
 		case <-time.After(3 * time.Second):
 		}
 	}
+}
+
+// matchServiceBody accepts 2xx/3xx responses whose body contains the
+// required substring (empty requirement always passes).
+func matchServiceBody(code int, body []byte, contains string) error {
+	if code < 200 || code >= 400 {
+		return fmt.Errorf("HTTP %d", code)
+	}
+	if contains != "" && !strings.Contains(string(body), contains) {
+		return fmt.Errorf("body missing %q", contains)
+	}
+	return nil
 }
 
 func (r *Runner) resourceCondition(ctx context.Context, cfg *config.ResourceCondition) error {
@@ -475,6 +488,10 @@ func (r *Runner) namespaces(ctx context.Context, include, exclude []string) ([]s
 
 func pluralize(kind string) string {
 	k := strings.ToLower(kind)
+	// Irregular resource names that naive pluralization gets wrong.
+	if k == "documentdb" {
+		return "dbs"
+	}
 	switch {
 	case strings.HasSuffix(k, "s"):
 		return k

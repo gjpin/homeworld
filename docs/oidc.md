@@ -19,14 +19,14 @@
 | crowdsec-envoy-bouncer | No | Machine bouncer, not a user login. |
 | grafana-operator | No | No user login. Grafana itself is a separate app. |
 | rustfs | Yes | Console SSO through Authelia. S3 still uses the root access keys. `consoleAdmin` maps to the built-in console admin policy. |
-| openobserve | No | The open-source build has no SSO. Enterprise SSO expects Dex, which this repo does not add. |
+| victoria-metrics | No | VictoriaMetrics, VictoriaLogs, and VictoriaTraces UIs use no authentication (access control via CrowdSec extAuth at the Gateway). |
 | authelia | No | This is the identity provider. |
 | homeassistant | No | Home Assistant 2025.7.0, Mosquitto 2.0.21, and Zigbee2MQTT 2.5.1 have no built-in OIDC. |
 | radicale | No | No web UI. OpenCloud proxies CalDAV and CardDAV and supplies the user. |
 | immich | Yes | Authelia. Password login is disabled. `immich-admin` is an Immich admin; everyone else is a user. |
 | otel-collector | No | No user login. |
 | forgejo | Yes | Authelia. Local sign-in, basic auth, and the local admin user are disabled. `forgejo-admin` is a site admin. Git HTTPS still accepts personal tokens; SSH is unchanged. |
-| grafana | Yes | Authelia. The password form is disabled. `grafana-admin` is a Grafana server admin; everyone else is a Viewer. The admin password secret remains so the process can start. |
+| grafana | Yes | Authelia. The password form is hidden (`disable_login_form` + OIDC `auto_login`). `grafana-admin` is a Grafana server admin; everyone else is a Viewer. The admin password secret remains so the process can start, and the HTTP API keeps basic auth enabled so the Grafana Operator can reconcile (it authenticates with the admin credentials). |
 | notesnook | No | Notesnook manages authentication via its dedicated Identity service (`auth.notes.${BASE_DOMAIN}`). End-to-end zero-knowledge encryption requires client-side key derivation from the user password, which is incompatible with external OIDC providers. |
 | openchamber | No | OpenChamber has no OIDC support. The web UI is protected by its own `--ui-password` (from Infisical via External Secrets) plus CrowdSec WAF, and is reached only over WireGuard at `openchamber.${BASE_DOMAIN}`; no relay is deployed (`openchamber-relay` is unnecessary with direct WireGuard connectivity, see [openchamber.md](openchamber.md)). Device pairing (QR code) connects desktop/mobile clients directly to the same URL. |
 | collabora | No | The admin UI is HTTP basic auth. Document editing uses OpenCloud WOPI, which already authenticated the user. |

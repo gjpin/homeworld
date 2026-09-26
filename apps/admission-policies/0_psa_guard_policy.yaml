@@ -18,8 +18,8 @@ spec:
          request.userInfo.username == 'system:serviceaccount:argocd:argocd-argocd-application-controller') ||
         (oldObject == null ?
           (!has(object.metadata.labels) || !object.metadata.labels.exists(k, k.startsWith('pod-security.kubernetes.io/'))) :
-          ((has(object.metadata.labels) ? object.metadata.labels.filter(k, k.startsWith('pod-security.kubernetes.io/')) : {}) ==
-           (has(oldObject.metadata.labels) ? oldObject.metadata.labels.filter(k, k.startsWith('pod-security.kubernetes.io/')) : {})))
+          ((has(object.metadata.labels) ? object.metadata.labels.filter(k, k.startsWith('pod-security.kubernetes.io/')) : []) ==
+           (has(oldObject.metadata.labels) ? oldObject.metadata.labels.filter(k, k.startsWith('pod-security.kubernetes.io/')) : [])))
       message: "Modifying Pod Security Admission labels requires cluster administrator or Argo CD privileges."
 ---
 apiVersion: admissionregistration.k8s.io/v1

@@ -53,17 +53,59 @@ block = (
     "    }\n"
     "}\n"
 )
-if f"{zone}:53" in core:
-    # Replace an existing stub so a changed ClusterIP is picked up.
-    import re
-    core = re.sub(
-        rf"(?ms)^{re.escape(zone)}:53 \{{.*?\}}\n",
-        block,
-        core,
-        count=1,
-    )
-else:
-    core = block + core
+def strip_zone(core: str, zone: str) -> str:
+    """Remove every `<zone>:53 { ... }` server block, matching nested braces.
+
+    A regex cannot do this: `.*?}` stops at the first inner template close
+    and leaves a dangling fragment that breaks CoreDNS parsing.
+    """
+    out = []
+    i = 0
+    header = f"{zone}:53"
+    while True:
+        j = core.find(header, i)
+        if j == -1:
+            out.append(core[i:])
+            break
+        # Only treat it as a server block when `{` follows the header on the
+        # same line; otherwise keep the text as-is.
+        k = j + len(header)
+        while k < len(core) and core[k] in (" ", "\t"):
+            k += 1
+        if k >= len(core) or core[k] != "{":
+            out.append(core[i : k if k < len(core) else len(core)])
+            i = k if k < len(core) else len(core)
+            continue
+        depth = 0
+        m = k
+        while m < len(core):
+            if core[m] == "{":
+                depth += 1
+            elif core[m] == "}":
+                depth -= 1
+                if depth == 0:
+                    m += 1
+                    if m < len(core) and core[m] == "\n":
+                        m += 1
+                    break
+            m += 1
+        out.append(core[i:j])
+        i = m
+    return "".join(out)
+
+
+stripped = strip_zone(core, zone)
+# A previous regex-based replace could leave a dangling top-level fragment
+# (`template IN AAAA {...}` plus a stray `}`) that breaks CoreDNS parsing.
+# It never appears inside any other server block, so drop it outright.
+import re
+
+stripped = re.sub(
+    r"(?:\n|^)    template IN AAAA \{\n        match \.\*\n        rcode NOERROR\n    \}\n\}\n?",
+    "\n",
+    stripped,
+)
+core = block + stripped
 if core == cm["data"]["Corefile"]:
     print("[patch-coredns-e2e-domain] Corefile already current")
     sys.exit(0)

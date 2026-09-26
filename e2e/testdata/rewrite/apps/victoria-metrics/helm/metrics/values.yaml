@@ -1,0 +1,4 @@
+server:
+  fullnameOverride: victoria-metrics
+  retentionPeriod: "30d"
+  runtimeClassName: gvisor

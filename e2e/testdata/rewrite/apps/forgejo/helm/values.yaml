@@ -1,0 +1,5 @@
+gitea:
+  oauth:
+    - name: Authelia
+      provider: openidConnect
+      autoDiscoverUrl: https://auth.${BASE_DOMAIN}/.well-known/openid-configuration

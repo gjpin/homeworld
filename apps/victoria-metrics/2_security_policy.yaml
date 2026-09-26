@@ -3,7 +3,7 @@ apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
   name: crowdsec-ext-auth
-  namespace: openobserve
+  namespace: victoria-metrics
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:

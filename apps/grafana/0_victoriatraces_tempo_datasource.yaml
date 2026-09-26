@@ -1,0 +1,17 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: victoriatraces-tempo
+  namespace: grafana
+spec:
+  uid: victoriatraces-tempo
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  datasource:
+    name: VictoriaTraces-Tempo
+    type: tempo
+    access: proxy
+    url: http://victoria-traces.victoria-metrics.svc.cluster.local:10428/select/tempo
+    isDefault: false

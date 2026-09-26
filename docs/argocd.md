@@ -26,7 +26,7 @@
      CNPG-I sidecar injector plugin, after CloudNativePG
    * crowdsec: PostgreSQL-backed CrowdSec LAPI, Envoy log agent, and AppSec WAF,
      after CloudNativePG and External Secrets
-   * openobserve: standalone logs, metrics, and traces backend
+   * victoria-metrics: VictoriaMetrics (metrics), VictoriaLogs (logs), and VictoriaTraces (traces) backend
    * rustfs: shared S3-compatible storage Tenant, after the RustFS Operator,
      External Secrets, and Longhorn
    * velero-ui: web interface for Velero, after the Velero server

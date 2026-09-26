@@ -11,8 +11,10 @@ PROM_BASE="https://raw.githubusercontent.com/prometheus-operator/prometheus-oper
 chart_dir() {
   local glob="$1"
   local match
-  match="$(echo ${glob})"
-  if [[ ! -d "${match}" ]]; then
+  # Multiple downloaded versions can coexist (e.g. after a chart bump);
+  # pick the latest so version bumps don't stale this hook.
+  match="$(ls -d ${glob} 2>/dev/null | sort -V | tail -n 1)"
+  if [[ -z "${match}" || ! -d "${match}" ]]; then
     echo "[apply-operator-crds] chart not found: ${glob}" >&2
     exit 1
   fi
@@ -71,10 +73,17 @@ kubectl apply --server-side --force-conflicts \
   -f "${RUSTFS_CRDS}/policybinding-crd.yaml"
 echo "[apply-operator-crds] rustfs-operator CRDs applied"
 
+DOCUMENTDB_CRDS="${ROOT}/apps/documentdb-operator/helm/local-charts/documentdb-operator/crds"
+kubectl apply --server-side --force-conflicts -f "${DOCUMENTDB_CRDS}"
+echo "[apply-operator-crds] documentdb-operator CRDs applied"
+
 kubectl get crd \
   servicemonitors.monitoring.coreos.com \
   clusterissuers.cert-manager.io \
   clusters.postgresql.cnpg.io \
   grafanas.grafana.integreatly.org \
   dragonflies.dragonflydb.io \
-  tenants.rustfs.com
+  tenants.rustfs.com \
+  dbs.documentdb.io \
+  backups.documentdb.io \
+  scheduledbackups.documentdb.io

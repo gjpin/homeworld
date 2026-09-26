@@ -135,3 +135,55 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/crowdsec"
     targetRevision: HEAD
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: documentdb-operator-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+spec:
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/documentdb-operator"
+    targetRevision: HEAD
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: notesnook-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+spec:
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/notesnook"
+    targetRevision: HEAD
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: woodpecker-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+spec:
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/woodpecker"
+    targetRevision: HEAD
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openchamber-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+spec:
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/openchamber"
+    targetRevision: HEAD

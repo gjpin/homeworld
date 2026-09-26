@@ -390,7 +390,7 @@ spec:
         - matchName: code.forgejo.org
         - matchName: charts.external-secrets.io
         - matchName: charts.longhorn.io
-        - matchName: charts.openobserve.ai
+        - matchName: victoriametrics.github.io
         - matchName: open-telemetry.github.io
         - matchName: operator.rustfs.com
         - matchName: helm.otwld.com

@@ -50,9 +50,6 @@ All cluster secrets are synchronized from [Infisical](https://infisical.com) by 
 | **OpenCloud** | `/opencloud/IDM_ADMIN_PASSWORD` | OpenCloud IDM administrator password. |
 | | `/opencloud/RUSTFS_ACCESS_KEY` | RustFS S3 access key for primary storage. |
 | | `/opencloud/RUSTFS_SECRET_KEY` | RustFS S3 secret key for primary storage. |
-| **OpenObserve** | `/openobserve/ZO_ROOT_USER_EMAIL` | Root account email. |
-| | `/openobserve/ZO_ROOT_USER_PASSWORD` | Root account password. |
-| | `/openobserve/OTLP_AUTHORIZATION` | OTLP ingestion `Authorization` header value for OpenTelemetry Collector. |
 | **RustFS** | `/rustfs/RUSTFS_ACCESS_KEY` | Root S3 access key for the storage Tenant. |
 | | `/rustfs/RUSTFS_SECRET_KEY` | Root S3 secret key for the storage Tenant. |
 | **Velero** | `/velero/B2_APPLICATION_KEY_ID` | Backblaze B2 key ID for backup storage. |

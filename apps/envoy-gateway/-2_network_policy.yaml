@@ -424,7 +424,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-envoy-backend-openobserve
+  name: allow-envoy-backend-victoria-metrics
   namespace: envoy-gateway
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -436,11 +436,21 @@ spec:
   egress:
     - toServices:
         - k8sService:
-            serviceName: openobserve
-            namespace: openobserve
+            serviceName: victoria-metrics
+            namespace: victoria-metrics
+        - k8sService:
+            serviceName: victoria-logs
+            namespace: victoria-metrics
+        - k8sService:
+            serviceName: victoria-traces
+            namespace: victoria-metrics
       toPorts:
         - ports:
-            - port: "5080"
+            - port: "8428"
+              protocol: TCP
+            - port: "9428"
+              protocol: TCP
+            - port: "10428"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2

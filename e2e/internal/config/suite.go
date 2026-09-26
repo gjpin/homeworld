@@ -185,6 +185,13 @@ type ServiceProbe struct {
 	Path      string `yaml:"path,omitempty"`
 	Scheme    string `yaml:"scheme,omitempty"`
 	Timeout   string `yaml:"timeout,omitempty"`
+	// Username/Password add HTTP basic auth to the probe request.
+	Username string `yaml:"username,omitempty"`
+	Password string `yaml:"password,omitempty"`
+	// BodyContains requires the response body to contain the substring.
+	// The probe keeps retrying until the deadline when it is absent,
+	// which proves data actually arrived (not just HTTP 200).
+	BodyContains string `yaml:"bodyContains,omitempty"`
 }
 
 type ResourceCondition struct {

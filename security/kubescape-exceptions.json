@@ -188,14 +188,6 @@
           "name": "^argocd-cm$",
           "namespace": "^argocd$"
         }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^ConfigMap$",
-          "name": "^openobserve$",
-          "namespace": "^openobserve$"
-        }
       }
     ],
     "posturePolicies": [
@@ -846,14 +838,6 @@
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^StatefulSet$",
-          "name": "^openobserve$",
-          "namespace": "^openobserve$"
-        }
       }
     ],
     "posturePolicies": [
@@ -1027,14 +1011,6 @@
           "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^StatefulSet$",
-          "name": "^openobserve$",
-          "namespace": "^openobserve$"
         }
       },
       {
@@ -1549,14 +1525,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^StatefulSet$",
-          "name": "^openobserve$",
-          "namespace": "^openobserve$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^Deployment$",
           "name": "^collabora$",
           "namespace": "^collabora$"
@@ -1938,14 +1906,6 @@
           "kind": "^StatefulSet$",
           "name": "^argocd-argocd-application-controller$",
           "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^StatefulSet$",
-          "name": "^openobserve$",
-          "namespace": "^openobserve$"
         }
       }
     ],
@@ -2736,14 +2696,6 @@
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^StatefulSet$",
-          "name": "^openobserve$",
-          "namespace": "^openobserve$"
-        }
       }
     ],
     "posturePolicies": [
@@ -3317,14 +3269,6 @@
           "kind": "^StatefulSet$",
           "name": "^argocd-argocd-application-controller$",
           "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^StatefulSet$",
-          "name": "^openobserve$",
-          "namespace": "^openobserve$"
         }
       }
     ],
@@ -3993,14 +3937,6 @@
           "name": "^argocd-argocd-application-controller$",
           "namespace": "^argocd$"
         }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^StatefulSet$",
-          "name": "^openobserve$",
-          "namespace": "^openobserve$"
-        }
       }
     ],
     "posturePolicies": [
@@ -4155,14 +4091,6 @@
           "kind": "^StatefulSet$",
           "name": "^argocd-argocd-application-controller$",
           "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^StatefulSet$",
-          "name": "^openobserve$",
-          "namespace": "^openobserve$"
         }
       },
       {
@@ -4329,14 +4257,6 @@
           "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^StatefulSet$",
-          "name": "^openobserve$",
-          "namespace": "^openobserve$"
         }
       }
     ],
@@ -4676,14 +4596,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^StatefulSet$",
-          "name": "^openobserve$",
-          "namespace": "^openobserve$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^Deployment$",
           "name": "^collabora$",
           "namespace": "^collabora$"
@@ -4925,14 +4837,6 @@
           "kind": "^StatefulSet$",
           "name": "^argocd-argocd-application-controller$",
           "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^StatefulSet$",
-          "name": "^openobserve$",
-          "namespace": "^openobserve$"
         }
       }
     ],
@@ -5401,14 +5305,6 @@
           "kind": "^StatefulSet$",
           "name": "^argocd-argocd-application-controller$",
           "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^StatefulSet$",
-          "name": "^openobserve$",
-          "namespace": "^openobserve$"
         }
       },
       {

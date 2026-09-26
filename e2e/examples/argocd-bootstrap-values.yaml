@@ -67,6 +67,11 @@ configs:
       hs.status = "Healthy"
       hs.message = "kind e2e: Dragonfly health ignored for wait-argo"
       return hs
+    resource.customizations.health.documentdb.io_DocumentDB: |
+      hs = {}
+      hs.status = "Healthy"
+      hs.message = "kind e2e: DocumentDB health ignored for wait-argo"
+      return hs
     resource.customizations.health.rustfs.com_Tenant: |
       hs = {}
       hs.status = "Healthy"

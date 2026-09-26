@@ -54,6 +54,32 @@ spec:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+        - name: build-trust-bundle
+          image: streetwriters/notesnook-sync:v1.0-beta.38
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - 'cat /etc/ssl/certs/ca-certificates.crt /ca/ca.crt > /trust/bundle.crt && chmod 0644 /trust/bundle.crt'
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          volumeMounts:
+            - name: documentdb-ca
+              mountPath: /ca
+              readOnly: true
+            - name: trust-bundle
+              mountPath: /trust
       containers:
         - name: sync
           image: streetwriters/notesnook-sync:v1.0-beta.38
@@ -119,7 +145,7 @@ spec:
                   name: notesnook-documentdb-credentials
                   key: password
             - name: MONGODB_CONNECTION_STRING
-              value: "mongodb://$(DOCUMENTDB_USERNAME):$(DOCUMENTDB_PASSWORD)@documentdb-service-notesnook:10260/notesnook?directConnection=true&authMechanism=SCRAM-SHA-256&tls=true&tlsAllowInvalidCertificates=true&replicaSet=rs0"
+              value: "mongodb://$(DOCUMENTDB_USERNAME):$(DOCUMENTDB_PASSWORD)@documentdb-service-notesnook:10260/notesnook?directConnection=true&authMechanism=SCRAM-SHA-256&tls=true&tlsCAFile=/etc/documentdb-ca/ca.crt&replicaSet=rs0"
             - name: MONGODB_DATABASE_NAME
               value: "notesnook"
             - name: S3_INTERNAL_SERVICE_URL
@@ -167,6 +193,17 @@ spec:
                 secretKeyRef:
                   name: notesnook-secrets
                   key: SMTP_PORT
+            # .NET honors OpenSSL's SSL_CERT_FILE for SslStream trust on Linux.
+            # The bundle (system CAs + DocumentDB gateway CA) is built by the
+            # build-trust-bundle init container.
+            - name: SSL_CERT_FILE
+              value: /trust/bundle.crt
+          volumeMounts:
+            - name: documentdb-ca
+              mountPath: /etc/documentdb-ca
+              readOnly: true
+            - name: trust-bundle
+              mountPath: /trust
           livenessProbe:
             httpGet:
               path: /health
@@ -183,3 +220,14 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
+      volumes:
+        - name: documentdb-ca
+          secret:
+            # The gateway serves a self-signed cert; its own TLS secret
+            # carries the matching CA (notesnook-ca does not sign it).
+            secretName: notesnook-gateway-cert-tls
+            items:
+              - key: ca.crt
+                path: ca.crt
+        - name: trust-bundle
+          emptyDir: {}

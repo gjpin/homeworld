@@ -4,7 +4,23 @@
 # EnvoyProxy/SecurityPolicy. Apply the vendored chart CRDs up front.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-CRDS="${ROOT}/apps/envoy-gateway/helm/charts/gateway-helm-v1.7.2/gateway-helm/crds"
+# Chart version is pinned in apps/envoy-gateway/helm/kustomization.yaml;
+# resolve dynamically so version bumps don't stale this hook.
+CHART_BASE="$(ls -d "${ROOT}"/apps/envoy-gateway/helm/charts/gateway-helm-*/gateway-helm 2>/dev/null | sort -V | tail -n 1)"
+if [[ -z "${CHART_BASE}" || ! -d "${CHART_BASE}" ]]; then
+  echo "[apply-envoy-gateway-crds] chart not found under apps/envoy-gateway/helm/charts" >&2
+  exit 1
+fi
+# v1.9+ nests CRDs under charts/crds/crds (generated/ + gatewayapi-crds.yaml);
+# v1.7 used gateway-helm/crds directly.
+if [[ -d "${CHART_BASE}/charts/crds/crds/generated" ]]; then
+  CRDS="${CHART_BASE}/charts/crds/crds"
+elif [[ -d "${CHART_BASE}/crds/generated" ]]; then
+  CRDS="${CHART_BASE}/crds"
+else
+  echo "[apply-envoy-gateway-crds] CRD dir not found under ${CHART_BASE}" >&2
+  exit 1
+fi
 
 kubectl apply --server-side --force-conflicts -f "${CRDS}/generated"
 # Gateway API CRDs (HTTPRoute/Gateway/GRPCRoute) live beside the Envoy

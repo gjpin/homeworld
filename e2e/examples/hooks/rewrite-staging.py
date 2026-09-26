@@ -22,6 +22,9 @@ OMIT_APPS = {
     # to cover Grafana/OpenObserve/Collabora/OpenCloud/
     # Radicale/CrowdSec/Forgejo/Immich.
     "otel-collector-app",
+    # Image ghcr.io/gjpin/openchamber is private; kind cannot pull it
+    # without credentials (401 Unauthorized).
+    "openchamber-app",
 }
 
 GIT_REPO_URL = "git://host.docker.internal:9418/homeworld.git"
@@ -169,12 +172,32 @@ E2E_IGNORE_ITEMS = (
     "        - .spec.matchResources.resourceRules[].scope\n",
     "    - group: apps\n"
     "      kind: StatefulSet\n"
-    "      name: openobserve\n"
+    "      name: victoria-metrics\n"
     "      jqPathExpressions:\n"
     "        - .spec.volumeClaimTemplates\n"
     "        - .spec.template.spec.initContainers\n"
     "        - .spec.template.spec.volumes\n"
     "        - .spec.persistentVolumeClaimRetentionPolicy\n",
+    "    - group: apps\n"
+    "      kind: StatefulSet\n"
+    "      name: victoria-logs\n"
+    "      jqPathExpressions:\n"
+    "        - .spec.volumeClaimTemplates\n"
+    "        - .spec.template.spec.initContainers\n"
+    "        - .spec.template.spec.volumes\n"
+    "        - .spec.persistentVolumeClaimRetentionPolicy\n",
+    "    - group: apps\n"
+    "      kind: StatefulSet\n"
+    "      name: victoria-traces\n"
+    "      jqPathExpressions:\n"
+    "        - .spec.volumeClaimTemplates\n"
+    "        - .spec.template.spec.initContainers\n"
+    "        - .spec.template.spec.volumes\n"
+    "        - .spec.persistentVolumeClaimRetentionPolicy\n",
+    "    - group: documentdb.io\n"
+    "      kind: DocumentDB\n"
+    "      jsonPointers:\n"
+    "        - /spec\n",
 )
 
 
@@ -310,6 +333,42 @@ def rewrite_kind_userns(root: pathlib.Path) -> None:
     print(f"[rewrite-staging] hostUsers false->true in {count} files")
 
 
+def rewrite_kind_runtime_class(root: pathlib.Path) -> None:
+    """Kind nodes have no runsc binary, so runtimeClassName: gvisor never starts."""
+    import re
+    count = 0
+    for path in root.rglob("*.yaml"):
+        try:
+            text = path.read_text()
+        except (OSError, UnicodeDecodeError):
+            continue
+        new = re.sub(r"(?m)^\s*runtimeClassName:\s*gvisor\s*\n", "", text)
+        if new != text:
+            path.write_text(new)
+            count += 1
+    for kpath in root.rglob("kustomization.yaml"):
+        try:
+            ktext = kpath.read_text()
+        except (OSError, UnicodeDecodeError):
+            continue
+        knew = re.sub(
+            r"(?m)^\s*- op: add\n\s*path: /spec/template/spec/runtimeClassName\n\s*value: gvisor\n",
+            "",
+            ktext,
+        )
+        # Dropping the only op in a patch leaves `patch: |-` with an empty
+        # body, which kustomize rejects. Remove such emptied patch entries.
+        knew = re.sub(
+            r"(?m)^  - target:\n(?:    .*\n)+?    patch: \|-\n(?=  - target:\n|\Z)",
+            "",
+            knew,
+        )
+        if knew != ktext:
+            kpath.write_text(knew)
+            count += 1
+    print(f"[rewrite-staging] runtimeClassName gvisor removed in {count} files")
+
+
 def rewrite_gateway_from_all(root: pathlib.Path) -> None:
     """Gateway API v1 enum is All/Selector/Same; homelab YAML uses lowercase all."""
     count = 0
@@ -339,22 +398,29 @@ def rewrite_eso_decoding_none(root: pathlib.Path) -> None:
 
 
 def rewrite_dragonfly_nonroot(root: pathlib.Path) -> None:
-    """Dragonfly image USER is root and the entrypoint calls setpriv (needs SETUID)."""
+    """Run Dragonfly as the image's dfly user (UID/GID 999).
+
+    The image has no USER (root by default) and the entrypoint only calls
+    setpriv when started as root. Running as 999 skips setpriv, keeps
+    runAsNonRoot, and stays within Restricted Pod Security (the previous
+    root + SETUID rewrite is rejected by PSA enforcement).
+    """
     count = 0
     for path in root.rglob("*.yaml"):
         text = path.read_text()
         if "kind: Dragonfly" not in text:
             continue
-        new = text.replace("runAsNonRoot: true", "runAsNonRoot: false")
-        if "SETUID" not in new:
-            new = new.replace(
-                "      drop:\n        - ALL\n",
-                "      drop:\n        - ALL\n      add:\n        - SETUID\n        - SETGID\n",
+        new = text
+        if "runAsUser:" not in new:
+            new = re.sub(
+                r"(?m)^(\s*)runAsNonRoot: true\s*$",
+                r"\1runAsNonRoot: true\n\1runAsUser: 999\n\1runAsGroup: 999",
+                new,
             )
         if new != text:
             path.write_text(new)
             count += 1
-    print(f"[rewrite-staging] Dragonfly runAsNonRoot/SETUID in {count} files")
+    print(f"[rewrite-staging] Dragonfly dfly user 999 in {count} files")
 
 
 def rewrite_statefulset_strategy(root: pathlib.Path) -> None:
@@ -419,13 +485,14 @@ def rewrite_opencloud_collaboration_insecure(root: pathlib.Path) -> None:
 def rewrite_opencloud_web_extensions(root: pathlib.Path) -> None:
     """web-extensions 2.x ships apps under /usr/share/nginx/html/apps/<name>/.
 
-    importer-1.0.0 still uses /usr/share/nginx/html/importer/ (no apps/ prefix).
+    importer-1.0.0 still uses /usr/share/nginx/html/importer/ (no apps/ prefix),
+    and cast-1.0.0 still uses /usr/share/nginx/html/cast/.
     """
     count = 0
     for path in root.rglob("*.yaml"):
         text = path.read_text()
         new = re.sub(
-            r"/usr/share/nginx/html/(?!apps/)(?!importer/)",
+            r"/usr/share/nginx/html/(?!apps/)(?!importer/)(?!cast/)",
             "/usr/share/nginx/html/apps/",
             text,
         )
@@ -525,6 +592,54 @@ def rewrite_crowdsec_disable_enroll(root: pathlib.Path) -> None:
             path.write_text(new)
             count += 1
     print(f"[rewrite-staging] crowdsec console enroll disabled in {count} files")
+
+
+def rewrite_forgejo_oidc_http(root: pathlib.Path) -> None:
+    """Trust the kind Gateway CA in gitea's OIDC registration init.
+
+    configure-gitea fetches Authelia discovery over https://auth.e2e.local,
+    which serves a self-signed cert-manager cert on kind. Mount that cert's
+    CA (stored by cert-manager in the tls Secret) and point Go at it via
+    SSL_CERT_FILE. Nothing in e2e exercises the browser OIDC flow.
+    """
+    path = root / "apps" / "forgejo" / "helm" / "kustomization.yaml"
+    if not path.exists():
+        print("[rewrite-staging] forgejo kustomization missing; skipping OIDC CA trust")
+        return
+    text = path.read_text()
+    if "gateway-ca" in text:
+        print("[rewrite-staging] forgejo OIDC CA trust already present")
+        return
+    entry = (
+        "  - target:\n"
+        "      group: apps\n"
+        "      version: v1\n"
+        "      kind: Deployment\n"
+        "      name: ^forgejo$\n"
+        "      namespace: ^forgejo$\n"
+        "    patch: |-\n"
+        "      - op: add\n"
+        "        path: /spec/template/spec/volumes/-\n"
+        "        value:\n"
+        "          name: gateway-ca\n"
+        "          secret:\n"
+        # Created at deploy time by copy-gateway-ca.sh from the Authelia
+        # Gateway TLS secret (per-Gateway self-signed CAs on kind).
+        "            secretName: gateway-ca\n"
+        "            items:\n"
+        "            - key: ca.crt\n"
+        "              path: ca.crt\n"
+        "      - op: add\n"
+        "        path: /spec/template/spec/initContainers/2/env/-\n"
+        "        value: {name: SSL_CERT_FILE, value: /gateway-ca/ca.crt}\n"
+        "      - op: add\n"
+        "        path: /spec/template/spec/initContainers/2/volumeMounts/-\n"
+        "        value: {name: gateway-ca, mountPath: /gateway-ca, readOnly: true}\n"
+    )
+    if not text.endswith("\n"):
+        text += "\n"
+    path.write_text(text + entry)
+    print("[rewrite-staging] forgejo OIDC discovery trusts kind Gateway CA")
 
 
 def rewrite_crowdsec_registration_token(root: pathlib.Path) -> None:
@@ -631,6 +746,7 @@ def rewrite_argocd_disable_extras(root: pathlib.Path) -> None:
         ("postgresql.cnpg.io_Cluster", "kind e2e: CNPG Cluster health ignored for wait-argo"),
         ("postgresql.cnpg.io_Database", "kind e2e: CNPG Database health ignored for wait-argo"),
         ("dragonflydb.io_Dragonfly", "kind e2e: Dragonfly health ignored for wait-argo"),
+        ("documentdb.io_DocumentDB", "kind e2e: DocumentDB health ignored for wait-argo"),
         ("rustfs.com_Tenant", "kind e2e: RustFS Tenant health ignored for wait-argo"),
         ("gateway.networking.k8s.io_Gateway", "kind e2e: Gateway health ignored for wait-argo"),
         ("gateway.networking.k8s.io_GatewayClass", "kind e2e: GatewayClass health ignored for wait-argo"),
@@ -774,47 +890,6 @@ def rewrite_collabora_kind_jail(root: pathlib.Path) -> None:
         print("[rewrite-staging] collabora jail rewrite unchanged")
 
 
-def rewrite_openobserve_probes(root: pathlib.Path) -> None:
-    """OpenObserve healthz is slower than the chart's default 1s probe timeout on kind."""
-    needle = (
-        "           initialDelaySeconds: "
-        "{{ .Values.probes.initialDelaySeconds | default 10 }}\n"
-    )
-    insert = (
-        needle
-        + "           timeoutSeconds: "
-        "{{ .Values.probes.timeoutSeconds | default 15 }}\n"
-    )
-    count_tpl = 0
-    for path in root.rglob("openobserve-statefulset.yaml"):
-        if "templates" not in path.parts:
-            continue
-        text = path.read_text()
-        if "timeoutSeconds:" in text or needle not in text:
-            continue
-        path.write_text(text.replace(needle, insert))
-        count_tpl += 1
-    values = (
-        root / "apps" / "openobserve" / "helm" / "values.yaml"
-    )
-    if values.exists():
-        text = values.read_text()
-        if "timeoutSeconds:" not in text:
-            if not text.endswith("\n"):
-                text += "\n"
-            values.write_text(
-                text
-                + "probes:\n"
-                "  enabled: true\n"
-                "  initialDelaySeconds: 45\n"
-                "  periodSeconds: 15\n"
-                "  failureThreshold: 12\n"
-                "  timeoutSeconds: 15\n"
-            )
-            print("[rewrite-staging] openobserve probe delays/timeouts relaxed")
-        else:
-            print("[rewrite-staging] openobserve values probes already set")
-    print(f"[rewrite-staging] openobserve statefulset timeoutSeconds in {count_tpl} templates")
 
 
 def rewrite_immich_vchord(root: pathlib.Path) -> None:
@@ -1216,6 +1291,59 @@ def rewrite_rustfs_map_hostusers(root: pathlib.Path) -> None:
         print("[rewrite-staging] rustfs MAP matchCondition unchanged")
 
 
+def rewrite_documentdb_kind(root: pathlib.Path) -> None:
+    """Kind webhook/cert-manager is slow; Fail blocks DocumentDB CREATE."""
+    count = 0
+    for path in root.rglob("10_documentdb_webhook.yaml"):
+        if "documentdb-operator" not in path.as_posix():
+            continue
+        text = path.read_text()
+        if "failurePolicy: Fail" in text:
+            path.write_text(text.replace("failurePolicy: Fail", "failurePolicy: Ignore"))
+            count += 1
+    for path in root.rglob("09_documentdb_operator.yaml"):
+        if "documentdb-operator" not in path.as_posix():
+            continue
+        text = path.read_text()
+        new = re.sub(
+            r"(?m)^(\s*)periodSeconds: (10|20)\n(?!\s*timeoutSeconds:)",
+            r"\g<0>\1timeoutSeconds: 15\n",
+            text,
+        )
+        if new != text:
+            path.write_text(new)
+            count += 1
+    print(f"[rewrite-staging] documentdb webhook Ignore + probe timeouts in {count} files")
+
+
+def rewrite_openchamber_kind(root: pathlib.Path) -> None:
+    """Single-node kind cannot afford 100Gi hostPath or 2CPU/4Gi requests."""
+    pvc = root / "apps" / "openchamber" / "0_pvc.yaml"
+    if pvc.exists():
+        text = pvc.read_text()
+        new = text.replace("storage: 100Gi", "storage: 10Gi")
+        if new != text:
+            pvc.write_text(new)
+            print("[rewrite-staging] openchamber PVC 100Gi->10Gi")
+        else:
+            print("[rewrite-staging] openchamber PVC unchanged")
+    dep = root / "apps" / "openchamber" / "1_deployment.yaml"
+    if dep.exists():
+        text = dep.read_text()
+        new = text.replace(
+            "            requests:\n              cpu: \"2\"\n              memory: 4Gi",
+            "            requests:\n              cpu: \"500m\"\n              memory: 1Gi",
+        ).replace(
+            "            limits:\n              cpu: \"8\"\n              memory: 16Gi",
+            "            limits:\n              cpu: \"2\"\n              memory: 4Gi",
+        )
+        if new != text:
+            dep.write_text(new)
+            print("[rewrite-staging] openchamber resources relaxed for kind")
+        else:
+            print("[rewrite-staging] openchamber resources unchanged")
+
+
 def rewrite_nested_sync_options(root: pathlib.Path) -> None:
     count = 0
     for path in root.rglob("*.yaml"):
@@ -1271,6 +1399,7 @@ def main() -> int:
     rewrite_app_of_apps(root / "apps" / "app-of-apps.yaml")
     rewrite_nested_sync_options(root)
     rewrite_kind_userns(root)
+    rewrite_kind_runtime_class(root)
     rewrite_gateway_from_all(root)
     rewrite_eso_decoding_none(root)
     rewrite_dragonfly_nonroot(root)
@@ -1280,6 +1409,7 @@ def main() -> int:
     rewrite_opencloud_collaboration_insecure(root)
     rewrite_crowdsec_credential_secrets(root)
     rewrite_crowdsec_postgres_template(root)
+    rewrite_forgejo_oidc_http(root)
     rewrite_crowdsec_registration_token(root)
     rewrite_crowdsec_disable_enroll(root)
     rewrite_crowdsec_skip_hooks(root)
@@ -1287,7 +1417,6 @@ def main() -> int:
     rewrite_argocd_disable_extras(root)
     # Controller memory patch lives in rewrite_argocd_disable_extras.
     rewrite_collabora_kind_jail(root)
-    rewrite_openobserve_probes(root)
     rewrite_immich_kind_storage(root)
     rewrite_immich_vchord(root)
     rewrite_rustfs_map_hostusers(root)
@@ -1296,6 +1425,8 @@ def main() -> int:
     rewrite_cnpg_probes(root)
     rewrite_authelia_rolling_update(root)
     rewrite_operator_probes(root)
+    rewrite_documentdb_kind(root)
+    rewrite_openchamber_kind(root)
     patch_infisical_cnp(root / "apps" / "external-secrets" / "-2_network_policy.yaml")
     patch_argocd_repo_cnp(root / "apps" / "argocd" / "-2_network_policy.yaml")
     return 0

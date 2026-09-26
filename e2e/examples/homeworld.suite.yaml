@@ -132,6 +132,11 @@ spec:
           name: refresh-argo
           command: ["./e2e/examples/hooks/refresh-argo.sh"]
           timeout: 5m
+      - name: copy-gateway-ca
+        hook:
+          name: copy-gateway-ca
+          command: ["./e2e/examples/hooks/copy-gateway-ca.sh"]
+          timeout: 5m
       - name: patch-coredns
         hook:
           name: patch-coredns-e2e-domain
@@ -161,7 +166,7 @@ spec:
         podsReady:
           excludeNamespaces:
             - kube-system
-            # Still-omitted apps (Longhorn/Velero/HA/external-dns/otel)
+            # Still-omitted apps (Longhorn/Velero/HA/external-dns/otel/openchamber)
             # can linger Terminating on --keep-cluster.
             - longhorn-system
             - velero
@@ -169,6 +174,7 @@ spec:
             - external-dns
             - otel-collector
             - otel-collector-node
+            - openchamber
           ignoreCompletedJobs: true
       - name: workloads
         workloadsReady:
@@ -185,13 +191,16 @@ spec:
             - authelia
             - grafana-operator
             - grafana
-            - openobserve
+            - victoria-metrics
             - collabora
             - opencloud
             - radicale
             - crowdsec
             - forgejo
             - immich
+            - documentdb-operator
+            - notesnook
+            - woodpecker
       - name: eso-store
         resourceCondition:
           apiVersion: external-secrets.io/v1
@@ -263,8 +272,74 @@ spec:
           condition: Ready
           status: "True"
           timeout: 10m
+      - name: cnpg-woodpecker
+        resourceCondition:
+          apiVersion: postgresql.cnpg.io/v1
+          kind: Cluster
+          name: woodpecker
+          namespace: woodpecker
+          condition: Ready
+          status: "True"
+          timeout: 10m
+      - name: documentdb-notesnook
+        resourceCondition:
+          apiVersion: postgresql.cnpg.io/v1
+          kind: Cluster
+          name: notesnook
+          namespace: notesnook
+          condition: Ready
+          status: "True"
+          timeout: 10m
       - name: gateway-envoy
         gatewayReady:
           name: envoy
           namespace: envoy-gateway
+          timeout: 10m
+      # VictoriaMetrics must actually hold OTel-exported series, not just run.
+      - name: victoria-metrics-data
+        serviceProbe:
+          namespace: victoria-metrics
+          service: victoria-metrics
+          port: 8428
+          path: "/api/v1/query?query=otelcol_process_uptime"
+          bodyContains: '"result":[{'
+          timeout: 10m
+      # VictoriaLogs must actually hold OTel-exported log lines, not just run.
+      - name: victoria-logs-data
+        serviceProbe:
+          namespace: victoria-metrics
+          service: victoria-logs
+          port: 9428
+          path: "/select/logsql/query?query=*&limit=1"
+          bodyContains: "_time"
+          timeout: 10m
+      # VictoriaTraces Jaeger query API must answer.
+      - name: victoria-traces-api
+        serviceProbe:
+          namespace: victoria-metrics
+          service: victoria-traces
+          port: 10428
+          path: "/select/jaeger/api/services"
+          timeout: 10m
+      # Grafana must serve its provisioned VictoriaMetrics datasource end to end.
+      - name: grafana-victoria-metrics
+        serviceProbe:
+          namespace: grafana
+          service: grafana-service
+          port: 3000
+          path: "/api/datasources/proxy/uid/victoriametrics/api/v1/query?query=otelcol_process_uptime"
+          username: admin
+          password: e2e-grafana
+          bodyContains: '"result":[{'
+          timeout: 10m
+      # Grafana must serve its provisioned VictoriaLogs datasource end to end.
+      - name: grafana-victorialogs
+        serviceProbe:
+          namespace: grafana
+          service: grafana-service
+          port: 3000
+          path: "/api/datasources/proxy/uid/victorialogs/select/logsql/query?query=*&limit=1"
+          username: admin
+          password: e2e-grafana
+          bodyContains: "_time"
           timeout: 10m
