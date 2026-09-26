@@ -34,7 +34,7 @@ spec:
       # sets hostUsers: true (production stays hostUsers: false). A second
       # kind node doubles kubelet/containerd inotify usage. Raise
       # fs.inotify.max_user_instances on the Docker VM (Lima) to 1024
-      # before covering Grafana/OpenObserve/Collabora/OpenCloud/
+      # before covering Grafana/Victoria/Collabora/OpenCloud/
       # Radicale/CrowdSec/Forgejo/Immich.
       nodes:
       - role: control-plane
@@ -166,8 +166,11 @@ spec:
         podsReady:
           excludeNamespaces:
             - kube-system
-            # Still-omitted apps (Longhorn/Velero/HA/external-dns/otel/openchamber)
-            # can linger Terminating on --keep-cluster.
+            # Still-omitted apps (Longhorn/Velero/HA/external-dns/openchamber)
+            # can linger Terminating on --keep-cluster. The otel collectors
+            # are deployed but excluded here: hostPath/kubelet integration on
+            # kind can flap independently of the victoria data probes below,
+            # which assert the collectors actually export metrics and logs.
             - longhorn-system
             - velero
             - homeassistant

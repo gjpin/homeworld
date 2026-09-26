@@ -30,6 +30,21 @@ securityContext:
 service:
   enabled: true
   type: ClusterIP
+# The Prometheus receiver's `k8s` job uses kubernetes_sd (role: pod) to
+# scrape pods annotated prometheus.io/scrape=true. That discovery needs
+# pod list/watch at cluster scope; without a ClusterRole the receiver
+# logs "pods is forbidden" and the job never finds targets.
+clusterRole:
+  create: true
+  rules:
+    - apiGroups:
+        - ""
+      resources:
+        - pods
+      verbs:
+        - get
+        - list
+        - watch
 config:
   receivers:
     jaeger: null
@@ -49,10 +64,23 @@ config:
               - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
                 regex: "true"
                 action: keep
-            metric_relabel_configs:
-              - source_labels: [__name__]
-                regex: "(request_duration_seconds.*|response_duration_seconds.*)"
-                action: keep
+              - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                action: replace
+                regex: (.+)
+                target_label: __metrics_path__
+              # kubernetes_sd (role: pod) yields one target per declared
+              # containerPort, which scrapes databases and admin ports and
+              # never the annotated port. Rewrite __address__ to the
+              # prometheus.io/port annotation (canonical kubernetes-pods job).
+              - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+                action: replace
+                regex: (.+?)(?::\d+)?;(\d+)
+                replacement: $1:$2
+                target_label: __address__
+            # No metric name filter: the prometheus.io/scrape annotation is the
+            # deliberate allowlist (envoy gateway, velero node-agent, ...), and
+            # the envoy-gateway dashboards query raw envoy_* families from the
+            # proxy's /stats/prometheus endpoint.
     otlp:
       protocols:
         grpc:

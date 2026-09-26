@@ -18,10 +18,6 @@ OMIT_APPS = {
     "velero-ui-app",
     "homeassistant-app",
     "external-dns-app",
-    # Prometheus receiver + two collectors plus extra RBAC; not needed
-    # to cover Grafana/OpenObserve/Collabora/OpenCloud/
-    # Radicale/CrowdSec/Forgejo/Immich.
-    "otel-collector-app",
     # Image ghcr.io/gjpin/openchamber is private; kind cannot pull it
     # without credentials (401 Unauthorized).
     "openchamber-app",
@@ -142,10 +138,13 @@ E2E_IGNORE_ITEMS = (
     "        - /operation\n"
     "      jqPathExpressions:\n"
     "        - .spec.syncPolicy.automated.allowEmpty\n",
+    # The Grafana operator only re-serializes spec.deployment (no semantic
+    # defaulting), so it must NOT be ignored: ignoring the whole block froze
+    # the openobserve plugin loader in place and prevented the victoria
+    # plugins from ever deploying.
     "    - group: grafana.integreatly.org\n"
     "      kind: Grafana\n"
     "      jqPathExpressions:\n"
-    "        - .spec.deployment\n"
     "        - .spec.persistentVolumeClaim\n"
     "        - .spec.httpRoute\n",
     "    - group: postgresql.cnpg.io\n"
@@ -743,6 +742,7 @@ def rewrite_argocd_disable_extras(root: pathlib.Path) -> None:
     # saturated kind node and block wait-argo even when git is Synced.
     for gvk, msg in (
         ("argoproj.io_Application", "kind e2e: nested Application health ignored"),
+        ("grafana.integreatly.org_Grafana", "kind e2e: Grafana instance health ignored for wait-argo"),
         ("postgresql.cnpg.io_Cluster", "kind e2e: CNPG Cluster health ignored for wait-argo"),
         ("postgresql.cnpg.io_Database", "kind e2e: CNPG Database health ignored for wait-argo"),
         ("dragonflydb.io_Dragonfly", "kind e2e: Dragonfly health ignored for wait-argo"),
@@ -1257,6 +1257,29 @@ def rewrite_crowdsec_disable_agent(root: pathlib.Path) -> None:
     print(f"[rewrite-staging] crowdsec agent disabled in {count} files")
 
 
+def rewrite_otel_node_disable_kubeletstats(root: pathlib.Path) -> None:
+    """Kind kubelet serving certs carry no IP SANs; kubeletstats TLS-verifies the node IP.
+
+    The receiver would retry forever on kind. Host/container metrics still flow
+    from the filelog and hostmetrics presets; nothing in the suite asserts
+    kubelet summary metrics.
+    """
+    path = root / "apps" / "otel-collector" / "helm" / "node" / "values.yaml"
+    if not path.exists():
+        print("[rewrite-staging] otel node values missing; skipping kubeletstats disable")
+        return
+    text = path.read_text()
+    new = text.replace(
+        "kubeletMetrics:\n    enabled: true\n",
+        "kubeletMetrics:\n    enabled: false\n",
+    )
+    if new != text:
+        path.write_text(new)
+        print("[rewrite-staging] otel node kubeletstats disabled for kind")
+    else:
+        print("[rewrite-staging] otel node kubeletstats already disabled")
+
+
 def rewrite_rustfs_map_hostusers(root: pathlib.Path) -> None:
     """Always apply hostUsers: true so operator-emitted false still gets flipped.
 
@@ -1422,6 +1445,7 @@ def main() -> int:
     rewrite_rustfs_map_hostusers(root)
     rewrite_route_sync_wave(root)
     rewrite_crowdsec_disable_agent(root)
+    rewrite_otel_node_disable_kubeletstats(root)
     rewrite_cnpg_probes(root)
     rewrite_authelia_rolling_update(root)
     rewrite_operator_probes(root)

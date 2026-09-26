@@ -19,6 +19,23 @@ service:
   enabled: true
   type: ClusterIP
   trafficDistribution: PreferClose
+# PSS baseline/privileged transition history: hostPort is forbidden by the
+# baseline profile and useless here — nothing sends telemetry to node IPs
+# (the pod collector Service is the OTLP entry point), so the agent does not
+# claim host ports.
+ports:
+  otlp:
+    hostPort: 0
+  otlp-http:
+    hostPort: 0
+  jaeger-compact:
+    hostPort: 0
+  jaeger-thrift:
+    hostPort: 0
+  jaeger-grpc:
+    hostPort: 0
+  zipkin:
+    hostPort: 0
 resources:
   requests:
     cpu: 10m

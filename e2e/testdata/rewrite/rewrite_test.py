@@ -131,8 +131,8 @@ def main() -> int:
             raise SystemExit("grafana SecurityPolicy file missing")
         if "crowdsec-envoy-bouncer-app" not in apps:
             raise SystemExit("crowdsec-envoy-bouncer-app should be kept")
-        if "otel-collector-app" in apps:
-            raise SystemExit("otel-collector-app should be omitted")
+        if "otel-collector-app" not in apps:
+            raise SystemExit("otel-collector-app should be kept")
         cs = (dest / "apps" / "crowdsec" / "-1_secrets.yaml").read_text()
         if '{{ .password }}' not in cs:
             raise SystemExit("crowdsec postgres template missing password")

@@ -111,7 +111,7 @@ spec:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: envoy-gateway
             k8s:app.kubernetes.io/name: envoy
-            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
       toPorts:
         - ports:
             - port: "18000"
@@ -129,7 +129,7 @@ spec:
     matchLabels:
       k8s:io.kubernetes.pod.namespace: envoy-gateway
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   ingress:
     # The merged Gateway's public listener is the only world-facing workload.
     - fromEntities:
@@ -167,7 +167,7 @@ spec:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: envoy-gateway
             k8s:app.kubernetes.io/name: envoy
-            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
             k8s:app.kubernetes.io/instance: otel-collector-pod
@@ -190,7 +190,7 @@ spec:
     matchLabels:
       k8s:io.kubernetes.pod.namespace: envoy-gateway
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:
@@ -212,7 +212,7 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:
@@ -234,7 +234,7 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:
@@ -256,7 +256,7 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:
@@ -278,7 +278,7 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:
@@ -300,7 +300,7 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:
@@ -322,7 +322,7 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:
@@ -344,7 +344,7 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:
@@ -366,7 +366,7 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:
@@ -388,7 +388,7 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:
@@ -410,7 +410,7 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:
@@ -432,7 +432,7 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:
@@ -464,7 +464,7 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:
@@ -486,7 +486,7 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:
@@ -508,7 +508,7 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:
@@ -530,7 +530,7 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     - toServices:
         - k8sService:

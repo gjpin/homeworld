@@ -70,7 +70,7 @@ spec:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: envoy-gateway
             k8s:app.kubernetes.io/name: envoy
-            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
       toPorts:
         - ports:
             - port: "9980"

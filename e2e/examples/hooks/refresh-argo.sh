@@ -53,6 +53,33 @@ for doc in re.split(r"(?m)^---\s*$", text):
       continue
     fi
     log "pruning omitted application ${app}"
+    # Delete the parent's nested child Applications first, while the API is
+    # calm and their status.resources lists are valid. Argo's cascade prune
+    # of a child Application CR skips the child's own resources-finalizer,
+    # which orphans the child's workloads (observed with openobserve-app).
+    src_path="$(kretry get application "${app}" -n argocd -o jsonpath='{.spec.source.path}' || true)"
+    if [[ -n "${src_path}" ]]; then
+      children="$(python3 -c '
+import json, subprocess, sys
+path = sys.argv[1]
+apps = json.loads(subprocess.check_output([
+    "kubectl", "--request-timeout=25s", "get", "applications", "-n", "argocd",
+    "-o", "json",
+], stderr=subprocess.DEVNULL)).get("items", [])
+for a in apps:
+    src = (a.get("spec") or {}).get("source") or {}
+    child_path = src.get("path") or ""
+    if child_path.startswith(path + "/"):
+        print(a["metadata"]["name"])
+' "${src_path}" || true)"
+      while IFS= read -r child; do
+        [[ -z "${child}" ]] && continue
+        log "pruning nested application ${child}"
+        kretry delete application "${child}" -n argocd --wait=false >/dev/null \
+          || log "WARN delete ${child} failed"
+        sleep 1
+      done <<<"${children}"
+    fi
     # Drop part-of=homeworld first: wait-argo selects on that label, and a
     # Terminating Application with resources-finalizer stays Progressing.
     kretry label application "${app}" -n argocd app.kubernetes.io/part-of- --overwrite >/dev/null \

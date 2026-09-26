@@ -304,7 +304,10 @@ spec:
     - ServerSideApply=true
     managedNamespaceMetadata:
       labels:
-        pod-security.kubernetes.io/enforce: baseline
+        # PSS baseline forbids hostPath volumes; the node-agent DaemonSet
+        # mounts /var/lib/kubelet/{pods,plugins}, so the namespace follows
+        # the Longhorn node-integration exception profile.
+        pod-security.kubernetes.io/enforce: privileged
         pod-security.kubernetes.io/enforce-version: v1.36
         pod-security.kubernetes.io/audit: restricted
         pod-security.kubernetes.io/audit-version: v1.36
@@ -634,14 +637,14 @@ spec:
     - ServerSideApply=true
     managedNamespaceMetadata:
       labels:
-        pod-security.kubernetes.io/enforce: baseline
+        pod-security.kubernetes.io/enforce: privileged
         pod-security.kubernetes.io/enforce-version: v1.36
         pod-security.kubernetes.io/audit: restricted
         pod-security.kubernetes.io/audit-version: v1.36
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.36
       annotations:
-        security.homeworld/exception-reason: The pinned CrowdSec image requires root for staged startup configuration, and the agent reads container logs through its chart-managed read-only /var/log hostPath.
+        security.homeworld/exception-reason: The pinned CrowdSec image requires root for staged startup configuration, and the agent reads container logs through its chart-managed read-only /var/log hostPath, which PSS baseline forbids.
 ---
 # crowdsec-envoy-bouncer
 apiVersion: argoproj.io/v1alpha1
@@ -876,12 +879,17 @@ spec:
     - ServerSideApply=true
     managedNamespaceMetadata:
       labels:
-        pod-security.kubernetes.io/enforce: baseline
+        # Zigbee2MQTT mounts a /dev/serial/by-id hostPath for the USB
+        # coordinator and Home Assistant runs as container UID 0 under
+        # s6-overlay; PSS baseline forbids hostPath volumes.
+        pod-security.kubernetes.io/enforce: privileged
         pod-security.kubernetes.io/enforce-version: v1.36
         pod-security.kubernetes.io/audit: restricted
         pod-security.kubernetes.io/audit-version: v1.36
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.36
+      annotations:
+        security.homeworld/exception-reason: Home Assistant runs as container UID 0 under s6-overlay and Zigbee2MQTT needs a /dev/serial/by-id hostPath for the USB coordinator; PSS baseline forbids those host integrations.
 ---
 # radicale
 apiVersion: argoproj.io/v1alpha1

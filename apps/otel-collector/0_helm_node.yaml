@@ -25,7 +25,10 @@ spec:
     - ServerSideApply=true
     managedNamespaceMetadata:
       labels:
-        pod-security.kubernetes.io/enforce: baseline
+        # PSS baseline forbids hostPath volumes, so only the privileged
+        # profile admits the filelog/hostmetrics presets (host ports stay
+        # disabled in the chart values; nothing sends to node IPs).
+        pod-security.kubernetes.io/enforce: privileged
         pod-security.kubernetes.io/enforce-version: v1.36
         pod-security.kubernetes.io/audit: restricted
         pod-security.kubernetes.io/audit-version: v1.36
