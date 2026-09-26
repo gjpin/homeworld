@@ -23,3 +23,27 @@ patches:
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: ^woodpecker-server$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: container-image-pull-policy,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-probes-identical
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: The upstream chart pins UID/GID 1000 and writes to its root filesystem; the chart intentionally shares its health endpoint between probes, Cilium enforces the network boundary, and the pinned image is pulled IfNotPresent to reuse the node cache.
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: ^woodpecker-agent$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: container-image-pull-policy,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,statefulset-has-servicename
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: The upstream chart pins UID/GID 1000 and writes to its root filesystem; the upstream chart never creates the headless Service named by the StatefulSet, Cilium enforces the network boundary, and the pinned image is pulled IfNotPresent to reuse the node cache.

@@ -361,6 +361,16 @@
       "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
     },
     {
+      "check": "C-0259",
+      "control": "Workload with credential access",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
       "check": "C-0260",
       "control": "Missing network policy",
       "profiles": [

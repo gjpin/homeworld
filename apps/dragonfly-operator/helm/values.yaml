@@ -5,8 +5,8 @@ additionalLabels:
   app: dragonfly-operator
 
 deploymentAnnotations:
-  kube-score/ignore: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-replicas
-  security.homeworld/exception-reason: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+  kube-score/ignore: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-replicas,container-image-pull-policy
+  security.homeworld/exception-reason: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
 
 podSecurityContext:
   runAsNonRoot: true

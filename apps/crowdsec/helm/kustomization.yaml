@@ -158,10 +158,10 @@ patches:
         value: {}
       - op: add
         path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-networkpolicy
+        value: container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-networkpolicy,container-image-pull-policy
       - op: add
         path: /metadata/annotations/security.homeworld~1exception-reason
-        value: The pinned CrowdSec image has no non-root USER and the registration hook must write its generated credentials; seccomp, dropped capabilities, and no privilege escalation remain enabled.
+        value: The pinned CrowdSec image has no non-root USER and the registration hook must write its generated credentials; seccomp, dropped capabilities, and no privilege escalation remain enabled, and the pinned image is pulled IfNotPresent to reuse the node cache.
   - target:
       group: apps
       version: v1
@@ -203,8 +203,8 @@ patches:
       metadata:
         name: crowdsec-lapi
         annotations:
-          kube-score/ignore: container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-networkpolicy,pod-probes-identical,deployment-replicas,deployment-strategy
-          security.homeworld/exception-reason: The pinned CrowdSec image has no non-root USER and writes staged configuration during startup; the LAPI keeps seccomp, dropped capabilities, and no privilege escalation while running in the Baseline namespace.
+          kube-score/ignore: container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-networkpolicy,pod-probes-identical,deployment-replicas,deployment-strategy,container-image-pull-policy
+          security.homeworld/exception-reason: The pinned CrowdSec image has no non-root USER and writes staged configuration during startup; the LAPI keeps seccomp, dropped capabilities, and no privilege escalation while running in the Baseline namespace, and the pinned image is pulled IfNotPresent to reuse the node cache.
   - target:
       group: apps
       version: v1
@@ -216,8 +216,8 @@ patches:
       metadata:
         name: crowdsec-appsec
         annotations:
-          kube-score/ignore: container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-networkpolicy,pod-probes-identical,deployment-replicas,deployment-strategy
-          security.homeworld/exception-reason: The pinned CrowdSec image has no non-root USER and writes staged configuration during startup; AppSec keeps seccomp, dropped capabilities, and no privilege escalation while running in the Baseline namespace.
+          kube-score/ignore: container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-networkpolicy,pod-probes-identical,deployment-replicas,deployment-strategy,container-image-pull-policy
+          security.homeworld/exception-reason: The pinned CrowdSec image has no non-root USER and writes staged configuration during startup; AppSec keeps seccomp, dropped capabilities, and no privilege escalation while running in the Baseline namespace, and the pinned image is pulled IfNotPresent to reuse the node cache.
   - target:
       group: apps
       version: v1
@@ -229,5 +229,5 @@ patches:
       metadata:
         name: crowdsec-agent
         annotations:
-          kube-score/ignore: container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-networkpolicy,pod-probes-identical
-          security.homeworld/exception-reason: The pinned CrowdSec image has no non-root USER, and the agent additionally requires the chart's read-only /var/log hostPath; seccomp, dropped capabilities, and no privilege escalation remain enabled.
+          kube-score/ignore: container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-networkpolicy,pod-probes-identical,container-image-pull-policy
+          security.homeworld/exception-reason: The pinned CrowdSec image has no non-root USER, and the agent additionally requires the chart's read-only /var/log hostPath; seccomp, dropped capabilities, and no privilege escalation remain enabled, and the pinned image is pulled IfNotPresent to reuse the node cache.

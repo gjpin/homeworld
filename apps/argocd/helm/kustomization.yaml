@@ -211,7 +211,7 @@ patches:
     patch: |-
       - op: add
         path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-user-group-id,pod-networkpolicy,deployment-replicas
+        value: container-security-context-user-group-id,pod-networkpolicy,deployment-replicas,container-image-pull-policy
       - op: add
         path: /metadata/annotations/security.homeworld~1exception-reason
         value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
@@ -224,7 +224,7 @@ patches:
     patch: |-
       - op: add
         path: /metadata/annotations/kube-score~1ignore
-        value: pod-networkpolicy,container-security-context-user-group-id
+        value: pod-networkpolicy,container-security-context-user-group-id,container-image-pull-policy
       - op: add
         path: /metadata/annotations/security.homeworld~1exception-reason
         value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
@@ -237,7 +237,7 @@ patches:
     patch: |-
       - op: add
         path: /metadata/annotations/kube-score~1ignore
-        value: pod-probes,pod-networkpolicy,container-security-context-user-group-id,deployment-strategy,deployment-replicas
+        value: pod-probes,pod-networkpolicy,container-security-context-user-group-id,deployment-strategy,deployment-replicas,container-image-pull-policy
       - op: add
         path: /metadata/annotations/security.homeworld~1exception-reason
         value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
@@ -250,7 +250,7 @@ patches:
     patch: |-
       - op: add
         path: /metadata/annotations/kube-score~1ignore
-        value: pod-networkpolicy,container-security-context-user-group-id,deployment-replicas
+        value: pod-networkpolicy,container-security-context-user-group-id,deployment-replicas,container-image-pull-policy
       - op: add
         path: /metadata/annotations/security.homeworld~1exception-reason
         value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
@@ -263,7 +263,7 @@ patches:
     patch: |-
       - op: add
         path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-user-group-id,pod-probes,pod-networkpolicy,deployment-replicas
+        value: container-security-context-user-group-id,pod-probes,pod-networkpolicy,deployment-replicas,container-image-pull-policy
       - op: add
         path: /metadata/annotations/security.homeworld~1exception-reason
         value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
@@ -276,7 +276,7 @@ patches:
     patch: |-
       - op: add
         path: /metadata/annotations/kube-score~1ignore
-        value: pod-probes,pod-networkpolicy,container-security-context-user-group-id,statefulset-has-servicename
+        value: pod-probes,pod-networkpolicy,container-security-context-user-group-id,statefulset-has-servicename,container-image-pull-policy
       - op: add
         path: /metadata/annotations/security.homeworld~1exception-reason
         value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
@@ -289,7 +289,7 @@ patches:
     patch: |-
       - op: add
         path: /metadata/annotations/kube-score~1ignore
-        value: pod-networkpolicy,container-security-context-user-group-id,pod-probes,deployment-replicas
+        value: pod-networkpolicy,container-security-context-user-group-id,pod-probes,deployment-replicas,container-image-pull-policy
       - op: add
         path: /metadata/annotations/security.homeworld~1exception-reason
         value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.

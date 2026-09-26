@@ -34,7 +34,7 @@ patches:
     patch: |-
       - op: add
         path: /metadata/annotations/kube-score~1ignore
-        value: pod-probes-identical,pod-networkpolicy,deployment-replicas
+        value: pod-probes-identical,pod-networkpolicy,deployment-replicas,container-image-pull-policy
       - op: add
         path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.

@@ -55,7 +55,7 @@ patches:
         value: {}
       - op: add
         path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-user-group-id,pod-networkpolicy,deployment-replicas
+        value: container-security-context-user-group-id,pod-networkpolicy,deployment-replicas,container-image-pull-policy
       - op: add
         path: /metadata/annotations/security.homeworld~1exception-reason
-        value: The pinned community bouncer image documents UID 65532; the bouncer remains non-root with a RuntimeDefault seccomp profile and Cilium supplies the network policy.
+        value: The pinned community bouncer image documents UID 65532; the bouncer remains non-root with a RuntimeDefault seccomp profile, Cilium supplies the network policy, and the pinned image is pulled IfNotPresent to reuse the node cache.

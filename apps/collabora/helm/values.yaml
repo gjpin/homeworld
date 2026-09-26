@@ -77,8 +77,8 @@ deployment:
   labels:
     app: collabora
   annotations:
-    kube-score/ignore: pod-probes-identical,container-security-context-readonlyrootfilesystem,pod-networkpolicy,container-security-context-user-group-id,deployment-replicas
-    security.homeworld/exception-reason: The upstream chart uses one HTTP health endpoint for both probes; its pinned image requires a writable root filesystem and has an image UID/GID below kube-score's threshold; Cilium provides the network policy, and one replica is intentional until WOPISrc session routing is added.
+    kube-score/ignore: pod-probes-identical,container-security-context-readonlyrootfilesystem,pod-networkpolicy,container-security-context-user-group-id,deployment-replicas,container-image-pull-policy
+    security.homeworld/exception-reason: The upstream chart uses one HTTP health endpoint for both probes; its pinned image requires a writable root filesystem and has an image UID/GID below kube-score's threshold; Cilium provides the network policy, one replica is intentional until WOPISrc session routing is added, and the pinned image is pulled IfNotPresent to reuse the node cache.
 
 probes:
   liveness:

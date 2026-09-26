@@ -38,3 +38,29 @@ patches:
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^documentdb-operator$
+      namespace: ^documentdb-operator$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: container-image-pull-policy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-replicas,pod-networkpolicy
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: The vendored operator image requires upstream UID/GID 100/101 and a writable root filesystem; Cilium enforces the network boundary, one replica is intentional, and the pinned image is pulled IfNotPresent to reuse the node cache.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^sidecar-injector$
+      namespace: ^cloudnative-pg$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: container-image-pull-policy,container-security-context-readonlyrootfilesystem,deployment-replicas,pod-networkpolicy,pod-probes
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: The CNPG-I injector image stages its webhook certificates on a writable root filesystem and exposes no upstream health endpoints; Cilium enforces the network boundary, one replica is intentional, and the pinned image is pulled IfNotPresent to reuse the node cache.

@@ -52,7 +52,7 @@ patches:
     patch: |-
       - op: add
         path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-user-group-id,pod-networkpolicy,pod-probes-identical,deployment-replicas
+        value: container-security-context-user-group-id,pod-networkpolicy,pod-probes-identical,deployment-replicas,container-image-pull-policy
       - op: add
         path: /metadata/annotations/security.homeworld~1exception-reason
-        value: The pinned image requires UID/GID 1000, the chart intentionally shares its health endpoint between probes, Cilium enforces the network policy, and one replica is intentional with HPA disabled.
+        value: The pinned image requires UID/GID 1000, the chart intentionally shares its health endpoint between probes, Cilium enforces the network policy, one replica is intentional with HPA disabled, and the pinned image is pulled IfNotPresent to reuse the node cache.

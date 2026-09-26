@@ -23,7 +23,7 @@ patches:
     patch: |-
       - op: add
         path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-probes-identical,pod-networkpolicy
+        value: container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-probes-identical,pod-networkpolicy,container-image-pull-policy
       - op: add
         path: /metadata/annotations/security.homeworld~1exception-reason
-        value: User namespaces remain disabled pending live compatibility validation for required hostPath mounts, HostToContainer propagation, hostPorts, and host filesystem/node telemetry; upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+        value: User namespaces remain disabled pending live compatibility validation for required hostPath mounts, HostToContainer propagation, hostPorts, and host filesystem/node telemetry; upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.

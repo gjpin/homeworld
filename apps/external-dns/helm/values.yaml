@@ -36,8 +36,8 @@ serviceMonitor:
   interval: 60s
 
 deploymentAnnotations:
-  kube-score/ignore: pod-probes-identical,pod-networkpolicy,deployment-strategy,deployment-replicas
-  security.homeworld/exception-reason: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+  kube-score/ignore: pod-probes-identical,pod-networkpolicy,deployment-strategy,deployment-replicas,container-image-pull-policy
+  security.homeworld/exception-reason: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
 
 resources:
   requests:
