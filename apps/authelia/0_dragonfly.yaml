@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/created-by: dragonfly-operator
 spec:
   replicas: 1
-  image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.37.0
+  image: docker.dragonflydb.io/dragonflydb/dragonfly:v2.0.0
   imagePullPolicy: IfNotPresent
   resources:
     requests:
