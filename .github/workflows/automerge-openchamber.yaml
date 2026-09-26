@@ -35,6 +35,8 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
+  checks: read
+  statuses: read
 
 jobs:
   automerge:
@@ -89,7 +91,8 @@ jobs:
             set -e
             if [ "$rc" -ne 0 ] || [ -z "$checks" ] || \
                grep -q "no checks reported" <<<"$checks"; then
-              echo "PR #${number} (${branch}): checks missing, failing, or pending; skipping"
+              echo "PR #${number} (${branch}): checks missing, failing, or still pending; skipping (gh pr checks exit ${rc})"
+              sed 's/^/  /' <<<"$checks" | head -5
               continue
             fi
 
