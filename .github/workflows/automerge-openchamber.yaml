@@ -76,9 +76,20 @@ jobs:
               continue
             fi
 
-            if [ "$(gh pr view -R "${GITHUB_REPOSITORY}" "$number" \
-                   --json mergeable --jq .mergeable)" != "MERGEABLE" ]; then
-              echo "PR #${number} (${branch}): conflicting or unknown merge state; skipping"
+            # GitHub computes mergeability asynchronously after the base
+            # branch moves, so an UNKNOWN result is retried briefly before
+            # the PR is left for the next trigger.
+            mergeable="UNKNOWN"
+            for attempt in 1 2 3; do
+              if [ "$attempt" -gt 1 ]; then sleep 5; fi
+              mergeable="$(gh pr view -R "${GITHUB_REPOSITORY}" "$number" \
+                --json mergeable --jq .mergeable)"
+              if [ "$mergeable" = "MERGEABLE" ]; then
+                break
+              fi
+            done
+            if [ "$mergeable" != "MERGEABLE" ]; then
+              echo "PR #${number} (${branch}): merge state is ${mergeable:-unknown}; skipping"
               continue
             fi
 
