@@ -59,3 +59,29 @@ spec:
               storage: 50Gi
       nodeSelector:
         node-role.kubernetes.io/homelab: homelab
+  # Operator-managed provisioning (runs after the Tenant workload is Ready):
+  # buckets from spec.buckets, canned policies from spec.policies, and users
+  # from spec.users. Each user's credentials are read from a Secret named
+  # after the user (see -1_user_secrets.yaml); policies are scoped to the
+  # single bucket the application uses (see 0_user_policies.yaml).
+  buckets:
+    - name: notesnook-attachments
+    - name: opencloud
+  policies:
+    - name: notesnook-readwrite
+      document:
+        configMapKeyRef:
+          name: rustfs-user-policy-notesnook
+          key: policy.json
+    - name: opencloud-readwrite
+      document:
+        configMapKeyRef:
+          name: rustfs-user-policy-opencloud
+          key: policy.json
+  users:
+    - name: notesnook
+      policies:
+        - notesnook-readwrite
+    - name: opencloud
+      policies:
+        - opencloud-readwrite

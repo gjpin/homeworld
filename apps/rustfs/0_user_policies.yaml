@@ -1,0 +1,47 @@
+# IAM policy documents for the RustFS Operator-provisioned users in
+# 0_tenant.yaml. Each user is scoped to the single bucket its application
+# uses: notesnook-attachments (Notesnook S3_*_BUCKET_NAME) and opencloud
+# (OpenCloud STORAGE_USERS_DECOMPOSEDS3_BUCKET with CREATE_BUCKET=false, so
+# the bucket is declared on the Tenant instead).
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rustfs-user-policy-notesnook
+  namespace: rustfs
+data:
+  policy.json: |
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "s3:*",
+          "Resource": [
+            "arn:aws:s3:::notesnook-attachments",
+            "arn:aws:s3:::notesnook-attachments/*"
+          ]
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rustfs-user-policy-opencloud
+  namespace: rustfs
+data:
+  policy.json: |
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "s3:*",
+          "Resource": [
+            "arn:aws:s3:::opencloud",
+            "arn:aws:s3:::opencloud/*"
+          ]
+        }
+      ]
+    }
