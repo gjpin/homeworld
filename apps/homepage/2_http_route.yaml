@@ -1,0 +1,22 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: homepage
+  namespace: homepage
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    external-dns.alpha.kubernetes.io/hostname: "homepage.${BASE_DOMAIN}"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: homepage
+      sectionName: homepage-https
+  hostnames:
+    - "homepage.${BASE_DOMAIN}"
+  rules:
+    - backendRefs:
+      - name: homepage
+        namespace: homepage
+        kind: Service
+        port: 3000

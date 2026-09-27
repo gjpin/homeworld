@@ -1,0 +1,170 @@
+---
+# Homepage reads its configuration at startup. After changing this ConfigMap,
+# restart the deployment to pick up the new configuration:
+#   kubectl -n homepage rollout restart deploy/homepage
+#
+# Services without a siteMonitor either require an authenticated session
+# before serving the root path (Longhorn) or are not user-facing web pages
+# (Envoy Gateway control-plane listener).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage
+  namespace: homepage
+  labels:
+    app.kubernetes.io/name: homepage
+data:
+  settings.yaml: |
+    title: Homeworld
+    theme: dark
+    color: slate
+    statusStyle: dot
+  services.yaml: |
+    - Development:
+        - Forgejo:
+            icon: forgejo
+            href: https://git.${BASE_DOMAIN}
+            description: Git forge
+            siteMonitor: https://git.${BASE_DOMAIN}
+        - Woodpecker CI:
+            icon: woodpecker-ci
+            href: https://ci.${BASE_DOMAIN}
+            description: CI pipelines
+            siteMonitor: https://ci.${BASE_DOMAIN}
+        - OpenChamber:
+            icon: /icons/openchamber.svg
+            href: https://openchamber.${BASE_DOMAIN}
+            description: AI agent workspace
+            siteMonitor: https://openchamber.${BASE_DOMAIN}
+    - Media:
+        - Immich:
+            icon: immich
+            href: https://photos.${BASE_DOMAIN}
+            description: Photos and videos
+            siteMonitor: https://photos.${BASE_DOMAIN}
+            widget:
+              type: immich
+              url: https://photos.${BASE_DOMAIN}
+              key: "{{HOMEPAGE_VAR_IMMICH_API_KEY}}"
+    - Home:
+        - Home Assistant:
+            icon: home-assistant
+            href: https://home.${BASE_DOMAIN}
+            description: Home automation
+            siteMonitor: https://home.${BASE_DOMAIN}
+            widget:
+              type: homeassistant
+              url: https://home.${BASE_DOMAIN}
+              key: "{{HOMEPAGE_VAR_HASS_TOKEN}}"
+        - Zigbee2MQTT:
+            icon: zigbee2mqtt
+            href: https://z2m.${BASE_DOMAIN}
+            description: Zigbee bridge
+            siteMonitor: https://z2m.${BASE_DOMAIN}
+    - Productivity:
+        - OpenCloud:
+            icon: mdi-cloud-outline
+            href: https://cloud.${BASE_DOMAIN}
+            description: Files, sharing, and collaboration
+            siteMonitor: https://cloud.${BASE_DOMAIN}
+        - Collabora:
+            icon: collabora
+            href: https://office.${BASE_DOMAIN}
+            description: Online office editor
+            siteMonitor: https://office.${BASE_DOMAIN}
+        - Notesnook:
+            icon: notesnook
+            href: https://notes.${BASE_DOMAIN}
+            description: Encrypted notes
+            siteMonitor: https://notes.${BASE_DOMAIN}
+    - Monitoring:
+        - Grafana:
+            icon: grafana
+            href: https://grafana.${BASE_DOMAIN}
+            description: Dashboards and observability
+            siteMonitor: https://grafana.${BASE_DOMAIN}
+            widget:
+              type: grafana
+              url: https://grafana.${BASE_DOMAIN}
+              key: "{{HOMEPAGE_VAR_GRAFANA_TOKEN}}"
+        - VictoriaMetrics:
+            icon: victoriametrics
+            href: https://victoria-metrics.${BASE_DOMAIN}
+            description: Metrics backend
+            siteMonitor: https://victoria-metrics.${BASE_DOMAIN}
+        - VictoriaLogs:
+            icon: victorialogs
+            href: https://victoria-logs.${BASE_DOMAIN}
+            description: Logs backend
+            siteMonitor: https://victoria-logs.${BASE_DOMAIN}
+        - VictoriaTraces:
+            icon: mdi-chart-timeline-variant
+            href: https://victoria-traces.${BASE_DOMAIN}
+            description: Traces backend
+            siteMonitor: https://victoria-traces.${BASE_DOMAIN}
+    - Platform:
+        - Argo CD:
+            icon: argo-cd
+            href: https://argocd.${BASE_DOMAIN}
+            description: GitOps delivery
+            siteMonitor: https://argocd.${BASE_DOMAIN}
+            widget:
+              type: argocd
+              url: https://argocd.${BASE_DOMAIN}
+              key: "{{HOMEPAGE_VAR_ARGOCD_TOKEN}}"
+        - Longhorn:
+            icon: longhorn
+            href: https://longhorn.${BASE_DOMAIN}
+            description: Distributed block storage
+        - RustFS:
+            icon: rustfs
+            href: https://s3.${BASE_DOMAIN}
+            description: S3 object storage
+            siteMonitor: https://s3.${BASE_DOMAIN}
+        - RustFS Operator:
+            icon: rustfs
+            href: https://rustfs.${BASE_DOMAIN}
+            description: Storage operator console
+            siteMonitor: https://rustfs.${BASE_DOMAIN}
+        - Velero UI:
+            icon: velero
+            href: https://velero.${BASE_DOMAIN}
+            description: Backup management
+            siteMonitor: https://velero.${BASE_DOMAIN}
+        - Envoy Gateway:
+            icon: mdi-lan
+            href: https://envoy.${BASE_DOMAIN}
+            description: Gateway API control plane
+        - Authelia:
+            icon: authelia
+            href: https://auth.${BASE_DOMAIN}
+            description: Identity provider
+            siteMonitor: https://auth.${BASE_DOMAIN}
+  widgets.yaml: |
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: cluster
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+    - datetime:
+        text_size: xl
+        format:
+          timeStyle: short
+          hourCycle: h23
+    - search:
+        provider: custom
+        url: https://www.startpage.com/sp/search?prfe=99af23cc8b541deeaa22f4bb9a97bdc8740eea796bf73fabaed37621f9e78cf1ce5e7d9cedfe6ed3a74835f0ba772103f3b687ba1e927805811945f2d0ef35c0cad8a1576b1edb52f05fe97b7ff8763b&query=
+        target: _blank
+  kubernetes.yaml: |
+    mode: cluster
+  bookmarks.yaml: ""
+  docker.yaml: ""
+  custom.css: ""
+  custom.js: ""

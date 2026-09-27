@@ -42,6 +42,12 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   including `ServiceMonitor` definitions (with the standard `60s` interval),
   Pod Security Standards contexts, user namespaces (`hostUsers: false`), node
   selectors, container requests and limits, services, and port mappings.
+- Helm installations must use official upstream charts. When no official
+  chart exists, do not adopt an unofficial or community chart: review how
+  several unofficial charts package the application (deployment structure,
+  config mounts, probes, RBAC, upgrade flow) and implement the component as
+  handwritten manifests in this repository's conventions instead. Never
+  pin or deploy an unofficial chart directly.
 - Keep service names, selectors, labels, PVC references, route backends, and
   namespaces consistent across all resources in a component.
 - Workloads should target homelab nodes using

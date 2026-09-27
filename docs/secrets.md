@@ -31,6 +31,10 @@ All cluster secrets are synchronized from [Infisical](https://infisical.com) by 
 | | `/forgejo/POSTGRES_PASSWORD` | CloudNativePG application password. |
 | **Grafana** | `/grafana/GF_SECURITY_ADMIN_USER` | Admin username (required for startup; login is via Authelia OIDC). |
 | | `/grafana/GF_SECURITY_ADMIN_PASSWORD` | Admin password (required for startup; login is via Authelia OIDC). |
+| **Homepage** | `/homepage/ARGOCD_TOKEN` | Read-only Argo CD account API token for the Argo CD widget (created by the procedure in the README's Manual Setup). |
+| | `/homepage/GRAFANA_TOKEN` | Grafana service account token for the Grafana widget (created by the procedure in the README's Manual Setup). |
+| | `/homepage/HASS_TOKEN` | Home Assistant long-lived access token for the Home Assistant widget (created by the procedure in the README's Manual Setup). |
+| | `/homepage/IMMICH_API_KEY` | Immich API key for the Immich widget (created by the procedure in the README's Manual Setup). |
 | **Immich** | `/immich/POSTGRES_USERNAME` | CloudNativePG application username. |
 | | `/immich/POSTGRES_PASSWORD` | CloudNativePG application password. |
 | | `/immich/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for cache and job queues. |

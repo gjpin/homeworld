@@ -324,7 +324,7 @@ seed_secrets() {
   token=$(cat "${OUT_DIR}/token")
   project_id=$(cat "${OUT_DIR}/project_id")
 
-  for folder in grafana authelia immich forgejo rustfs opencloud crowdsec velero-ui velero longhorn notesnook woodpecker openchamber; do
+  for folder in grafana homepage authelia immich forgejo rustfs opencloud crowdsec velero-ui velero longhorn notesnook woodpecker openchamber; do
     ensure_folder "${token}" "${project_id}" "${folder}"
   done
 
@@ -348,6 +348,10 @@ seed_secrets() {
 
   put_secret "${token}" "${project_id}" "/grafana/GF_SECURITY_ADMIN_USER" "admin"
   put_secret "${token}" "${project_id}" "/grafana/GF_SECURITY_ADMIN_PASSWORD" "e2e-grafana"
+  put_secret "${token}" "${project_id}" "/homepage/ARGOCD_TOKEN" "e2e-homepage-argocd"
+  put_secret "${token}" "${project_id}" "/homepage/GRAFANA_TOKEN" "e2e-homepage-grafana"
+  put_secret "${token}" "${project_id}" "/homepage/HASS_TOKEN" "e2e-homepage-hass"
+  put_secret "${token}" "${project_id}" "/homepage/IMMICH_API_KEY" "e2e-homepage-immich"
   put_secret "${token}" "${project_id}" "/authelia/POSTGRES_USERNAME" "authelia"
   put_secret "${token}" "${project_id}" "/authelia/POSTGRES_PASSWORD" "e2e-authelia-db"
   put_secret "${token}" "${project_id}" "/authelia/DRAGONFLY_PASSWORD" "e2e-authelia-dragonfly"

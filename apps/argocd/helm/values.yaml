@@ -16,6 +16,9 @@ configs:
   cm:
     url: https://argocd.${BASE_DOMAIN}
     admin.enabled: false
+    # Local account for the Homepage dashboard's Argo CD widget: API-key-only,
+    # read-only through the RBAC role mapping below.
+    accounts.homepage: apiKey
     kustomize.buildOptions: --enable-helm
     # Argo CD reads $<secret>:<key> from a Secret labeled app.kubernetes.io/part-of: argocd.
     # Keep this dollar reference intact; do not run it through envsubst.
@@ -47,6 +50,7 @@ configs:
     policy.default: role:readonly
     policy.csv: |
       g, argocd-admin, role:admin
+      g, homepage, role:readonly
     scopes: "[groups]"
   params:
     server.insecure: true

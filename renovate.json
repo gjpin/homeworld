@@ -617,6 +617,19 @@
     },
     {
       "customType": "regex",
+      "description": "Update the Homepage image",
+      "managerFilePatterns": [
+        "/^apps/homepage/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/gethomepage/homepage):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
       "description": "Update the Radicale image",
       "managerFilePatterns": [
         "/^apps/radicale/1_deployment\\.yaml$/"

@@ -21,6 +21,7 @@ All applications enforce default-deny egress via Cilium Network Policies, with b
 | Grafana | **Yes** | Envoy Gateway (`3000`) | `victoria-metrics:8428`, `victoria-logs:9428`, `victoria-traces:10428` (datasources)<br>`auth.${BASE_DOMAIN}:443` (OIDC) | Plugin downloads (`github.com:443`, `release-assets.githubusercontent.com:443`) |
 | Grafana Operator | **No** | — | `kube-apiserver:443` | — |
 | Home Assistant | **Yes** | Envoy Gateway (HA `8123`, Z2M `8080`), OpenTelemetry Collector (metrics `8123`), Mosquitto (`1883`) | `homeassistant-mosquitto:1883`<br>LAN IoT devices (RFC 1918 subnets: `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`) | Internet access (`world`: HA HTTP `80`, HTTPS `443`, NTP `123`; Zigbee2MQTT HTTPS `443` OTA updates) |
+| Homepage | **No** | Envoy Gateway (`3000`) | `kube-apiserver:443` (Kubernetes info widget)<br>`*.${BASE_DOMAIN}:443` (service widgets and site monitors, via the public gateway) | — |
 | Immich | **No** | Envoy Gateway (`2283`), server to machine-learning (`3003`) | `immich-rw:5432` (PostgreSQL)<br>`dragonfly:6379` (Redis)<br>`immich-machine-learning:3003`<br>`auth.${BASE_DOMAIN}:443` (OIDC) | — |
 | Kubelet Serving Cert Approver | **No** | OpenTelemetry Collector (metrics `9090`) | `kube-apiserver:443` | — |
 | Longhorn | **No** | Envoy Gateway (`80`), `kube-apiserver`, internal components | `kube-apiserver:443`<br>Kubelet (`host:10250`)<br>`longhorn-backend:9500`<br>`longhorn-recovery-backend` | — |

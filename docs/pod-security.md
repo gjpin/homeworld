@@ -31,6 +31,7 @@ The table below outlines the Pod Security Standard compliance level for every co
 | **Grafana** | `grafana` | Restricted | **Restricted** | Grafana instance and the plugin-loader init container run non-root (UID `1000`) with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
 | **Grafana Operator** | `grafana-operator` | Restricted | **Restricted** | Operator controller runs as non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
 | **Home Assistant** | `homeassistant` | Privileged | **Exception** | **Why not Restricted:** The `homeassistant` Core container requires UID `0` (`runAsNonRoot: false`) because the upstream image uses `s6-overlay` for process supervision. `zigbee2mqtt` accesses the physical Zigbee USB adapter via a hostPath mount (`/dev/serial/by-id`) on nodes labeled `environment=zigbee` — PSS `baseline` forbids hostPath volumes, so the namespace enforces `privileged` (Restricted `audit`/`warn` retained).<br><br>*Mitigations:* Workloads are isolated in unprivileged user namespaces (`hostUsers: false`). `mosquitto` and `zigbee2mqtt` run non-root (`runAsUser: 1883` and `1000`) with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp under Restricted; `zigbee2mqtt` accesses the serial device via host `dialout` group (GID `20`). |
+| **Homepage** | `homepage` | Restricted | **Restricted** | Dashboard runs non-root (UID `1000`) with dropped capabilities (`ALL`), read-only root filesystem (writable `/tmp` and `/app/config/logs` emptyDirs), and `RuntimeDefault` seccomp. |
 | **Immich** | `immich` | Restricted | **Restricted** | Server and machine-learning pods run non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. Attached PostgreSQL and Dragonfly instances also conform to Restricted. |
 | **Kubelet Serving Cert Approver** | `kubelet-serving-cert-approver` | Restricted | **Restricted** | Controller runs as non-root (UID/GID `65534`) with dropped capabilities (`ALL`), read-only root filesystem, and `RuntimeDefault` seccomp. |
 | **Longhorn** | `longhorn-system` | Privileged | **Exception** | **Why not Restricted:** `longhorn-manager` (DaemonSet), CSI plugins (`longhorn-csi-plugin`), and engine/replica instance managers require privileged containers, hostPath volume mounts (`/var/lib/longhorn`, `/dev`, `/sys`, `/proc`), bidirectionally shared mounts, and raw host block-device access to manage distributed storage, kernel block devices, and iscsi/spdk engines.<br><br>*Mitigations:* Isolated in dedicated `longhorn-system` namespace. Auxiliary pods (`longhorn-ui`, `longhorn-driver-deployer`, upgrade jobs) run non-root with user namespaces enabled. |
@@ -77,6 +78,7 @@ The table below details user namespace implementation across all cluster workloa
 | **Grafana** | `grafana` | **Enabled** (`false`) | Grafana CR manifest | Declared in `spec.deployment.spec.template.spec.hostUsers`. |
 | **Grafana Operator** | `grafana-operator` | **Enabled** (`false`) | Helm `values.yaml` | `hostUsers: false` configured for operator Deployment. |
 | **Home Assistant** | `homeassistant` | **Enabled** (`false`) | Manifest | Declared in Deployments for `homeassistant` Core, `mosquitto`, and `zigbee2mqtt`. Isolates container UID `0` within an unprivileged host user namespace. |
+| **Homepage** | `homepage` | **Enabled** (`false`) | Manifest | Declared in the Homepage dashboard Deployment. |
 | **Immich** | `immich` | **Enabled** (`false`) | Helm `values.yaml` | `defaultPodOptions.hostUsers: false` configured for server and machine-learning Deployments. |
 | **Kubelet Serving Cert Approver** | `kubelet-serving-cert-approver` | **Enabled** (`false`) | Manifest | Declared in the approver Deployment. |
 | **Longhorn (Auxiliary)** | `longhorn-system` | **Enabled** (`false`) | Kustomize patch | Applied to `longhorn-ui`, `longhorn-driver-deployer`, and upgrade/uninstall jobs. |
@@ -141,6 +143,7 @@ Only workloads requiring direct host device access, raw block devices, or kernel
 | **Grafana Operator** | `grafana-operator` | **Enabled** (`gvisor`) | Kustomize patch | Applied to operator Deployment. |
 | **Home Assistant (Core / Mosquitto)** | `homeassistant` | **Enabled** (`gvisor`) | Manifest | Declared in `homeassistant` Core and `mosquitto` Deployments. |
 | **Home Assistant (Zigbee2MQTT)** | `homeassistant` | **Disabled** | *None (Host integration)* | **Exception:** Zigbee2MQTT requires direct hostPath access to physical USB serial adapter (`/dev/serial/by-id`). |
+| **Homepage** | `homepage` | **Enabled** (`gvisor`) | Manifest | Declared in the Homepage dashboard Deployment. |
 | **Immich** | `immich` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `immich-server` and `immich-machine-learning` Deployments. |
 | **Kubelet Serving Cert Approver** | `kubelet-serving-cert-approver` | **Enabled** (`gvisor`) | Manifest | Declared in the approver Deployment. |
 | **Longhorn (UI)** | `longhorn-system` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `longhorn-ui` Deployment. |
@@ -169,6 +172,7 @@ Standalone applications use dedicated ServiceAccounts rather than the namespace 
 - `opencloud`: Dedicated `opencloud` ServiceAccount with `automountServiceAccountToken: false`.
 - `homeassistant`: Dedicated `homeassistant` ServiceAccount with `automountServiceAccountToken: false` applied to `homeassistant`, `mosquitto`, and `zigbee2mqtt`.
 - `radicale`: Dedicated `radicale` ServiceAccount with `automountServiceAccountToken: false`.
+- `homepage`: Dedicated `homepage` ServiceAccount with `automountServiceAccountToken: true` — the dashboard's Kubernetes integration reads pods, nodes, and `metrics.k8s.io` from the API server, scoped to a read-only ClusterRole.
 
 Helm workloads with API access disabled via patches or values:
 - `forgejo`: `automountServiceAccountToken: false`
