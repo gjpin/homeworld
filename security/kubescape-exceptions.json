@@ -187,6 +187,29 @@
           "name": "^woodpecker-agent$",
           "namespace": "^woodpecker$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cilium-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cilium-operator-tlsinterception-secrets$",
+          "namespace": "^cilium-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cilium-operator-ztunnel$",
+          "namespace": "^cilium$"
+        }
       }
     ],
     "posturePolicies": [
@@ -224,6 +247,14 @@
         "attributes": {
           "kind": "^Deployment$",
           "name": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ConfigMap$",
+          "name": "^cilium-config$",
+          "namespace": "^cilium$"
         }
       }
     ],
@@ -567,6 +598,30 @@
           "name": "^crowdsec-lapi-cscli-register-job$",
           "namespace": "^crowdsec$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cilium-operator$",
+          "namespace": "^cilium$"
+        }
       }
     ],
     "posturePolicies": [
@@ -804,6 +859,21 @@
           "name": "^crowdsec-configmap-updater-binding$",
           "namespace": "^crowdsec$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cilium-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cilium-tlsinterception-secrets$",
+          "namespace": "^cilium-secrets$"
+        }
       }
     ],
     "posturePolicies": [
@@ -945,6 +1015,22 @@
           "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
         }
       }
     ],
@@ -1198,6 +1284,38 @@
           "kind": "^StatefulSet$",
           "name": "^woodpecker-server$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cilium-operator$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-ui$",
+          "namespace": "^cilium$"
+        }
       }
     ],
     "posturePolicies": [
@@ -1395,6 +1513,14 @@
         "attributes": {
           "kind": "^StatefulSet$",
           "name": "^woodpecker-agent$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-ui$",
+          "namespace": "^cilium$"
         }
       }
     ],
@@ -1839,6 +1965,46 @@
         "attributes": {
           "kind": "^StatefulSet$",
           "name": "^woodpecker-server$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cilium-operator$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-relay$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-ui$",
+          "namespace": "^cilium$"
         }
       }
     ],
@@ -2288,6 +2454,38 @@
           "kind": "^StatefulSet$",
           "name": "^woodpecker-server$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cilium-operator$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-ui$",
+          "namespace": "^cilium$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2448,6 +2646,45 @@
     ]
   },
   {
+    "name": "homeworld-C-0041",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cilium-operator$",
+          "namespace": "^cilium$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0041"
+      }
+    ]
+  },
+  {
     "name": "homeworld-C-0044",
     "policyType": "postureExceptionPolicy",
     "actions": [
@@ -2460,6 +2697,30 @@
           "kind": "^DaemonSet$",
           "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cilium-operator$",
+          "namespace": "^cilium$"
         }
       }
     ],
@@ -2500,12 +2761,59 @@
           "name": "^longhorn-pre-upgrade$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
+        }
       }
     ],
     "posturePolicies": [
       {
         "frameworkName": "AllControls",
         "controlID": "C-0045"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0046",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0046"
       }
     ]
   },
@@ -2555,12 +2863,50 @@
           "name": "^crowdsec-agent$",
           "namespace": "^crowdsec$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
+        }
       }
     ],
     "posturePolicies": [
       {
         "frameworkName": "AllControls",
         "controlID": "C-0048"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0049",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0049"
       }
     ]
   },
@@ -2986,12 +3332,87 @@
           "name": "^woodpecker-agent$",
           "namespace": "^woodpecker$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cilium-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^hubble-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cilium-config-agent$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cilium-operator-tlsinterception-secrets$",
+          "namespace": "^cilium-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cilium-tlsinterception-secrets$",
+          "namespace": "^cilium-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cilium-operator-ztunnel$",
+          "namespace": "^cilium$"
+        }
       }
     ],
     "posturePolicies": [
       {
         "frameworkName": "AllControls",
         "controlID": "C-0053"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0054",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0054"
       }
     ]
   },
@@ -3143,6 +3564,14 @@
           "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
         }
       }
     ],
@@ -3358,6 +3787,14 @@
           "kind": "^StatefulSet$",
           "name": "^woodpecker-agent$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-ui$",
+          "namespace": "^cilium$"
+        }
       }
     ],
     "posturePolicies": [
@@ -3388,6 +3825,14 @@
           "kind": "^Job$",
           "name": "^longhorn-pre-upgrade$",
           "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
         }
       }
     ],
@@ -3817,6 +4262,46 @@
           "kind": "^StatefulSet$",
           "name": "^woodpecker-server$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cilium-operator$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-relay$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-ui$",
+          "namespace": "^cilium$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4141,6 +4626,21 @@
           "name": "^crowdsec-configmap-updater-binding$",
           "namespace": "^crowdsec$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cilium-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cilium-tlsinterception-secrets$",
+          "namespace": "^cilium-secrets$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4258,6 +4758,28 @@
       {
         "frameworkName": "AllControls",
         "controlID": "C-0188"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0189",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0189"
       }
     ]
   },
@@ -4648,6 +5170,38 @@
           "kind": "^StatefulSet$",
           "name": "^woodpecker-server$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cilium-operator$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-ui$",
+          "namespace": "^cilium$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4699,6 +5253,314 @@
       {
         "frameworkName": "AllControls",
         "controlID": "C-0191"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0192",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0192"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0193",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0193"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0194",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0194"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0195",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0195"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0196",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0196"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0197",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0197"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0198",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0198"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0199",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0199"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0200",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0200"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0201",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0201"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0202",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0202"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0203",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0203"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0204",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0204"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0206",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Namespace$",
+          "name": "^cilium-secrets$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0206"
       }
     ]
   },
@@ -4984,6 +5846,22 @@
           "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
         }
       }
     ],
@@ -5429,6 +6307,46 @@
           "kind": "^StatefulSet$",
           "name": "^woodpecker-server$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cilium-operator$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-relay$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-ui$",
+          "namespace": "^cilium$"
+        }
       }
     ],
     "posturePolicies": [
@@ -5785,6 +6703,46 @@
           "kind": "^StatefulSet$",
           "name": "^woodpecker-server$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cilium-operator$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-relay$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-ui$",
+          "namespace": "^cilium$"
+        }
       }
     ],
     "posturePolicies": [
@@ -5950,6 +6908,38 @@
           "kind": "^Deployment$",
           "name": "^crowdsec-lapi$",
           "namespace": "^crowdsec$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cilium-operator$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-relay$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-ui$",
+          "namespace": "^cilium$"
         }
       }
     ],
@@ -6417,6 +7407,46 @@
           "kind": "^StatefulSet$",
           "name": "^woodpecker-server$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium-envoy$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cilium-operator$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-relay$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-ui$",
+          "namespace": "^cilium$"
+        }
       }
     ],
     "posturePolicies": [
@@ -6712,6 +7742,30 @@
           "name": "^crowdsec-lapi-cscli-register-job$",
           "namespace": "^crowdsec$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cilium-operator$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^hubble-ui$",
+          "namespace": "^cilium$"
+        }
       }
     ],
     "posturePolicies": [
@@ -6950,6 +8004,22 @@
           "kind": "^Job$",
           "name": "^crowdsec-lapi-cscli-register-job$",
           "namespace": "^crowdsec$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^cilium$",
+          "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cilium-operator$",
+          "namespace": "^cilium$"
         }
       }
     ],

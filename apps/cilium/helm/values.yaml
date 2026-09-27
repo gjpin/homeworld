@@ -68,9 +68,11 @@ operator:
     requests:
       cpu: 50m
       memory: 128Mi
+      ephemeral-storage: 64Mi
     limits:
       cpu: "1"
       memory: 512Mi
+      ephemeral-storage: 2Gi
   prometheus:
     enabled: true
     serviceMonitor:
@@ -82,9 +84,11 @@ resources:
   requests:
     cpu: 100m
     memory: 512Mi
+    ephemeral-storage: 64Mi
   limits:
     cpu: "2"
     memory: 1Gi
+    ephemeral-storage: 2Gi
 
 # --- observability ---
 prometheus:
@@ -128,9 +132,11 @@ hubble:
       requests:
         cpu: 10m
         memory: 64Mi
+        ephemeral-storage: 64Mi
       limits:
         cpu: "1"
         memory: 512Mi
+        ephemeral-storage: 2Gi
     prometheus:
       enabled: true
       serviceMonitor:
@@ -146,17 +152,21 @@ hubble:
         requests:
           cpu: 10m
           memory: 64Mi
+          ephemeral-storage: 64Mi
         limits:
           cpu: "1"
           memory: 256Mi
+          ephemeral-storage: 2Gi
     backend:
       resources:
         requests:
           cpu: 10m
           memory: 64Mi
+          ephemeral-storage: 64Mi
         limits:
           cpu: "1"
           memory: 256Mi
+          ephemeral-storage: 2Gi
 
 envoy:
   # Standalone Envoy DaemonSet (the embedded proxy is gone in 1.20).
@@ -165,9 +175,11 @@ envoy:
     requests:
       cpu: 100m
       memory: 256Mi
+      ephemeral-storage: 64Mi
     limits:
       cpu: "2"
       memory: 1Gi
+      ephemeral-storage: 2Gi
   securityContext:
     capabilities:
       # Modern BPF/PERFMON capabilities instead of SYS_ADMIN; NET_BIND_SERVICE

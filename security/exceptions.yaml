@@ -131,6 +131,16 @@
       "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
     },
     {
+      "check": "C-0041",
+      "control": "HostNetwork access",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The kube-proxy-free datapath requires hostNetwork on the cilium-agent, cilium-envoy, and cilium-operator to program node networking and reach the KubePrism API endpoint."
+    },
+    {
       "check": "C-0044",
       "control": "Container hostPort",
       "profiles": [
@@ -151,6 +161,16 @@
       "reason": "The exact storage or node controller requires host integration to provide its documented cluster function."
     },
     {
+      "check": "C-0046",
+      "control": "Insecure capabilities",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "NET_ADMIN, BPF, PERFMON, and NET_BIND_SERVICE capabilities are required by the pinned upstream dataplane to load BPF programs and load-balance services."
+    },
+    {
       "check": "C-0048",
       "control": "HostPath mount",
       "profiles": [
@@ -161,6 +181,16 @@
       "reason": "The exact storage or node controller requires host integration to provide its documented cluster function."
     },
     {
+      "check": "C-0049",
+      "control": "Network mapping",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The rendered Namespace only stores operator-synced TLS interception secrets and runs no pods, so it has no network exposure to map."
+    },
+    {
       "check": "C-0053",
       "control": "Access container service account",
       "profiles": [
@@ -169,6 +199,16 @@
       "scanner": "kubescape",
       "owner": "platform",
       "reason": "The exact controller requires Kubernetes API access through its dedicated service account to reconcile resources."
+    },
+    {
+      "check": "C-0054",
+      "control": "Cluster internal networking",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The rendered Namespace only stores operator-synced TLS interception secrets and runs no pods, so it originates no cluster-internal traffic."
     },
     {
       "check": "C-0055",
@@ -281,6 +321,16 @@
       "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
     },
     {
+      "check": "C-0189",
+      "control": "Ensure that default service accounts are not actively used",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "No workload runs in the rendered Namespace, so its default service account is never used; the upstream chart only stores TLS secrets there."
+    },
+    {
       "check": "C-0190",
       "control": "Ensure that Service Account Tokens are only mounted where necessary",
       "profiles": [
@@ -299,6 +349,146 @@
       "scanner": "kubescape",
       "owner": "platform",
       "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0192",
+      "control": "Ensure that the cluster has at least one active policy control mechanism in place",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "Pod admission is governed by Pod Security Admission labels and Talos admission controls that live outside this repository's rendered manifests."
+    },
+    {
+      "check": "C-0193",
+      "control": "Minimize the admission of privileged containers",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "Admission of these pod behaviors is enforced by the cluster's Pod Security Admission labels; the host-integrated Cilium agents are the documented exception (docs/pod-security.md)."
+    },
+    {
+      "check": "C-0194",
+      "control": "Minimize the admission of containers wishing to share the host process ID namespace",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "Admission of these pod behaviors is enforced by the cluster's Pod Security Admission labels; the host-integrated Cilium agents are the documented exception (docs/pod-security.md)."
+    },
+    {
+      "check": "C-0195",
+      "control": "Minimize the admission of containers wishing to share the host IPC namespace",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "Admission of these pod behaviors is enforced by the cluster's Pod Security Admission labels; the host-integrated Cilium agents are the documented exception (docs/pod-security.md)."
+    },
+    {
+      "check": "C-0196",
+      "control": "Minimize the admission of containers wishing to share the host network namespace",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "Admission of these pod behaviors is enforced by the cluster's Pod Security Admission labels; the host-integrated Cilium agents are the documented exception (docs/pod-security.md)."
+    },
+    {
+      "check": "C-0197",
+      "control": "Minimize the admission of containers with allowPrivilegeEscalation",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "Admission of these pod behaviors is enforced by the cluster's Pod Security Admission labels; the host-integrated Cilium agents are the documented exception (docs/pod-security.md)."
+    },
+    {
+      "check": "C-0198",
+      "control": "Minimize the admission of root containers",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "Admission of these pod behaviors is enforced by the cluster's Pod Security Admission labels; the host-integrated Cilium agents are the documented exception (docs/pod-security.md)."
+    },
+    {
+      "check": "C-0199",
+      "control": "Minimize the admission of containers with the NET_RAW capability",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "Admission of these pod behaviors is enforced by the cluster's Pod Security Admission labels; the host-integrated Cilium agents are the documented exception (docs/pod-security.md)."
+    },
+    {
+      "check": "C-0200",
+      "control": "Minimize the admission of containers with added capabilities",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "Admission of these pod behaviors is enforced by the cluster's Pod Security Admission labels; the host-integrated Cilium agents are the documented exception (docs/pod-security.md)."
+    },
+    {
+      "check": "C-0201",
+      "control": "Minimize the admission of containers with capabilities assigned",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "Admission of these pod behaviors is enforced by the cluster's Pod Security Admission labels; the host-integrated Cilium agents are the documented exception (docs/pod-security.md)."
+    },
+    {
+      "check": "C-0202",
+      "control": "Minimize the admission of Windows HostProcess Containers",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "Admission of these pod behaviors is enforced by the cluster's Pod Security Admission labels; the host-integrated Cilium agents are the documented exception (docs/pod-security.md)."
+    },
+    {
+      "check": "C-0203",
+      "control": "Minimize the admission of HostPath volumes",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "Admission of these pod behaviors is enforced by the cluster's Pod Security Admission labels; the host-integrated Cilium agents are the documented exception (docs/pod-security.md)."
+    },
+    {
+      "check": "C-0204",
+      "control": "Minimize the admission of containers which use HostPorts",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "Admission of these pod behaviors is enforced by the cluster's Pod Security Admission labels; the host-integrated Cilium agents are the documented exception (docs/pod-security.md)."
+    },
+    {
+      "check": "C-0206",
+      "control": "Ensure that all Namespaces have Network Policies defined",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The rendered Namespace runs no pods, so it has no network policy endpoints; only operator-synced TLS interception secrets are stored in it."
     },
     {
       "check": "C-0207",
