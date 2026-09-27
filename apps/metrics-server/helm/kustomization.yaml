@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: metrics-server
+    repo: https://kubernetes-sigs.github.io/metrics-server
+    version: 3.14.0
+    releaseName: metrics-server
+    namespace: metrics-server
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  # The chart has no runtimeClassName value, and its hostUsers value is gated
+  # on the kube version assumed by whichever helm binary renders the chart, so
+  # both fields are pinned with patches to keep the rendered output
+  # deterministic across Argo CD, CI, and local renders.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^metrics-server$
+      namespace: ^metrics-server$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor

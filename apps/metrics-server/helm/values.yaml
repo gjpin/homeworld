@@ -1,0 +1,52 @@
+# https://artifacthub.io/packages/helm/metrics-server/metrics-server
+# https://docs.siderolabs.com/kubernetes-guides/monitoring-and-observability/deploy-metrics-server
+#
+# Kubelet serving certificates rotate (Talos machine config enables
+# rotate-server-certificates; the kubelet-serving-cert-approver application
+# approves the CSRs), so kubelets are scraped over verified TLS. No
+# --kubelet-insecure-tls, and the chart's defaultArgs already prefer
+# --kubelet-preferred-address-types=InternalIP, which matches the certificate
+# SANs.
+fullnameOverride: metrics-server
+
+image:
+  pullPolicy: IfNotPresent
+
+# Required for the ServiceMonitor: the chart only emits the ServiceMonitor
+# when metrics are enabled, and this adds
+# --authorization-always-allow-paths=/metrics for the scrape endpoint.
+metrics:
+  enabled: true
+
+serviceMonitor:
+  enabled: true
+  interval: 60s
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+# Merge with the chart's Restricted defaults (allowPrivilegeEscalation false,
+# readOnlyRootFilesystem true, runAsNonRoot true, runAsUser 1000, dropped
+# ALL capabilities, RuntimeDefault seccomp); the explicit group completes the
+# upstream context.
+securityContext:
+  runAsGroup: 1000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 200Mi
+    ephemeral-storage: 64Mi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+    ephemeral-storage: 2Gi
+
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab
+
+deploymentAnnotations:
+  kube-score/ignore: container-security-context-user-group-id,pod-networkpolicy,deployment-strategy,deployment-replicas,container-image-pull-policy
+  security.homeworld/exception-reason: The workload intentionally runs as the upstream non-root UID/GID 1000 below kube-score's 10000 threshold, upstream defaults keep a single replica and an unset update strategy, Cilium enforces the network boundary outside the chart render, and the pinned image is pulled IfNotPresent to reuse the node cache.

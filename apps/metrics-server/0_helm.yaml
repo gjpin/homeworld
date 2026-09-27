@@ -1,0 +1,28 @@
+# https://artifacthub.io/packages/helm/metrics-server/metrics-server
+# https://docs.siderolabs.com/kubernetes-guides/monitoring-and-observability/deploy-metrics-server
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metrics-server
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: metrics-server
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/metrics-server/helm
+    targetRevision: HEAD

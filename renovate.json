@@ -460,6 +460,20 @@
     },
     {
       "customType": "regex",
+      "description": "Update the metrics-server Helm chart",
+      "managerFilePatterns": [
+        "/^apps/metrics-server/helm/kustomization\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^\\s+- name:\\s+metrics-server\\s+repo:\\s+https://kubernetes-sigs\\.github\\.io/metrics-server\\s+version:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "depNameTemplate": "metrics-server",
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm",
+      "registryUrlTemplate": "https://kubernetes-sigs.github.io/metrics-server"
+    },
+    {
+      "customType": "regex",
       "description": "Update the Authelia Dragonfly image",
       "managerFilePatterns": [
         "/^apps/authelia/0_dragonfly\\.yaml$/"
@@ -587,6 +601,19 @@
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the kubelet-serving-cert-approver image",
+      "managerFilePatterns": [
+        "/^apps/kubelet-serving-cert-approver/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/alex1989hu/kubelet-serving-cert-approver):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
     },
     {
       "customType": "regex",

@@ -26,7 +26,7 @@ export DISK_NAME=<control_plane_disk_name>
 # Backup the generate file: secrets.yaml
 talosctl gen secrets -o secrets.yaml
 
-# Create the Cilium prerequisites patch (docs/cilium.md)
+# Create Talos config patch
 cat >/tmp/cilium-talos-prereqs.yaml <<'EOF'
 # No Flannel; Cilium is applied as a manifest
 apiVersion: v1alpha1
@@ -44,6 +44,22 @@ kind: ResolverConfig
 hostDNS:
   enabled: true
   forwardKubeDNSToHost: false
+---
+# Kubelet serving certificates include the node IP
+apiVersion: v1alpha1
+kind: KubeletConfig
+extraArgs:
+  rotate-server-certificates: true
+---
+# Enable workloads on the control plane node
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+taints:
+  node-role.kubernetes.io/control-plane:
+    $patch: delete
+labels:
+  node.kubernetes.io/exclude-from-external-load-balancers:
+    $patch: delete
 EOF
 
 # Generate configuration file
@@ -108,6 +124,15 @@ until talosctl kubeconfig 2>/dev/null; do
   sleep 5
 done
 
+# Create the gVisor RuntimeClass used by sandboxed workloads
+cat <<'EOF' | kubectl apply -f -
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor
+handler: runsc
+EOF
+
 # Install Cilium CRDs server-side; annotations too large
 kubectl apply --server-side --force-conflicts -f /tmp/cilium-src/pkg/k8s/apis/cilium.io/client/crds/v2/
 
@@ -124,37 +149,6 @@ talosctl health
 
 # Verify node registration
 kubectl get nodes
-```
-
-## Create the gVisor RuntimeClass
-1. Run in workstation:
-```bash
-cat <<'EOF' | kubectl apply -f -
-apiVersion: node.k8s.io/v1
-kind: RuntimeClass
-metadata:
-  name: gvisor
-handler: runsc
-EOF
-```
-
-## Enable workloads on control plane
-1. Run in workstation:
-```bash
-# Create patch to remove taints and labels
-cat >/tmp/allow-workloads-on-cp.yaml <<'EOF'
-apiVersion: v1alpha1
-kind: KubeNodeConfig
-taints:
-  node-role.kubernetes.io/control-plane:
-    $patch: delete
-labels:
-  node.kubernetes.io/exclude-from-external-load-balancers:
-    $patch: delete
-EOF
-
-# Apply patch
-talosctl patch machineconfig --patch @/tmp/allow-workloads-on-cp.yaml
 ```
 
 ## Configure WireGuard
@@ -218,6 +212,7 @@ EOF
 - [Production Clusters](https://docs.siderolabs.com/talos/v1.14/getting-started/prodnotes)
 - [Deploy Cilium on Talos](https://docs.siderolabs.com/kubernetes-guides/cni/deploying-cilium)
 - [Enable workloads on your control plane nodes](https://docs.siderolabs.com/talos/v1.14/deploy-and-manage-workloads/workloads-on-controlplane)
+- [Deploy the Metrics Server](https://docs.siderolabs.com/kubernetes-guides/monitoring-and-observability/deploy-metrics-server)
 - [WireGuard](https://docs.siderolabs.com/talos/v1.14/networking/advanced/wireguard)
 - [Longhorn](https://docs.siderolabs.com/kubernetes-guides/csi/longhorn#v1-data-engine)
 - [Longhorn - Talos support](https://longhorn.io/docs/1.12.1/advanced-resources/os-distro-specific/talos-linux-support/)

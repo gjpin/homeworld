@@ -7,6 +7,8 @@
 | cilium | No | Hubble UI is cluster-internal (no HTTPRoute; reached via `kubectl port-forward` or direct WireGuard node access) and has no login. Agents, Envoy, and the operator use their service accounts. |
 | cert-manager | No | No user login. |
 | external-dns | No | No user login. |
+| metrics-server | No | No user login. |
+| kubelet-serving-cert-approver | No | No user login. |
 | longhorn | No | The UI has no login. |
 | velero | No | Controller only. The UI is `velero-ui`. |
 | velero-ui | Yes | Authelia. Built-in basic auth is disabled. Any signed-in user can manage every backup; there is no admin group. |

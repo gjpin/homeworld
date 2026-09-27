@@ -2006,6 +2006,14 @@
           "name": "^hubble-ui$",
           "namespace": "^cilium$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^metrics-server$",
+          "namespace": "^metrics-server$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2485,6 +2493,14 @@
           "kind": "^Deployment$",
           "name": "^hubble-ui$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^metrics-server$",
+          "namespace": "^metrics-server$"
         }
       }
     ],
@@ -3384,6 +3400,28 @@
           "kind": "^RoleBinding$",
           "name": "^cilium-operator-ztunnel$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^system:metrics-server$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^metrics-server:system:auth-delegator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^metrics-server-auth-reader$",
+          "namespace": "^kube-system$"
         }
       }
     ],
@@ -4302,6 +4340,14 @@
           "name": "^hubble-ui$",
           "namespace": "^cilium$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^metrics-server$",
+          "namespace": "^metrics-server$"
+        }
       }
     ],
     "posturePolicies": [
@@ -5201,6 +5247,14 @@
           "kind": "^Deployment$",
           "name": "^hubble-ui$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^metrics-server$",
+          "namespace": "^metrics-server$"
         }
       }
     ],
@@ -6347,6 +6401,14 @@
           "name": "^hubble-ui$",
           "namespace": "^cilium$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^metrics-server$",
+          "namespace": "^metrics-server$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7447,6 +7509,14 @@
           "name": "^hubble-ui$",
           "namespace": "^cilium$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^metrics-server$",
+          "namespace": "^metrics-server$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7765,6 +7835,14 @@
           "kind": "^Deployment$",
           "name": "^hubble-ui$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^metrics-server$",
+          "namespace": "^metrics-server$"
         }
       }
     ],
