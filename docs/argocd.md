@@ -2,7 +2,6 @@
 
 ## Sync waves
 * **Sync wave -1**
-   * runtime-class: cluster-scoped RuntimeClass for gVisor sandboxing
    * admission-policies: CEL ValidatingAdmissionPolicies protecting Pod Security Admission labels
 * **Sync wave 0**
    * argocd: enables Helm inflation for the Kustomize-rendered chart profiles

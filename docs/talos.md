@@ -3,6 +3,8 @@
 ## Bootstrap
 1. Download ISO from [factory](https://factory.talos.dev/) and boot node.
    - Extensions:
+      - siderolabs/gvisor
+      - siderolabs/tailscale
       - siderolabs/iscsi-tools
       - siderolabs/util-linux-tools
 2. Set static DHCP for node in router
@@ -60,6 +62,18 @@ talosctl health
 
 # Verify node registration
 kubectl get nodes
+```
+
+## Create the gVisor RuntimeClass
+1. Run in workstation:
+```bash
+cat <<'EOF' | kubectl apply -f -
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor
+handler: runsc
+EOF
 ```
 
 ## Enable workloads on control plane

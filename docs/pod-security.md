@@ -108,7 +108,7 @@ Volumes requested as `volumeMode: Block` contain no filesystem, so they need no 
 
 ## gVisor Runtime Sandboxing
 
-To provide kernel-level defense-in-depth against container breakout vulnerabilities, the cluster utilizes [gVisor](https://gvisor.dev/) (`runsc`) via the `RuntimeClass/gvisor` definition installed in sync wave `-1`. Compatible workloads across all 28 application namespaces declare `spec.runtimeClassName: gvisor`.
+To provide kernel-level defense-in-depth against container breakout vulnerabilities, the cluster utilizes [gVisor](https://gvisor.dev/) (`runsc`) via the `RuntimeClass/gvisor` definition, which is not managed by GitOps and is created manually during Talos bootstrap (see [docs/talos.md](talos.md)). Compatible workloads across all 28 application namespaces declare `spec.runtimeClassName: gvisor`.
 
 Only workloads requiring direct host device access, raw block devices, or kernel filesystem hooks retain the standard container runtime.
 

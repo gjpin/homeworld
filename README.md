@@ -55,7 +55,6 @@
 | OpenCloud | `cloud.${BASE_DOMAIN}` | Files, sharing, search, collaboration, CalDAV, and CardDAV. |
 | Prometheus Operator CRDs | — | Custom resource definitions required for monitoring resources. |
 | Radicale | — | Internal CalDAV and CardDAV backend authenticated by OpenCloud. |
-| Runtime Class | — | Cluster-scoped RuntimeClass for gVisor sandboxing. |
 | RustFS | `s3.${BASE_DOMAIN}`<br>`console.rustfs.${BASE_DOMAIN}` | Shared S3-compatible object storage and Tenant console. |
 | RustFS Operator | `rustfs.${BASE_DOMAIN}` | RustFS storage operator and management console. |
 | Velero | — | Whole-cluster backups to Backblaze B2. |
@@ -65,7 +64,7 @@
 ## Manual Setup
 
 ### 1. Bootstrap the Talos Cluster (Single Node)
-Before deploying any application, bring up the Talos control plane: ISO installation, machine configuration generation, etcd bootstrap, enabling workloads on the control plane, WireGuard, and Longhorn disk provisioning. Follow [docs/talos.md](docs/talos.md).
+Before deploying any application, bring up the Talos control plane: ISO installation, machine configuration generation, etcd bootstrap, creating the gVisor RuntimeClass, enabling workloads on the control plane, WireGuard, and Longhorn disk provisioning. Follow [docs/talos.md](docs/talos.md).
 
 ### 2. Provision Infisical Secrets
 Every component synchronizes its secrets from Infisical via the External Secrets Operator. The complete list of required keys, per component, is documented in [docs/secrets.md](docs/secrets.md). Create the keys for a component in Infisical before deploying it; a missing key leaves the generated `Secret` incomplete and the pod fails with `CreateContainerConfigError`.
