@@ -2,11 +2,11 @@
 
 ## Features
 - Gitops with [ArgoCD](docs/argocd.md)
-- [App-of-Apps sync wave orchestration](docs/argocd.md#application-health-checks) via custom Application health checks
-- Declarative CRD lifecycle and upgrade management via [Server-Side Apply and sync waves](docs/argocd.md#crd-lifecycle-and-upgrade-management)
+   - [App-of-Apps sync wave orchestration](docs/argocd.md#application-health-checks) via custom Application health checks
+   - Declarative CRD lifecycle and upgrade management via [Server-Side Apply and sync waves](docs/argocd.md#crd-lifecycle-and-upgrade-management)
 - [Restricted Pod Security Standards](docs/pod-security.md#pod-security-standards)
-- [Kubernetes 1.37 User Namespaces](docs/pod-security.md#user-namespaces) (`hostUsers: false`)
-- [gVisor runtime sandboxing](docs/pod-security.md#gvisor-runtime-sandboxing) with Talos `runsc`
+- [User Namespaces](docs/pod-security.md#user-namespaces)
+- [gVisor runtime sandboxing](docs/pod-security.md#gvisor-runtime-sandboxing)
 - Tight [network policies](docs/network-policies.md)
 - Ingress protection via CrowdSec Security Engine and AppSec WAF
 - Gateway API routing with Envoy Gateway
@@ -67,10 +67,17 @@
 ### 1. Bootstrap the Talos Cluster (Single Node)
 Before deploying any application, bring up the Talos control plane: ISO installation, machine configuration generation, etcd bootstrap, creating the gVisor RuntimeClass, enabling workloads on the control plane, WireGuard, and Longhorn disk provisioning. Follow [docs/talos.md](docs/talos.md).
 
-### 2. Provision Infisical Secrets
+### 2. Zigbee Coordinator
+Label the node with the physical Zigbee USB adapter attached:
+```bash
+kubectl label node <node-name> environment=zigbee
+```
+This pins `homeassistant-zigbee2mqtt` to the host hardware where the serial dongle is connected.
+
+### 3. Provision Infisical Secrets
 Every component synchronizes its secrets from Infisical via the External Secrets Operator. The complete list of required keys, per component, is documented in [docs/secrets.md](docs/secrets.md). Create the keys for a component in Infisical before deploying it; a missing key leaves the generated `Secret` incomplete and the pod fails with `CreateContainerConfigError`.
 
-### 3. Create the Forgejo OAuth Application for Woodpecker CI
+### 4. Create the Forgejo OAuth Application for Woodpecker CI
 Woodpecker CI authenticates users and receives repository webhooks via Forgejo OAuth2:
 1. In Forgejo, navigate to **Site Administration** -> **Applications** -> **Create OAuth2 Application**.
    - **Application Name**: `Woodpecker CI`
@@ -79,7 +86,7 @@ Woodpecker CI authenticates users and receives repository webhooks via Forgejo O
    - `/woodpecker/FORGEJO_CLIENT`: `<Client ID>`
    - `/woodpecker/FORGEJO_SECRET`: `<Client Secret>`
 
-### 4. Access OpenChamber and Log In to the Coding Agents
+### 5. Access OpenChamber and Log In to the Coding Agents
 After the `openchamber` workspace deploys (see [docs/openchamber.md](docs/openchamber.md) for the architecture, bootstrap, and PR-gated update flow):
 
 - **OpenChamber remote access**: reachable only over WireGuard at `https://openchamber.${BASE_DOMAIN}`; sign in with the `/openchamber/OPENCHAMBER_UI_PASSWORD` Infisical secret. Desktop and mobile apps connect to the same URL directly via QR-code pairing (*Settings → Remote Instances*); no relay or tunnel is needed.
@@ -94,12 +101,3 @@ After the `openchamber` workspace deploys (see [docs/openchamber.md](docs/opench
   copilot login         # Copilot CLI (device-code flow)
   ```
   `/openchamber/OPENAI_API_KEY` and `/openchamber/GITHUB_TOKEN` are injected as environment variables, so Codex and OpenCode also work without interactive login. Copilot CLI checks `COPILOT_GITHUB_TOKEN`, then `GH_TOKEN`, then `GITHUB_TOKEN` before its stored login, so the injected `GITHUB_TOKEN` takes precedence: it must carry the Copilot Requests permission, otherwise `copilot login` appears to succeed but is silently shadowed.
-
-## Node Setup
-
-### Zigbee Coordinator
-Label the node with the physical Zigbee USB adapter attached:
-```bash
-kubectl label node <node-name> environment=zigbee
-```
-This pins `homeassistant-zigbee2mqtt` to the host hardware where the serial dongle is connected.
