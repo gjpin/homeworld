@@ -30,8 +30,116 @@ spec:
         node-role.kubernetes.io/homelab: homelab
       securityContext:
         runAsNonRoot: false
+        # Grants rootless init containers write access to the /config PVC:
+        # Longhorn supports kubelet-side fsGroup handling (CSIDriver
+        # fsGroupPolicy ReadWriteOnceWithFSType), so the volume is chowned
+        # to this group on first mount. OnRootMismatch skips the recursive
+        # chown on every later mount.
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+        # Installs the pinned hass-oidc-auth custom integration for Authelia
+        # OIDC (https://github.com/christiaangoossens/hass-oidc-auth). The
+        # zip contains the integration files at its root. The loader is
+        # rootless and writes only to the emptyDir that overlays
+        # /config/custom_components/auth_oidc in the Home Assistant
+        # container, so it never touches the root-owned /config PVC and the
+        # git-pinned version always wins over any HACS-installed copy.
+        - name: hass-oidc-auth-loader
+          image: alpine:3.24.2
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -ec
+            - |
+              # Renovate tracks the plugin version below (github-releases).
+              # When bumping a version, refresh the sha256 from the release assets page.
+              wget -O /tmp/hass-oidc-auth.zip \
+                https://github.com/christiaangoossens/hass-oidc-auth/releases/download/v1.2.1/hass-oidc-auth.zip
+              echo 'e5badaaacaa63cfd6fe733924a05e76d75058836190398598fb24de57cd47ccd  /tmp/hass-oidc-auth.zip' | sha256sum -c -
+              unzip -o /tmp/hass-oidc-auth.zip -d /plugins
+              rm -f /tmp/hass-oidc-auth.zip
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+              ephemeral-storage: 2Gi
+          volumeMounts:
+            - name: hass-oidc-auth
+              mountPath: /plugins
+        # Seeds Home Assistant's bootstrap configuration with the OIDC
+        # provider on the first start of an empty PVC. Home Assistant
+        # leaves an existing configuration.yaml untouched, and with the
+        # file present it also never creates the automations.yaml,
+        # scripts.yaml, and scenes.yaml files that its own default
+        # template includes, so all four are seeded here. Every write is
+        # create-if-missing so the seed happens once and the PVC stays
+        # user-owned state afterwards; later git changes to the seeded
+        # configuration must be applied by editing the files directly.
+        - name: homeassistant-config-bootstrap
+          image: alpine:3.24.2
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -ec
+            - |
+              [ -f /config/configuration.yaml ] || cat > /config/configuration.yaml <<'YAML'
+              # Loads default set of integrations. Do not remove.
+              default_config:
+
+              # Load frontend themes from the themes folder
+              frontend:
+                themes: !include_dir_merge_named themes
+
+              automation: !include automations.yaml
+              script: !include scripts.yaml
+              scene: !include scenes.yaml
+
+              auth_oidc:
+                client_id: home-assistant
+                client_secret: !env_var OIDC_CLIENT_SECRET
+                discovery_url: https://auth.${BASE_DOMAIN}/.well-known/openid-configuration
+                display_name: Authelia
+                roles:
+                  admin: homeassistant-admin
+              YAML
+              [ -f /config/automations.yaml ] || printf '[]\n' > /config/automations.yaml
+              [ -f /config/scripts.yaml ] || : > /config/scripts.yaml
+              [ -f /config/scenes.yaml ] || : > /config/scenes.yaml
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+              ephemeral-storage: 2Gi
+          volumeMounts:
+            - mountPath: /config
+              name: homeassistant-claim0
       containers:
         - image: ghcr.io/home-assistant/home-assistant:2026.9.3
           imagePullPolicy: IfNotPresent
@@ -43,6 +151,14 @@ spec:
           env:
             - name: TZ
               value: UTC
+            # Authelia OIDC client secret, read by the auth_oidc provider
+            # through Home Assistant's !env_var tag so the secret never
+            # lands on the /config PVC.
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: homeassistant-oidc
+                  key: clientSecret
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -61,8 +177,14 @@ spec:
           volumeMounts:
             - mountPath: /config
               name: homeassistant-claim0
+            # Overlay-mounted plugin directory; the rootless init container
+            # populates it with the pinned hass-oidc-auth integration.
+            - mountPath: /config/custom_components/auth_oidc
+              name: hass-oidc-auth
       restartPolicy: Always
       volumes:
         - name: homeassistant-claim0
           persistentVolumeClaim:
             claimName: homeassistant-claim0
+        - name: hass-oidc-auth
+          emptyDir: {}

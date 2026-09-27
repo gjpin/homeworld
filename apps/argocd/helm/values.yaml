@@ -27,6 +27,7 @@ configs:
       issuer: https://auth.${BASE_DOMAIN}
       clientID: argocd
       clientSecret: $argocd-oidc:clientSecret
+      cliClientID: argocd-cli
       requestedScopes:
         - openid
         - profile

@@ -110,6 +110,26 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: allow-homeassistant-authelia
+  namespace: homeassistant
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:io.kompose.service: homeassistant
+  egress:
+    # OIDC discovery, token, and userinfo requests to Authelia.
+    - toFQDNs:
+        - matchName: "auth.${BASE_DOMAIN}"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-mosquitto-ingress
   namespace: homeassistant
   annotations:

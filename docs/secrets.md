@@ -17,6 +17,7 @@ All cluster secrets are synchronized from [Infisical](https://infisical.com) by 
 | | `/authelia/OIDC_CLIENT_SECRET_ARGOCD` | Argo CD OIDC client secret. |
 | | `/authelia/OIDC_CLIENT_SECRET_FORGEJO` | Forgejo OIDC client secret. |
 | | `/authelia/OIDC_CLIENT_SECRET_GRAFANA` | Grafana OIDC client secret. |
+| | `/authelia/OIDC_CLIENT_SECRET_HOMEASSISTANT` | Home Assistant OIDC client secret. |
 | | `/authelia/OIDC_CLIENT_SECRET_IMMICH` | Immich OIDC client secret. |
 | | `/authelia/OIDC_CLIENT_SECRET_RUSTFS` | RustFS console OIDC client secret. |
 | | `/authelia/OIDC_CLIENT_SECRET_VELERO_UI` | Velero UI OIDC client secret. |
@@ -63,7 +64,7 @@ All cluster secrets are synchronized from [Infisical](https://infisical.com) by 
 | **Velero UI** | `/velero-ui/BASIC_AUTH_USERNAME` | Velero UI basic-auth username (required for startup; login is via Authelia OIDC). |
 | | `/velero-ui/BASIC_AUTH_PASSWORD` | Velero UI basic-auth password (required for startup; login is via Authelia OIDC). |
 | | `/velero-ui/AUTH_SECRET_PASSPHRASE` | Session/cookie signing passphrase. |
-| **Vaultwarden** | `/vaultwarden/ADMIN_TOKEN` | Admin panel token, preferably an Argon2 PHC string (generate with `docker run --rm -it docker.io/vaultwarden/server:1.37.3 /vaultwarden hash`). |
+| **Vaultwarden** | `/vaultwarden/ADMIN_TOKEN` | Admin panel token, preferably an Argon2 PHC string (generate with `docker run --rm -it docker.io/vaultwarden/server /vaultwarden hash`). |
 | | `/vaultwarden/POSTGRES_USERNAME` | CloudNativePG application username. |
 | | `/vaultwarden/POSTGRES_PASSWORD` | CloudNativePG application password. Must contain only RFC 3986 unreserved characters; it is embedded unescaped in the PostgreSQL connection URL. |
 | | `/vaultwarden/SMTP_USERNAME` | SMTP relay username for invitation and notification emails. |

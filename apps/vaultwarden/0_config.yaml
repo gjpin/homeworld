@@ -32,9 +32,16 @@ data:
   SSO_ENABLED: "true"
   SSO_AUTHORITY: "https://auth.${BASE_DOMAIN}"
   SSO_CLIENT_ID: "vaultwarden"
-  SSO_SCOPES: "email profile offline_access"
+  SSO_SCOPES: "email profile offline_access vaultwarden"
   SSO_SIGNUPS_ALLOWED: "false"
   SSO_SIGNUPS_MATCH_EMAIL: "true"
+  # Role mapping through the custom `vaultwarden` scope: the
+  # vaultwarden-admin Authelia group grants the admin role, vaultwarden-user
+  # the user role, and invited users in neither group default to the user
+  # role.
+  SSO_ROLES_ENABLED: "true"
+  SSO_ROLES_DEFAULT_TO_USER: "true"
+  SSO_ROLES_TOKEN_PATH: "/vaultwarden_roles"
   # SMTP relay: implicit TLS on 465, matching the shared submissions relay.
   SMTP_SECURITY: "force_tls"
   SMTP_PORT: "465"

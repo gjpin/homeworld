@@ -70,6 +70,11 @@ gitea:
       ALLOW_ONLY_EXTERNAL_REGISTRATION: true
       DISABLE_REGISTRATION: false
       REGISTER_EMAIL_CONFIRM: false
+    # Disable the legacy OpenID 2.0 sign-in surface; Authelia is the only
+    # external identity source (via the OIDC auth source below).
+    openid:
+      ENABLE_OPENID_SIGNIN: false
+      ENABLE_OPENID_SIGNUP: false
     oauth2_client:
       ENABLE_AUTO_REGISTRATION: true
       USERNAME: preferred_username

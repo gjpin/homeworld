@@ -231,6 +231,7 @@ data:
         - 'https://embed.diagrams.net/'
         - 'https://office.${BASE_DOMAIN}/'
         - 'https://docs.opencloud.eu'
+        - 'https://auth.${BASE_DOMAIN}/'
       img-src:
         - '''self'''
         - 'data:'
@@ -251,6 +252,7 @@ data:
         - '''unsafe-eval'''
         - 'blob:'
         - 'https://www.gstatic.com/'
+        - 'https://auth.${BASE_DOMAIN}/'
       style-src:
         - '''self'''
         - '''unsafe-inline'''

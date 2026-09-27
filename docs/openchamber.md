@@ -29,7 +29,7 @@ The running pod never updates itself; every change to the workspace arrives as a
 
 **Pinned tool versions** — Renovate's daily run groups every workspace-image update (the base image digest, Node.js, pnpm, uv, **OpenChamber itself**, OpenCode, Codex CLI, the Pi agent, Grok Build, the Antigravity CLI, the Copilot CLI, the Playwright packages, chrome-devtools-mcp, and the skills CLI, majors included) into a single `openchamber-workspace-image` PR via the `customManagers` and group rule in `renovate.json`.
 
-- OpenChamber, for example, is pinned as `ARG OPENCHAMBER_VERSION=2.0.2` in the Dockerfile and installed as `@openchamber/web@2.0.2`. When [openchamber/openchamber](https://github.com/openchamber/openchamber/releases) publishes a new release, the grouped PR picks up the bumped `ARG`. In-app self-update is inert by design (`/usr/local` is not writable by the agent user, and updates only ever come from image rebuilds).
+- OpenChamber, for example, is pinned as `ARG OPENCHAMBER_VERSION` in the Dockerfile and installed as `@openchamber/web` at the same version. When [openchamber/openchamber](https://github.com/openchamber/openchamber/releases) publishes a new release, the grouped PR picks up the bumped `ARG`. In-app self-update is inert by design (`/usr/local` is not writable by the agent user, and updates only ever come from image rebuilds).
 
 **Debian packages and Google Chrome** — Renovate cannot see apt repositories, so the daily [package refresh check](../.github/workflows/check-openchamber-apt-updates.yaml) runs `apt-get --simulate full-upgrade` inside the published image and opens a PR bumping `APT_REFRESH` whenever packages are outdated.
 
