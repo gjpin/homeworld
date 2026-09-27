@@ -1,6 +1,7 @@
 # Bootstrap cluster (single node)
 
 ## Bootstrap
+Workstation requirements: `talosctl`, `kubectl`, `helm`, and `git`.
 1. Download ISO from [factory](https://factory.talos.dev/) and boot node.
    - Extensions:
       - siderolabs/gvisor
@@ -25,9 +26,29 @@ export DISK_NAME=<control_plane_disk_name>
 # Backup the generate file: secrets.yaml
 talosctl gen secrets -o secrets.yaml
 
+# Create the Cilium prerequisites patch (docs/cilium.md)
+cat >/tmp/cilium-talos-prereqs.yaml <<'EOF'
+# No Flannel; Cilium is applied as a manifest
+apiVersion: v1alpha1
+kind: KubeFlannelCNIConfig
+$patch: delete
+---
+# No kube-proxy; Cilium replaces it
+apiVersion: v1alpha1
+kind: KubeProxyConfig
+enabled: false
+---
+# Required by bpf.masquerade (docs/cilium.md)
+apiVersion: v1alpha1
+kind: ResolverConfig
+hostDNS:
+  enabled: true
+  forwardKubeDNSToHost: false
+EOF
+
 # Generate configuration file
 # Backup the generated files: controlplane.yaml, worker.yaml, talosconfig
-talosctl gen config --with-secrets secrets.yaml $CLUSTER_NAME https://$CONTROL_PLANE_IPS:6443 --install-disk /dev/$DISK_NAME
+talosctl gen config --with-secrets secrets.yaml $CLUSTER_NAME https://$CONTROL_PLANE_IPS:6443 --install-disk /dev/$DISK_NAME --config-patch-control-plane @/tmp/cilium-talos-prereqs.yaml
 
 # Apply the control plane configuration
 talosctl apply-config --insecure --nodes $CONTROL_PLANE_IPS --file controlplane.yaml
@@ -51,11 +72,52 @@ until talosctl version >/dev/null 2>&1; do
 done
 echo "node is up"
 
-# Bootstrap etcd cluster
-talosctl bootstrap
+# Prepare Cilium; no cluster access needed yet
+# Upstream Cilium source: CRDs only (chart ships none)
+git clone --depth 1 --branch v1.20.2 https://github.com/cilium/cilium.git /tmp/cilium-src
 
-# Download kubeconfig
-talosctl kubeconfig
+# Render the release Argo CD will adopt
+git clone https://github.com/gjpin/homeworld.git /tmp/homeworld
+kubectl kustomize --enable-helm /tmp/homeworld/apps/cilium/helm > /tmp/cilium.yaml
+
+# Helm renders no release namespace
+cat > /tmp/cilium-namespace.yaml <<'EOF'
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cilium
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/enforce-version: v1.37
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: v1.37
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: v1.37
+  annotations:
+    security.homeworld/exception-reason: Cilium kube-proxy replacement requires privileged agents with BPF, bpffs, hostPath, and host network integration; PSS baseline forbids these host integrations.
+EOF
+
+# Bootstrap etcd cluster
+# Pauses at 18/19 until Cilium runs; keep backgrounded
+talosctl bootstrap &
+BOOTSTRAP_PID=$!
+
+# Download kubeconfig once the API server is up
+until talosctl kubeconfig 2>/dev/null; do
+  echo "waiting for the API server ..."
+  sleep 5
+done
+
+# Install Cilium CRDs server-side; annotations too large
+kubectl apply --server-side --force-conflicts -f /tmp/cilium-src/pkg/k8s/apis/cilium.io/client/crds/v2/
+
+# Install Cilium; the node turns Ready
+kubectl apply -f /tmp/cilium-namespace.yaml
+kubectl apply -f /tmp/cilium.yaml
+kubectl -n cilium rollout status daemonset/cilium
+
+# Wait for the paused bootstrap to finish
+wait $BOOTSTRAP_PID
 
 # Check if node is healthy
 talosctl health
@@ -154,6 +216,7 @@ EOF
 ## References:
 - [Getting Started](https://docs.siderolabs.com/talos/v1.14/getting-started/getting-started)
 - [Production Clusters](https://docs.siderolabs.com/talos/v1.14/getting-started/prodnotes)
+- [Deploy Cilium on Talos](https://docs.siderolabs.com/kubernetes-guides/cni/deploying-cilium)
 - [Enable workloads on your control plane nodes](https://docs.siderolabs.com/talos/v1.14/deploy-and-manage-workloads/workloads-on-controlplane)
 - [WireGuard](https://docs.siderolabs.com/talos/v1.14/networking/advanced/wireguard)
 - [Longhorn](https://docs.siderolabs.com/kubernetes-guides/csi/longhorn#v1-data-engine)

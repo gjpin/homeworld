@@ -159,7 +159,7 @@ func (m *Manager) installCilium(ctx context.Context) error {
 		return fmt.Errorf("helm install cilium: %w", err)
 	}
 
-	// Cilium 1.17 helm chart does not include CRDs (no crds/ dir and no
+	// Cilium 1.20 helm chart does not include CRDs (no crds/ dir and no
 	// templates gated on crds.install). Apply policy CRDs from the matching
 	// Git tag so CiliumNetworkPolicy objects can be admitted.
 	if err := applyCiliumPolicyCRDs(ctx, cilium.ChartVersion); err != nil {

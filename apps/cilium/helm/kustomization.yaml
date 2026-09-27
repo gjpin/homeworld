@@ -1,0 +1,129 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: cilium
+    repo: https://helm.cilium.io
+    version: 1.20.2
+    releaseName: cilium
+    namespace: cilium
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  # --- gVisor for the pod-network Hubble control-plane components (the
+  # chart has no runtimeClassName value). The cilium-agent and cilium-envoy
+  # DaemonSets and the cilium-operator Deployment run hostNetwork and keep
+  # the standard runtime (see docs/pod-security.md).
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^hubble-relay$
+      namespace: ^cilium$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^hubble-ui$
+      namespace: ^cilium$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+  # --- requests/limits for the cilium-agent init containers that ship
+  # without them (install-cni-binaries already declares upstream requests;
+  # only limits are added so the higher upstream values are preserved).
+  - target:
+      group: apps
+      version: v1
+      kind: DaemonSet
+      name: ^cilium$
+      namespace: ^cilium$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/initContainers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+      - op: add
+        path: /spec/template/spec/initContainers/1/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+      - op: add
+        path: /spec/template/spec/initContainers/2/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+      - op: add
+        path: /spec/template/spec/initContainers/3/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+      - op: add
+        path: /spec/template/spec/initContainers/4/resources/limits
+        value: {"cpu":"1","memory":"2Gi"}
+  # --- resource-scoped scanner exceptions
+  - target:
+      group: apps
+      version: v1
+      kind: DaemonSet
+      name: ^cilium$
+      namespace: ^cilium$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: pod-probes-identical,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,container-image-pull-policy
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: Kube-proxy replacement requires hostNetwork, BPF datapath access, bpffs/cgroup host mounts, and the upstream root security context; Talos forbids SYS_MODULE, and the host integration is exempt from gVisor and user namespaces. Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+  - target:
+      group: apps
+      version: v1
+      kind: DaemonSet
+      name: ^cilium-envoy$
+      namespace: ^cilium$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: pod-probes-identical,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,container-image-pull-policy
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: The standalone Envoy datapath DaemonSet requires hostNetwork and NET_ADMIN/BPF/PERFMON/NET_BIND_SERVICE capabilities for service load balancing; host integration is exempt from gVisor and user namespaces. Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^cilium-operator$
+      namespace: ^cilium$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: pod-probes-identical,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-strategy,deployment-replicas,container-image-pull-policy
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: The upstream chart runs the operator with hostNetwork true, so hostUsers stays true and gVisor is unavailable; upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^hubble-relay$
+      namespace: ^cilium$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: pod-probes-identical,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-strategy,deployment-replicas,container-image-pull-policy
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^hubble-ui$
+      namespace: ^cilium$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/kube-score~1ignore
+        value: pod-probes-identical,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-strategy,deployment-replicas,container-image-pull-policy
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.

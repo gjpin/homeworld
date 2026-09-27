@@ -1,0 +1,195 @@
+# https://artifacthub.io/packages/helm/cilium/cilium
+# https://docs.siderolabs.com/kubernetes-guides/cni/deploying-cilium#prerequisites
+# https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/
+#
+# Talos prerequisites (see docs/cilium.md):
+#   - Kubernetes IPAM: the API server allocates each node's PodCIDR.
+#   - Talos pre-mounts cgroup2 and bpffs; the agent must not remount them.
+#   - Talos forbids workloads loading kernel modules: SYS_MODULE is dropped
+#     from ciliumAgent and cleanCiliumState (SYSLOG is dropped with it).
+#   - KubePrism (Talos default, localhost:7445) is the kube-proxy-free
+#     API endpoint on every node.
+#   - forwardKubeDNSToHost=false in the Talos ResolverConfig, required by
+#     bpf.masquerade (docs.siderolabs.com known issue).
+
+namespaceOverride: cilium
+
+# --- kube-proxy replacement ---
+# Cilium replaces kube-proxy; host-network agents reach the API server
+# through the KubePrism endpoint on every node.
+kubeProxyReplacement: "true"
+k8sServiceHost: localhost
+k8sServicePort: "7445"
+dnsPolicy: ClusterFirst
+
+# --- IPAM: Kubernetes mode (Talos requirement) ---
+ipam:
+  mode: kubernetes
+
+# --- datapath ---
+bpf:
+  # BPF masquerading; see the forwardKubeDNSToHost note above.
+  masquerade: true
+l7Proxy: true
+localRedirectPolicy: true
+rollOutCiliumPods: true
+
+# --- agent security context ---
+cgroup:
+  autoMount:
+    enabled: false
+  hostRoot: /sys/fs/cgroup
+securityContext:
+  capabilities:
+    ciliumAgent:
+      - CHOWN
+      - KILL
+      - NET_ADMIN
+      - NET_RAW
+      - IPC_LOCK
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    cleanCiliumState:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_RESOURCE
+
+# --- operator ---
+operator:
+  replicas: 1
+  rollOutPods: true
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      interval: 60s
+
+# --- agent resources ---
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    cpu: "2"
+    memory: 1Gi
+
+# --- observability ---
+prometheus:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    # The monitoring.coreos.com CRDs are provided by the
+    # prometheus-operator-crd app (docs/argocd.md).
+    trustCRDsExist: true
+    interval: 60s
+
+hubble:
+  enabled: true
+  # User namespaces for the relay and UI pods (gVisor is patched in via
+  # kustomization.yaml; the chart has no runtimeClassName value).
+  hostUsers: false
+  # https://docs.cilium.io/en/stable/observability/metrics/
+  # Static flow metrics exporter. The hubble ServiceMonitor scrapes the
+  # hubble-metrics service; the cilium-agent ServiceMonitor only covers
+  # the agent's own metrics port. OpenMetrics enables the httpV2
+  # exemplars that tie metrics to traces (VictoriaTraces).
+  metrics:
+    enabled:
+      - dns:query;ignoreAAAA
+      - drop:sourceContext=identity;destinationContext=identity
+      - tcp
+      - flow
+      - port-distribution
+      - icmp
+      - httpV2:exemplars=true;labelsContext=source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction;sourceContext=workload-name|reserved-identity;destinationContext=workload-name|reserved-identity
+    enableOpenMetrics: true
+    serviceMonitor:
+      enabled: true
+      interval: 60s
+  relay:
+    enabled: true
+    rollOutPods: true
+    nodeSelector:
+      node-role.kubernetes.io/homelab: homelab
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        cpu: "1"
+        memory: 512Mi
+    prometheus:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        interval: 60s
+  ui:
+    enabled: true
+    rollOutPods: true
+    nodeSelector:
+      node-role.kubernetes.io/homelab: homelab
+    frontend:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          cpu: "1"
+          memory: 256Mi
+    backend:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          cpu: "1"
+          memory: 256Mi
+
+envoy:
+  # Standalone Envoy DaemonSet (the embedded proxy is gone in 1.20).
+  enabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "2"
+      memory: 1Gi
+  securityContext:
+    capabilities:
+      # Modern BPF/PERFMON capabilities instead of SYS_ADMIN; NET_BIND_SERVICE
+      # is required for the Envoy process to bind privileged ports.
+      keepCapNetBindService: true
+      envoy:
+        - NET_ADMIN
+        - BPF
+        - PERFMON
+        - NET_BIND_SERVICE
+  prometheus:
+    serviceMonitor:
+      enabled: true
+      interval: 60s
+
+# --- pod-to-pod encryption ---
+# https://docs.cilium.io/en/stable/security/network/encryption-wireguard/
+encryption:
+  enabled: true
+  type: wireguard
+
+# Envoy Gateway owns Gateway API in this cluster; Cilium's own Gateway API
+# implementation stays disabled.
+gatewayAPI:
+  enabled: false

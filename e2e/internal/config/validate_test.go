@@ -17,7 +17,7 @@ func TestLoadMinimal(t *testing.T) {
 	if suite.Spec.Cluster.Name != "e2e-minimal" {
 		t.Errorf("cluster.name = %q", suite.Spec.Cluster.Name)
 	}
-	if suite.Spec.Cluster.Cilium.ChartVersion != "1.17.2" {
+	if suite.Spec.Cluster.Cilium.ChartVersion != "1.20.2" {
 		t.Errorf("cilium.chartVersion = %q", suite.Spec.Cluster.Cilium.ChartVersion)
 	}
 }
@@ -157,7 +157,7 @@ apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
 - role: control-plane
 `,
-				Cilium: Cilium{ChartVersion: "1.17.2"},
+				Cilium: Cilium{ChartVersion: "1.20.2"},
 			},
 		},
 	}

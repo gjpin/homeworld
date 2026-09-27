@@ -1,0 +1,52 @@
+# https://artifacthub.io/packages/helm/cilium/cilium
+# https://docs.siderolabs.com/kubernetes-guides/cni/deploying-cilium#without-kube-proxy-6
+#
+# The CNI itself is installed during Talos bootstrap by applying this
+# directory's render (see docs/talos.md); this application adopts the
+# identical resources and owns every upgrade afterwards. The cert Secrets
+# are generated at render time by the chart: their data is applied once
+# and then ignored so Argo CD refreshes never rotate live key material.
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cilium
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cilium
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: cilium-ca
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      name: hubble-relay-client-certs
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Secret
+      name: hubble-server-certs
+      jsonPointers:
+        - /data
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/cilium/helm
+    targetRevision: HEAD

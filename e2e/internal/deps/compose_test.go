@@ -11,7 +11,7 @@ func TestComposeArgs(t *testing.T) {
 	suite := &config.Suite{
 		Dir: "/suite",
 		Spec: config.Spec{
-			Cluster: config.Cluster{Name: "e2e", KindConfig: "x", Cilium: config.Cilium{ChartVersion: "1.17.2"}},
+			Cluster: config.Cluster{Name: "e2e", KindConfig: "x", Cilium: config.Cilium{ChartVersion: "1.20.2"}},
 		},
 	}
 	dc := config.DockerCompose{

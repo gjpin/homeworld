@@ -18,6 +18,10 @@ OMIT_APPS = {
     "velero-ui-app",
     "homeassistant-app",
     "external-dns-app",
+    # Rootless Docker (Lima or Desktop) cannot mount bpffs, so the Cilium
+    # datapath cannot start on kind; the suite installs its own CRD-only
+    # Cilium in kube-system.
+    "cilium-app",
     # Image ghcr.io/gjpin/openchamber is private; kind cannot pull it
     # without credentials (401 Unauthorized).
     "openchamber-app",

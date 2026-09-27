@@ -109,6 +109,14 @@
       ]
     },
     {
+      "description": "Group Cilium Helm chart and CRD tag bumps into one PR so the release and its CRDs stay version-aligned",
+      "matchPackageNames": [
+        "cilium",
+        "cilium/cilium"
+      ],
+      "groupName": "cilium"
+    },
+    {
       "description": "Group every OpenChamber workspace image update (base image digest and all pinned tools, majors included) into one PR; automerge-openchamber.yaml merges it once the PR smoke build passes",
       "matchFileNames": [
         "images/openchamber/Dockerfile"
@@ -278,6 +286,32 @@
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Cilium Helm chart",
+      "managerFilePatterns": [
+        "/^apps\\/cilium\\/helm\\/kustomization\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^\\s+- name:\\s+cilium\\s+repo:\\s+https://helm\\.cilium\\.io\\s+version:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "depNameTemplate": "cilium",
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm",
+      "registryUrlTemplate": "https://helm.cilium.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Cilium CRDs",
+      "managerFilePatterns": [
+        "/^apps\\/cilium\\/0_crds\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)repoURL:\\s+https://github\\.com/(?<depName>cilium\\/cilium)\\.git\\s+targetRevision:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "datasourceTemplate": "git-tags",
+      "versioningTemplate": "semver"
     },
     {
       "customType": "regex",

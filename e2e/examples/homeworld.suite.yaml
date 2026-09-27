@@ -28,7 +28,7 @@ spec:
         # stale ClusterIP DNATs after Recreate (Grafana operator ping dies).
         kubeProxyMode: nftables
       # Keep kindnet. Rootless Docker (Lima or Desktop) cannot mount bpffs,
-      # so the Cilium datapath cannot start. The 1.17 helm chart does not
+      # so the Cilium datapath cannot start. The 1.20 helm chart does not
       # ship CRDs; apply-cilium-crds (and kind.go) apply them from the Git
       # tag. The same engine cannot idmap overlayfs, so rewrite-staging
       # sets hostUsers: true (production stays hostUsers: false). A second
@@ -48,7 +48,7 @@ spec:
         # (see e2e/README.md "Kind → Infisical reachability").
         extraPortMappings: []
     cilium:
-      chartVersion: "1.17.2"
+      chartVersion: "1.20.2"
       namespace: kube-system
       values:
         agent: "false"
@@ -89,7 +89,7 @@ spec:
         command: ["./e2e/examples/hooks/apply-cilium-crds.sh"]
         timeout: 2m
         env:
-          CILIUM_VERSION: "1.17.2"
+          CILIUM_VERSION: "1.20.2"
       - name: raise-inotify-limits
         command: ["./e2e/examples/hooks/raise-inotify-limits.sh"]
         timeout: 1m

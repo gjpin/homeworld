@@ -17,6 +17,7 @@ The table below outlines the Pod Security Standard compliance level for every co
 | **Argo CD** | `argocd` | Restricted | **Restricted** | All components (`server`, `repo-server`, `application-controller`, `redis`, `dex`) run as non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
 | **Authelia** | `authelia` | Restricted | **Restricted** | Application container runs as UID `1000` with read-only root filesystem, dropped capabilities (`ALL`), and `RuntimeDefault` seccomp. Attached PostgreSQL and Dragonfly instances also conform to Restricted. |
 | **cert-manager** | `cert-manager` | Restricted | **Restricted** | Controller, cainjector, webhook, and startup check run non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
+| **Cilium** | `cilium` | Privileged | **Exception** | **Why not Restricted:** `cilium-agent` and `cilium-envoy` (DaemonSets) provide the kube-proxy replacement datapath and require BPF access, bpffs/cgroup host mounts, `hostNetwork`, and hostPath CNI state; `cilium-operator` runs `hostNetwork` by upstream chart default. PSS `baseline` forbids hostPath volumes and host networking, so the namespace enforces `privileged` (Restricted `audit`/`warn` retained).<br><br>*Mitigations:* `SYS_MODULE` and `SYSLOG` are dropped from the agent capability set (Talos forbids workloads loading kernel modules), `allowPrivilegeEscalation: false`, and the pod-network `hubble-relay` and `hubble-ui` run under gVisor with user namespaces. |
 | **CloudNativePG** | `cloudnative-pg` | Restricted | **Restricted** | Operator controller runs as non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
 | **Collabora** | `collabora` | Restricted | **Restricted** | Runs as non-root (UID `1000`) with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. Writable root filesystem is accepted for office document rendering caches. |
 | **CrowdSec** | `crowdsec` | Privileged | **Exception** | **Why not Restricted:** The pinned upstream CrowdSec image requires container UID `0` to write staged configuration files during startup. Additionally, `crowdsec-agent` (DaemonSet) requires a read-only hostPath mount (`/var/log`) to read container engine and node logs for intrusion detection — PSS `baseline` forbids hostPath volumes, so the namespace enforces `privileged` (Restricted `audit`/`warn` retained).<br><br>*Mitigations:* `crowdsec-lapi` and `crowdsec-appsec` maintain dropped capabilities (`ALL`), `allowPrivilegeEscalation: false`, and `RuntimeDefault` seccomp. |
@@ -58,6 +59,8 @@ The table below details user namespace implementation across all cluster workloa
 | **Argo CD** | `argocd` | **Enabled** (`false`) | Kustomize patch | Applied to `server`, `repo-server`, and `application-controller`. |
 | **Authelia** | `authelia` | **Enabled** (`false`) | Kustomize patch | Applied to Authelia Deployment. Attached CNPG and Dragonfly pods use standard host namespaces. |
 | **cert-manager** | `cert-manager` | **Enabled** (`false`) | Helm `values.yaml` | `global.hostUsers: false` applied across controller, cainjector, and webhook. |
+| **Cilium (Hubble Relay / UI)** | `cilium` | **Enabled** (`false`) | Helm `values.yaml` | `hubble.hostUsers: false` applied to the `hubble-relay` and `hubble-ui` Deployments. |
+| **Cilium (Agent / Envoy / Operator)** | `cilium` | **Disabled** (`true`) | *None (Host integration)* | **Why not enabled:** `cilium-agent`, `cilium-envoy`, and `cilium-operator` run `hostNetwork` (upstream default), which prohibits `hostUsers: false`; the kube-proxy replacement datapath requires direct node networking. |
 | **CloudNativePG Operator** | `cloudnative-pg` | **Enabled** (`false`) | Kustomize patch | Applied to operator Deployment. |
 | **CloudNativePG Clusters** | `crowdsec`, `forgejo`, `woodpecker` | **Enabled** (`false`) | CNPG `podPatch` annotation | `cnpg.io/podPatch` injects `hostUsers: false` into PostgreSQL instance pods. |
 | **Collabora** | `collabora` | **Enabled** (`false`) | Kustomize patch | Applied to Collabora Deployment. |
@@ -108,7 +111,7 @@ Volumes requested as `volumeMode: Block` contain no filesystem, so they need no 
 
 ## gVisor Runtime Sandboxing
 
-To provide kernel-level defense-in-depth against container breakout vulnerabilities, the cluster utilizes [gVisor](https://gvisor.dev/) (`runsc`) via the `RuntimeClass/gvisor` definition, which is not managed by GitOps and is created manually during Talos bootstrap (see [docs/talos.md](talos.md)). Compatible workloads across all 28 application namespaces declare `spec.runtimeClassName: gvisor`.
+To provide kernel-level defense-in-depth against container breakout vulnerabilities, the cluster utilizes [gVisor](https://gvisor.dev/) (`runsc`) via the `RuntimeClass/gvisor` definition, which is not managed by GitOps and is created manually during Talos bootstrap (see [docs/talos.md](talos.md)). Compatible workloads across all 29 application namespaces declare `spec.runtimeClassName: gvisor`.
 
 Only workloads requiring direct host device access, raw block devices, or kernel filesystem hooks retain the standard container runtime.
 
@@ -117,6 +120,8 @@ Only workloads requiring direct host device access, raw block devices, or kernel
 | **Argo CD** | `argocd` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `server`, `repo-server`, `application-controller`, `redis`, `applicationset-controller`, and `notifications-controller`. |
 | **Authelia** | `authelia` | **Enabled** (`gvisor`) | Kustomize patch | Applied to Authelia Deployment. |
 | **cert-manager** | `cert-manager` | **Enabled** (`gvisor`) | Kustomize patch | Applied across `controller`, `cainjector`, and `webhook` Deployments. |
+| **Cilium (Hubble Relay / UI)** | `cilium` | **Enabled** (`gvisor`) | Kustomize patch | Applied to the `hubble-relay` and `hubble-ui` Deployments; the chart has no `runtimeClassName` value. |
+| **Cilium (Agent / Envoy / Operator)** | `cilium` | **Disabled** | *None (Host integration)* | **Exception:** `cilium-agent` and `cilium-envoy` require BPF datapath, bpffs mounts, and `hostNetwork`; `cilium-operator` runs `hostNetwork` by upstream chart default. |
 | **CloudNativePG Operator** | `cloudnative-pg` | **Enabled** (`gvisor`) | Kustomize patch | Applied to operator Deployment. |
 | **Collabora** | `collabora` | **Enabled** (`gvisor`) | Kustomize patch | Applied to Collabora Deployment. |
 | **CrowdSec (LAPI / AppSec)** | `crowdsec` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `crowdsec-lapi` and `crowdsec-appsec` Deployments. |

@@ -1,0 +1,34 @@
+# https://github.com/cilium/cilium/tree/v1.20.2/pkg/k8s/apis/cilium.io/client/crds/v2
+# https://docs.siderolabs.com/kubernetes-guides/cni/deploying-cilium
+#
+# The Cilium Helm chart ships no CRDs, so the policy and datapath CRDs are
+# applied from the matching Git tag. The CiliumNetworkPolicy CRDs are
+# required by every component's -2_network_policy.yaml, and are installed
+# during Talos bootstrap (see docs/talos.md) before Argo CD exists; this
+# application takes over ownership for declarative upgrades.
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cilium-crds
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cilium
+  syncPolicy:
+    automated:
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=true
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - ServerSideApply=true
+  source:
+    repoURL: https://github.com/cilium/cilium.git
+    targetRevision: v1.20.2
+    path: pkg/k8s/apis/cilium.io/client/crds/v2

@@ -14,7 +14,7 @@ spec:
       - role: control-plane
       - role: worker
     cilium:
-      chartVersion: "1.17.2"
+      chartVersion: "1.20.2"
       namespace: kube-system
       values:
         image.pullPolicy: IfNotPresent

@@ -196,7 +196,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 
 - Opt every compatible Pod into gVisor runtime sandboxing with `spec.runtimeClassName: gvisor`.
 - For Helm workloads, use the chart's exact value key or a Kustomize patch if not exposed. For handwritten manifests, declare `runtimeClassName: gvisor` directly in the Pod template spec. For operator-generated Pods, use a supported operator pod-template or patch mechanism.
-- A Pod with `runtimeClassName: gvisor` must not use `hostNetwork`, host block devices, or direct node filesystem integration. Preserve standard runtimes only for documented exceptions (`longhorn-manager`, `otel-collector-node`, `velero-node-agent`, `zigbee2mqtt`).
+- A Pod with `runtimeClassName: gvisor` must not use `hostNetwork`, host block devices, or direct node filesystem integration. Preserve standard runtimes only for documented exceptions (`cilium-agent`, `cilium-envoy`, `cilium-operator`, `longhorn-manager`, `otel-collector-node`, `velero-node-agent`, `zigbee2mqtt`).
 
 ## New component checklist
 

@@ -10,6 +10,10 @@
    * external-secrets: External Secrets Operator and Infisical ClusterSecretStore
 * **Sync wave 2**
    * envoy-gateway: Gateway API and provides CRDs required by HTTP/GRPC routes
+   * cilium: kube-proxy-free CNI lifecycle; the CNI itself is bootstrapped
+     by the manifest apply in [docs/talos.md](talos.md) and the Argo CD
+     application adopts it, sequenced after prometheus-operator-crd so the
+     chart's ServiceMonitors validate
 * **Sync wave 3**
    * cert-manager: TLS certificates management
    * external-dns: manages DNS records
@@ -101,7 +105,7 @@ CRD lifecycles are orchestrated through a combination of sync waves, health chec
 ### Consumer Workload Sequencing (App-of-Apps Waves)
 In `apps/app-of-apps.yaml`, CRD-providing infrastructure and operators are sequenced strictly ahead of consuming applications:
 - **Wave 1:** `prometheus-operator-crd` (ServiceMonitors) and `external-secrets`
-- **Wave 2:** `envoy-gateway` (Gateway API and Envoy Gateway CRDs)
+- **Wave 2:** `envoy-gateway` (Gateway API and Envoy Gateway CRDs) and `cilium` (Cilium CRDs applied from the pinned Git tag by the nested `cilium-crds` application; the Helm chart ships no CRDs, while the CiliumNetworkPolicy CRDs are consumed by every component's `-2_network_policy.yaml`)
 - **Wave 3:** `cert-manager` (Certificates and ClusterIssuers)
 - **Wave 4:** Datastore operators (`cloudnative-pg`, `dragonfly-operator`, `rustfs-operator`, `grafana-operator`)
 - **Wave 5:** The `documentdb-operator` (DocumentDB CRDs plus the CNPG-I sidecar
@@ -121,7 +125,7 @@ Standard Helm (`helm upgrade`) intentionally ignores the `crds/` directory, prev
 Within an individual sync wave, Argo CD sorts manifests by Kubernetes `Kind` priority, applying `CustomResourceDefinition` resources before controller workloads (`Deployment`, `StatefulSet`, `DaemonSet`).
 
 ### Dedicated CRD Applications vs. Bundled Helm Releases
-- **Standalone CRDs:** Shared ecosystem CRD suites without local controller dependencies (`prometheus-operator-crd` and `gateway-api-crd`) are separated into dedicated Argo CD applications and sync waves.
+- **Standalone CRDs:** Shared ecosystem CRD suites without local controller dependencies (`prometheus-operator-crd`, `gateway-api-crd`, and `cilium-crds`) are separated into dedicated Argo CD applications and sync waves. The `cilium` Helm chart ships no CRDs, so `cilium-crds` applies the full `pkg/k8s/apis/cilium.io/client/crds/v2` set from the chart-aligned Git tag; Talos bootstrap (see [docs/talos.md](talos.md)) installs them before Argo CD exists, and the application takes over ownership for declarative upgrades.
 - **Bundled Operator CRDs:** Operators (`cloudnative-pg`, `cert-manager`, `external-secrets`, `dragonfly-operator`, `documentdb-operator`, etc.) bundle their upstream CRDs within their Helm charts, relying on Server-Side Apply and Kind-based sorting for in-place schema upgrades. The `documentdb-operator` chart is vendored and patched under `apps/documentdb-operator/helm/local-charts` (see `scripts/vendor-documentdb-operator.sh`): the bundled CloudNativePG subchart is stripped and the CNPG-I sidecar injector is scoped to the `cloudnative-pg` namespace, which CloudNativePG requires for plugin discovery.
 
 ## Intra-Component Sync Wave Architecture
