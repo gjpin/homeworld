@@ -249,6 +249,9 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - Apply the new-component checklist as applicable.
 - Keep `docs/pod-security.md` updated with any changes or additions to Pod Security
   Standards compliance and User Namespaces status.
+- Authelia integrations must always use
+  https://www.authelia.com/integration/openid-connect/clients/ as the
+  reference for OpenID Connect client configuration.
 - Keep `docs/oidc.md` updated with any changes or additions to Authelia OIDC
   integration status or sign-in behavior when onboarding or modifying an app.
 - Treat CRDs and operators as dependencies: they must be installed in an earlier
