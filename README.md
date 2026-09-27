@@ -81,7 +81,35 @@ This pins `homeassistant-zigbee2mqtt` to the host hardware where the serial dong
 ### 3. Provision Infisical Secrets
 Every component synchronizes its secrets from Infisical via the External Secrets Operator. The complete list of required keys, per component, is documented in [docs/secrets.md](docs/secrets.md). Create the keys for a component in Infisical before deploying it; a missing key leaves the generated `Secret` incomplete and the pod fails with `CreateContainerConfigError`.
 
-### 4. Create the Forgejo OAuth Application for Woodpecker CI
+### 4. Create the Authelia Users Database
+Every OIDC sign-in resolves against Authelia's file-backed user database, stored in Infisical as `/authelia/USERS_DATABASE` (the full `users_database.yml` content). Generate an Argon2id digest per user, then list their groups — group memberships drive each application's role mapping:
+```bash
+# Prints: Digest: $argon2id$...
+docker run --rm -it ghcr.io/authelia/authelia authelia crypto hash generate argon2
+```
+```yaml
+users:
+  alice:
+    displayname: Alice
+    password: '$argon2id$...' # the digest from the command above
+    email: alice@example.com
+    groups:
+      - argocd-admin
+      - homeassistant-admin
+```
+| Group | Grants |
+| --- | --- |
+| `argocd-admin` | Argo CD admin (everyone else is read-only) |
+| `forgejo-admin` | Forgejo site admin |
+| `grafana-admin` | Grafana server admin (everyone else is a Viewer) |
+| `immich-admin` | Immich admin (everyone else is a user) |
+| `opencloud-admin` / `opencloud-spaceadmin` / `opencloud-user` / `opencloud-user-light` | OpenCloud roles; sign-in requires one of these groups (deny-by-default) |
+| `vaultwarden-admin` / `vaultwarden-user` | Vaultwarden admin / user role (invited users in neither group default to the user role) |
+| `homeassistant-admin` | Home Assistant admin role |
+
+After editing the Infisical value, the change reaches the cluster on the ExternalSecret's hourly refresh (or immediately with `kubectl -n authelia delete secret authelia-files`, which External Secrets recreates at once). Authelia reads the database only at startup (`watch: false`), so finish with `kubectl -n authelia rollout restart deploy/authelia`.
+
+### 5. Create the Forgejo OAuth Application for Woodpecker CI
 Woodpecker CI authenticates users and receives repository webhooks via Forgejo OAuth2:
 1. In Forgejo, navigate to **Site Administration** -> **Applications** -> **Create OAuth2 Application**.
    - **Application Name**: `Woodpecker CI`
@@ -90,7 +118,7 @@ Woodpecker CI authenticates users and receives repository webhooks via Forgejo O
    - `/woodpecker/FORGEJO_CLIENT`: `<Client ID>`
    - `/woodpecker/FORGEJO_SECRET`: `<Client Secret>`
 
-### 5. Create API Tokens for Homepage Widgets
+### 6. Create API Tokens for Homepage Widgets
 The Homepage dashboard's live widgets authenticate to four services with dedicated read-only tokens, stored in Infisical under `/homepage/*` (see [docs/secrets.md](docs/secrets.md)):
 1. **Argo CD**: sign in as an `argocd-admin` user, then open **Settings → Accounts → `homepage` → Tokens → Generate New**. Save the token to `/homepage/ARGOCD_TOKEN`. The API-key-only `homepage` account and its read-only RBAC mapping are declared in `apps/argocd/helm/values.yaml`.
 2. **Grafana**: open **Administration → Users → Service accounts**, add the service account `homepage`, then **Add service account token**. Save it to `/homepage/GRAFANA_TOKEN`.
@@ -99,7 +127,7 @@ The Homepage dashboard's live widgets authenticate to four services with dedicat
 
 Homepage reads its dashboard configuration (`apps/homepage/0_config.yaml`) at startup; after changing it, restart the pod with `kubectl -n homepage rollout restart deploy/homepage`.
 
-### 6. Access OpenChamber and Log In to the Coding Agents
+### 7. Access OpenChamber and Log In to the Coding Agents
 After the `openchamber` workspace deploys (see [docs/openchamber.md](docs/openchamber.md) for the architecture, bootstrap, and PR-gated update flow):
 
 - **OpenChamber remote access**: reachable only over WireGuard at `https://openchamber.${BASE_DOMAIN}`; sign in with the `/openchamber/OPENCHAMBER_UI_PASSWORD` Infisical secret. Desktop and mobile apps connect to the same URL directly via QR-code pairing (*Settings → Remote Instances*); no relay or tunnel is needed.

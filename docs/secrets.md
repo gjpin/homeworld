@@ -6,7 +6,7 @@ All cluster secrets are synchronized from [Infisical](https://infisical.com) by 
 | :--- | :--- | :--- |
 | **Authelia** | `/authelia/SESSION_SECRET` | Session cookie encryption secret. |
 | | `/authelia/STORAGE_ENCRYPTION_KEY` | At-rest encryption key for the SQL configuration storage. |
-| | `/authelia/USERS_DATABASE` | Full `users_database.yml` content (the authentication backend). |
+| | `/authelia/USERS_DATABASE` | Full `users_database.yml` content (the authentication backend; see the README's Manual Setup for the format and the role-mapping groups). |
 | | `/authelia/POSTGRES_USERNAME` | CloudNativePG application username. |
 | | `/authelia/POSTGRES_PASSWORD` | CloudNativePG application password. |
 | | `/authelia/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for session storage. |
