@@ -11,7 +11,8 @@
     "kubernetes"
   ],
   "ignorePaths": [
-    "apps/app-of-apps.yaml"
+    "**/node_modules/**",
+    "**/bower_components/**"
   ],
   "automerge": false,
   "prConcurrentLimit": 0,
@@ -97,6 +98,16 @@
       }
     },
     {
+      "description": "Group every Kubernetes version pin (PSA labels, kind node image, documentation, e2e hook comments) into one PR",
+      "matchPackageNames": [
+        "kindest/node"
+      ],
+      "groupName": "kubernetes-version",
+      "prBodyNotes": [
+        "⚠️ **Cluster Upgrade Ordering**: merge only after the Talos nodes run the new Kubernetes minor, so the `managedNamespaceMetadata` PSA labels never reference a version newer than the API server. The e2e suite also requires a local kind CLI new enough to pull the new `kindest/node` image (see docs/upgrades.md)."
+      ]
+    },
+    {
       "description": "Group every OpenChamber workspace image update (base image digest and all pinned tools, majors included) into one PR; automerge-openchamber.yaml merges it once the PR smoke build passes",
       "matchFileNames": [
         "images/openchamber/Dockerfile"
@@ -133,6 +144,71 @@
     }
   },
   "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update the Kubernetes minor version in Pod Security Admission labels",
+      "managerFilePatterns": [
+        "/^apps/.*\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*pod-security\\.kubernetes\\.io/(?:enforce|audit|warn)-version:\\s*v(?<currentValue>\\d+\\.\\d+)\\s*$"
+      ],
+      "depNameTemplate": "kindest/node",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "loose",
+      "registryUrlTemplate": "https://index.docker.io",
+      "extractVersionTemplate": "^v?(?<version>\\d+\\.\\d+)"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the e2e kind node image version",
+      "managerFilePatterns": [
+        "/^e2e/examples/homeworld\\.suite\\.ya?ml$/",
+        "/^e2e/README\\.md$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*kubeVersion:\\s*(?<currentValue>v\\d+\\.\\d+\\.\\d+)\\s*$",
+        "Kubernetes `(?<currentValue>v\\d+\\.\\d+\\.\\d+)`"
+      ],
+      "depNameTemplate": "kindest/node",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Kubernetes minor version in user namespaces documentation",
+      "managerFilePatterns": [
+        "/^README\\.md$/",
+        "/^AGENTS\\.md$/",
+        "/^docs/pod-security\\.md$/"
+      ],
+      "matchStrings": [
+        "Kubernetes (?<currentValue>\\d+\\.\\d+) User Namespaces",
+        "Kubernetes (?<currentValue>\\d+\\.\\d+) user namespaces"
+      ],
+      "depNameTemplate": "kindest/node",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "loose",
+      "registryUrlTemplate": "https://index.docker.io",
+      "extractVersionTemplate": "^v?(?<version>\\d+\\.\\d+)"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Kubernetes minor version in e2e staging hook comments",
+      "managerFilePatterns": [
+        "/^e2e/examples/hooks/rewrite-staging\\.py$/"
+      ],
+      "matchStrings": [
+        "[Kk]8s (?<currentValue>\\d+\\.\\d+)",
+        "fail Kubernetes (?<currentValue>\\d+\\.\\d+)\\."
+      ],
+      "depNameTemplate": "kindest/node",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "loose",
+      "registryUrlTemplate": "https://index.docker.io",
+      "extractVersionTemplate": "^v?(?<version>\\d+\\.\\d+)"
+    },
     {
       "customType": "regex",
       "description": "Update CloudNativePG Cluster images",

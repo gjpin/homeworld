@@ -266,6 +266,10 @@ find apps -type f -name '*.yaml' -not -path '*/charts/*' -not -path '*/local-cha
 # Parse every Grafana dashboard.
 find apps/grafana/dashboards -type f -name '*.json' -print0 |
   xargs -0 -n1 jq empty
+
+# Fail if any pinned Kubernetes version reference (PSA labels, e2e kind node
+# image, documentation, hook comments) drifts from the rest.
+scripts/check-k8s-version.sh
 ```
 
 Also inspect the diff for accidental secret substitution and verify cross-file

@@ -21,6 +21,9 @@ jobs:
           find apps -type f -name '*.yaml' -not -path '*/local-charts/*' -print0 |
             xargs -0 -n1 yq eval '.' >/dev/null
 
+      - name: Check Kubernetes version pin consistency
+        run: scripts/check-k8s-version.sh
+
   e2e:
     runs-on: ubuntu-latest
     steps:
