@@ -2,11 +2,11 @@
 container_runtime: containerd
 
 image:
-  repository: crowdsecurity/crowdsec
+  repository: docker.io/crowdsecurity/crowdsec
   tag: v1.8.1
   pullPolicy: IfNotPresent
   kubectl:
-    repository: alpine/kubectl
+    repository: docker.io/alpine/kubectl
     tag: 1.37.1
     pullPolicy: IfNotPresent
 

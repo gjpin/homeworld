@@ -34,7 +34,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: external-sites
-          image: opencloudeu/web-extensions:external-sites-2.1.0
+          image: docker.io/opencloudeu/web-extensions:external-sites-2.1.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -64,7 +64,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: json-viewer
-          image: opencloudeu/web-extensions:json-viewer-2.1.0
+          image: docker.io/opencloudeu/web-extensions:json-viewer-2.1.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -94,7 +94,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: progress-bars
-          image: opencloudeu/web-extensions:progress-bars-2.1.0
+          image: docker.io/opencloudeu/web-extensions:progress-bars-2.1.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -124,7 +124,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: unzip
-          image: opencloudeu/web-extensions:unzip-2.2.0
+          image: docker.io/opencloudeu/web-extensions:unzip-2.2.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -154,7 +154,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: draw-io
-          image: opencloudeu/web-extensions:draw-io-2.2.0
+          image: docker.io/opencloudeu/web-extensions:draw-io-2.2.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -184,7 +184,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: calculator
-          image: opencloudeu/web-extensions:calculator-2.1.0
+          image: docker.io/opencloudeu/web-extensions:calculator-2.1.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -214,7 +214,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: pastebin
-          image: opencloudeu/web-extensions:pastebin-2.1.0
+          image: docker.io/opencloudeu/web-extensions:pastebin-2.1.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -244,7 +244,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: bpmn
-          image: opencloudeu/web-extensions:bpmn-1.1.0
+          image: docker.io/opencloudeu/web-extensions:bpmn-1.1.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -274,7 +274,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: maps
-          image: opencloudeu/web-extensions:maps-3.1.0
+          image: docker.io/opencloudeu/web-extensions:maps-3.1.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -304,7 +304,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: arcade
-          image: opencloudeu/web-extensions:arcade-3.0.0
+          image: docker.io/opencloudeu/web-extensions:arcade-3.0.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -334,7 +334,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: cast
-          image: opencloudeu/web-extensions:cast-1.0.0
+          image: docker.io/opencloudeu/web-extensions:cast-1.0.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -365,7 +365,7 @@ spec:
               mountPath: /apps
       containers:
         - name: opencloud
-          image: opencloudeu/opencloud-rolling:8.0.1
+          image: docker.io/opencloudeu/opencloud-rolling:8.0.1
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -584,7 +584,7 @@ spec:
             - name: opencloud-apps
               mountPath: /var/lib/opencloud/web/assets/apps
         - name: yjs
-          image: opencloudeu/yjs:1.0.0
+          image: docker.io/opencloudeu/yjs:1.0.0
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -679,7 +679,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: tika
-          image: apache/tika:3.3.1.0
+          image: docker.io/apache/tika:3.3.1.0
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false

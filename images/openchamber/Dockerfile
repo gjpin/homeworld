@@ -18,7 +18,7 @@
 
 # Base image digest is updated by Renovate ("Update the OpenChamber workspace
 # base image digest" custom manager).
-FROM debian:trixie-slim@sha256:a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a
+FROM docker.io/library/debian:trixie-slim@sha256:a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a
 
 # Bumped by the daily check-openchamber-apt-updates workflow when the
 # published image has out-of-date apt packages (including Google Chrome).

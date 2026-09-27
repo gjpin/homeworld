@@ -334,7 +334,7 @@
         "/^apps/crowdsec/helm/values\\.yaml$/"
       ],
       "matchStrings": [
-        "(?ms)^image:\\s*\\n\\s+repository:\\s*(?<depName>crowdsecurity/crowdsec)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
+        "(?ms)^image:\\s*\\n\\s+repository:\\s*docker\\.io/(?<depName>crowdsecurity/crowdsec)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
@@ -347,7 +347,7 @@
         "/^apps/crowdsec/helm/values\\.yaml$/"
       ],
       "matchStrings": [
-        "(?ms)^\\s+kubectl:\\s*\\n\\s+repository:\\s*(?<depName>alpine/kubectl)\\s*\\n\\s+tag:\\s*[\"']?(?<currentValue>[^\"'\\s#]+)[\"']?"
+        "(?ms)^\\s+kubectl:\\s*\\n\\s+repository:\\s*docker\\.io/(?<depName>alpine/kubectl)\\s*\\n\\s+tag:\\s*[\"']?(?<currentValue>[^\"'\\s#]+)[\"']?"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
@@ -542,7 +542,7 @@
         "/^apps/rustfs-operator/helm/values\\.yaml$/"
       ],
       "matchStrings": [
-        "(?ms)^operator:\\s*\\n\\s+image:\\s*\\n\\s+repository:\\s*(?<depName>rustfs/operator)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
+        "(?ms)^operator:\\s*\\n\\s+image:\\s*\\n\\s+repository:\\s*docker\\.io/(?<depName>rustfs/operator)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
@@ -555,7 +555,7 @@
         "/^apps/rustfs/0_tenant\\.yaml$/"
       ],
       "matchStrings": [
-        "(?m)^  image:\\s*(?<depName>rustfs/rustfs):(?<currentValue>[^\\s#]+)\\s*$"
+        "(?m)^  image:\\s*docker\\.io/(?<depName>rustfs/rustfs):(?<currentValue>[^\\s#]+)\\s*$"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
@@ -596,7 +596,7 @@
         "/^apps/opencloud/1_deployments\\.yaml$/"
       ],
       "matchStrings": [
-        "(?m)^\\s*image:\\s*(?<depName>opencloudeu/opencloud-rolling|opencloudeu/yjs|apache/tika|opencloudeu/web-extensions):(?<currentValue>[^\\s#]+)\\s*$"
+        "(?m)^\\s*image:\\s*docker\\.io/(?<depName>opencloudeu/opencloud-rolling|opencloudeu/yjs|apache/tika|opencloudeu/web-extensions):(?<currentValue>[^\\s#]+)\\s*$"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
@@ -701,7 +701,7 @@
         "/^apps/velero/helm/values\\.yaml$/"
       ],
       "matchStrings": [
-        "(?m)^\\s*image:\\s*(?<depName>velero/velero-plugin-for-aws):(?<currentValue>[^\\s#]+)\\s*$"
+        "(?m)^\\s*image:\\s*docker\\.io/(?<depName>velero/velero-plugin-for-aws):(?<currentValue>[^\\s#]+)\\s*$"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
@@ -809,7 +809,7 @@
         "/^images/openchamber/Dockerfile$/"
       ],
       "matchStrings": [
-        "FROM (?<depName>debian):(?<currentValue>trixie-slim)@(?<currentDigest>sha256:[a-f0-9]{64})"
+        "FROM docker\\.io/library/(?<depName>debian):(?<currentValue>trixie-slim)@(?<currentDigest>sha256:[a-f0-9]{64})"
       ],
       "datasourceTemplate": "docker",
       "registryUrlTemplate": "https://index.docker.io",

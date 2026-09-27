@@ -6,6 +6,8 @@ serviceAccount:
 server:
   enabled: true
   fullnameOverride: victoria-metrics
+  image:
+    registry: docker.io
   retentionPeriod: "30d"
   runtimeClassName: gvisor
   nodeSelector:

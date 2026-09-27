@@ -30,6 +30,15 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - Set `metadata.namespace` explicitly when the resource is namespaced.
 - Pin container images, chart versions, and remote revisions. Do not introduce
   floating tags such as `latest`.
+- Container image references must always be fully qualified with an explicit
+  registry (e.g. `docker.io/library/alpine:3.24.2`, `ghcr.io/immich-app/immich-server`);
+  never use bare short names like `alpine:3.24.2`. Docker Hub images carry the
+  `docker.io/` prefix (with `library/` for official images). This applies to
+  handwritten manifests, Helm values, Dockerfiles, and e2e tooling. When a
+  chart's default image would render short-form, override
+  `image.repository`/`image.registry` in values so the rendered Pod specs stay
+  fully qualified, and keep the custom regex managers in `renovate.json` aligned
+  with the new image strings.
 - Helm installations are rendered from pinned upstream charts under
   `apps/<component>/helm/` (or `apps/otel-collector/helm/{<helm>}/`
   when multiple releases exist). Argo CD `Application` resources and CI

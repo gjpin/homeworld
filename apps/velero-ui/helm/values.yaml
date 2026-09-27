@@ -1,4 +1,6 @@
 fullnameOverride: velero-ui
+image:
+  repository: docker.io/otwld/velero-ui
 rbac:
   create: true
   clusterAdministrator: false

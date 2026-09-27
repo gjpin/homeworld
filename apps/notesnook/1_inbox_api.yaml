@@ -52,7 +52,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: inbox-api
-          image: streetwriters/notesnook-inbox:v1.0-beta.38
+          image: docker.io/streetwriters/notesnook-inbox:v1.0-beta.38
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

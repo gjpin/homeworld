@@ -2,6 +2,8 @@
 server:
   enabled: true
   fullnameOverride: victoria-logs
+  image:
+    registry: docker.io
   retentionPeriod: "30d"
   runtimeClassName: gvisor
   nodeSelector:

@@ -67,7 +67,7 @@ func (m *Manager) Up(ctx context.Context) error {
 
 	args := []string{"create", "cluster", "--name", cfg.Name, "--config", kindFile}
 	if cfg.KubeVersion != "" {
-		args = append(args, "--image", "kindest/node:"+cfg.KubeVersion)
+		args = append(args, "--image", "docker.io/kindest/node:"+cfg.KubeVersion)
 	}
 	if err := run(ctx, "kind", args...); err != nil {
 		return fmt.Errorf("kind create cluster: %w", err)

@@ -5,7 +5,7 @@ commonAnnotations:
   security.homeworld/exception-reason: Upstream UID, filesystem, availability, Cilium policy, and cached-image pull constraints are accepted for the two chart workloads.
 operator:
   image:
-    repository: rustfs/operator
+    repository: docker.io/rustfs/operator
     tag: 0.0.6
     pullPolicy: IfNotPresent
   resources:
@@ -25,6 +25,7 @@ operator:
 console:
   enabled: true
   image:
+    repository: docker.io/rustfs/operator
     pullPolicy: IfNotPresent
   resources:
     requests:
