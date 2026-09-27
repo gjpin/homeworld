@@ -4,7 +4,7 @@
 1. Download ISO from [factory](https://factory.talos.dev/) and boot node.
    - Extensions:
       - siderolabs/gvisor
-      - siderolabs/tailscale
+      - siderolabs/netbird
       - siderolabs/iscsi-tools
       - siderolabs/util-linux-tools
 2. Set static DHCP for node in router
