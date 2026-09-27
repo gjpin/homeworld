@@ -685,6 +685,60 @@
     },
     {
       "customType": "regex",
+      "description": "Update Kubescape version in validate workflow",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/validate\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "kubescape/releases/download/v(?<currentValue>[\\d.]+)/",
+        "kubescape_(?<currentValue>[\\d.]+)_linux_amd64"
+      ],
+      "depNameTemplate": "kubescape/kubescape",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update kube-score version in validate workflow",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/validate\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "kube-score/releases/download/v(?<currentValue>[\\d.]+)/",
+        "kube-score_(?<currentValue>[\\d.]+)_linux_amd64"
+      ],
+      "depNameTemplate": "zegl/kube-score",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Helm version in validate workflow",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/validate\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "helm-v(?<currentValue>[\\d.]+)-linux-amd64"
+      ],
+      "depNameTemplate": "helm/helm",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update yq version in validate workflow",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/validate\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "yq/releases/download/v(?<currentValue>[\\d.]+)/"
+      ],
+      "depNameTemplate": "mikefarah/yq",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
       "description": "Update the OpenChamber workspace base image digest",
       "managerFilePatterns": [
         "/^images/openchamber/Dockerfile$/"
