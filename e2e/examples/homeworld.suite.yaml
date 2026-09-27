@@ -204,6 +204,7 @@ spec:
             - documentdb-operator
             - notesnook
             - woodpecker
+            - vaultwarden
       - name: eso-store
         resourceCondition:
           apiVersion: external-secrets.io/v1
@@ -281,6 +282,15 @@ spec:
           kind: Cluster
           name: woodpecker
           namespace: woodpecker
+          condition: Ready
+          status: "True"
+          timeout: 10m
+      - name: cnpg-vaultwarden
+        resourceCondition:
+          apiVersion: postgresql.cnpg.io/v1
+          kind: Cluster
+          name: vaultwarden
+          namespace: vaultwarden
           condition: Ready
           status: "True"
           timeout: 10m

@@ -324,7 +324,7 @@ seed_secrets() {
   token=$(cat "${OUT_DIR}/token")
   project_id=$(cat "${OUT_DIR}/project_id")
 
-  for folder in grafana homepage authelia immich forgejo rustfs opencloud crowdsec velero-ui velero longhorn notesnook woodpecker openchamber; do
+  for folder in grafana homepage authelia immich forgejo rustfs opencloud crowdsec velero-ui velero longhorn notesnook woodpecker openchamber vaultwarden; do
     ensure_folder "${token}" "${project_id}" "${folder}"
   done
 
@@ -366,6 +366,7 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_IMMICH" "e2e-oidc-immich"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_VELERO_UI" "e2e-oidc-velero-ui"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_RUSTFS" "e2e-oidc-rustfs"
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_VAULTWARDEN" "e2e-oidc-vaultwarden"
   put_secret "${token}" "${project_id}" "/authelia/SMTP_PASSWORD" "e2e-authelia-smtp"
   put_secret "${token}" "${project_id}" "/authelia/USERS_DATABASE" "${authelia_users}"
   put_secret "${token}" "${project_id}" "/immich/POSTGRES_USERNAME" "immich"
@@ -410,6 +411,14 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/openchamber/OPENCHAMBER_UI_PASSWORD" "e2e-openchamber"
   put_secret "${token}" "${project_id}" "/openchamber/OPENAI_API_KEY" "e2e-openai-key"
   put_secret "${token}" "${project_id}" "/openchamber/GITHUB_TOKEN" "e2e-github-token"
+  # Plain token instead of an Argon2 PHC string: Vaultwarden accepts it for
+  # the admin panel (with a startup warning), keeping the seed dependency-free.
+  put_secret "${token}" "${project_id}" "/vaultwarden/ADMIN_TOKEN" "e2e-vaultwarden-admin"
+  put_secret "${token}" "${project_id}" "/vaultwarden/POSTGRES_USERNAME" "vaultwarden"
+  put_secret "${token}" "${project_id}" "/vaultwarden/POSTGRES_PASSWORD" "e2e-vaultwarden-db"
+  put_secret "${token}" "${project_id}" "/vaultwarden/SMTP_USERNAME" "e2e"
+  put_secret "${token}" "${project_id}" "/vaultwarden/SMTP_PASSWORD" "e2e-vaultwarden-smtp"
+  put_secret "${token}" "${project_id}" "/vaultwarden/SMTP_HOST" "smtp.e2e.local"
   log "secret seed completed"
 }
 

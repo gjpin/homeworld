@@ -53,6 +53,8 @@
    * notesnook: fully featured encrypted notes sync server with MongoDB, SSE, Monograph, Themes, CORS proxy, and Inbox API
    * radicale: internal CalDAV and CardDAV backend, before OpenCloud's
      authenticated DAV proxy
+   * vaultwarden: Bitwarden-compatible password manager (CloudNativePG-backed)
+     with optional Authelia SSO
 * **Sync wave 7**
    * collabora: standalone Collabora chart and WOPI endpoint
    * openchamber: persistent AI agent workspace (OpenChamber, OpenCode, Codex

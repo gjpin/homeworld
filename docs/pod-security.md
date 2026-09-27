@@ -47,6 +47,7 @@ The table below outlines the Pod Security Standard compliance level for every co
 | **RustFS Operator** | `rustfs-operator` | Restricted | **Restricted** | Storage operator runs non-root with dropped capabilities (`ALL`), `allowPrivilegeEscalation: false`, and `RuntimeDefault` seccomp. |
 | **Velero** | `velero` | Privileged | **Mixed** | **Restricted:** `velero` controller Deployment and `velero-upgrade-crds` Job run non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp.<br><br>**Exception (Privileged):** `velero-node-agent` (DaemonSet) requires hostPath mounts to `/var/lib/kubelet/pods` to execute file-level (Kopia) volume backups of persistent volumes — PSS `baseline` forbids hostPath volumes, so the namespace enforces `privileged` (Restricted `audit`/`warn` retained). |
 | **Velero UI** | `velero-ui` | Restricted | **Restricted** | Web management interface runs non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
+| **Vaultwarden** | `vaultwarden` | Restricted | **Restricted** | Password manager runs as non-root (UID `1000`) on unprivileged port `8080` with dropped capabilities (`ALL`), read-only root filesystem, and `RuntimeDefault` seccomp. Attached PostgreSQL instance also conforms to Restricted. |
 | **Woodpecker CI** | `woodpecker` | Restricted | **Restricted** | Server and agent StatefulSets run as non-root (UID `1000`, GID `1000`) with dropped capabilities (`ALL`), `allowPrivilegeEscalation: false`, and `RuntimeDefault` seccomp. Attached PostgreSQL instance also conforms to Restricted. |
 
 ---
@@ -65,7 +66,7 @@ The table below details user namespace implementation across all cluster workloa
 | **Cilium (Hubble Relay / UI)** | `cilium` | **Enabled** (`false`) | Helm `values.yaml` | `hubble.hostUsers: false` applied to the `hubble-relay` and `hubble-ui` Deployments. |
 | **Cilium (Agent / Envoy / Operator)** | `cilium` | **Disabled** (`true`) | *None (Host integration)* | **Why not enabled:** `cilium-agent`, `cilium-envoy`, and `cilium-operator` run `hostNetwork` (upstream default), which prohibits `hostUsers: false`; the kube-proxy replacement datapath requires direct node networking. |
 | **CloudNativePG Operator** | `cloudnative-pg` | **Enabled** (`false`) | Kustomize patch | Applied to operator Deployment. |
-| **CloudNativePG Clusters** | `crowdsec`, `forgejo`, `woodpecker` | **Enabled** (`false`) | CNPG `podPatch` annotation | `cnpg.io/podPatch` injects `hostUsers: false` into PostgreSQL instance pods. |
+| **CloudNativePG Clusters** | `crowdsec`, `forgejo`, `vaultwarden`, `woodpecker` | **Enabled** (`false`) | CNPG `podPatch` annotation | `cnpg.io/podPatch` injects `hostUsers: false` into PostgreSQL instance pods. |
 | **Collabora** | `collabora` | **Enabled** (`false`) | Kustomize patch | Applied to Collabora Deployment. |
 | **CrowdSec** | `crowdsec` | **Enabled** (`false`) | Kustomize patch | Applied to LAPI, AppSec, Agent DaemonSet, and registration jobs. |
 | **CrowdSec Envoy Bouncer** | `envoy-gateway` | **Enabled** (`false`) | Kustomize patch | Applied to bouncer Deployment. |
@@ -96,6 +97,7 @@ The table below details user namespace implementation across all cluster workloa
 | **Velero (Server)** | `velero` | **Enabled** (`false`) | Kustomize patch | Applied to `velero` controller Deployment and `velero-upgrade-crds` Job. |
 | **Velero (Node Agent)** | `velero` | **Disabled** (`true`) | *None (Host integration)* | **Why not enabled:** Node agent requires hostPath mounts to `/var/lib/kubelet/pods` to perform volume backups. |
 | **Velero UI** | `velero-ui` | **Enabled** (`false`) | Kustomize patch | Applied to `velero-ui` Deployment. |
+| **Vaultwarden** | `vaultwarden` | **Enabled** (`false`) | Manifest | Declared in the Vaultwarden Deployment. |
 | **Woodpecker CI** | `woodpecker` | **Enabled** (`false`) | Kustomize patch | Applied to Woodpecker server and agent StatefulSets. Attached CNPG cluster uses `podPatch`. |
 
 ---

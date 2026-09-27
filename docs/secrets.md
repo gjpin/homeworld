@@ -20,6 +20,7 @@ All cluster secrets are synchronized from [Infisical](https://infisical.com) by 
 | | `/authelia/OIDC_CLIENT_SECRET_IMMICH` | Immich OIDC client secret. |
 | | `/authelia/OIDC_CLIENT_SECRET_RUSTFS` | RustFS console OIDC client secret. |
 | | `/authelia/OIDC_CLIENT_SECRET_VELERO_UI` | Velero UI OIDC client secret. |
+| | `/authelia/OIDC_CLIENT_SECRET_VAULTWARDEN` | Vaultwarden OIDC client secret. |
 | **Collabora** | `/opencloud/COLLABORA_ADMIN_USER` | Collabora admin console username. |
 | | `/opencloud/COLLABORA_ADMIN_PASSWORD` | Collabora admin console password. |
 | | `/opencloud/COLLABORA_PROOF_KEY` | WOPI proof private key for OpenCloud ↔ Collabora requests. |
@@ -62,6 +63,12 @@ All cluster secrets are synchronized from [Infisical](https://infisical.com) by 
 | **Velero UI** | `/velero-ui/BASIC_AUTH_USERNAME` | Velero UI basic-auth username (required for startup; login is via Authelia OIDC). |
 | | `/velero-ui/BASIC_AUTH_PASSWORD` | Velero UI basic-auth password (required for startup; login is via Authelia OIDC). |
 | | `/velero-ui/AUTH_SECRET_PASSPHRASE` | Session/cookie signing passphrase. |
+| **Vaultwarden** | `/vaultwarden/ADMIN_TOKEN` | Admin panel token, preferably an Argon2 PHC string (generate with `docker run --rm -it docker.io/vaultwarden/server:1.37.3 /vaultwarden hash`). |
+| | `/vaultwarden/POSTGRES_USERNAME` | CloudNativePG application username. |
+| | `/vaultwarden/POSTGRES_PASSWORD` | CloudNativePG application password. Must contain only RFC 3986 unreserved characters; it is embedded unescaped in the PostgreSQL connection URL. |
+| | `/vaultwarden/SMTP_USERNAME` | SMTP relay username for invitation and notification emails. |
+| | `/vaultwarden/SMTP_PASSWORD` | SMTP relay password. |
+| | `/vaultwarden/SMTP_HOST` | SMTP relay hostname (implicit TLS on port 465 is configured in the manifest). |
 | **Woodpecker CI** | `/woodpecker/FORGEJO_CLIENT` | Forgejo OAuth2 application client ID (created by the procedure in the README's Manual Setup). |
 | | `/woodpecker/FORGEJO_SECRET` | Forgejo OAuth2 application client secret (created by the procedure in the README's Manual Setup). |
 | | `/woodpecker/AGENT_SECRET` | Shared secret between Woodpecker server and agents. |

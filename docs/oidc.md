@@ -36,3 +36,4 @@
 | collabora | No | The admin UI is HTTP basic auth. Document editing uses OpenCloud WOPI, which already authenticated the user. |
 | opencloud | Yes | Already an Authelia client (`web`, `OpenCloudDesktop`, `OpenCloudAndroid`, `OpenCloudIOS`). Unchanged. |
 | woodpecker | Delegated (via Forgejo) | User authentication is delegated to Forgejo via OAuth2, which in turn authenticates via Authelia OIDC. Direct generic OIDC is not used because Woodpecker requires Forgejo access tokens to manage webhooks, repository permissions, and commit statuses. |
+| vaultwarden | Yes | Authelia (optional SSO). Master-password login remains available (`SSO_ONLY=false`) as a fallback because the official Bitwarden Android app has a known WebView rendering issue with Authelia's login page. Vault decryption always requires the master password. SSO signups are disabled; only admin-invited emails can join, and signups stay closed for direct registration. |

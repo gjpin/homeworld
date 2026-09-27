@@ -63,6 +63,7 @@
 | RustFS Operator | `rustfs.${BASE_DOMAIN}` | RustFS storage operator and management console. |
 | Velero | — | Whole-cluster backups to Backblaze B2. |
 | Velero UI | `velero.${BASE_DOMAIN}` | Web interface for managing Velero. |
+| Vaultwarden | `vault.${BASE_DOMAIN}` | Bitwarden-compatible password manager with optional Authelia SSO sign-in. |
 | Woodpecker CI | `ci.${BASE_DOMAIN}` | Continuous integration engine integrated with Forgejo. |
 
 ## Manual Setup
