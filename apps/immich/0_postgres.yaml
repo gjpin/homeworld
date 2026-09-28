@@ -9,6 +9,7 @@ metadata:
   namespace: immich
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+    cnpg.io/podPatch: '[{"op":"add","path":"/spec/hostUsers","value":false}]'
 spec:
   instances: 1
   imageName: ghcr.io/tensorchord/cloudnative-vectorchord:18.1-1.0.0

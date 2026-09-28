@@ -1,5 +1,10 @@
 global:
   hostUsers: false
+  # global.nodeSelector reaches the controller, cainjector, webhook, and the
+  # startupapicheck Job; the chart's top-level nodeSelector key only feeds
+  # the controller Deployment.
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
 
 fullnameOverride: cert-manager
 namespace: cert-manager
@@ -18,5 +23,3 @@ prometheus:
   servicemonitor:
     enabled: true
     interval: 60s
-nodeSelector:
-  node-role.kubernetes.io/homelab: homelab

@@ -56,6 +56,29 @@ patches:
   - target:
       group: apps
       version: v1
+      kind: Deployment
+      name: ^longhorn-ui$
+      namespace: ^longhorn-system$
+    patch: |-
+      # The longhornio/longhorn-ui image runs as UID 499; the nginx rootfs
+      # stays writable (cache/temp dirs), so readOnlyRootFilesystem is
+      # deliberately not set.
+      - op: add
+        path: /spec/template/spec/securityContext
+        value:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext
+        value:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+  - target:
+      group: apps
+      version: v1
       kind: DaemonSet
       name: ^longhorn-manager$
       namespace: ^longhorn-system$
@@ -106,6 +129,21 @@ patches:
       - op: add
         path: /spec/template/spec/hostUsers
         value: false
+      # Both jobs are pure Kubernetes API callers; longhorn-pre-upgrade is
+      # the privileged hostPath exception and keeps the standard runtime.
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^longhorn-driver-deployer$
+      namespace: ^longhorn-system$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
   - target:
       group: apps
       version: v1

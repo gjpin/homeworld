@@ -18,9 +18,10 @@ deployment:
 
 certgen:
   job:
-    pod:
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
+    # The chart exposes nodeSelector directly under certgen.job (not under
+    # certgen.job.pod); a wrong nesting is silently ignored by Helm.
+    nodeSelector:
+      node-role.kubernetes.io/homelab: homelab
     resources:
       requests:
         cpu: 10m

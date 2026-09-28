@@ -25,6 +25,19 @@ patches:
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
+  # The chart's PodMonitor template hardcodes the scrape endpoint without an
+  # interval hook, which would fall back to the Prometheus default; pin the
+  # repo-standard 60s cadence.
+  - target:
+      group: monitoring.coreos.com
+      version: v1
+      kind: PodMonitor
+      name: ^cloudnative-pg$
+      namespace: ^cloudnative-pg$
+    patch: |-
+      - op: add
+        path: /spec/podMetricsEndpoints/0/interval
+        value: 60s
   - target:
       group: apps
       version: v1

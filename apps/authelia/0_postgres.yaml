@@ -8,6 +8,7 @@ metadata:
   namespace: authelia
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+    cnpg.io/podPatch: '[{"op":"add","path":"/spec/hostUsers","value":false}]'
 spec:
   instances: 1
   imageName: ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie
@@ -26,6 +27,15 @@ spec:
     runAsNonRoot: true
     seccompProfile:
       type: RuntimeDefault
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+      ephemeral-storage: 128Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+      ephemeral-storage: 2Gi
   storage:
     storageClass: longhorn-crypto
     size: 5Gi

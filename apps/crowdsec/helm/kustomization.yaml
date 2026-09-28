@@ -112,6 +112,9 @@ patches:
         path: /spec/template/spec/hostUsers
         value: false
       - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+      - op: add
         path: /spec/template/spec/securityContext
         value:
           fsGroup: 1000

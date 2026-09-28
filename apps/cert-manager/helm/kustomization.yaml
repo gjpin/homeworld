@@ -108,6 +108,9 @@ patches:
       namespace: ^cert-manager$
     patch: |-
       - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+      - op: add
         path: /spec/template/spec/containers/0/resources
         value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
   - target:

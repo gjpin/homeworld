@@ -51,10 +51,22 @@ nodeSelector:
 nodeAgent:
   nodeSelector:
     node-role.kubernetes.io/homelab: homelab
+  # Close-to-Restricted hardening for the node-agent container; the pod stays
+  # root (runAsUser 0 upstream default) for the kubelet hostPath mounts.
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
 metrics:
   enabled: true
   scrapeInterval: 60s
   serviceMonitor:
+    # Pin emission instead of capability autodetection so the monitor
+    # renders identically in local kustomize builds and live syncs.
+    autodetect: false
     enabled: true
 schedules:
   daily:
