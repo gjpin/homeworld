@@ -99,6 +99,24 @@
       }
     },
     {
+      "description": "Re-vendor the patched RustFS operator chart on version bumps so the PR contains the complete tree",
+      "matchPackageNames": [
+        "rustfs-operator"
+      ],
+      "postUpgradeTasks": {
+        "commands": [
+          "bash scripts/vendor-rustfs-operator.sh"
+        ],
+        "fileFilters": [
+          "apps/rustfs-operator/helm/local-charts/**"
+        ],
+        "executionMode": "update",
+        "installTools": {
+          "helm": {}
+        }
+      }
+    },
+    {
       "description": "Group every Kubernetes version pin (PSA labels, kind node image, documentation, e2e hook comments) into one PR",
       "matchPackageNames": [
         "kindest/node"
@@ -153,6 +171,33 @@
     }
   },
   "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update the Authelia Helm chart",
+      "managerFilePatterns": [
+        "/^apps/authelia/helm/kustomization\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^\\s+- name:\\s+authelia\\s+repo:\\s+https://charts\\.authelia\\.com\\s+version:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "depNameTemplate": "authelia",
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm",
+      "registryUrlTemplate": "https://charts.authelia.com"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Grafana plugin-loader init image",
+      "managerFilePatterns": [
+        "/^apps/grafana/0_grafana\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>docker\\.io/library/alpine):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
     {
       "customType": "regex",
       "description": "Update the Kubernetes minor version in Pod Security Admission labels",
@@ -668,12 +713,12 @@
     },
     {
       "customType": "regex",
-      "description": "Update the RustFS Operator Helm chart",
+      "description": "Update the RustFS Operator vendored chart version",
       "managerFilePatterns": [
-        "/^apps/rustfs-operator/helm/kustomization\\.yaml$/"
+        "/^apps/rustfs-operator/helm/local-charts/rustfs-operator/Chart\\.yaml$/"
       ],
       "matchStrings": [
-        "(?ms)^\\s+- name:\\s+rustfs-operator\\s+repo:\\s+https://operator\\.rustfs\\.com\\s+version:\\s*(?<currentValue>[^\\s#]+)"
+        "(?m)^version:\\s*(?<currentValue>[^\\s#]+)\\s*$"
       ],
       "depNameTemplate": "rustfs-operator",
       "datasourceTemplate": "helm",
