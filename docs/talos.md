@@ -151,6 +151,35 @@ talosctl health
 kubectl get nodes
 ```
 
+## Seed External Secrets Infisical credentials
+The External Secrets Operator authenticates to Infisical with Universal Auth credentials. Generate a Machine Identity in the
+Infisical console (**Settings → Machine Identity → Universal Auth**) and create
+its client ID/secret:
+
+```bash
+# The namespace mirrors the labels Argo CD would manage on creation
+# (apps/app-of-apps.yaml, external-secrets-app) because Argo only applies
+# managedNamespaceMetadata when it creates the namespace itself.
+cat <<'EOF' | kubectl apply -f -
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: external-secrets
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: v1.37
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: v1.37
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: v1.37
+EOF
+
+kubectl create secret generic universal-auth-credentials \
+  --namespace external-secrets \
+  --from-literal=clientId='<infisical-client-id>' \
+  --from-literal=clientSecret='<infisical-client-secret>'
+```
+
 ## Configure WireGuard
 1. Follow https://docs.siderolabs.com/talos/v1.14/networking/advanced/wireguard
 

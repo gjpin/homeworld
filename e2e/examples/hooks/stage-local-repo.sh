@@ -31,9 +31,8 @@ load_infisical_creds() {
     log "missing ${OUT_DIR}/client_id or client_secret (run seed-infisical.sh first)"
     exit 1
   fi
-  # Secret.data values must be base64.
-  INFISICAL_CLIENT_ID="$(b64 "${raw_id}")"
-  INFISICAL_CLIENT_SECRET="$(b64 "${raw_secret}")"
+  # The credentials are applied directly to the cluster by
+  # apply-eso-credentials.sh; they are never envsubst'd from the tree.
 }
 
 node_internal_ip() {
@@ -65,23 +64,19 @@ export_e2e_env() {
   export INFISICAL_HOSTNAME="${INFISICAL_HOSTNAME:-host.docker.internal}"
   export INFISICAL_PROJECT_SLUG="${INFISICAL_PROJECT_SLUG:-homeworld}"
   export INFISICAL_ENVIRONMENT_SLUG="${INFISICAL_ENVIRONMENT_SLUG:-prod}"
-  export INFISICAL_CLIENT_ID INFISICAL_CLIENT_SECRET
   export ACME_EMAIL="${ACME_EMAIL:-e2e@example.com}"
-  export CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-e2e-cloudflare-token}"
   export AUTHELIA_SMTP_HOST="${AUTHELIA_SMTP_HOST:-smtp.e2e.local}"
   export AUTHELIA_SMTP_USERNAME="${AUTHELIA_SMTP_USERNAME:-e2e}"
   export AUTHELIA_SMTP_SENDER="${AUTHELIA_SMTP_SENDER:-Authelia <e2e@example.com>}"
   export B2_BUCKET="${B2_BUCKET:-e2e-b2-bucket}"
   export B2_REGION="${B2_REGION:-us-west-004}"
-  export DB_PASSWORD="${DB_PASSWORD:-e2e-crowdsec-db}"
-  export REGISTRATION_TOKEN="${REGISTRATION_TOKEN:-e2e-crowdsec-registration-token-x}"
 
   log "BASE_DOMAIN=${BASE_DOMAIN} EXTERNAL_IP=${EXTERNAL_IP} INFISICAL_HOST=${INFISICAL_HOST}"
 }
 
 subst_files() {
   local vars f tmp
-  vars='${BASE_DOMAIN} ${EXTERNAL_IP} ${INFISICAL_HOST} ${INFISICAL_HOSTNAME} ${INFISICAL_PROJECT_SLUG} ${INFISICAL_ENVIRONMENT_SLUG} ${INFISICAL_CLIENT_ID} ${INFISICAL_CLIENT_SECRET} ${ACME_EMAIL} ${CLOUDFLARE_API_TOKEN} ${AUTHELIA_SMTP_HOST} ${AUTHELIA_SMTP_USERNAME} ${AUTHELIA_SMTP_SENDER} ${B2_BUCKET} ${B2_REGION} ${DB_PASSWORD} ${REGISTRATION_TOKEN}'
+  vars='${BASE_DOMAIN} ${EXTERNAL_IP} ${INFISICAL_HOST} ${INFISICAL_HOSTNAME} ${INFISICAL_PROJECT_SLUG} ${INFISICAL_ENVIRONMENT_SLUG} ${ACME_EMAIL} ${AUTHELIA_SMTP_HOST} ${AUTHELIA_SMTP_USERNAME} ${AUTHELIA_SMTP_SENDER} ${B2_BUCKET} ${B2_REGION}'
   while IFS= read -r -d '' f; do
     tmp="$(mktemp)"
     envsubst "${vars}" <"${f}" >"${tmp}"
@@ -91,7 +86,7 @@ subst_files() {
 
 apply_static_overlays() {
   cp "${ROOT}/e2e/examples/manifests/selfsigned-cluster-issuer.yaml" \
-    "${STAGING}/apps/cert-manager/1_cluster_issuer.yaml"
+    "${STAGING}/apps/cert-manager/2_cluster_issuer.yaml"
   python3 "${ROOT}/e2e/examples/hooks/rewrite-staging.py" "${STAGING}"
 }
 
