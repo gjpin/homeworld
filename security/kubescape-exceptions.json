@@ -3882,42 +3882,6 @@
     ]
   },
   {
-    "name": "homeworld-C-0061",
-    "policyType": "postureExceptionPolicy",
-    "actions": [
-      "alertOnly"
-    ],
-    "resources": [
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^velero-ui$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
-        }
-      }
-    ],
-    "posturePolicies": [
-      {
-        "frameworkName": "AllControls",
-        "controlID": "C-0061"
-      }
-    ]
-  },
-  {
     "name": "homeworld-C-0063",
     "policyType": "postureExceptionPolicy",
     "actions": [
@@ -7844,6 +7808,22 @@
           "name": "^metrics-server$",
           "namespace": "^metrics-server$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
+        }
       }
     ],
     "posturePolicies": [
@@ -8098,6 +8078,22 @@
           "kind": "^Deployment$",
           "name": "^cilium-operator$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       }
     ],

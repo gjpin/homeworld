@@ -241,16 +241,6 @@
       "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
     },
     {
-      "check": "C-0061",
-      "control": "Pods in default namespace",
-      "profiles": [
-        "homelab"
-      ],
-      "scanner": "kubescape",
-      "owner": "platform",
-      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
-    },
-    {
       "check": "C-0063",
       "control": "Portforwarding privileges",
       "profiles": [
@@ -578,7 +568,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "The exact controller requires Kubernetes API access through its dedicated service account to reconcile resources."
+      "reason": "The exact controller or workload requires Kubernetes API access through its dedicated service account to reconcile resources or perform its documented function."
     },
     {
       "check": "C-0267",
