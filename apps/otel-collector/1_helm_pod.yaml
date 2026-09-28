@@ -1,16 +1,19 @@
-# https://artifacthub.io/packages/helm/vmware-tanzu/velero
-# https://velero.io/docs/v1.18/csi-snapshot-data-movement/
+# https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver
+# https://artifacthub.io/packages/helm/opentelemetry-helm/opentelemetry-collector
+# https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-collector
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: velero
+  name: otel-collector-pod
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: velero
+    namespace: otel-collector
   syncPolicy:
     automated:
       prune: true
@@ -22,8 +25,7 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
     - ServerSideApply=true
-
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/velero/helm
+    path: apps/otel-collector/helm/pod
     targetRevision: HEAD

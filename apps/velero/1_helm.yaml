@@ -1,15 +1,18 @@
-# https://artifacthub.io/packages/helm/cloudnative-pg/cloudnative-pg
+# https://artifacthub.io/packages/helm/vmware-tanzu/velero
+# https://velero.io/docs/v1.18/csi-snapshot-data-movement/
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cloudnative-pg
+  name: velero
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: cloudnative-pg
+    namespace: velero
   syncPolicy:
     automated:
       prune: true
@@ -24,5 +27,5 @@ spec:
 
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/cloudnative-pg/helm
+    path: apps/velero/helm
     targetRevision: HEAD

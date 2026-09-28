@@ -1,16 +1,17 @@
-# https://artifacthub.io/packages/helm/metrics-server/metrics-server
-# https://docs.siderolabs.com/kubernetes-guides/monitoring-and-observability/deploy-metrics-server
+# https://artifacthub.io/packages/helm/cloudnative-pg/cloudnative-pg
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: metrics-server
+  name: cloudnative-pg
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: metrics-server
+    namespace: cloudnative-pg
   syncPolicy:
     automated:
       prune: true
@@ -22,7 +23,8 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
     - ServerSideApply=true
+
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/metrics-server/helm
+    path: apps/cloudnative-pg/helm
     targetRevision: HEAD

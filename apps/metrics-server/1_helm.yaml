@@ -1,17 +1,18 @@
-# https://github.com/dragonflydb/dragonfly-operator
-# https://www.dragonflydb.io/docs/getting-started/kubernetes-operator
-# https://www.dragonflydb.io/docs/getting-started/kubernetes
+# https://artifacthub.io/packages/helm/metrics-server/metrics-server
+# https://docs.siderolabs.com/kubernetes-guides/monitoring-and-observability/deploy-metrics-server
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: dragonfly-operator
+  name: metrics-server
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: dragonfly-operator
+    namespace: metrics-server
   syncPolicy:
     automated:
       prune: true
@@ -25,5 +26,5 @@ spec:
     - ServerSideApply=true
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/dragonfly-operator/helm
+    path: apps/metrics-server/helm
     targetRevision: HEAD

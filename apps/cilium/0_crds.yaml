@@ -6,6 +6,11 @@
 # required by every component's -2_network_policy.yaml, and are installed
 # during Talos bootstrap (see docs/talos.md) before Argo CD exists; this
 # application takes over ownership for declarative upgrades.
+#
+# Pruning is deliberately disabled: deleting this Application (or its
+# finalizer firing) would garbage-collect the Cilium CRDs and with them
+# every CiliumNetworkPolicy in the cluster, cutting all workload
+# networking. PruneLast is omitted for the same reason.
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
