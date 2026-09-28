@@ -37,16 +37,10 @@ collabora:
 prometheus:
   servicemonitor:
     enabled: true
+# The public route is hand-written in ../2_http_route.yaml (standard wave-2
+# HTTPRoute file); the chart's own route generation is disabled.
 route:
-  enabled: true
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: "office.${BASE_DOMAIN}"
-  hostnames:
-    - "office.${BASE_DOMAIN}"
-  parentRefs:
-    - name: envoy
-      namespace: collabora
-      sectionName: office-https
+  enabled: false
 nodeSelector:
   node-role.kubernetes.io/homelab: homelab
 podLabels:

@@ -71,6 +71,7 @@ spec:
         spec:
           hostUsers: false
           runtimeClassName: gvisor
+          automountServiceAccountToken: false
           nodeSelector:
             node-role.kubernetes.io/homelab: homelab
           securityContext:
@@ -159,14 +160,5 @@ spec:
           volumes:
             - name: victoria-plugins
               emptyDir: {}
-  httpRoute:
-    metadata:
-      annotations:
-        external-dns.alpha.kubernetes.io/hostname: "grafana.${BASE_DOMAIN}"
-    spec:
-      parentRefs:
-        - name: envoy
-          namespace: grafana
-          sectionName: grafana-https
-      hostnames:
-        - "grafana.${BASE_DOMAIN}"
+  # The public HTTPRoute is hand-written in 2_http_route.yaml (standard
+  # wave-2 file); the operator's spec.httpRoute generation stays unset.

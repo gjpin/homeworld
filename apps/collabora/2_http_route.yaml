@@ -1,0 +1,27 @@
+---
+# Extracted from the chart's route template (route.enabled: false in
+# helm/values.yaml) so the public endpoint follows the component's standard
+# wave-2 HTTPRoute file.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: collabora
+  namespace: collabora
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    external-dns.alpha.kubernetes.io/hostname: "office.${BASE_DOMAIN}"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: collabora
+      sectionName: office-https
+  hostnames:
+    - "office.${BASE_DOMAIN}"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: collabora
+          port: 9980
