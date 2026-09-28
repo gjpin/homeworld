@@ -3,6 +3,8 @@ kind: Kustomization
 namespace: envoy-gateway
 commonAnnotations:
   security.homeworld/profile: homelab
+# oci://ghcr.io/kdwils/charts is the official upstream chart repository of the
+# envoy-proxy-crowdsec-bouncer project (github.com/kdwils/envoy-proxy-crowdsec-bouncer).
 helmCharts:
   - name: envoy-proxy-bouncer
     repo: oci://ghcr.io/kdwils/charts

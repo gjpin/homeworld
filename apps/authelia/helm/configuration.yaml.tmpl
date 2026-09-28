@@ -86,6 +86,12 @@ identity_providers:
     lifespans:
       refresh_token: 30 days
     claims_policies:
+      # Authelia 4.39 removed groups/email/name/preferred_username from ID
+      # tokens by default (they are served via the UserInfo endpoint). This
+      # policy restores them for clients that read claims from the token
+      # instead of hydrating UserInfo — Argo CD notably has no
+      # enableUserInfoGroups in its oidc.config, so removing it would break
+      # Argo CD group mapping (docs/oidc.md).
       apps:
         id_token:
           - preferred_username
@@ -167,6 +173,7 @@ identity_providers:
       - client_id: web
         client_name: OpenCloud Web
         public: true
+        token_endpoint_auth_method: none
         authorization_policy: opencloud
         claims_policy: opencloud
         require_pkce: true
@@ -192,6 +199,7 @@ identity_providers:
       - client_id: OpenCloudDesktop
         client_name: OpenCloud Desktop
         public: true
+        token_endpoint_auth_method: none
         authorization_policy: opencloud
         claims_policy: opencloud
         require_pkce: true
@@ -208,6 +216,7 @@ identity_providers:
       - client_id: OpenCloudAndroid
         client_name: OpenCloud Android
         public: true
+        token_endpoint_auth_method: none
         authorization_policy: opencloud
         claims_policy: opencloud
         require_pkce: true
@@ -223,6 +232,7 @@ identity_providers:
       - client_id: OpenCloudIOS
         client_name: OpenCloud iOS
         public: true
+        token_endpoint_auth_method: none
         authorization_policy: opencloud
         claims_policy: opencloud
         require_pkce: true
@@ -295,6 +305,7 @@ identity_providers:
       - client_id: argocd-cli
         client_name: Argo CD (CLI)
         public: true
+        token_endpoint_auth_method: none
         authorization_policy: two_factor
         claims_policy: apps
         require_pkce: true

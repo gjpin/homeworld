@@ -152,8 +152,12 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `refresh_token` grant); never merge the localhost redirect into the
   confidential client.
 - Add a `claims_policy` only when the client cannot hydrate claims from the
-  UserInfo endpoint (e.g. Grafana's claims-hydration bug); OIDC-compliant
-  clients need none. Role mapping follows the custom-claim pattern:
+  UserInfo endpoint (e.g. Grafana's claims-hydration bug) or when it reads
+  claims from the token itself (Authelia 4.39 removed `groups`, `email`,
+  `name`, and `preferred_username` from ID tokens by default; clients such as
+  Argo CD, which runs without `enableUserInfoGroups`, need a policy restoring
+  them — see the `apps` policy in `apps/authelia/helm/configuration.yaml.tmpl`
+  and docs/oidc.md). Role mapping follows the custom-claim pattern:
   `definitions.user_attributes` expression + a `claims_policies` entry with
   `custom_claims` + a matching custom scope (see `immich_role`,
   `vaultwarden_roles`).
@@ -335,6 +339,12 @@ find apps/grafana/dashboards -type f -name '*.json' -print0 |
 # image, documentation, hook comments) drifts from the rest.
 scripts/check-k8s-version.sh
 ```
+
+Helm inflation requires an explicit flag in every local render: use
+`kubectl kustomize --enable-helm <dir>` (or `kustomize build --enable-helm`);
+the bare `kustomize build` command fails on every `helmCharts` directory.
+Production Argo CD already sets this globally via `kustomize.buildOptions`
+in `argocd-cm` (see docs/argocd.md).
 
 Also inspect the diff for accidental secret substitution and verify cross-file
 references manually. Cluster-side schema validation is useful only when the

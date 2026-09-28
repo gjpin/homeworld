@@ -12,6 +12,13 @@ redis-cluster:
 image:
   pullPolicy: IfNotPresent
 
+# Pin the shared-storage PVC to the repo StorageClass explicitly instead of
+# relying on the cluster default (the chart defaults storageClass to '').
+persistence:
+  enabled: true
+  claimName: gitea-shared-storage
+  storageClass: longhorn-crypto
+
 resources:
   requests:
     cpu: 10m

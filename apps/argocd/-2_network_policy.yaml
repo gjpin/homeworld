@@ -98,28 +98,6 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-argocd-server-dex
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/component: argocd-server
-      k8s:app.kubernetes.io/instance: argocd
-  egress:
-    - toServices:
-        - k8sService:
-            serviceName: argocd-argocd-dex-server
-            namespace: argocd
-      toPorts:
-        - ports:
-            - port: "5556"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
   name: allow-argocd-controller-redis
   namespace: argocd
   annotations:
@@ -317,29 +295,6 @@ spec:
       toPorts:
         - ports:
             - port: "6379"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: allow-argocd-dex-ingress
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/component: argocd-dex-server
-      k8s:app.kubernetes.io/instance: argocd
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: argocd
-            k8s:app.kubernetes.io/component: argocd-server
-            k8s:app.kubernetes.io/instance: argocd
-      toPorts:
-        - ports:
-            - port: "5556"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2

@@ -1,5 +1,9 @@
 # OIDC
 
+All Authelia clients are configured in `apps/authelia/helm/configuration.yaml.tmpl` following the official Authelia client integration guides: PKCE (S256), pre-configured one-week consent, and RS256 token signatures are universal. Three clients deviate from the confidential-client `client_secret_basic` token-endpoint auth method and use `client_secret_post` instead, each inline-justified in the template: Home Assistant's `hass-oidc-auth` plugin, the RustFS console, and velero-ui cannot send Basic auth headers.
+
+A shared `apps` claims policy embeds `preferred_username`, `email`, `name`, and `groups` in ID and access tokens. Authelia 4.39 stopped placing these claims in ID tokens by default (they are served via the UserInfo endpoint), and clients that read claims from the token — Argo CD notably runs without `enableUserInfoGroups` — require the policy to keep group-based role mapping working. Clients needing custom role claims (`immich_role`, `vaultwarden_roles`, OpenCloud's group list) have dedicated policies following the custom-claim pattern.
+
 | Application | Authelia OIDC | Sign-in |
 | --- | --- | --- |
 | prometheus-operator-crd | No | No user login. |
