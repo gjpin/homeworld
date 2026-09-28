@@ -4,6 +4,8 @@ kind: Service
 metadata:
   name: notesnook-monograph
   namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
   labels:
     app.kubernetes.io/name: notesnook-monograph
     app.kubernetes.io/instance: notesnook
@@ -23,6 +25,8 @@ kind: Deployment
 metadata:
   name: notesnook-monograph
   namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
   labels:
     app.kubernetes.io/name: notesnook-monograph
     app.kubernetes.io/instance: notesnook

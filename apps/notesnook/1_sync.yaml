@@ -4,6 +4,8 @@ kind: Service
 metadata:
   name: notesnook-sync
   namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
   labels:
     app.kubernetes.io/name: notesnook-sync
     app.kubernetes.io/instance: notesnook
@@ -27,6 +29,8 @@ kind: Deployment
 metadata:
   name: notesnook-sync
   namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
   labels:
     app.kubernetes.io/name: notesnook-sync
     app.kubernetes.io/instance: notesnook
@@ -173,26 +177,6 @@ spec:
                 secretKeyRef:
                   name: notesnook-secrets
                   key: NOTESNOOK_API_SECRET
-            - name: SMTP_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: notesnook-secrets
-                  key: SMTP_USERNAME
-            - name: SMTP_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: notesnook-secrets
-                  key: SMTP_PASSWORD
-            - name: SMTP_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: notesnook-secrets
-                  key: SMTP_HOST
-            - name: SMTP_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: notesnook-secrets
-                  key: SMTP_PORT
             # .NET honors OpenSSL's SSL_CERT_FILE for SslStream trust on Linux.
             # The bundle (system CAs + DocumentDB gateway CA) is built by the
             # build-trust-bundle init container.

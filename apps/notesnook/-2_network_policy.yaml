@@ -116,7 +116,6 @@ spec:
         values:
           - notesnook-themes
           - notesnook-cors-proxy
-          - notesnook-identity
   egress:
     - toEntities:
         - world
@@ -125,10 +124,6 @@ spec:
             - port: "80"
               protocol: TCP
             - port: "443"
-              protocol: TCP
-            - port: "587"
-              protocol: TCP
-            - port: "465"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
