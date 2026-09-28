@@ -562,4 +562,120 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-homepage
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: homepage
+            namespace: homepage
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-notesnook
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: notesnook-sync
+            namespace: notesnook
+        - k8sService:
+            serviceName: notesnook-identity
+            namespace: notesnook
+        - k8sService:
+            serviceName: notesnook-sse
+            namespace: notesnook
+        - k8sService:
+            serviceName: notesnook-monograph
+            namespace: notesnook
+        - k8sService:
+            serviceName: notesnook-themes
+            namespace: notesnook
+        - k8sService:
+            serviceName: notesnook-cors-proxy
+            namespace: notesnook
+        - k8sService:
+            serviceName: notesnook-inbox
+            namespace: notesnook
+      toPorts:
+        - ports:
+            - port: "5264"
+              protocol: TCP
+            - port: "8264"
+              protocol: TCP
+            - port: "7264"
+              protocol: TCP
+            - port: "3000"
+              protocol: TCP
+            - port: "9000"
+              protocol: TCP
+            - port: "5181"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-openchamber
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: openchamber
+            namespace: openchamber
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-woodpecker
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: woodpecker-server
+            namespace: woodpecker
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
 

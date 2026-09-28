@@ -126,3 +126,28 @@ spec:
         - ports:
             - port: "443"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-grafana-metrics-ingress
+  namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The ServiceMonitor scrapes the grafana-http port; the scrape path
+  # originates from the OpenTelemetry collector pod.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: grafana
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/instance: otel-collector-pod
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: standalone-collector
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP

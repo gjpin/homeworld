@@ -22,7 +22,10 @@ spec:
               protocol: TCP
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: prometheus-operator-crd
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/instance: otel-collector-pod
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: standalone-collector
       toPorts:
         - ports:
             - port: "9090"

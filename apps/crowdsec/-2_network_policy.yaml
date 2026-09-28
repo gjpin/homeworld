@@ -2,11 +2,24 @@
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: default-deny
+  namespace: crowdsec
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: crowdsec-dns-egress
   namespace: crowdsec
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
-    security.homeworld/egress-reason: This namespace-wide DNS rule enables default-deny egress; workload-specific policies add only the CrowdSec services, Kubernetes API, and Hub endpoints required by the chart.
+    security.homeworld/egress-reason: Namespace-wide DNS baseline paired with default-deny; workload-specific policies add only the CrowdSec services, Kubernetes API, and Hub endpoints required by the chart.
 spec:
   endpointSelector: {}
   egress:
@@ -181,4 +194,121 @@ spec:
       toPorts:
         - ports:
             - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crowdsec-lapi-ingress
+  namespace: crowdsec
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:k8s-app: crowdsec
+      k8s:type: lapi
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy-proxy-bouncer
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:k8s-app: crowdsec
+            k8s:type: agent
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/instance: otel-collector-pod
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: standalone-collector
+      toPorts:
+        - ports:
+            - port: "6060"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crowdsec-appsec-ingress
+  namespace: crowdsec
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:k8s-app: crowdsec
+      k8s:type: appsec
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy-proxy-bouncer
+      toPorts:
+        - ports:
+            - port: "7422"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/instance: otel-collector-pod
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: standalone-collector
+      toPorts:
+        - ports:
+            - port: "6060"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crowdsec-agent-ingress
+  namespace: crowdsec
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:k8s-app: crowdsec
+      k8s:type: agent
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/instance: otel-collector-pod
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: standalone-collector
+      toPorts:
+        - ports:
+            - port: "6060"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crowdsec-postgres-ingress
+  namespace: crowdsec
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: crowdsec
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:k8s-app: crowdsec
+            k8s:type: lapi
+      toPorts:
+        - ports:
+            - port: "5432"
               protocol: TCP

@@ -157,3 +157,29 @@ spec:
         - ports:
             - port: "6379"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-authelia-metrics-ingress
+  namespace: authelia
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The chart's ServiceMonitor scrapes the metrics port; the scrape path
+  # originates from the OpenTelemetry collector pod.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: authelia
+      k8s:app.kubernetes.io/instance: authelia
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/instance: otel-collector-pod
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: standalone-collector
+      toPorts:
+        - ports:
+            - port: "9959"
+              protocol: TCP

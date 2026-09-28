@@ -29,10 +29,19 @@ spec:
       namespace: homeassistant
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
+      namespace: homepage
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
       namespace: immich
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: longhorn-system
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: notesnook
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: openchamber
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: opencloud
@@ -48,6 +57,12 @@ spec:
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: velero-ui
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: vaultwarden
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: woodpecker
   to:
     - group: ""
       kind: Service
