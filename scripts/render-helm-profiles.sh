@@ -17,6 +17,9 @@ fi
 repo_root="$(git rev-parse --show-toplevel)"
 mkdir -p "$output_dir"
 
+# rustfs-operator is vendored and patched under helm/local-charts (its
+# upstream chart ships tenants.rustfs.com twice under crds/, which Kustomize
+# rejects), so every release renders through the same kustomize path.
 while IFS= read -r kustomization; do
   kust_dir="${kustomization%/kustomization.yaml}"
   rel="${kust_dir#"$repo_root/apps/"}"
@@ -30,17 +33,6 @@ while IFS= read -r kustomization; do
   fi
   kubectl kustomize --enable-helm "$kust_dir" >"$output_dir/${component}-${app}.yaml"
 done < <(
-  find "$repo_root/apps" \( -path "*/helm/kustomization.yaml" -o -path "*/helm/*/kustomization.yaml" \) \
-    ! -path "*/rustfs-operator/*" -print | sort
+  find "$repo_root/apps" \( -path "*/helm/kustomization.yaml" -o -path "*/helm/*/kustomization.yaml" \) -print | sort
 )
-
-# rustfs-operator 0.0.5 ships tenants.rustfs.com twice under crds/. Kustomize
-# rejects duplicate resource IDs, while Helm handles this chart normally.
-helm template rustfs-operator rustfs-operator \
-  --repo https://operator.rustfs.com \
-  --version 0.0.5 \
-  --namespace rustfs-operator \
-  --include-crds \
-  --values "$repo_root/apps/rustfs-operator/helm/values.yaml" \
-  >"$output_dir/rustfs-operator-rustfs-operator.yaml"
 
