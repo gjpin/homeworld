@@ -72,3 +72,29 @@ spec:
         - ports:
             - port: "443"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-metrics-scraping
+  namespace: external-dns
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The chart's ServiceMonitor scrapes the http listener that also serves
+  # the Prometheus endpoint.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: external-dns
+      k8s:app.kubernetes.io/instance: external-dns
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "7979"
+              protocol: TCP

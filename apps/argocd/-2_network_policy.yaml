@@ -379,3 +379,124 @@ spec:
         - ports:
             - port: "443"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-controller-metrics-ingress
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The application-controller ServiceMonitor scrapes the metrics port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: argocd-application-controller
+      k8s:app.kubernetes.io/instance: argocd
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "8082"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-server-metrics-ingress
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: argocd-server
+      k8s:app.kubernetes.io/instance: argocd
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "8083"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-repo-server-metrics-ingress
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: argocd-repo-server
+      k8s:app.kubernetes.io/instance: argocd
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "8084"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-applicationset-metrics-ingress
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: argocd-applicationset-controller
+      k8s:app.kubernetes.io/instance: argocd
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-argocd-notifications-metrics-ingress
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: argocd-notifications-controller
+      k8s:app.kubernetes.io/instance: argocd
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9001"
+              protocol: TCP

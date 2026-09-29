@@ -94,22 +94,23 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-velero-node-agent-metrics
+  name: allow-velero-metrics-ingress
   namespace: velero
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
+  # The ServiceMonitor scrapes the server Deployment and the PodMonitor
+  # scrapes the node-agent DaemonSet; both serve metrics on 8085.
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/instance: velero
-      k8s:name: node-agent
   ingress:
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
-            k8s:app.kubernetes.io/instance: otel-collector-pod
-            k8s:app.kubernetes.io/name: opentelemetry-collector
-            k8s:component: standalone-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
       toPorts:
         - ports:
             - port: "8085"

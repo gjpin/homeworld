@@ -346,6 +346,9 @@ def rewrite_kind_runtime_class(root: pathlib.Path) -> None:
         except (OSError, UnicodeDecodeError):
             continue
         new = re.sub(r"(?m)^\s*runtimeClassName:\s*gvisor\s*\n", "", text)
+        # MutatingAdmissionPolicy CEL mutations inject the runtime class at
+        # admission; strip it from the object literal the same way.
+        new = new.replace("runtimeClassName: 'gvisor', hostUsers", "hostUsers")
         if new != text:
             path.write_text(new)
             count += 1

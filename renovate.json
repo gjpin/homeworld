@@ -278,6 +278,19 @@
     },
     {
       "customType": "regex",
+      "description": "Update the operator-managed OpenTelemetry Collector image",
+      "managerFilePatterns": [
+        "/^apps/otel-collector/1_collector\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s+image:\\s*(?<depName>ghcr\\.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
       "description": "Update the DocumentDB Operator vendored chart version",
       "managerFilePatterns": [
         "/^apps/documentdb-operator/helm/local-charts/documentdb-operator/Chart\\.yaml$/"

@@ -25,6 +25,20 @@ patches:
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
+  # The controller's metrics are scraped through the handwritten ServiceMonitor
+  # (0_service_monitor.yaml); the chart's prometheus.io annotation defaults are
+  # removed so no parallel discovery mechanism remains.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^envoy-gateway$
+      namespace: ^envoy-gateway$
+    patch: |-
+      - op: remove
+        path: /spec/template/metadata/annotations/prometheus.io~1scrape
+      - op: remove
+        path: /spec/template/metadata/annotations/prometheus.io~1port
   - target:
       group: apps
       version: v1

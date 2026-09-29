@@ -1,11 +1,11 @@
-# https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver
-# https://artifacthub.io/packages/helm/opentelemetry-helm/opentelemetry-collector
-# https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-collector
+# https://opentelemetry.io/docs/platforms/kubernetes/operator/
+# https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-operator
+# https://opentelemetry.io/docs/platforms/kubernetes/operator/target-allocator/
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: otel-collector-pod
+  name: opentelemetry-operator
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "1"
@@ -13,7 +13,7 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: otel-collector
+    namespace: opentelemetry-operator
   syncPolicy:
     automated:
       prune: true
@@ -27,5 +27,5 @@ spec:
     - ServerSideApply=true
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/otel-collector/helm/pod
+    path: apps/opentelemetry-operator/helm
     targetRevision: HEAD

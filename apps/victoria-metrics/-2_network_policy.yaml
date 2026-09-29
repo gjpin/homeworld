@@ -49,9 +49,9 @@ spec:
             k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
-            k8s:app.kubernetes.io/instance: otel-collector-pod
-            k8s:app.kubernetes.io/name: opentelemetry-collector
-            k8s:component: standalone-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
             k8s:app.kubernetes.io/instance: otel-collector-cluster

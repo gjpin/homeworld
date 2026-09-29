@@ -235,23 +235,46 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
+  # The ServiceMonitor scrapes the server's authenticated Prometheus
+  # endpoint; the Target Allocator resolves the bearer token secret over
+  # mTLS.
   endpointSelector:
-    matchExpressions:
-      - key: k8s:app.kubernetes.io/name
-        operator: In
-        values:
-          - server
-          - agent
+    matchLabels:
+      k8s:app.kubernetes.io/name: server
+      k8s:app.kubernetes.io/instance: woodpecker
   ingress:
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
-            k8s:app.kubernetes.io/instance: otel-collector-pod
-            k8s:app.kubernetes.io/name: opentelemetry-collector
-            k8s:component: standalone-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
       toPorts:
         - ports:
             - port: "8000"
               protocol: TCP
-            - port: "3000"
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-woodpecker-postgres-metrics-ingress
+  namespace: woodpecker
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The handwritten PodMonitor scrapes the CloudNativePG instance metrics
+  # port.
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: woodpecker
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9187"
               protocol: TCP

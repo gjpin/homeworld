@@ -1,0 +1,87 @@
+# https://opentelemetry.io/docs/platforms/kubernetes/operator/target-allocator/
+# https://github.com/open-telemetry/opentelemetry-operator/blob/main/docs/target-allocator/README.md
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: otel-collector-pod-targetallocator
+  namespace: otel-collector
+---
+# The Target Allocator discovers ServiceMonitor and PodMonitor endpoints across
+# the cluster and distributes them to the collector pods. The rules mirror the
+# upstream Target Allocator documentation; monitor RBAC verbs are read-only,
+# and no secret access is granted because denyFSAccessThroughSMs rejects
+# monitors that reference credentials.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: otel-collector-pod-targetallocator
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+      - nodes/metrics
+      - services
+      - endpoints
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+  - apiGroups:
+      - discovery.k8s.io
+    resources:
+      - endpointslices
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - monitoring.coreos.com
+    resources:
+      - servicemonitors
+      - podmonitors
+    verbs:
+      - get
+      - list
+      - watch
+  - nonResourceURLs:
+      - /metrics
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: otel-collector-pod-targetallocator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: otel-collector-pod-targetallocator
+subjects:
+  - kind: ServiceAccount
+    name: otel-collector-pod-targetallocator
+    namespace: otel-collector

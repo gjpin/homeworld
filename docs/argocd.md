@@ -40,6 +40,10 @@
    * rustfs: shared S3-compatible storage Tenant, after the RustFS Operator,
      External Secrets, and Longhorn
    * velero-ui: web interface for Velero, after the Velero server
+   * opentelemetry-operator: OpenTelemetry Collector operator and the
+     Target Allocator that consumes the Prometheus Operator
+     ServiceMonitor/PodMonitor CRDs, after cert-manager (admission webhook
+     certificates) and ahead of the collector custom resource in wave 6
 * **Sync wave 6**
    * crowdsec-envoy-bouncer: pinned community Envoy external-auth bouncer,
      after CrowdSec and Envoy Gateway; the Gateway policies remain owned by
@@ -48,7 +52,8 @@
      External Secrets, and Prometheus Operator CRDs
    * homeassistant
    * immich
-   * otel-collector
+   * otel-collector: operator-managed collector with its Target Allocator,
+     after the OpenTelemetry Operator (CRDs) and VictoriaMetrics (export)
    * forgejo
    * grafana
    * notesnook: fully featured encrypted notes sync server with MongoDB, SSE, Monograph, Themes, CORS proxy, and Inbox API
@@ -113,14 +118,18 @@ CRD lifecycles are orchestrated through a combination of sync waves, health chec
 
 ### Consumer Workload Sequencing (App-of-Apps Waves)
 In `apps/app-of-apps.yaml`, CRD-providing infrastructure and operators are sequenced strictly ahead of consuming applications:
-- **Wave -1:** `prometheus-operator-crd` (ServiceMonitor/PodMonitor CRDs) and `external-secrets` (ExternalSecret CRD and the Infisical `ClusterSecretStore`), both ahead of `argocd` in wave 0 so Argo CD's own ServiceMonitors and its wave -1 ExternalSecret validate on the first install
+- **Wave -1:** `prometheus-operator-crd` (ServiceMonitor/PodMonitor CRDs) and `external-secrets` (ExternalSecret CRD and the Infisical `ClusterSecretStore`), both ahead of `argocd` in wave 0 so Argo CD's own ServiceMonitors and its wave -1 ExternalSecret validate on the first install; the monitoring CRDs are later consumed cluster-wide by the OpenTelemetry Operator's Target Allocator (wave 5)
 - **Wave 2:** `envoy-gateway` (Gateway API and Envoy Gateway CRDs) and `cilium` (Cilium CRDs applied from the pinned Git tag by the nested `cilium-crds` application; the Helm chart ships no CRDs, while the CiliumNetworkPolicy CRDs are consumed by every component's `-2_network_policy.yaml`)
 - **Wave 3:** `cert-manager` (Certificates and ClusterIssuers)
 - **Wave 4:** Datastore operators (`cloudnative-pg`, `dragonfly-operator`, `rustfs-operator`, `grafana-operator`)
 - **Wave 5:** The `documentdb-operator` (DocumentDB CRDs plus the CNPG-I sidecar
   injector plugin, which must live in the `cloudnative-pg` namespace for
-  CloudNativePG plugin discovery) alongside wave 4 CRD consumers
-- **Waves 6–8:** Applications and workloads consuming those CRDs (`authelia`, `immich`, `forgejo`, `grafana`, `notesnook` via `DocumentDB`, `opencloud`, etc.)
+  CloudNativePG plugin discovery) and the `opentelemetry-operator`
+  (OpenTelemetryCollector/TargetAllocator CRDs, rendered through the chart's
+  `conf/crds` templates so Kustomize Helm inflation includes them), whose
+  collector custom resource in wave 6 both validates against the CRDs and
+  reconciles against the running operator
+- **Waves 6–8:** Applications and workloads consuming those CRDs (`authelia`, `immich`, `forgejo`, `grafana`, `notesnook` via `DocumentDB`, `otel-collector` via `OpenTelemetryCollector`, `opencloud`, etc.)
 
 Argo CD's custom Lua Application health check pauses wave advancement until all applications in Wave $N$ report `Healthy`, preventing downstream workloads from encountering missing CRD errors during initial deployment or cluster-wide upgrades.
 
@@ -135,7 +144,7 @@ Within an individual sync wave, Argo CD sorts manifests by Kubernetes `Kind` pri
 
 ### Dedicated CRD Applications vs. Bundled Helm Releases
 - **Standalone CRDs:** Shared ecosystem CRD suites without local controller dependencies (`prometheus-operator-crd`, `gateway-api-crd`, and `cilium-crds`) are separated into dedicated Argo CD applications and sync waves. The `cilium` Helm chart ships no CRDs, so `cilium-crds` applies the full `pkg/k8s/apis/cilium.io/client/crds/v2` set from the chart-aligned Git tag; Talos bootstrap (see [docs/talos.md](talos.md)) installs them before Argo CD exists, and the application takes over ownership for declarative upgrades. Pruning is deliberately disabled on `cilium-crds`: garbage-collecting the Cilium CRDs would delete every `CiliumNetworkPolicy` in the cluster along with them, cutting all workload networking.
-- **Bundled Operator CRDs:** Operators (`cloudnative-pg`, `cert-manager`, `external-secrets`, `dragonfly-operator`, `documentdb-operator`, etc.) bundle their upstream CRDs within their Helm charts, relying on Server-Side Apply and Kind-based sorting for in-place schema upgrades. Two charts are vendored and patched under `apps/<component>/helm/local-charts` because their upstream packaging breaks Kustomize's Helm inflation: the `documentdb-operator` chart (see `scripts/vendor-documentdb-operator.sh`) bundles a CloudNativePG subchart that collides with the standalone operator and hardcodes the `cnpg-system` namespace, and the `rustfs-operator` chart (see `scripts/vendor-rustfs-operator.sh`) ships the `tenants.rustfs.com` CRD twice under `crds/`, which Kustomize rejects as a duplicate resource ID. Renovate bumps the vendored `Chart.yaml` version and re-vendors the complete tree in the same PR.
+- **Bundled Operator CRDs:** Operators (`cloudnative-pg`, `cert-manager`, `external-secrets`, `dragonfly-operator`, `documentdb-operator`, `opentelemetry-operator`, etc.) bundle their upstream CRDs within their Helm charts, relying on Server-Side Apply and Kind-based sorting for in-place schema upgrades. Two charts are vendored and patched under `apps/<component>/helm/local-charts` because their upstream packaging breaks Kustomize's Helm inflation: the `documentdb-operator` chart (see `scripts/vendor-documentdb-operator.sh`) bundles a CloudNativePG subchart that collides with the standalone operator and hardcodes the `cnpg-system` namespace, and the `rustfs-operator` chart (see `scripts/vendor-rustfs-operator.sh`) ships the `tenants.rustfs.com` CRD twice under `crds/`, which Kustomize rejects as a duplicate resource ID. Renovate bumps the vendored `Chart.yaml` version and re-vendors the complete tree in the same PR.
 
 ## Intra-Component Sync Wave Architecture
 

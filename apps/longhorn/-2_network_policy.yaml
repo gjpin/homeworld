@@ -236,3 +236,30 @@ spec:
               protocol: TCP
             - port: "9503"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-longhorn-manager-metrics-ingress
+  namespace: longhorn-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The chart's ServiceMonitor scrapes the manager metrics port; the
+  # manager pods are node-integrated but not host-networked, so the
+  # scrape passes through Cilium policy.
+  endpointSelector:
+    matchLabels:
+      k8s:app: longhorn-manager
+      k8s:app.kubernetes.io/instance: longhorn
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9500"
+              protocol: TCP

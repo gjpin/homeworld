@@ -1,0 +1,32 @@
+fullnameOverride: opentelemetry-operator
+namespaceOverride: opentelemetry-operator
+replicaCount: 1
+manager:
+  image:
+    # The tag follows the chart appVersion, which is pinned by the
+    # kustomization's chart version (Renovate-tracked).
+    repository: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator
+  # The Target Allocator image is not pinned here on purpose: the operator
+  # deploys its bundled Target Allocator, released in lockstep with the
+  # operator appVersion.
+  deploymentAnnotations:
+    kube-score/ignore: pod-networkpolicy,container-image-pull-policy,container-security-context-readonlyrootfilesystem,deployment-replicas
+    security.homeworld/exception-reason: Upstream filesystem, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+      ephemeral-storage: 64Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+      ephemeral-storage: 2Gi
+  # The manager's ServiceMonitor stays disabled: its metrics endpoint is
+  # served with authentication (manager.metrics.secure) and the Target
+  # Allocator denies file-based credentials (bearerTokenFile) on the
+  # monitors it consumes.
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab
+hostUsers: false
+# admissionWebhooks.certManager.enabled defaults to true; the cert-manager
+# application (app-of-apps wave 3) provisions the webhook certificates.

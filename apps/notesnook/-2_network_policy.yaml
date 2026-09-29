@@ -134,6 +134,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
+  # The ServiceMonitor scrapes the sync server's OpenTelemetry Prometheus
+  # exporter on the dedicated metrics port.
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: notesnook-sync
@@ -141,11 +143,12 @@ spec:
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
       toPorts:
         - ports:
             - port: "5067"
-              protocol: TCP
-            - port: "5264"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -156,6 +159,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
+  # The notesnook-documentdb PodMonitor scrapes the CNPG instance metrics
+  # exporter.
   endpointSelector:
     matchLabels:
       k8s:cnpg.io/cluster: notesnook
@@ -163,6 +168,9 @@ spec:
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
       toPorts:
         - ports:
             - port: "9188"

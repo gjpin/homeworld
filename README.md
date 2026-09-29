@@ -20,7 +20,7 @@
 - Distributed block storage with Longhorn
 - Automated encrypted [Velero backups](docs/velero.md) to Backblaze B2
 - Unified telemetry pipeline with OpenTelemetry Collector, VictoriaMetrics, VictoriaLogs, and VictoriaTraces
-- Declarative dashboards and monitoring via Grafana Operator and Prometheus Operator ServiceMonitors
+- Declarative dashboards and monitoring via Grafana Operator, with Prometheus Operator ServiceMonitors and PodMonitors consumed by the OpenTelemetry Operator's Target Allocator
 - Automated dependency updates and [upgrade procedures](docs/upgrades.md) via Renovate
 - Persistent AI agent workspace ([OpenChamber](docs/openchamber.md), OpenCode, Codex CLI, Pi agent, Grok Build, Antigravity CLI, Copilot CLI on Debian 13) with PR-gated daily package refreshes
 
@@ -56,8 +56,9 @@
 | VictoriaLogs | `victoria-logs.${BASE_DOMAIN}` | Logs backend (VictoriaLogs Single, web UI). |
 | VictoriaTraces | `victoria-traces.${BASE_DOMAIN}` | Traces backend (VictoriaTraces Single, Jaeger/Tempo-compatible query APIs; visualize via Grafana). |
 | OpenTelemetry Collector | — | Telemetry collection and export. |
+| OpenTelemetry Operator | — | Manages the collector and its Target Allocator, which discovers ServiceMonitor and PodMonitor scrape targets. |
 | OpenCloud | `cloud.${BASE_DOMAIN}` | Files, sharing, search, collaboration, CalDAV, and CardDAV. |
-| Prometheus Operator CRDs | — | Custom resource definitions required for monitoring resources. |
+| Prometheus Operator CRDs | — | Custom resource definitions required for monitoring resources; consumed by the OpenTelemetry Operator's Target Allocator. |
 | Radicale | — | Internal CalDAV and CardDAV backend authenticated by OpenCloud. |
 | RustFS | `s3.${BASE_DOMAIN}`<br>`console.rustfs.${BASE_DOMAIN}` | Shared S3-compatible object storage and Tenant console. |
 | RustFS Operator | `rustfs.${BASE_DOMAIN}` | RustFS storage operator and management console. |

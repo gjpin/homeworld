@@ -7,6 +7,7 @@ A shared `apps` claims policy embeds `preferred_username`, `email`, `name`, and 
 | Application | Authelia OIDC | Sign-in |
 | --- | --- | --- |
 | prometheus-operator-crd | No | No user login. |
+| opentelemetry-operator | No | No user login. |
 | envoy-gateway | No | No user login. `envoy.${BASE_DOMAIN}` is the admin listener, not an OIDC app. |
 | cilium | No | Hubble UI is cluster-internal (no HTTPRoute; reached via `kubectl port-forward` or direct WireGuard node access) and has no login. Agents, Envoy, and the operator use their service accounts. |
 | cert-manager | No | No user login. |
