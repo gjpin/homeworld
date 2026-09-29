@@ -60,10 +60,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          curl -sSfLO https://github.com/kubescape/kubescape/releases/download/v4.0.11/kubescape_4.0.11_linux_amd64
-          curl -sSfL https://github.com/kubescape/kubescape/releases/download/v4.0.11/checksums.sha256 |
-            grep ' kubescape_4.0.11_linux_amd64$' | sha256sum --check
-          sudo install kubescape_4.0.11_linux_amd64 /usr/local/bin/kubescape
+          curl -sSfLO https://github.com/kubescape/kubescape/releases/download/v4.0.15/kubescape_4.0.15_linux_amd64
+          curl -sSfL https://github.com/kubescape/kubescape/releases/download/v4.0.15/checksums.sha256 |
+            grep ' kubescape_4.0.15_linux_amd64$' | sha256sum --check
+          sudo install kubescape_4.0.15_linux_amd64 /usr/local/bin/kubescape
 
           curl -sSfLO https://github.com/zegl/kube-score/releases/download/v1.20.0/kube-score_1.20.0_linux_amd64.tar.gz
           curl -sSfL https://github.com/zegl/kube-score/releases/download/v1.20.0/checksums.txt |
