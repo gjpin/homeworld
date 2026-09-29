@@ -1,6 +1,6 @@
 # Security Scanners
 
-All Helm-rendered manifests are scanned by three security tools in CI. **Kubescape** checks the offline render of every pinned Helm chart against the `AllControls` framework, **kube-score** evaluates the same render for manifest best practices, and **Trivy** scans container images added or changed in a pull request for known vulnerabilities.
+All Helm-rendered manifests are scanned by three security tools in CI. **Kubescape** checks the offline render of every pinned Helm chart against the `AllControls` framework, **kube-linter** evaluates the same render for manifest best practices, and **Trivy** scans container images added or changed in a pull request for known vulnerabilities.
 
 Every intentionally accepted finding is registered as an explicit, resource-scoped exception with a written reason. There are no blanket, namespace-wide, or cluster-wide suppressions: an exception names the exact rendered resource and the exact check it waives, and CI fails if the exception registry and the scanner inputs drift apart.
 
@@ -12,8 +12,9 @@ The `helm-security` job in `.github/workflows/validate.yaml` runs `scripts/scan-
 
 1. Validates the exception registry and its parity with the scanner input (`scripts/validate-security-exceptions.sh`).
 2. Renders every pinned Helm chart under `apps/` through its kustomization into an offline manifest tree (`scripts/render-helm-profiles.sh`).
-3. Runs kube-score over the render with `--exit-one-on-warning`; any warning or critical finding not ignored on the specific resource fails the job.
-4. Runs Kubescape with the `AllControls` framework and `--fail-on-degraded-config`; the job fails if the report contains any failed control that is not covered by an exception.
+3. Validates the kube-linter exceptions: annotations naming an unknown check, and annotations whose finding has disappeared from an annotation-stripped copy of the render, both fail the job.
+4. Runs kube-linter (default checks) over the render; any diagnostic not ignored on the specific resource fails the job.
+5. Runs Kubescape with the `AllControls` framework and `--fail-on-degraded-config`; the job fails if the report contains any failed control that is not covered by an exception.
 
 The separate `trivy-image-scan` job runs `scripts/scan-images.sh`, which extracts the container images added or changed in the pull request diff and fails on unpatched `CRITICAL`/`HIGH` vulnerabilities.
 
@@ -39,11 +40,13 @@ Kubescape exceptions live in two files that must stay in sync:
 
 Each policy lists the exact rendered resources (kind and name, plus namespace where the render distinguishes namespaces) that the control is waived for. When a chart update removes a finding, the exception entry is removed together with the registry entry, and the parity check keeps the two files honest.
 
-### kube-score
+### kube-linter
 
-kube-score has no central exception file. Suppression is per rendered resource through the `kube-score/ignore` annotation, which lists the exact kube-score test IDs waived for that resource. Every `kube-score/ignore` annotation is paired with a `security.homeworld/exception-reason` annotation on the same resource stating why the finding is accepted.
+kube-linter runs its built-in default checks and has no central exception file. Suppression is per rendered resource through the `ignore-check.kube-linter.io/<check-name>` annotation, which waives exactly that check for that resource; the annotation value is the written reason the finding is accepted, so every ignore carries its own justification. The annotation must sit on the workload object's metadata (not the pod template) — kube-linter only reads the top-level object's annotations.
 
-For Helm workloads the annotation pair is applied either as a kustomize patch in `apps/<component>/helm/kustomization.yaml` or through the chart's own annotation values (`deploymentAnnotations` / `podAnnotations`) in `apps/<component>/helm/values.yaml`.
+For Helm workloads the annotation is applied either as a kustomize patch in `apps/<component>/helm/kustomization.yaml` or through the chart's own annotation values (`deploymentAnnotations` / `annotations`) in `apps/<component>/helm/values.yaml`.
+
+kube-linter silently ignores annotations that name a check it does not know, and an annotation whose finding has disappeared is a stale exception. `scripts/scan-security.sh` therefore fails when an annotation names anything other than a built-in check of the pinned kube-linter version, and fails when an annotation does not suppress at least one finding in an annotation-stripped copy of the render.
 
 ### Trivy
 
@@ -59,7 +62,7 @@ The privileged and baseline namespaces required by host-integration workloads (C
 
 1. Run the scan locally (`scripts/scan-security.sh homelab`) and confirm the finding. Fixing the manifest — through Helm values, a kustomize patch, or a values override — always wins over an exception.
 2. For a Kubescape finding: add the control to `security/exceptions.yaml` with a reason specific to the component and behavior, and add the matching `postureExceptionPolicy` entry to `security/kubescape-exceptions.json`, scoped to the exact resources that fail the control.
-3. For a kube-score finding: add the failed test ID to the resource's `kube-score/ignore` annotation and write the matching `security.homeworld/exception-reason` on the same resource.
+3. For a kube-linter finding: add `ignore-check.kube-linter.io/<check-name>` on the exact rendered resource, with the reason as the annotation value, through a kustomize patch or the chart's annotation values.
 4. Run `scripts/validate-security-exceptions.sh` and re-run the scan to confirm the report is clean.
 
 Registry reasons should name the concrete behavior and component ("the velero node-agent requires hostPath mounts to `/var/lib/kubelet/pods` for file-level backups"), not generic boilerplate — the registry and this document are the audit trail for every waiver.
@@ -83,22 +86,19 @@ Registry reasons should name the concrete behavior and component ("the velero no
 
 ---
 
-## kube-score ignore inventory
+## kube-linter ignore inventory
 
-kube-score test IDs currently accepted through `kube-score/ignore` annotations, and the reason each is accepted:
+kube-linter checks currently accepted through `ignore-check.kube-linter.io` annotations (counts are per rendered resource; each annotation carries its own reason inline), and why each is accepted:
 
-| Test ID | Why accepted |
-| :--- | :--- |
-| `pod-networkpolicy` | Same blind spot as Kubescape C-0030/C-0260: the enforced network boundary is `CiliumNetworkPolicy`, which kube-score cannot see in the offline render. |
-| `container-image-pull-policy` | Pinned images are intentionally pulled `IfNotPresent` to reuse the node image cache; kube-score requires `Always` (or digest pinning) instead. |
-| `container-security-context-user-group-id` | The pinned upstream image dictates its UID/GID, which sits below kube-score's numeric threshold or is unset in the chart render; overriding it would break runtime file access. |
-| `container-security-context-readonlyrootfilesystem` | The upstream image writes to its root filesystem (startup configuration staging, rendering caches); a read-only root would break the documented function. |
-| `deployment-replicas` | Single-replica deployments are intentional; autoscaling and replica counts are fixed by policy. |
-| `pod-probes-identical` | The upstream chart deliberately shares one health endpoint between liveness and readiness probes. |
-| `pod-probes` | The chart exposes no safe probe for the workload (mostly one-shot Jobs); synthetic probes could trigger unsafe restarts. |
-| `deployment-strategy` | The upstream chart's default update strategy is preserved. |
-| `container-security-context-privileged` | Host-integration workloads (Cilium agent, Longhorn manager) documented in [pod-security.md](pod-security.md). |
-| `statefulset-has-servicename` | The upstream chart never creates the headless Service named by the StatefulSet (Woodpecker agent). |
-| `deployment-has-poddisruptionbudget` | A PDB is meaningless for the intentional single-replica deployment it would protect. |
-| `service-targets-pod` | Selector-less Services shipped by the chart (Longhorn admission webhook, recovery backend); matches Kubescape C-0293. |
-| `networkpolicy-targets-pod` | The chart's NetworkPolicies select pods that `longhorn-manager` creates at runtime; those pods do not exist in a static render. |
+| Check | Resources | Why accepted |
+| :--- | :--- | :--- |
+| `no-read-only-root-fs` (33) | upstream workloads and chart Jobs whose images write to their root filesystems | The pinned upstream image writes to its root filesystem (startup configuration staging, rendering caches); a read-only root would break the documented function. |
+| `run-as-non-root` (14) | Cilium agents, CrowdSec, Longhorn, the Velero node-agent, and chart upgrade Jobs | The pinned upstream image's preserved root context is required for host datapath access or has no non-root USER; overriding it would break runtime file access. |
+| `liveness-port` / `readiness-port` / `startup-port` (8 / 8 / 3) | cilium-envoy, hubble-relay, envoy-gateway, the otel collectors, and the dragonfly/grafana/opentelemetry operators | The upstream chart probes an undeclared health port (9878, 4222, 8081, or 13133) instead of a declared containerPort. |
+| `job-ttl-seconds-after-finished` (7) | one-shot chart Jobs: cert-manager startupapicheck, CrowdSec registration hooks, Longhorn and Velero upgrade/uninstall hooks | The upstream chart leaves `ttlSecondsAfterFinished` unset on one-shot Jobs. |
+| `privileged-container` / `privilege-escalation-container` (3 / 3) | cilium agent, longhorn-manager, longhorn pre-upgrade | Host-integration workloads documented in [pod-security.md](pod-security.md): the kube-proxy replacement datapath and distributed storage require privileged contexts. |
+| `host-network` (3) | cilium agent, cilium-envoy, cilium-operator | Kube-proxy replacement and the Envoy datapath require the host network namespace. |
+| `sensitive-host-mounts` (2) | cilium agent (host `/proc` for the chart's sysctl overwrites), otel node collector (host filesystem root for node telemetry and log collection) | Host integration documented in [pod-security.md](pod-security.md). |
+| `dangling-service` (2) | longhorn-admission-webhook, longhorn-recovery-backend | The chart's Services select labels that longhorn-manager pods only carry at runtime; no matching pod exists in the offline render. |
+| `env-var-secret` (1) | authelia | The `_FILE`-suffixed environment variables carry paths to mounted Infisical-provided secret files, not inline secret values. |
+| `drop-net-raw-capability` (1) | cilium agent | The kube-proxy replacement datapath requires the added NET_RAW capability. |

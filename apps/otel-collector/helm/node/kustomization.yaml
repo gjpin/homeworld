@@ -22,8 +22,14 @@ patches:
       namespace: ^otel-collector-node$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-probes-identical,pod-networkpolicy,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1liveness-port
+        value: The upstream chart probes the collector health endpoint on undeclared port 13133 instead of a declared containerPort.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: User namespaces remain disabled pending live compatibility validation for required hostPath mounts, HostToContainer propagation, hostPorts, and host filesystem/node telemetry; upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream collector image writes to its root filesystem; overriding it would break runtime file access.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1readiness-port
+        value: The upstream chart probes the collector health endpoint on undeclared port 13133 instead of a declared containerPort.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1sensitive-host-mounts
+        value: The node collector mounts the host filesystem root and /var/log/pods read-only for node telemetry and log collection; the host integration is documented in docs/pod-security.md.

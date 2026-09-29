@@ -10,8 +10,9 @@ manager:
   # deploys its bundled Target Allocator, released in lockstep with the
   # operator appVersion.
   deploymentAnnotations:
-    kube-score/ignore: pod-networkpolicy,container-image-pull-policy,container-security-context-readonlyrootfilesystem,deployment-replicas
-    security.homeworld/exception-reason: Upstream filesystem, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+    ignore-check.kube-linter.io/liveness-port: The upstream chart probes the manager's health endpoint on undeclared port 8081 instead of a declared containerPort.
+    ignore-check.kube-linter.io/no-read-only-root-fs: The pinned upstream operator image writes to its root filesystem; overriding it would break runtime file access.
+    ignore-check.kube-linter.io/readiness-port: The upstream chart probes the manager's health endpoint on undeclared port 8081 instead of a declared containerPort.
   resources:
     requests:
       cpu: 10m

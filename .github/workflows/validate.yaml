@@ -65,11 +65,12 @@ jobs:
             grep ' kubescape_4.0.11_linux_amd64$' | sha256sum --check
           sudo install kubescape_4.0.11_linux_amd64 /usr/local/bin/kubescape
 
-          curl -sSfLO https://github.com/zegl/kube-score/releases/download/v1.20.0/kube-score_1.20.0_linux_amd64.tar.gz
-          curl -sSfL https://github.com/zegl/kube-score/releases/download/v1.20.0/checksums.txt |
-            grep ' kube-score_1.20.0_linux_amd64.tar.gz$' | sha256sum --check
-          tar -xzf kube-score_1.20.0_linux_amd64.tar.gz kube-score
-          sudo install kube-score /usr/local/bin/kube-score
+          # kube-linter publishes no checksums asset (only sigstore bundles),
+          # so unlike the other tools the pinned release is trusted over
+          # GitHub TLS without a sha256 check.
+          curl -sSfLO https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-linux.tar.gz
+          tar -xzf kube-linter-linux.tar.gz kube-linter
+          sudo install kube-linter /usr/local/bin/kube-linter
 
           curl -sSfLO https://get.helm.sh/helm-v4.2.3-linux-amd64.tar.gz
           curl -sSfL https://get.helm.sh/helm-v4.2.3-linux-amd64.tar.gz.sha256 |

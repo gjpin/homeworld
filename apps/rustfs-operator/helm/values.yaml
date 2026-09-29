@@ -1,8 +1,7 @@
 fullnameOverride: rustfs-operator
 namespace: rustfs-operator
 commonAnnotations:
-  kube-score/ignore: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-replicas,container-image-pull-policy
-  security.homeworld/exception-reason: Upstream UID, filesystem, availability, Cilium policy, and cached-image pull constraints are accepted for the two chart workloads.
+  ignore-check.kube-linter.io/no-read-only-root-fs: The pinned upstream operator and console images write to their root filesystems; overriding them would break runtime file access.
 operator:
   image:
     repository: docker.io/rustfs/operator

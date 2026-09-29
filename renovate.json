@@ -822,15 +822,14 @@
     },
     {
       "customType": "regex",
-      "description": "Update kube-score version in validate workflow",
+      "description": "Update kube-linter version in validate workflow",
       "managerFilePatterns": [
         "/^\\.github/workflows/validate\\.ya?ml$/"
       ],
       "matchStrings": [
-        "kube-score/releases/download/v(?<currentValue>[\\d.]+)/",
-        "kube-score_(?<currentValue>[\\d.]+)_linux_amd64"
+        "kube-linter/releases/download/v(?<currentValue>[\\d.]+)/"
       ],
-      "depNameTemplate": "zegl/kube-score",
+      "depNameTemplate": "stackrox/kube-linter",
       "datasourceTemplate": "github-releases",
       "versioningTemplate": "semver"
     },

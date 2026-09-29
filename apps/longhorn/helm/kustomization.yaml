@@ -226,11 +226,8 @@ patches:
       namespace: ^longhorn-system$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: service-targets-pod
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1dangling-service
+        value: The chart's webhook Service selects labels that longhorn-manager pods only carry at runtime; no matching pod exists in the offline render.
   - target:
       group: batch
       version: v1
@@ -239,11 +236,14 @@ patches:
       namespace: ^longhorn-system$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-networkpolicy,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1job-ttl-seconds-after-finished
+        value: One-shot upgrade hook; the upstream chart leaves ttlSecondsAfterFinished unset.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream image writes to its root filesystem; overriding it would break runtime file access.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The upstream image keeps the chart's preserved root context; overriding it would break runtime file access.
   - target:
       group: apps
       version: v1
@@ -252,11 +252,17 @@ patches:
       namespace: ^longhorn-system$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-privileged,pod-probes,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream manager image writes to its root filesystem; overriding it would break runtime file access.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1privileged-container
+        value: The longhorn-manager requires the privileged context to manage the distributed storage datapath; the host integration is documented in docs/pod-security.md.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1privilege-escalation-container
+        value: The privileged longhorn-manager requires the escalation rights of its privileged context for the storage datapath; the host integration is documented in docs/pod-security.md.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The upstream manager image keeps the chart's preserved root context for host datapath management.
   - target:
       group: batch
       version: v1
@@ -265,11 +271,20 @@ patches:
       namespace: ^longhorn-system$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,container-security-context-privileged,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1job-ttl-seconds-after-finished
+        value: One-shot upgrade hook; the upstream chart leaves ttlSecondsAfterFinished unset.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream image writes to its root filesystem; overriding it would break runtime file access.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1privileged-container
+        value: The pre-upgrade hook runs with the chart's privileged context to modify node-side Longhorn state before the upgrade.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1privilege-escalation-container
+        value: The privileged pre-upgrade hook requires the escalation rights of its privileged context to modify node-side Longhorn state.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The upstream image keeps the chart's preserved root context; overriding it would break runtime file access.
   - target:
       group: apps
       version: v1
@@ -278,11 +293,8 @@ patches:
       namespace: ^longhorn-system$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-readonlyrootfilesystem,pod-probes,pod-networkpolicy,container-security-context-user-group-id,deployment-has-poddisruptionbudget,deployment-replicas,container-image-pull-policy
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream UI image writes to its root filesystem; overriding it would break runtime file access.
   - target:
       group: apps
       version: v1
@@ -291,11 +303,11 @@ patches:
       namespace: ^longhorn-system$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream driver-deployer image writes to its root filesystem; overriding it would break runtime file access.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The upstream driver-deployer image keeps the chart's preserved root context for CSI driver deployment.
   - target:
       group: batch
       version: v1
@@ -304,11 +316,14 @@ patches:
       namespace: ^longhorn-system$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-readonlyrootfilesystem,pod-networkpolicy,container-security-context-user-group-id,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1job-ttl-seconds-after-finished
+        value: One-shot uninstall hook; the upstream chart leaves ttlSecondsAfterFinished unset.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream image writes to its root filesystem; overriding it would break runtime file access.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The upstream image keeps the chart's preserved root context; overriding it would break runtime file access.
   - target:
       group: null
       version: v1
@@ -317,21 +332,5 @@ patches:
       namespace: ^longhorn-system$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: service-targets-pod
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
-  - target:
-      group: networking.k8s.io
-      version: v1
-      kind: NetworkPolicy
-      name: ^(backing-image-data-source|backing-image-manager|instance-manager|longhorn-recovery-backend|longhorn-webhook)$
-      namespace: ^longhorn-system$
-    patch: |-
-      - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: networkpolicy-targets-pod
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: These chart-provided policies select the pods that longhorn-manager creates at runtime; those pods do not exist in a static render.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1dangling-service
+        value: The chart's recovery backend Service selects labels that longhorn-manager pods only carry at runtime; no matching pod exists in the offline render.

@@ -21,10 +21,6 @@ resources:
     memory: 2Gi
     ephemeral-storage: 2Gi
 
-deploymentAnnotations:
-  kube-score/ignore: pod-networkpolicy,container-security-context-user-group-id,pod-probes,deployment-replicas,container-image-pull-policy
-  security.homeworld/exception-reason: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
-
 serviceMonitor:
   enabled: true
   interval: 60s
@@ -43,9 +39,6 @@ webhook:
       cpu: "1"
       memory: 2Gi
       ephemeral-storage: 2Gi
-  deploymentAnnotations:
-    kube-score/ignore: pod-probes,pod-networkpolicy,container-security-context-user-group-id,deployment-replicas,container-image-pull-policy
-    security.homeworld/exception-reason: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
 
 certController:
   hostUsers: false
@@ -60,6 +53,3 @@ certController:
       cpu: "1"
       memory: 2Gi
       ephemeral-storage: 2Gi
-  deploymentAnnotations:
-    kube-score/ignore: pod-networkpolicy,container-security-context-user-group-id,pod-probes,deployment-replicas,container-image-pull-policy
-    security.homeworld/exception-reason: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.

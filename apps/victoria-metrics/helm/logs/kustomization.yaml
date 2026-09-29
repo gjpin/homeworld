@@ -25,9 +25,3 @@ patches:
       - op: add
         path: /spec/template/spec/automountServiceAccountToken
         value: false
-      - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: container-image-pull-policy,pod-networkpolicy,container-security-context-user-group-id
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: The workload intentionally runs as non-root UID/GID 1000 below kube-score's threshold, Cilium enforces the network boundary, and the pinned image is pulled IfNotPresent to reuse the node cache.

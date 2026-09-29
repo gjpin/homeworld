@@ -80,21 +80,11 @@ patches:
       namespace: ^envoy-gateway$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-networkpolicy,container-security-context-readonlyrootfilesystem,deployment-replicas,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1liveness-port
+        value: The upstream chart probes the health endpoint on undeclared port 8081 instead of a declared containerPort.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
-  - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^envoy-gateway-gateway-helm-certgen$
-      namespace: ^envoy-gateway$
-    patch: |-
+        path: /metadata/annotations/ignore-check.kube-linter.io~1readiness-port
+        value: The upstream chart probes the health endpoint on undeclared port 8081 instead of a declared containerPort.
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-networkpolicy,container-image-pull-policy
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1startup-port
+        value: The upstream chart probes the health endpoint on undeclared port 8081 instead of a declared containerPort.
