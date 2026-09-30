@@ -225,6 +225,18 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
+    # The AppSec pods' wait-for-lapi init container registers them with the
+    # LAPI (cscli lapi register) before the AppSec listener starts; with the
+    # bouncer fail-closed, an unregistered AppSec would turn otherwise
+    # allowed gateway requests into denies.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:k8s-app: crowdsec
+            k8s:type: appsec
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
