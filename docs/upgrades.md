@@ -31,7 +31,7 @@ All PostgreSQL databases (`authelia`, `crowdsec`, `forgejo`, `immich`) run on **
 ## 2. Automated Storage Engine Upgrades (Longhorn)
 
 Longhorn upgrades consist of two components:
-1. **Longhorn Manager & Drivers:** Handled declaratively via the Helm chart under `apps/longhorn/`. Pre-upgrade and post-upgrade hook jobs reconcile CRDs and daemonsets.
+1. **Longhorn Manager & Drivers:** Handled declaratively via the Helm chart under `apps/longhorn/`. The chart's pre-upgrade checker is disabled (its online version check is a phone-home, and CRDs arrive declaratively through the render); the post-upgrade cleanup runs as an Argo CD PostSync hook that re-runs with the fresh image on every sync and self-deletes on success.
 2. **Volume Engines:** Longhorn manages separate engine instances for each active persistent volume.
    * **Automation:** Configured with `defaultSettings.concurrentAutomaticEngineUpgradePerNodeLimit: 2` in `apps/longhorn/helm/values.yaml`.
    * **Behavior:** After the Longhorn Manager upgrades, Longhorn automatically rolls and upgrades volume engines across nodes concurrently, removing the need for manual engine upgrades in the Longhorn UI.

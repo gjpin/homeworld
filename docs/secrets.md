@@ -35,7 +35,7 @@ Two categories of values are not synchronized from Infisical:
 | | `/authelia/OIDC_CLIENT_SECRET_VAULTWARDEN` | Vaultwarden OIDC client secret. | `openssl rand -hex 32` |
 | **Collabora** | `/opencloud/COLLABORA_ADMIN_USER` | Collabora admin console username. | Chosen username |
 | | `/opencloud/COLLABORA_ADMIN_PASSWORD` | Collabora admin console password. | `openssl rand -hex 32` |
-| | `/opencloud/COLLABORA_PROOF_KEY` | WOPI proof private key for OpenCloud ↔ Collabora requests. | `openssl genrsa -out proof_key 2048` |
+| | `/opencloud/COLLABORA_PROOF_KEY` | WOPI proof private key for OpenCloud ↔ Collabora requests. | `openssl genrsa -out proof_key 4096` (matching the chart's 4096-bit requirement; existing 2048-bit keys still verify) |
 | | `/opencloud/COLLABORA_PROOF_KEY_PUB` | WOPI proof public key counterpart. | `openssl rsa -in proof_key -pubout -out proof_key.pub` |
 | **CrowdSec** | `/crowdsec/DB_PASSWORD` | LAPI PostgreSQL password. | `openssl rand -hex 32` |
 | | `/crowdsec/ENROLL_KEY` | CrowdSec Central API enrollment key. | From the CrowdSec console (app.crowdsec.net) |
@@ -87,7 +87,6 @@ Two categories of values are not synchronized from Infisical:
 | | `/velero/B2_APPLICATION_KEY` | Backblaze B2 application key for backup storage. | From the Backblaze B2 console (App Keys) |
 | | `/velero/KOPIA_REPOSITORY_PASSWORD` | Kopia repository encryption password. | `openssl rand -hex 32` (must stay unchanged for the lifetime of the repository) |
 | **Velero UI** | `/velero-ui/AUTH_SECRET_PASSPHRASE` | Session/cookie signing passphrase. | `openssl rand -hex 32` |
-| | `/authelia/OIDC_CLIENT_SECRET_VELERO_UI` | Velero UI OIDC client secret (basic auth is disabled; sign-in is via Authelia OIDC). | `openssl rand -hex 32` |
 | **Vaultwarden** | `/vaultwarden/ADMIN_TOKEN` | Admin panel token, preferably an Argon2 PHC string. | `docker run --rm -it docker.io/vaultwarden/server /vaultwarden hash` |
 | | `/vaultwarden/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `vaultwarden` (the CNPG `owner` user) |
 | | `/vaultwarden/POSTGRES_PASSWORD` | CloudNativePG application password. Must contain only RFC 3986 unreserved characters; it is embedded unescaped in the PostgreSQL connection URL. | `openssl rand -hex 32` (hex output is RFC 3986 unreserved) |

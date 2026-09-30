@@ -66,7 +66,7 @@
    * forgejo
    * grafana
    * homepage: application dashboard, gateway-OIDC protected (`platform` group)
-   * notesnook: fully featured encrypted notes sync server with MongoDB, SSE, Monograph, Themes, CORS proxy, and Inbox API
+   * notesnook: fully featured encrypted notes sync server with DocumentDB (MongoDB-compatible on CloudNativePG), SSE, Monograph, Themes, CORS proxy, and Inbox API
    * radicale: internal CalDAV and CardDAV backend, before OpenCloud's
      authenticated DAV proxy
    * vaultwarden: Bitwarden-compatible password manager (CloudNativePG-backed)
@@ -135,11 +135,11 @@ CRD lifecycles are orchestrated through a combination of sync waves, health chec
 In `apps/app-of-apps.yaml`, CRD-providing infrastructure and operators are sequenced strictly ahead of consuming applications:
 - **Wave -1:** `prometheus-operator-crd` (ServiceMonitor/PodMonitor CRDs) and `external-secrets` (ExternalSecret CRD and the Infisical `ClusterSecretStore`), both ahead of `argocd` in wave 0 so Argo CD's own ServiceMonitors and its wave -1 ExternalSecret validate on the first install; the monitoring CRDs are later consumed cluster-wide by the OpenTelemetry Operator's Target Allocator (wave 5)
 - **Wave 2:** `envoy-gateway` (Gateway API and Envoy Gateway CRDs) and `cilium` (Cilium CRDs applied from the pinned Git tag by the nested `cilium-crds` application; the Helm chart ships no CRDs, while the CiliumNetworkPolicy CRDs are consumed by every component's `-2_network_policy.yaml`)
-- **Wave 3:** `cert-manager` (Certificates and ClusterIssuers) and `snapshot-controller` (CSI volume snapshot CRDs from the pinned `external-snapshotter` Git tag plus the handwritten snapshot controller — the CSI snapshot API suite Velero's data movement drives, installed ahead of the wave 4 backup operator)
-- **Wave 4:** Datastore operators (`cloudnative-pg`, `dragonfly-operator`, `rustfs-operator`, `grafana-operator`)
-- **Wave 5:** The `documentdb-operator` (DocumentDB CRDs plus the CNPG-I sidecar
+- **Wave 3:** `cert-manager` (Certificates and ClusterIssuers), `snapshot-controller` (CSI volume snapshot CRDs from the pinned `external-snapshotter` Git tag plus the handwritten snapshot controller — the CSI snapshot API suite Velero's data movement drives, installed ahead of the wave 4 backup operator), plus the `external-dns`, `longhorn`, `kubelet-serving-cert-approver`, and `metrics-server` applications
+- **Wave 4:** `velero` (backup operator, after the snapshot-controller suite) and the datastore operators (`cloudnative-pg`, `dragonfly-operator`, `rustfs-operator`, `grafana-operator`)
+- **Wave 5:** `velero-ui` (web interface for Velero), `crowdsec` (PostgreSQL-backed LAPI, log agent, and AppSec WAF), `rustfs` (shared S3-compatible Tenant), `victoria-metrics` (the metrics/logs/traces backends), `generic-device-plugin` (TUN device plugin in kube-system), the `documentdb-operator` (DocumentDB CRDs plus the CNPG-I sidecar
   injector plugin, which must live in the `cloudnative-pg` namespace for
-  CloudNativePG plugin discovery) and the `opentelemetry-operator`
+  CloudNativePG plugin discovery), and the `opentelemetry-operator`
   (OpenTelemetryCollector/TargetAllocator CRDs, rendered through the chart's
   `conf/crds` templates so Kustomize Helm inflation includes them), whose
   collector custom resource in wave 6 both validates against the CRDs and
