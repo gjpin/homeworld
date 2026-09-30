@@ -70,7 +70,16 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  endpointSelector: {}
+  # The CORS proxy is deliberately excluded both directions: it only serves
+  # Envoy ingress and fetches external URLs (allow-world-egress), and its
+  # feature must not double as a pivot into the namespace's internal
+  # services.
+  endpointSelector:
+    matchExpressions:
+      - key: k8s:app.kubernetes.io/name
+        operator: NotIn
+        values:
+          - notesnook-cors-proxy
   ingress:
     - fromEndpoints:
         - matchLabels:

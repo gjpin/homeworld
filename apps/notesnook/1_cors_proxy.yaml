@@ -79,6 +79,14 @@ spec:
               value: "0.0.0.0"
             - name: PORT
               value: "3000"
+            # The pinned upstream image parses ALLOWED_ORIGINS but never
+            # enforces it (responses hardcode Access-Control-Allow-Origin: *)
+            # and GET requests follow up to five redirects. The proxy is
+            # therefore a public, unauthenticated fetch relay by design;
+            # it is scoped to world 80/443 egress only, excluded from the
+            # namespace's intra-namespace policy, and published behind the
+            # CrowdSec-ext-auth SecurityPolicy. The setting is kept for
+            # documentation and for a future upstream fix.
             - name: ALLOWED_ORIGINS
               value: "*"
           livenessProbe:
