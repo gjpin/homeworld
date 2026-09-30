@@ -143,7 +143,7 @@ spec:
         hook:
           name: patch-coredns-e2e-domain
           command: ["./e2e/examples/hooks/patch-coredns-e2e-domain.sh"]
-          timeout: 5m
+          timeout: 11m
           env:
             BASE_DOMAIN: e2e.local
       - name: wait-argo

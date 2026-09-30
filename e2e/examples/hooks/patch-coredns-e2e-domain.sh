@@ -6,11 +6,15 @@
 set -euo pipefail
 
 DOMAIN="${BASE_DOMAIN:-e2e.local}"
+WAIT_IP_SECS="${WAIT_IP_SECS:-480}"
 
 log() { printf '[patch-coredns-e2e-domain] %s\n' "$*"; }
 
 wait_envoy_ip() {
-  local deadline=$((SECONDS + 180)) ip
+  # The Gateway only becomes Programmed (and the envoy LoadBalancer Service
+  # only appears) once cert-manager has issued the listener certificates, so
+  # the full wave chain has to light up first; 480s covers a cold node.
+  local deadline=$((SECONDS + WAIT_IP_SECS)) ip
   while (( SECONDS < deadline )); do
     ip="$(kubectl -n envoy-gateway get svc \
       -l app.kubernetes.io/component=proxy,app.kubernetes.io/name=envoy \
