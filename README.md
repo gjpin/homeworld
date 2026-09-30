@@ -29,7 +29,7 @@
 | --- | --- | --- |
 | Admission Policies | — | CEL ValidatingAdmissionPolicies protecting Pod Security Admission labels. |
 | Argo CD | `argocd.${BASE_DOMAIN}`<br>`grpc.argocd.${BASE_DOMAIN}` | GitOps continuous delivery and its gRPC API. |
-| Authelia | `auth.${BASE_DOMAIN}` | Identity provider for OpenCloud. |
+| Authelia | `auth.${BASE_DOMAIN}` | Identity provider for every OIDC sign-in (applications and the gateway-OIDC routes). |
 | cert-manager | — | TLS certificate management. |
 | Cilium | — | kube-proxy-free eBPF CNI with WireGuard pod-to-pod encryption and Hubble relay/UI observability (cluster-internal). |
 | CloudNativePG | — | PostgreSQL operator. |
@@ -102,6 +102,7 @@ users:
 ```
 | Group | Grants |
 | --- | --- |
+| `platform` | Gateway-OIDC routes (victoria-metrics, victoria-logs, victoria-traces, longhorn, homepage, envoy admin listener, z2m); sign-in requires the group (deny-by-default) |
 | `argocd-admin` | Argo CD admin (everyone else is read-only) |
 | `forgejo-admin` | Forgejo site admin |
 | `grafana-admin` | Grafana server admin (everyone else is a Viewer) |
