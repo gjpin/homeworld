@@ -1,0 +1,99 @@
+# Grafana dashboards
+
+Grafana organizes every application's dashboards in its own folder. Folders are
+declared as `GrafanaFolder` CRs in `apps/grafana/0_folders.yaml`; each
+`GrafanaDashboard` CR references its folder via `spec.folderRef` and loads the
+dashboard JSON from a kustomize-generated ConfigMap. The repository mirrors the
+Grafana folder layout: dashboard JSON lives in
+`apps/grafana/dashboards/<app>/<dashboard>.json`, and the `GrafanaDashboard` CRs
+for one app live in `apps/grafana/0_dashboards_<app>.yaml`.
+
+`scripts/check-dashboards.sh` (wired into CI) fails when dashboard JSON files,
+the kustomize `configMapGenerator`, `GrafanaDashboard` CRs, `GrafanaFolder` CRs,
+or the provisioned datasource uids drift apart.
+
+## Datasource conventions
+
+Metrics arrive in VictoriaMetrics via the OpenTelemetry Collector (scraped
+ServiceMonitor/PodMonitor targets plus RustFS's OTLP push, see below).
+Scraped series carry `namespace`, `pod`, `job`, and `instance` labels, so custom
+dashboards scope queries with `namespace="<app-ns>"` and the app's metric
+prefix. The Grafana datasources used by dashboards:
+
+- `victoriametrics` (default, MetricsQL): custom dashboards hardcode this uid on
+  every panel.
+- `prometheus` (PromQL compatibility): imported upstream dashboards that use
+  `${DS_*}` datasource variables of type `prometheus` resolve to it
+  automatically; upstream `{service=~"..."}`-style matchers are rewritten to the
+  guaranteed `namespace` label, and the grafana.com `__inputs` convention is
+  converted into a real datasource template variable.
+- `victorialogs` (LogsQL) and `loki` (LogQL compatibility): log panels.
+- `victoriatraces-jaeger` / `victoriatraces-tempo`: tracing.
+
+## RustFS OTLP metrics push
+
+RustFS exposes no Prometheus scrape endpoint: it pushes metrics via OTLP. The
+Tenant (`apps/rustfs/0_tenant.yaml`) sets `RUSTFS_OBS_ENDPOINT` to the cluster
+collector's OTLP/HTTP receiver with trace and log export disabled, and the
+`rustfs` / `otel-collector` CiliumNetworkPolicies carry the matching egress and
+ingress rules on port `4318` (see [network-policies.md](network-policies.md)).
+
+## Dashboard inventory
+
+Every imported dashboard below is verified against the publishing project's
+own GitHub repository or official documentation (chart-bundled files, repo
+directories, docs-referenced grafana.com dashboards); third-party grafana.com
+dashboards are not used. Custom dashboards reference only metric families
+verified against the app's upstream source or official documentation, and every
+dashboard's JSON `description` cites its provenance.
+
+| Folder | Dashboard | Source |
+| --- | --- | --- |
+| Argo CD | ArgoCD | official: argoproj/argo-cd repo `examples/dashboard.json` (linked from the docs monitoring page) |
+| Authelia | Authelia | custom (authelia telemetry metrics, authelia.com reference; no official dashboard) |
+| cert-manager | cert-manager | custom (pkg/metrics/metrics.go plus certificate metrics corroborated by the docs-referenced monitoring mixin; the project publishes no dashboard) |
+| Cilium | Cilium Metrics, Cilium Operator, Hubble | official: cilium repo prometheus addon example; datasource uids and `k8s_app`/`io_cilium_app` target-label scoping adapted to the guaranteed `namespace` label |
+| CloudNativePG | CloudNativePG | official: cloudnative-pg/grafana-dashboards repo |
+| Collabora | Collabora Online / HA - Allocation, Collabora-Online / Overview | official: chart-bundled `grafana_dashboards/`; three stale upstream target datasource uids normalized |
+| CrowdSec | Crowdsec Overview, LAPI Metrics | official: crowdsecurity/grafana-dashboards (`dashboards_v5`); `__inputs` converted to a datasource variable |
+| CrowdSec Envoy Bouncer | Envoy CrowdSec Bouncer | official: chart-bundled `dashboards/bouncer.json` |
+| Dragonfly Operator | Dragonfly Dashboard | official: dragonflydb/dragonfly-operator repo `monitoring/grafana-dashboard.json` (linked from dragonflydb.io docs); `__inputs` converted to a datasource variable |
+| Envoy Gateway | Envoy Gateway Global, Clusters, Envoy Proxy Global, Global Ratelimit, Resources Monitor | official: envoyproxy/gateway repo `charts/gateway-addons-helm/dashboards/`; upstream's stale target-level datasource uids normalized to the panels' `$datasource` variable |
+| ExternalDNS | ExternalDNS | custom (official Available Metrics docs; the project publishes no dashboard) |
+| External Secrets | External Secrets Operator | official: chart-bundled monitoring dashboard; `service=~` matchers rewritten to `namespace` |
+| Forgejo | Forgejo | custom (forgejo `modules/metrics/collector.go`; the project publishes no dashboard — the gitea-monitoring mixin is a third-party fork) |
+| Generic Device Plugin | Generic Device Plugin | custom (squat/generic-device-plugin registers only the Go and process collectors; no official dashboard) |
+| Grafana | Grafana Overview | official: grafana/grafana repo `grafana-mixin/dashboards/grafana-overview.json` |
+| Grafana Operator | Grafana Operator | custom (grafana-operator `controllers/metrics/metrics.go` plus controller-runtime metrics; no official dashboard) |
+| Home Assistant | Home Assistant | custom (HA prometheus integration, `components/prometheus`; no official dashboard) |
+| Immich | Immich | custom (OTel `http_server_duration` metrics and `immich_queues_*` gauges verified in the immich source; the project publishes no dashboard) |
+| Kubelet Serving Cert Approver | Kubelet Serving Cert Approver | custom (alex1989hu/kubelet-serving-cert-approver metrics table; no official dashboard) |
+| Longhorn | Longhorn Example v1.1.0 | official: grafana.com 13032, the dashboard referenced by the longhorn.io monitoring docs; `__inputs` converted to a datasource variable |
+| metrics-server | Metrics Server | custom (metrics-server `metrics_server_manager_tick_duration_seconds` plus component-base apiserver metrics; no official dashboard) |
+| Notesnook | Notesnook | custom (notesnook sync `SyncEventCounterSource` meter; DocumentDB `documentdb_postgres_up` per the operator monitoring contract) |
+| OpenCloud | OpenCloud | custom (docs.opencloud.eu proxy metrics, `opencloud_proxy_*`; no official dashboard) |
+| OpenTelemetry Collector | OpenTelemetry Collector | custom (otelcol self-observability metrics verified against the opentelemetry-collector source; the project publishes no production dashboard — the demo repo's dashboard is demo-tailored and the helm-charts port is unmerged) |
+| qBittorrent | qBittorrent | official: martabal/qbittorrent-exporter bundled dashboard; `__inputs` converted to a datasource variable |
+| RustFS | RustFS | custom (docs.rustfs.com observability metrics reference; OTLP-pushed `rustfs_*`; the grafana.com RustFS dashboards are third-party) |
+| RustFS Operator | RustFS Operator | custom (rustfs/operator `src/metrics.rs`; duration metrics are summaries, so averages come from `_sum`/`_count`) |
+| Velero | Velero Backups | custom (velero `pkg/metrics/metrics.go`; the project publishes no dashboard — the grafana.com ones are third-party) |
+| VictoriaMetrics | VictoriaMetrics - single-node (VM), VictoriaLogs - single-node (VM), VictoriaTraces - single-node | official: VictoriaMetrics repo `dashboards/vm/` variants for VM and VictoriaLogs, grafana.com 24136 (VictoriaMetrics org) for VictoriaTraces; the VictoriaLogs `__inputs` convention converted to a datasource variable |
+| Woodpecker CI | Woodpecker CI | custom (woodpecker `server/metric/metrics_server.go`; no official dashboard; step-level metrics are not enabled in this deployment) |
+
+Apps without collectible metrics have no folder: `admission-policies` and
+`prometheus-operator-crd` deploy no workloads; `homepage`, `radicale`,
+`openchamber`, `velero-ui`, `vaultwarden`, and `opentelemetry-operator` expose
+no scrapeable metrics; the DocumentDB operator's controller-runtime metrics
+endpoint is disabled upstream with no chart toggle.
+
+## Adding a dashboard
+
+1. Put the JSON at `apps/grafana/dashboards/<app>/<dashboard>.json` (unique uid).
+2. Add a `configMapGenerator` entry (`grafana-dashboard-<dashboard>`) in
+   `apps/grafana/kustomization.yaml`.
+3. Add a `GrafanaDashboard` CR with `spec.folderRef: folder-<app>` in
+   `apps/grafana/0_dashboards_<app>.yaml` (create the file and the folder CR for
+   new apps).
+4. Verify every referenced metric against the app's upstream source or official
+   documentation, and cite the provenance in the dashboard `description`.
+5. Run `scripts/check-dashboards.sh`.

@@ -40,6 +40,23 @@ spec:
       value: Authelia
     - name: RUSTFS_BROWSER_REDIRECT_URL
       value: https://console.rustfs.${BASE_DOMAIN}
+    # RustFS exposes no Prometheus scrape endpoint (upstream ships OTLP push
+    # only): push metrics to the cluster collector's OTLP/HTTP receiver, which
+    # exports them to VictoriaMetrics. Traces and log export stay disabled —
+    # the S3 server is not traced, and its stdout logs already flow through the
+    # node collector's filelog receiver (OTLP log export is additive to
+    # stdout, see docs.rustfs.com/en/operations/observability). service.name/
+    # environment become resource attributes on the pushed series.
+    - name: RUSTFS_OBS_ENDPOINT
+      value: http://otel-collector-pod-collector.otel-collector.svc.cluster.local:4318
+    - name: RUSTFS_OBS_SERVICE_NAME
+      value: rustfs
+    - name: RUSTFS_OBS_ENVIRONMENT
+      value: homeworld
+    - name: RUSTFS_OBS_TRACES_EXPORT_ENABLED
+      value: "false"
+    - name: RUSTFS_OBS_LOGS_EXPORT_ENABLED
+      value: "false"
   securityContext:
     fsGroup: 10001
     runAsGroup: 10001
@@ -76,11 +93,6 @@ spec:
   # after the user (see -1_user_secrets.yaml); policies are scoped to the
   # single bucket the application uses (see 0_user_policies.yaml).
   buckets:
-    # NOTE: no ServiceMonitor scrapes the Tenant S3 (:9000) or console
-    # (:9001) workloads and no metrics ingress policy exists for them — the
-    # operator chart's monitors cover the operator and console only. Add a
-    # monitor plus netpol pair if the RustFS server exposes Prometheus
-    # metrics on its ports.
     - name: notesnook-attachments
     - name: opencloud
   policies:

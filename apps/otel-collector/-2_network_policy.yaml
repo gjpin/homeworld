@@ -72,6 +72,33 @@ spec:
             - port: "8888"
               protocol: TCP
 ---
+# RustFS pushes its metrics via OTLP/HTTP to the collector's OTLP receiver
+# (RUSTFS_OBS_ENDPOINT in apps/rustfs/0_tenant.yaml; RustFS exposes no
+# Prometheus scrape endpoint). Trace and log export are disabled there, so
+# only the metrics receiver port is opened.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-otlp-ingress-rustfs
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: rustfs
+            k8s:rustfs.tenant: rustfs
+      toPorts:
+        - ports:
+            - port: "4318"
+              protocol: TCP
+---
 # The collector's Prometheus receiver polls the Target Allocator over the
 # mTLS listener (Service port 443 -> container port 8443) for its share of
 # the ServiceMonitor and PodMonitor scrape targets.

@@ -5,84 +5,201 @@ namespace: grafana
 generatorOptions:
   disableNameSuffixHash: true
 configMapGenerator:
+  # One entry per dashboard, grouped by application folder (see
+  # 0_folders.yaml); dashboards/<app>/<dashboard>.json mirrors the Grafana
+  # folder layout.
+  # argocd
   - name: grafana-dashboard-argocd
     files:
-      - json=dashboards/argocd.json
+      - json=dashboards/argocd/argocd.json
+  # authelia
+  - name: grafana-dashboard-authelia
+    files:
+      - json=dashboards/authelia/authelia.json
+  # cert-manager
   - name: grafana-dashboard-cert-manager
     files:
-      - json=dashboards/cert-manager.json
-  - name: grafana-dashboard-clickhouse-operator-clickhouse-queries
+      - json=dashboards/cert-manager/cert-manager.json
+  # cilium
+  - name: grafana-dashboard-cilium-agent
     files:
-      - json=dashboards/clickhouse-operator-clickhouse-queries.json
-  - name: grafana-dashboard-clickhouse-operator-kafka
+      - json=dashboards/cilium/cilium-agent.json
+  - name: grafana-dashboard-cilium-operator
     files:
-      - json=dashboards/clickhouse-operator-kafka.json
-  - name: grafana-dashboard-clickhouse-operator-keeper
+      - json=dashboards/cilium/cilium-operator.json
+  - name: grafana-dashboard-hubble
     files:
-      - json=dashboards/clickhouse-operator-keeper.json
-  - name: grafana-dashboard-clickhouse-operator-zookeeper
-    files:
-      - json=dashboards/clickhouse-operator-zookeeper.json
-  - name: grafana-dashboard-clickhouse-operator
-    files:
-      - json=dashboards/clickhouse-operator.json
+      - json=dashboards/cilium/hubble.json
+  # cloudnative-pg
   - name: grafana-dashboard-cloudnative-pg
     files:
-      - json=dashboards/cloudnative-pg.json
+      - json=dashboards/cloudnative-pg/cloudnative-pg.json
+  # collabora
+  - name: grafana-dashboard-collabora-ha-allocation
+    files:
+      - json=dashboards/collabora/collabora-ha-allocation.json
+  - name: grafana-dashboard-collabora-overview
+    files:
+      - json=dashboards/collabora/collabora-overview.json
+  # crowdsec
+  - name: grafana-dashboard-crowdsec-overview
+    files:
+      - json=dashboards/crowdsec/crowdsec-overview.json
+  - name: grafana-dashboard-lapi-metrics
+    files:
+      - json=dashboards/crowdsec/lapi-metrics.json
+  # crowdsec-envoy-bouncer
   - name: grafana-dashboard-crowdsec-envoy-bouncer
     files:
-      - json=dashboards/crowdsec-envoy-bouncer.json
+      - json=dashboards/crowdsec-envoy-bouncer/crowdsec-envoy-bouncer.json
+  # dragonfly-operator
   - name: grafana-dashboard-dragonfly-operator
     files:
-      - json=dashboards/dragonfly-operator.json
+      - json=dashboards/dragonfly-operator/dragonfly-operator.json
+  # envoy-gateway
   - name: grafana-dashboard-envoy-gateway-clusters
     files:
-      - json=dashboards/envoy-gateway-clusters.json
+      - json=dashboards/envoy-gateway/envoy-gateway-clusters.json
   - name: grafana-dashboard-envoy-gateway-envoy-proxy-global
     files:
-      - json=dashboards/envoy-gateway-envoy-proxy-global.json
+      - json=dashboards/envoy-gateway/envoy-gateway-envoy-proxy-global.json
   - name: grafana-dashboard-envoy-gateway-global-ratelimit
     files:
-      - json=dashboards/envoy-gateway-global-ratelimit.json
+      - json=dashboards/envoy-gateway/envoy-gateway-global-ratelimit.json
   - name: grafana-dashboard-envoy-gateway-global
     files:
-      - json=dashboards/envoy-gateway-global.json
+      - json=dashboards/envoy-gateway/envoy-gateway-global.json
   - name: grafana-dashboard-envoy-gateway-resources-monitor
     files:
-      - json=dashboards/envoy-gateway-resources-monitor.json
+      - json=dashboards/envoy-gateway/envoy-gateway-resources-monitor.json
+  # external-dns
   - name: grafana-dashboard-external-dns
     files:
-      - json=dashboards/external-dns.json
+      - json=dashboards/external-dns/external-dns.json
+  # external-secrets
+  - name: grafana-dashboard-external-secrets
+    files:
+      - json=dashboards/external-secrets/external-secrets.json
+  # forgejo
+  - name: grafana-dashboard-forgejo
+    files:
+      - json=dashboards/forgejo/forgejo.json
+  # generic-device-plugin
+  - name: grafana-dashboard-generic-device-plugin
+    files:
+      - json=dashboards/generic-device-plugin/generic-device-plugin.json
+  # grafana
+  - name: grafana-dashboard-grafana
+    files:
+      - json=dashboards/grafana/grafana.json
+  # grafana-operator
+  - name: grafana-dashboard-grafana-operator
+    files:
+      - json=dashboards/grafana-operator/grafana-operator.json
+  # homeassistant
+  - name: grafana-dashboard-homeassistant
+    files:
+      - json=dashboards/homeassistant/homeassistant.json
+  # immich
   - name: grafana-dashboard-immich
     files:
-      - json=dashboards/immich.json
+      - json=dashboards/immich/immich.json
+  # kubelet-serving-cert-approver
+  - name: grafana-dashboard-kubelet-serving-cert-approver
+    files:
+      - json=dashboards/kubelet-serving-cert-approver/kubelet-serving-cert-approver.json
+  # longhorn
   - name: grafana-dashboard-longhorn
     files:
-      - json=dashboards/longhorn.json
-  - name: grafana-dashboard-nextcloud
+      - json=dashboards/longhorn/longhorn.json
+  # metrics-server
+  - name: grafana-dashboard-metrics-server
     files:
-      - json=dashboards/nextcloud.json
+      - json=dashboards/metrics-server/metrics-server.json
+  # notesnook
+  - name: grafana-dashboard-notesnook
+    files:
+      - json=dashboards/notesnook/notesnook.json
+  # opencloud
+  - name: grafana-dashboard-opencloud
+    files:
+      - json=dashboards/opencloud/opencloud.json
+  # otel-collector
   - name: grafana-dashboard-otel-collector
     files:
-      - json=dashboards/otel-collector.json
+      - json=dashboards/otel-collector/otel-collector.json
+  # qbittorrent
+  - name: grafana-dashboard-qbittorrent
+    files:
+      - json=dashboards/qbittorrent/qbittorrent.json
+  # rustfs
+  - name: grafana-dashboard-rustfs
+    files:
+      - json=dashboards/rustfs/rustfs.json
+  # rustfs-operator
+  - name: grafana-dashboard-rustfs-operator
+    files:
+      - json=dashboards/rustfs-operator/rustfs-operator.json
+  # velero
+  - name: grafana-dashboard-velero
+    files:
+      - json=dashboards/velero/velero.json
+  # victoria-metrics
   - name: grafana-dashboard-victorialogs
     files:
-      - json=dashboards/victorialogs.json
+      - json=dashboards/victoria-metrics/victorialogs.json
   - name: grafana-dashboard-victoriametrics
     files:
-      - json=dashboards/victoriametrics.json
+      - json=dashboards/victoria-metrics/victoriametrics.json
   - name: grafana-dashboard-victoriatraces
     files:
-      - json=dashboards/victoriatraces.json
+      - json=dashboards/victoria-metrics/victoriatraces.json
+  # woodpecker
+  - name: grafana-dashboard-woodpecker
+    files:
+      - json=dashboards/woodpecker/woodpecker.json
 resources:
   - -2_network_policy.yaml
   - -1_secrets.yaml
   - 0_gateway.yaml
   - 0_grafana.yaml
   - 0_service_monitor.yaml
-  - 0_dashboards.yaml
+  - 0_dashboards_argocd.yaml
+  - 0_dashboards_authelia.yaml
+  - 0_dashboards_cert-manager.yaml
+  - 0_dashboards_cilium.yaml
+  - 0_dashboards_cloudnative-pg.yaml
+  - 0_dashboards_collabora.yaml
+  - 0_dashboards_crowdsec.yaml
+  - 0_dashboards_crowdsec-envoy-bouncer.yaml
+  - 0_dashboards_dragonfly-operator.yaml
+  - 0_dashboards_envoy-gateway.yaml
+  - 0_dashboards_external-dns.yaml
+  - 0_dashboards_external-secrets.yaml
+  - 0_dashboards_forgejo.yaml
+  - 0_dashboards_generic-device-plugin.yaml
+  - 0_dashboards_grafana.yaml
+  - 0_dashboards_grafana-operator.yaml
+  - 0_dashboards_homeassistant.yaml
+  - 0_dashboards_immich.yaml
+  - 0_dashboards_kubelet-serving-cert-approver.yaml
+  - 0_dashboards_longhorn.yaml
+  - 0_dashboards_metrics-server.yaml
+  - 0_dashboards_notesnook.yaml
+  - 0_dashboards_opencloud.yaml
+  - 0_dashboards_otel-collector.yaml
+  - 0_dashboards_qbittorrent.yaml
+  - 0_dashboards_rustfs.yaml
+  - 0_dashboards_rustfs-operator.yaml
+  - 0_dashboards_velero.yaml
+  - 0_dashboards_victoria-metrics.yaml
+  - 0_dashboards_woodpecker.yaml
+  - 0_folders.yaml
   - 0_victoriametrics_datasource.yaml
+  - 0_prometheus_datasource.yaml
   - 0_victorialogs_datasource.yaml
+  - 0_loki_datasource.yaml
   - 0_victoriatraces_jaeger_datasource.yaml
   - 0_victoriatraces_tempo_datasource.yaml
+  - 2_http_route.yaml
   - 2_security_policy.yaml

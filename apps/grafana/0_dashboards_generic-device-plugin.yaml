@@ -1,0 +1,14 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: generic-device-plugin
+  namespace: grafana
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  folderRef: folder-generic-device-plugin
+  configMapRef:
+    name: grafana-dashboard-generic-device-plugin
+    key: json

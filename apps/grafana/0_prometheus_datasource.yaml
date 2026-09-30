@@ -1,0 +1,24 @@
+---
+# Prometheus datasource backed by VictoriaMetrics (VM serves the PromQL API
+# at :8428). Most imported dashboards use templating datasource variables
+# with query type "prometheus"; this CR makes those variables resolve.
+# The VictoriaMetrics plugin datasource (uid victoriametrics) remains the
+# preferred, full-featured metrics source.
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: prometheus
+  namespace: grafana
+spec:
+  uid: prometheus
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  datasource:
+    name: VictoriaMetrics (PromQL)
+    type: prometheus
+    access: proxy
+    url: http://victoria-metrics.victoria-metrics.svc.cluster.local:8428
+    jsonData:
+      httpMethod: POST
+      timeInterval: 10s

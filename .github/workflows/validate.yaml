@@ -30,6 +30,9 @@ jobs:
           find apps/grafana/dashboards -type f -name '*.json' -print0 |
             xargs -0 -n1 jq empty
 
+      - name: Check Grafana dashboard wiring
+        run: scripts/check-dashboards.sh
+
       - name: Check shell script syntax
         run: |
           for f in scripts/*.sh e2e/examples/hooks/*.sh; do

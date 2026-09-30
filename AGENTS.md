@@ -19,7 +19,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - `apps/<component>/`: manifests for one component. Filenames are prefixed with
   their exact Argo CD sync wave (e.g. `-2_network_policy.yaml`, `-1_secrets.yaml`,
   `0_gateway.yaml`, `1_helm.yaml`, `2_http_route.yaml`).
-- `apps/grafana/dashboards/`: imported Grafana dashboard JSON.
+- `apps/grafana/dashboards/<app>/`: dashboard JSON for the app's Grafana folder.
 - `README.md`: required environment variables, bootstrap notes, and sync-wave documentation.
 
 ## Manifest conventions
@@ -67,6 +67,18 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   config (e.g. Home Assistant's `prometheus:` block with `requires_auth: false`, Woodpecker's
   `server.metrics.enabled`), confirm the scraped port really renders, allow the otel-collector scrape
   path in both components' network policies, and ship a `PodMonitor` (60s) per CNPG `Cluster`.
+- Every app with collectible metrics ships a Grafana dashboard in its own Grafana folder:
+  `apps/grafana/dashboards/<app>/<dashboard>.json`, one configMapGenerator entry, a `GrafanaFolder` CR
+  (`apps/grafana/0_folders.yaml`), and a `0_dashboards_<app>.yaml` whose `GrafanaDashboard` CRs set
+  `spec.folderRef` (see docs/grafana-dashboards.md). Use the project's own upstream dashboard when it
+  publishes one — chart-bundled, in its repository, or on its grafana.com org page; never a
+  third-party dashboard — adapted only as needed to resolve here (`${DS_*}` prometheus/loki
+  datasource variables resolve to the compatibility datasources; label matchers scope to the
+  guaranteed `namespace` label). Otherwise author a custom dashboard referencing only metric
+  families verified against the app's upstream source or docs for the deployed version, cite that
+  provenance in the dashboard `description`, and hardcode the `victoriametrics` datasource uid on
+  every panel. `scripts/check-dashboards.sh` must pass; apps without collectible metrics get no
+  folder.
 - Application telemetry, anonymous usage statistics, upgrade checkers, and
   external phone-home mechanisms must be completely disabled across all
   manifests and Helm values unless explicitly requested and documented.
@@ -317,6 +329,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - `nodeSelector`
 - Gateway listener and `HTTPRoute` (if applicable)
 - `ServiceMonitor`
+- Grafana dashboard in the app's Grafana folder (Grafana dashboard conventions above; docs/grafana-dashboards.md)
 - `ServerSideApply=true` in `spec.syncPolicy.syncOptions` for all `Application` resources
 - Standard intra-component sync waves (-2 network policy, -1 secrets, 0 datastore/gateway, 1 workload, 2 routes)
   with manifest filenames strictly matching `<wave>_<descriptor>.yaml`.
@@ -365,6 +378,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   reference for OpenID Connect client configuration.
 - Keep `docs/oidc.md` updated with any changes or additions to Authelia OIDC
   integration status or sign-in behavior when onboarding or modifying an app.
+- Keep `docs/grafana-dashboards.md`'s inventory updated when adding or removing a
+  dashboard or folder.
 - Treat CRDs and operators as dependencies: they must be installed in an earlier
   sync wave than resources that use them. Newly added apps with CRDs must follow
   this rule both on initial deployment and during upgrades (ensuring CRDs precede

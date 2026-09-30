@@ -151,3 +151,30 @@ spec:
         - ports:
             - port: "3000"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The grafana-operator reconciles GrafanaDatasource/GrafanaDashboard CRs
+  # against the Grafana API over basic auth (kept on deliberately — see
+  # docs/oidc.md); without this path no datasource or dashboard ever
+  # reconciles.
+  name: allow-grafana-operator-ingress
+  namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: grafana
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: grafana-operator
+            k8s:app.kubernetes.io/instance: grafana-operator
+            k8s:app.kubernetes.io/name: grafana-operator
+            k8s:app.kubernetes.io/component: operator
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP

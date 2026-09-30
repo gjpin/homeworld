@@ -1,0 +1,25 @@
+---
+# Loki datasource backed by VictoriaLogs' Loki-compatible API. Grafana's
+# Loki plugin appends /loki/api/v1/... to the URL, which lands on
+# VictoriaLogs' /select/loki/... endpoints — configure the base as /select,
+# never /select/loki (double-path 404s). Imported dashboards with LogQL
+# panels (e.g. immich) use datasource variables of type "loki"; this CR
+# makes them resolve. New log exploration should prefer the
+# victorialogs datasource (uid victorialogs) and LogsQL.
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: loki
+  namespace: grafana
+spec:
+  uid: loki
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  datasource:
+    name: VictoriaLogs (Loki API)
+    type: loki
+    access: proxy
+    url: http://victoria-logs.victoria-metrics.svc.cluster.local:9428/select
+    jsonData:
+      maxLines: 1000
