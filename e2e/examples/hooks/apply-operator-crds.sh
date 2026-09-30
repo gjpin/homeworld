@@ -76,7 +76,7 @@ apply_helm_crds dragonfly-operator \
 # CA through cert-manager injection; the operator only starts in wave 5,
 # long after cert-manager (wave 3) has filled the caBundles.
 apply_helm_crds opentelemetry-operator \
-  "$(chart_dir "${ROOT}/apps/opentelemetry-operator/helm/charts/opentelemetry-operator-*")" \
+  "$(chart_dir "${ROOT}/apps/opentelemetry-operator/helm/charts/opentelemetry-operator-*/opentelemetry-operator")" \
   --set crds.create=true
 
 RUSTFS_CRDS="${ROOT}/apps/rustfs-operator/helm/local-charts/rustfs-operator/crds"
