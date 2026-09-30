@@ -14,6 +14,12 @@ defaultSettings:
   systemManagedComponentsNodeSelector: "node-role.kubernetes.io/homelab:homelab"
   defaultReplicaCount: 1
   concurrentAutomaticEngineUpgradePerNodeLimit: 2
+  # The dedicated Longhorn disks provisioned by the UserVolumeConfig in
+  # docs/talos.md (longhorn-1/longhorn-2, exposed to the kubelet through
+  # the extraMounts patch); /var/lib/longhorn on the Talos ephemeral disk
+  # would lose all replica data on a node reset. The second disk is added
+  # through the Longhorn node CR after bootstrap (see docs/talos.md).
+  defaultDataPath: /var/mnt/longhorn-1
 # Helm hook Jobs rendered through kustomize land in the Argo sync path as
 # plain Jobs, where hook annotations are inert and the immutable Job spec
 # breaks every chart bump (the completed Jobs from the first sync reject

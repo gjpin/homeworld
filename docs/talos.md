@@ -215,13 +215,10 @@ for ip in "${CONTROL_PLANE_IPS[@]}"; do
     talosctl patch machineconfig --nodes "$ip" --patch @/tmp/longhorn-user-disks.yaml
 done
 
-# Reboot the nodes
-for ip in "${CONTROL_PLANE_IPS[@]}"; do
-  echo "Rebooting node: $ip"
-  talosctl reboot --nodes "$ip"
-done
-
-# Expose paths to kubelet
+# Expose paths to kubelet: Longhorn manager and engine pods mount the data
+# directories through hostPath, which requires the kubelet extraMounts.
+# The patch must be applied (and the node rebooted) BEFORE the longhorn
+# Argo CD application first syncs.
 cat >/tmp/longhorn-paths.yaml <<'EOF'
 machine:
   kubelet:
@@ -235,7 +232,34 @@ machine:
         source: /var/mnt/longhorn-2
         options: [bind, rshared, rw]
 EOF
+
+# Apply the kubelet extraMounts patch to storage nodes
+for ip in "${CONTROL_PLANE_IPS[@]}"; do
+    echo "Applying kubelet extraMounts patch to node: $ip"
+    talosctl patch machineconfig --nodes "$ip" --patch @/tmp/longhorn-paths.yaml
+done
+
+# Reboot the nodes so both machine config patches take effect
+for ip in "${CONTROL_PLANE_IPS[@]}"; do
+  echo "Rebooting node: $ip"
+  talosctl reboot --nodes "$ip"
+done
 ```
+
+The Longhorn values pin `defaultSettings.defaultDataPath: /var/mnt/longhorn-1`, so
+the first Longhorn disk is wired declaratively. The second disk
+(`/var/mnt/longhorn-2`) is added to the node through the Longhorn node CR once
+the cluster is up — node names are host-specific and cannot live in git — for
+example:
+
+```bash
+kubectl -n longhorn-system patch node.longhorn.io <node-name> --type merge \
+  -p '{"spec":{"disks":{"longhorn-2":{"path":"/var/mnt/longhorn-2","allowScheduling":true,"storageReserved":0,"tags":[],"diskType":"filesystem"}}}}'
+```
+
+The same one-time, host-specific step applies after re-provisioning a node (the
+`nodes.longhorn.io` object is created by longhorn-manager with only the default
+disk).
 
 ## References:
 - [Getting Started](https://docs.siderolabs.com/talos/v1.14/getting-started/getting-started)
