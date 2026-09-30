@@ -2,6 +2,10 @@
 
 All applications enforce default-deny egress via Cilium Network Policies, with baseline access granted to internal cluster DNS (`kube-system/kube-dns:53`). Workload connections below detail all permitted ingress sources, internal cluster destinations, and outbound internet access.
 
+## Kubelet probes under default-deny
+
+Cilium's Kubernetes-mode policy engine carries an implicit ALLOW for traffic from the local host (the reserved `host` identity) to local pods, below explicit deny rules but above the default-deny fallback — exactly so kubelet readiness/liveness probes survive default-deny ingress policies. This cluster runs the veth datapath with kube-proxy replacement and the host firewall disabled, which preserves that behavior. The `fromEntities: host` probe rules that exist on a few components (generic-device-plugin, qbittorrent, radicale) are therefore redundant defense-in-depth, not a requirement. Revisit if the datapath mode changes (netkit had probe regressions upstream), the host firewall is enabled, or `allow-localhost` is switched away from its Kubernetes-mode default.
+
 | App | Outbound Internet | Inbound Sources | Internal Outbound | External (Internet) Destinations |
 | --- | :---: | --- | --- | --- |
 | Argo CD | **Yes** | Envoy Gateway (`8080`), OpenTelemetry Collector (metrics `8080`, `8082`-`8084`, `9001`; Dragonfly admin metrics `9999`), internal components | `kube-apiserver:443`<br>`dragonfly:6379`<br>`argocd-repo-server:8081`<br>`auth.${BASE_DOMAIN}:443` (OIDC) | Git repositories (`github.com`, `code.forgejo.org`)<br>Helm repositories (`argoproj.github.io`, `charts.authelia.com`, `charts.jetstack.io`, `cloudnative-pg.github.io`, `collaboraonline.github.io`, `charts.external-secrets.io`, `charts.longhorn.io`, `victoriametrics.github.io`, `open-telemetry.github.io`, `operator.rustfs.com`, `helm.otwld.com`, `vmware-tanzu.github.io`, `kubernetes-sigs.github.io`)<br>Registries (`ghcr.io`, `docker.io`, `registry-1.docker.io`, `auth.docker.io`) |

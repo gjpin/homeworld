@@ -92,9 +92,11 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   needs a matching per-service `allow-envoy-backend-<service>` egress CiliumNetworkPolicy
   in `apps/envoy-gateway` (one port per rule — Cilium applies `toPorts` to every
   `toServices` entry) plus an ingress rule on the app side, and a `docs/network-policies.md` row.
-- Under default-deny ingress, kubelet readiness/liveness probes are denied too: every
-  workload with probes needs a CiliumNetworkPolicy allowing `fromEntities: host` to the
-  probe port.
+- Under default-deny ingress, kubelet readiness/liveness probes are covered by
+  Cilium's implicit ALLOW for local-host→local-pod traffic (see
+  docs/network-policies.md): explicit `fromEntities: host` probe rules are
+  optional defense-in-depth, not a requirement. Revisit if the datapath mode or
+  the host firewall configuration changes.
 - Preserve `${VARIABLE}` placeholders in tracked files. They are intended for
   `envsubst` during deployment.
 - Never place real credentials, tokens, passwords, private keys, or substituted
