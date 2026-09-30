@@ -138,7 +138,7 @@ spec:
         hook:
           name: copy-gateway-ca
           command: ["./e2e/examples/hooks/copy-gateway-ca.sh"]
-          timeout: 5m
+          timeout: 16m
       - name: patch-coredns
         hook:
           name: patch-coredns-e2e-domain

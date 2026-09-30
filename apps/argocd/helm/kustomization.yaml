@@ -101,6 +101,22 @@ patches:
       namespace: ^argocd$
     patch: |-
       - op: add
+        path: /spec/updateStrategy
+        value:
+          type: RollingUpdate
+          rollingUpdate:
+            # Surge the replacement controller pod before terminating the
+            # old one (StatefulSet RollingUpdate is delete-then-create by
+            # default, which would take reconciliation down whenever the
+            # replacement cannot start — e.g. its redis-password reference
+            # waits on an ExternalSecret whose ClusterSecretStore is not
+            # ready yet). With maxSurge the old controller keeps working
+            # until the replacement is Ready, so the rollout is
+            # availability-safe under Infisical outages and first-boot
+            # races alike.
+            maxSurge: 1
+            maxUnavailable: 0
+      - op: add
         path: /spec/template/spec/hostUsers
         value: false
       - op: add
