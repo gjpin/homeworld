@@ -13,6 +13,11 @@ metadata:
   namespace: argocd
 spec:
   replicas: 1
+  # The operator's generated Kubernetes NetworkPolicy (CRD default) restricts
+  # the admin metrics port to operator and peer pods, which would block the
+  # OpenTelemetry collector's scrape; CiliumNetworkPolicies govern this
+  # workload instead (allow-argocd-dragonfly-ingress).
+  networkPolicyEnabled: false
   # Pin the operand image so it cannot drift with the operator's built-in
   # default; kept in sync with apps/authelia/0_dragonfly.yaml.
   image: docker.dragonflydb.io/dragonflydb/dragonfly:v2.0.0
@@ -49,3 +54,22 @@ spec:
     runAsGroup: 999
     seccompProfile:
       type: RuntimeDefault
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: dragonfly
+  namespace: argocd
+spec:
+  # The operator-generated pods expose the admin metrics endpoint on the
+  # named "admin" port (upstream dragonfly-operator monitoring/podMonitor
+  # pattern); the scrape path is opened by the namespace's
+  # allow-argocd-dragonfly-ingress policy and the
+  # allow-otel-pod-scrape-argocd egress.
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: dragonfly
+      app.kubernetes.io/instance: dragonfly
+  podMetricsEndpoints:
+    - port: admin
+      interval: 60s
