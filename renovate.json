@@ -1136,6 +1136,19 @@
     },
     {
       "customType": "regex",
+      "description": "Update the Woodpecker workspace permission init image",
+      "managerFilePatterns": [
+        "/^apps/woodpecker/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "WOODPECKER_BACKEND_K8S_PERMISSION_INIT_IMAGE:\\s*\"(?<depName>docker\\.io/library/busybox):(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
       "description": "Update the Prometheus Operator CRD bundle tag",
       "managerFilePatterns": [
         "/^apps/prometheus-operator-crd/0_crds\\.yaml$/"

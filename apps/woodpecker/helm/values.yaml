@@ -88,6 +88,9 @@ agent:
     # Schedule pipeline pods on homelab nodes like every other workload
     # (YAML mapping string, unmarshaled by the k8s backend).
     WOODPECKER_BACKEND_K8S_POD_NODE_SELECTOR: "node-role.kubernetes.io/homelab: homelab"
+    # The backend's workspace permission init container defaults to the
+    # floating short-name busybox:stable-musl; pin it fully qualified.
+    WOODPECKER_BACKEND_K8S_PERMISSION_INIT_IMAGE: "docker.io/library/busybox:1.38.0-musl"
 
   extraSecretNamesForEnvFrom:
     - woodpecker-default-agent-secret

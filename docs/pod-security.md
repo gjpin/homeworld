@@ -179,7 +179,7 @@ Only workloads requiring direct host device access, raw block devices, or kernel
 | **Velero (Node Agent)** | `velero` | **Disabled** | *None (Host integration)* | **Exception:** Node agent requires hostPath mounts to `/var/lib/kubelet/pods` for file-level volume backups. |
 | **RustFS Tenant** | `rustfs` | **Disabled** | *None (Operator limitation)* | **Exception:** the RustFS Operator's `Tenant` CRD exposes no `runtimeClassName` field, so operator-generated Tenant pods run the standard runtime (documented alongside the `baseline` PSS exception). |
 | **Velero UI** | `velero-ui` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `velero-ui` Deployment. |
-| **Woodpecker CI** | `woodpecker` | **Enabled** (`gvisor`) | Kustomize patch / Helm values | Applied to server and agent StatefulSets, and configured via `WOODPECKER_BACKEND_K8S_POD_RUNTIME_CLASS_NAME: "gvisor"` for all dynamically spawned pipeline pods. |
+| **Woodpecker CI** | `woodpecker` | **Enabled** (`gvisor`) | Kustomize patch / Helm values | Applied to server and agent StatefulSets. Pipeline step pods opt into gVisor per step through `backend_options.kubernetes.runtimeClassName`, gated by `WOODPECKER_BACKEND_K8S_RUNTIME_CLASS_ALLOW_FROM_STEP`; this release has no agent-wide runtime-class flag. Steps must also carry a Restricted-compatible `backend_options.kubernetes.securityContext` (`runAsNonRoot`, `RuntimeDefault` seccomp, dropped capabilities, `allowPrivilegeEscalation: false`) and a non-root clone image, or the Restricted-enforcing namespace rejects them at admission; a full instance-wide step security context lands with the upstream default/enforced-secctx feature and is not available in the pinned release. |
 
 ---
 
