@@ -324,7 +324,7 @@ seed_secrets() {
   token=$(cat "${OUT_DIR}/token")
   project_id=$(cat "${OUT_DIR}/project_id")
 
-  for folder in grafana homepage authelia immich forgejo rustfs opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker openchamber vaultwarden qbittorrent; do
+  for folder in grafana homepage authelia cloudflare immich forgejo rustfs opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker openchamber vaultwarden qbittorrent homeassistant; do
     ensure_folder "${token}" "${project_id}" "${folder}"
   done
 
