@@ -32,7 +32,12 @@ data:
   SSO_ENABLED: "true"
   SSO_AUTHORITY: "https://auth.${BASE_DOMAIN}"
   SSO_CLIENT_ID: "vaultwarden"
-  SSO_SCOPES: "email profile offline_access vaultwarden"
+  # Upstream vaultwarden always requests `openid` implicitly (SSO.md:
+  # default "profile email", openid is implicit) and extends sessions with
+  # the offline_access scope's refresh tokens. The `vaultwarden` scope with
+  # role mapping exists only in the OIDCWarden fork; requesting it from
+  # Authelia fails the authorization request with invalid_scope.
+  SSO_SCOPES: "email profile offline_access"
   SSO_SIGNUPS_ALLOWED: "false"
   SSO_SIGNUPS_MATCH_EMAIL: "true"
   # No SSO role mapping: the pinned upstream image has no sso_roles_*
