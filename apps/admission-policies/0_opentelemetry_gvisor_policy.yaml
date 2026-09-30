@@ -28,10 +28,14 @@ spec:
           - pods
   matchConditions:
     - name: opentelemetry-operator-pods
+      # CEL's has() macro only accepts field selectors, not map selects:
+      # has(object.metadata.labels['key']) fails compilation ("invalid
+      # argument to has() macro"), which left this policy unable to apply
+      # at all. Guard the field with has() and select the key directly —
+      # a missing key selects the zero value (""), which never matches.
       expression: >-
         request.namespace == "otel-collector" &&
         has(object.metadata.labels) &&
-        has(object.metadata.labels['app.kubernetes.io/managed-by']) &&
         object.metadata.labels['app.kubernetes.io/managed-by'] == 'opentelemetry-operator'
     - name: runtime-class-not-set
       expression: "!has(object.spec.runtimeClassName)"

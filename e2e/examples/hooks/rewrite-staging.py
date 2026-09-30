@@ -1224,6 +1224,24 @@ def rewrite_documentdb_kind(root: pathlib.Path) -> None:
     print(f"[rewrite-staging] documentdb webhook Ignore + probe timeouts in {count} files")
 
 
+def rewrite_metrics_server_kind_kubelet_tls(root: pathlib.Path) -> None:
+    """Kind kubelet serving certs carry no IP SANs for the docker-network node
+    address, so verified-TLS scrapes fail with x509 errors and the pod never
+    passes its metric-storage-ready probe. Production (Talos) rotates serving
+    certs with node IPs in the SANs and keeps verified TLS."""
+    path = root / "apps" / "metrics-server" / "helm" / "values.yaml"
+    if not path.exists():
+        print("[rewrite-staging] metrics-server values missing; skipping kubelet TLS rewrite")
+        return
+    text = path.read_text()
+    if "kubelet-insecure-tls" in text:
+        print("[rewrite-staging] metrics-server kubelet TLS rewrite unchanged")
+        return
+    new = text + "\n# kind only: kubelet serving certs carry no IP SANs.\nargs:\n  - --kubelet-insecure-tls\n"
+    path.write_text(new)
+    print("[rewrite-staging] metrics-server --kubelet-insecure-tls for kind")
+
+
 def rewrite_nested_sync_options(root: pathlib.Path) -> None:
     count = 0
     for path in root.rglob("*.yaml"):
@@ -1278,6 +1296,7 @@ def main() -> int:
     rewrite_homeworld_repo_urls(root)
     rewrite_app_of_apps(root / "apps" / "app-of-apps.yaml")
     rewrite_nested_sync_options(root)
+    rewrite_metrics_server_kind_kubelet_tls(root)
     rewrite_kind_userns(root)
     rewrite_kind_runtime_class(root)
     rewrite_gateway_from_all(root)

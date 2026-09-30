@@ -22,7 +22,7 @@ spec:
         app.kubernetes.io/name: homeassistant
         io.kompose.service: homeassistant
     spec:
-      serviceAccountName: homeassistant
+      serviceAccountName: homeassistant-app
       automountServiceAccountToken: false
       runtimeClassName: gvisor
       hostUsers: false

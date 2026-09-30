@@ -137,6 +137,14 @@ type WaitStep struct {
 	// Interval between wait polls. Defaults to 15s. Each poll uses a
 	// short per-attempt timeout so a hung apiserver cannot stall the loop.
 	Interval string `yaml:"interval,omitempty"`
+	// ResyncInterval re-triggers syncs on Applications matching the wait's
+	// selector that sit OutOfSync with no operation running. Argo CD gives
+	// up on an app after five failed sync attempts and self-heal never
+	// re-fires after a failed sync, so a first-boot transient (an operator
+	// reconciling an instance that is still starting) can leave an app
+	// stuck OutOfSync forever even though the underlying condition cleared
+	// minutes later. Empty disables the rescue.
+	ResyncInterval string `yaml:"resyncInterval,omitempty"`
 }
 
 type WaitCondition struct {

@@ -14,6 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/gjpin/homeworld/e2e/internal/config"
 	"github.com/gjpin/homeworld/e2e/internal/kube"
@@ -270,8 +271,17 @@ func (r *Runner) waitStep(ctx context.Context, name string, w *config.WaitStep) 
 	}
 
 	fmt.Fprintf(os.Stderr, "[wait] %s: polling timeout=%s interval=%s\n", name, timeout, interval)
+	var resyncEvery time.Duration
+	if w.ResyncInterval != "" && gvr.Group == "argoproj.io" && gVRResource(gvr) == "applications" {
+		resyncEvery, err = config.ParseDuration(w.ResyncInterval, 0)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(os.Stderr, "[wait] %s: out-of-sync application rescue every %s\n", name, resyncEvery)
+	}
 	deadline := time.Now().Add(timeout)
 	var lastLog time.Time
+	var lastResync time.Time
 	for {
 		actx, cancel := context.WithTimeout(ctx, 30*time.Second)
 		err := r.checkWait(actx, gvr, w)
@@ -287,10 +297,88 @@ func (r *Runner) waitStep(ctx context.Context, name string, w *config.WaitStep) 
 			fmt.Fprintf(os.Stderr, "[wait] %s: still waiting (%s left): %v\n", name, time.Until(deadline).Round(time.Second), err)
 			lastLog = time.Now()
 		}
+		if resyncEvery > 0 && (lastResync.IsZero() || time.Since(lastResync) >= resyncEvery) {
+			rctx, rcancel := context.WithTimeout(ctx, 60*time.Second)
+			r.resyncOutOfSyncApps(rctx, w)
+			rcancel()
+			lastResync = time.Now()
+		}
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-time.After(interval):
+		}
+	}
+}
+
+func gVRResource(gvr schema.GroupVersionResource) string {
+	return gvr.Resource
+}
+
+// resyncOutOfSyncApps force-syncs Applications that are stuck OutOfSync with
+// no operation running. Argo CD exhausts its five sync retries on transient
+// first-boot failures and self-heal never re-fires after a failed sync, so a
+// short-lived condition (for example the grafana operator pinging its
+// instance before the pod is ready) can leave an application permanently
+// OutOfSync even after the underlying resource turns healthy. Re-triggering
+// the operation is the documented recovery; patching operation.sync on many
+// applications at once overloads the application-controller, so the sweep
+// is rate limited.
+func (r *Runner) resyncOutOfSyncApps(ctx context.Context, w *config.WaitStep) {
+	gvr := schema.GroupVersionResource{Group: "argoproj.io", Version: "v1alpha1", Resource: "applications"}
+	var listOpts metav1.ListOptions
+	if w.Selector != "" {
+		listOpts.LabelSelector = w.Selector
+	}
+	list, err := listResources(ctx, r.Clients, gvr, w.Namespace, listOpts)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[wait] resync: list applications: %v\n", err)
+		return
+	}
+	rescued := 0
+	for _, u := range list {
+		syncStatus, _, _ := unstructured.NestedString(u.Object, "status", "sync", "status")
+		if syncStatus != "OutOfSync" {
+			continue
+		}
+		if _, opExists, _ := unstructured.NestedMap(u.Object, "operation"); opExists {
+			continue
+		}
+		revision, _, _ := unstructured.NestedString(u.Object, "spec", "source", "targetRevision")
+		if revision == "" {
+			revision = "HEAD"
+		}
+		operation := map[string]interface{}{
+			"initiatedBy": map[string]interface{}{"username": "e2e-resync"},
+			"sync": map[string]interface{}{
+				"revision": revision,
+				"prune":    true,
+			},
+		}
+		if syncOptions, ok, _ := unstructured.NestedStringSlice(u.Object, "spec", "syncPolicy", "syncOptions"); ok {
+			operation["sync"].(map[string]interface{})["syncOptions"] = syncOptions
+		}
+		patch, err := json.Marshal(map[string]interface{}{"operation": operation})
+		if err != nil {
+			continue
+		}
+		rctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+		_, err = r.Clients.Dynamic.Resource(gvr).Namespace(w.Namespace).Patch(
+			rctx, u.GetName(), types.MergePatchType, patch, metav1.PatchOptions{})
+		cancel()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[wait] resync: %s: %v\n", u.GetName(), err)
+		} else {
+			fmt.Fprintf(os.Stderr, "[wait] resync: re-triggered sync on %s\n", u.GetName())
+			rescued++
+		}
+		if rescued >= 4 {
+			break
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(time.Second):
 		}
 	}
 }

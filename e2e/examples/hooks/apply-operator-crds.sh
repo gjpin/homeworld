@@ -66,6 +66,19 @@ echo "[apply-operator-crds] grafana-operator CRDs applied"
 apply_helm_crds dragonfly-operator \
   "$(chart_dir "${ROOT}/apps/dragonfly-operator/helm/charts/dragonfly-operator-*/dragonfly-operator")"
 
+# The OpenTelemetry Operator chart ships its CRDs as rendered templates
+# (templates/admission-webhooks/operator-webhook.yaml embeds conf/crds via
+# .Files.Get), so Kustomize's includeCRDs never captures them — and the kind
+# bootstrap's argocd-cm resource.exclusions drops every CRD from Argo's sync
+# (the Envoy Gateway VAP conflict), which leaves the operator crash-looping
+# on "OpenTelemetryCollector CRDs are not present". Apply them here like the
+# other operator CRDs. The rendered CRDs reference the admission webhook's
+# CA through cert-manager injection; the operator only starts in wave 5,
+# long after cert-manager (wave 3) has filled the caBundles.
+apply_helm_crds opentelemetry-operator \
+  "$(chart_dir "${ROOT}/apps/opentelemetry-operator/helm/charts/opentelemetry-operator-*")" \
+  --set crds.create=true
+
 RUSTFS_CRDS="${ROOT}/apps/rustfs-operator/helm/local-charts/rustfs-operator/crds"
 # The vendored chart ships identical tenants.rustfs.com CRDs; skip tenant.yaml.
 kubectl apply --server-side --force-conflicts \
@@ -84,6 +97,7 @@ kubectl get crd \
   grafanas.grafana.integreatly.org \
   dragonflies.dragonflydb.io \
   tenants.rustfs.com \
+  opentelemetrycollectors.opentelemetry.io \
   dbs.documentdb.io \
   backups.documentdb.io \
   scheduledbackups.documentdb.io

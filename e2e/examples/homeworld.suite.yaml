@@ -160,6 +160,10 @@ spec:
               value: Healthy
           timeout: 90m
           interval: 15s
+          # Rescue for apps that burned Argo's five sync retries on a
+          # first-boot transient (after a failed sync, self-heal never
+          # re-fires): re-trigger the sync on stuck OutOfSync apps.
+          resyncInterval: 3m
 
   assert:
     timeout: 20m

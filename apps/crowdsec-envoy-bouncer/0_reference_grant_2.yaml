@@ -1,0 +1,26 @@
+# Second half of the bouncer ReferenceGrant set (spec.from is capped at 16
+# items per grant by the Gateway API schema; see 0_reference_grant.yaml).
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: crowdsec-envoy-bouncer-2
+  namespace: envoy-gateway
+spec:
+  from:
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: velero-ui
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: vaultwarden
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: victoria-metrics
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: woodpecker
+  to:
+    - group: ""
+      kind: Service
+      name: crowdsec-envoy-bouncer

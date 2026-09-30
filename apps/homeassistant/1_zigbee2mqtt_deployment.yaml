@@ -22,7 +22,7 @@ spec:
         app.kubernetes.io/name: zigbee2mqtt
         io.kompose.service: homeassistant-zigbee2mqtt
     spec:
-      serviceAccountName: homeassistant
+      serviceAccountName: homeassistant-app
       automountServiceAccountToken: false
       hostUsers: false
       nodeSelector:
