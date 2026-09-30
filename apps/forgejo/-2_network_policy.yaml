@@ -104,6 +104,31 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  # Git SSH passthrough: the envoy dataplane terminates the Gateway TCP
+  # listener (2_tcp_route.yaml -> forgejo-ssh:22).
+  name: allow-forgejo-ssh-gateway
+  namespace: forgejo
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: forgejo
+      k8s:app.kubernetes.io/instance: forgejo
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+      toPorts:
+        - ports:
+            - port: "22"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-forgejo-postgres-ingress
   namespace: forgejo
   annotations:

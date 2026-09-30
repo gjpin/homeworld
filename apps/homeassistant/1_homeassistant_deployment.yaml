@@ -99,7 +99,27 @@ spec:
             - |
               [ -f /config/configuration.yaml ] || cat > /config/configuration.yaml <<'YAML'
               # Loads default set of integrations. Do not remove.
+              # default_config includes the analytics integration (reporting
+              # requires an explicit opt-in via the UI) and the update
+              # checker; both are accepted telemetry surface for this
+              # component and left at their defaults.
               default_config:
+
+              # Reverse proxy: Envoy terminates TLS, so trust its forwarded
+              # headers (envoy-gateway pods live in the pod CIDR the Cilium
+              # policies exclude — see -2_network_policy.yaml) and generate
+              # https callback URLs for the OIDC flow.
+              http:
+                use_x_forwarded_for: true
+                trusted_proxies:
+                  - 10.42.0.0/16
+
+              # Metrics endpoint for the ServiceMonitor. requires_auth is
+              # disabled because the tokenless OTel collector is the only
+              # client and its scrape path is Cilium-restricted
+              # (-2_network_policy.yaml: allow-otel-pod-scrape-homeassistant).
+              prometheus:
+                requires_auth: false
 
               # Load frontend themes from the themes folder
               frontend:
@@ -165,6 +185,18 @@ spec:
               drop:
                 - ALL
             runAsNonRoot: false
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
           resources:
             requests:
               cpu: 100m

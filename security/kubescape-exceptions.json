@@ -261,7 +261,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -315,7 +316,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -522,30 +524,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
@@ -628,6 +606,14 @@
           "kind": "^Deployment$",
           "name": "^cilium-operator$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -940,7 +926,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -1003,30 +990,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
@@ -1045,6 +1008,14 @@
           "kind": "^DaemonSet$",
           "name": "^cilium-envoy$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -1090,7 +1061,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -1185,30 +1157,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
@@ -1281,14 +1229,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -1329,6 +1279,14 @@
           "kind": "^Deployment$",
           "name": "^opentelemetry-operator$",
           "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -1470,30 +1428,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
@@ -1526,7 +1460,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -1535,6 +1470,14 @@
           "kind": "^Deployment$",
           "name": "^hubble-ui$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -1588,7 +1531,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -1821,30 +1765,6 @@
           "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
         }
       },
       {
@@ -1963,14 +1883,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -2027,6 +1949,14 @@
           "kind": "^Deployment$",
           "name": "^opentelemetry-operator$",
           "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -2124,7 +2054,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -2363,30 +2294,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
@@ -2459,14 +2366,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -2515,6 +2424,14 @@
           "kind": "^Deployment$",
           "name": "^opentelemetry-operator$",
           "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -2802,14 +2719,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^DaemonSet$",
           "name": "^cilium$",
           "namespace": "^cilium$"
@@ -2891,14 +2800,6 @@
           "kind": "^DaemonSet$",
           "name": "^node-agent$",
           "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
         }
       },
       {
@@ -3460,6 +3361,13 @@
           "name": "^opentelemetry-operator-leader-election$",
           "namespace": "^opentelemetry-operator$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^external-dns-viewer$"
+        }
       }
     ],
     "posturePolicies": [
@@ -3526,7 +3434,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -3605,30 +3514,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
@@ -3639,6 +3524,14 @@
           "kind": "^DaemonSet$",
           "name": "^cilium-envoy$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -3788,30 +3681,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
@@ -3852,7 +3721,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -3861,6 +3731,14 @@
           "kind": "^Deployment$",
           "name": "^hubble-ui$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -3883,14 +3761,6 @@
         "attributes": {
           "kind": "^DaemonSet$",
           "name": "^longhorn-manager$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
           "namespace": "^longhorn-system$"
         }
       },
@@ -4013,7 +3883,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -4196,30 +4067,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
@@ -4276,14 +4123,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -4340,6 +4189,14 @@
           "kind": "^Deployment$",
           "name": "^opentelemetry-operator$",
           "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -4887,7 +4744,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -5126,30 +4984,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
@@ -5222,14 +5056,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -5278,6 +5114,14 @@
           "kind": "^Deployment$",
           "name": "^opentelemetry-operator$",
           "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -5660,7 +5504,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -5802,7 +5647,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -5881,30 +5727,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
@@ -5923,6 +5745,14 @@
           "kind": "^DaemonSet$",
           "name": "^cilium-envoy$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -5976,7 +5806,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -6215,30 +6046,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
@@ -6351,14 +6158,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -6416,6 +6225,14 @@
           "name": "^opentelemetry-operator$",
           "namespace": "^opentelemetry-operator$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
       }
     ],
     "posturePolicies": [
@@ -6460,7 +6277,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -6619,30 +6437,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
@@ -6755,14 +6549,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -6803,6 +6599,14 @@
           "kind": "^Deployment$",
           "name": "^hubble-ui$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -7014,7 +6818,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       }
     ],
@@ -7068,7 +6873,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -7307,30 +7113,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
@@ -7443,14 +7225,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -7507,6 +7291,14 @@
           "kind": "^Deployment$",
           "name": "^opentelemetry-operator$",
           "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -7728,30 +7520,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
@@ -7850,6 +7618,14 @@
           "kind": "^Deployment$",
           "name": "^opentelemetry-operator$",
           "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -8030,30 +7806,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^StatefulSet$",
           "name": "^argocd-argocd-application-controller$",
           "namespace": "^argocd$"
@@ -8129,6 +7881,14 @@
           "kind": "^Deployment$",
           "name": "^opentelemetry-operator$",
           "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],

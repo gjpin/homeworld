@@ -33,6 +33,6 @@ jobs:
           RENOVATE_PLATFORM: github
           RENOVATE_REPOSITORIES: ${{ github.repository }}
           # Self-hosted-only option (cannot live in renovate.json): allow the
-          # DocumentDB chart re-vendor script to run as a postUpgradeTasks
-          # command. Regexes match the resolved command string.
-          RENOVATE_ALLOWED_COMMANDS: '["^bash scripts/vendor-documentdb-operator\\.sh$"]'
+          # DocumentDB and RustFS chart re-vendor scripts to run as
+          # postUpgradeTasks commands. Regexes match the resolved command string.
+          RENOVATE_ALLOWED_COMMANDS: '["^bash scripts/vendor-documentdb-operator\\.sh$", "^bash scripts/vendor-rustfs-operator\\.sh$"]'

@@ -43,6 +43,14 @@ configuration:
   defaultSnapshotMoveData: true
   defaultVolumesToFsBackup: false
   features: EnableCSI
+# CSI snapshot data movement (snapshotMoveData) uploads volume data to the
+# BackupStorageLocation object storage and deletes the CSI snapshot
+# afterwards, so no provider VolumeSnapshotLocation is required: the upstream
+# v1.18 CSI data-movement docs only require node-agent + BSL + the EnableCSI
+# feature flag. Leaving this unset renders a dead default VSL with
+# provider/credential null for the controller to reconcile, so disable it.
+# backupsEnabled stays at its chart default (true) so the BSL still renders.
+snapshotsEnabled: false
 credentials:
   existingSecret: velero-credentials
 deployNodeAgent: true
@@ -58,6 +66,9 @@ nodeAgent:
     capabilities:
       drop:
         - ALL
+    # The node-agent mounts host filesystems and must run as root —
+    # documented privileged exception.
+    runAsNonRoot: false
     seccompProfile:
       type: RuntimeDefault
 metrics:

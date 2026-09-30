@@ -143,6 +143,33 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  # The internal metrics endpoint (server.metrics.enabled, port 9001) is
+  # scraped by the OpenTelemetry collector pod via the ServiceMonitor's
+  # bearer token.
+  name: allow-woodpecker-metrics-ingress
+  namespace: woodpecker
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: server
+      k8s:app.kubernetes.io/instance: woodpecker
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9001"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-agent-to-server-egress
   namespace: woodpecker
   annotations:

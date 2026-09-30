@@ -39,6 +39,9 @@ cgroup:
   autoMount:
     enabled: false
   hostRoot: /sys/fs/cgroup
+# The Cilium host firewall stays disabled: the host-network agent/envoy/
+# operator pods are outside Cilium policy scope either way, so node-level
+# policy for them is accepted as absent (recorded in docs/network-policies.md).
 securityContext:
   capabilities:
     ciliumAgent:
@@ -183,7 +186,9 @@ envoy:
   securityContext:
     capabilities:
       # Modern BPF/PERFMON capabilities instead of SYS_ADMIN; NET_BIND_SERVICE
-      # is required for the Envoy process to bind privileged ports.
+      # is required for the Envoy process to bind privileged ports. The
+      # kernel (>= 5.8) and containerd (>= 1.5) floors for BPF/PERFMON are
+      # satisfied by the Talos release in use.
       keepCapNetBindService: true
       envoy:
         - NET_ADMIN

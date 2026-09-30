@@ -79,8 +79,6 @@ definitions:
   user_attributes:
     immich_role:
       expression: '"immich-admin" in groups ? "admin" : "user"'
-    vaultwarden_roles:
-      expression: '"vaultwarden-admin" in groups ? ["admin"] : "vaultwarden-user" in groups ? ["user"] : [""]'
 identity_providers:
   oidc:
     lifespans:
@@ -125,11 +123,6 @@ identity_providers:
           - email
           - name
           - groups
-      vaultwarden:
-        id_token:
-          - vaultwarden_roles
-        custom_claims:
-          vaultwarden_roles: {}
     authorization_policies:
       opencloud:
         default_policy: deny
@@ -159,9 +152,6 @@ identity_providers:
       immich:
         claims:
           - immich_role
-      vaultwarden:
-        claims:
-          - vaultwarden_roles
     cors:
       endpoints:
         - authorization
@@ -191,6 +181,7 @@ identity_providers:
         consent_mode: pre-configured
         pre_configured_consent_duration: 1 week
         access_token_signed_response_alg: RS256
+        userinfo_signed_response_alg: 'none'
         redirect_uris:
           - https://cloud.${BASE_DOMAIN}/
           - https://cloud.${BASE_DOMAIN}/oidc-callback.html
@@ -217,6 +208,7 @@ identity_providers:
         consent_mode: pre-configured
         pre_configured_consent_duration: 1 week
         access_token_signed_response_alg: RS256
+        userinfo_signed_response_alg: 'none'
         redirect_uris:
           - http://127.0.0.1
           - http://localhost
@@ -234,6 +226,7 @@ identity_providers:
         consent_mode: pre-configured
         pre_configured_consent_duration: 1 week
         access_token_signed_response_alg: RS256
+        userinfo_signed_response_alg: 'none'
         redirect_uris:
           - oc://android.opencloud.eu
         scopes: *opencloud_scopes
@@ -250,8 +243,10 @@ identity_providers:
         consent_mode: pre-configured
         pre_configured_consent_duration: 1 week
         access_token_signed_response_alg: RS256
+        userinfo_signed_response_alg: 'none'
         redirect_uris:
           - oc://ios.opencloud.eu
+          - oc.ios://ios.opencloud.eu
         scopes: *opencloud_scopes
         grant_types: *opencloud_grants
         response_types: *opencloud_responses
@@ -335,7 +330,8 @@ identity_providers:
           - refresh_token
         response_types:
           - code
-        token_endpoint_auth_method: none
+      # Deviates from the official immich guide (RS256 access tokens instead of
+      # none, plus groups/immich scopes with the immich claims policy mapping groups to the immich_role admin/user claim).
       - client_id: immich
         client_name: Immich
         client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_immich" | msquote }}
@@ -366,8 +362,9 @@ identity_providers:
         public: false
         authorization_policy: two_factor
         claims_policy: apps
-        require_pkce: true
-        pkce_challenge_method: S256
+        # velero-ui's passport-oauth2 flow sends no PKCE, so it cannot be
+        # required for this client.
+        require_pkce: false
         consent_mode: pre-configured
         pre_configured_consent_duration: 1 week
         # velero-ui's passport-oauth2/oauth library only supports sending
@@ -404,7 +401,7 @@ identity_providers:
         client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_vaultwarden" | msquote }}
         public: false
         authorization_policy: two_factor
-        claims_policy: vaultwarden
+        # No claims_policy: upstream vaultwarden has no SSO role mapping; admins are assigned in the admin panel.
         require_pkce: true
         pkce_challenge_method: S256
         consent_mode: pre-configured
@@ -420,7 +417,6 @@ identity_providers:
           - profile
           - email
           - offline_access
-          - vaultwarden
         grant_types:
           - authorization_code
           - refresh_token

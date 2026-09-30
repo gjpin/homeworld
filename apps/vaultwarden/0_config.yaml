@@ -35,13 +35,10 @@ data:
   SSO_SCOPES: "email profile offline_access vaultwarden"
   SSO_SIGNUPS_ALLOWED: "false"
   SSO_SIGNUPS_MATCH_EMAIL: "true"
-  # Role mapping through the custom `vaultwarden` scope: the
-  # vaultwarden-admin Authelia group grants the admin role, vaultwarden-user
-  # the user role, and invited users in neither group default to the user
-  # role.
-  SSO_ROLES_ENABLED: "true"
-  SSO_ROLES_DEFAULT_TO_USER: "true"
-  SSO_ROLES_TOKEN_PATH: "/vaultwarden_roles"
+  # No SSO role mapping: the pinned upstream image has no sso_roles_*
+  # settings (those env vars are silently ignored), so vaultwarden-admin
+  # membership does not grant the admin role. Every SSO user gets the
+  # default role; assign admins via the admin panel (ADMIN_TOKEN).
   # SMTP relay: implicit TLS on 465, matching the shared submissions relay.
   SMTP_SECURITY: "force_tls"
   SMTP_PORT: "465"

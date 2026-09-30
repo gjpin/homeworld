@@ -94,6 +94,69 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: allow-velero-data-upload-egress
+  namespace: velero
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # CSI snapshot data-mover pods are created in the velero namespace by the
+  # node-agent DataUpload controller (pod name == DataUpload name) and carry
+  # a velero.io/data-upload=<name> label instead of the Helm instance label
+  # (velerov1api.DataUploadLabel, set as HostingPodLabels in
+  # pkg/controller/data_upload_controller.go upstream), so they need their own
+  # egress rules for the API server and the B2 backup storage. DNS is already
+  # allowed namespace-wide by the allow-dns policy above.
+  endpointSelector:
+    matchExpressions:
+      - key: k8s:velero.io/data-upload
+        operator: Exists
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    - toFQDNs:
+        - matchName: "s3.${B2_REGION}.backblazeb2.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-velero-data-download-egress
+  namespace: velero
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Restore-side counterpart of the data-upload policy: data-mover pods for
+  # restores carry velero.io/data-download=<name> (velerov1api.DataDownloadLabel,
+  # pkg/apis/velero/v1/labels_annotations.go upstream) instead of the Helm
+  # instance label. Same egress needs: API server + B2 backup storage.
+  endpointSelector:
+    matchExpressions:
+      - key: k8s:velero.io/data-download
+        operator: Exists
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    - toFQDNs:
+        - matchName: "s3.${B2_REGION}.backblazeb2.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-velero-metrics-ingress
   namespace: velero
   annotations:

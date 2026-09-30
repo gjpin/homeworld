@@ -63,6 +63,10 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `node-role.kubernetes.io/homelab: homelab` where the chart or manifest supports
   a node selector.
 - Enable metrics and a `ServiceMonitor` when the component supports them; always set the ServiceMonitor interval to `60s`.
+  The monitor only works if the application actually serves the scraped endpoint: enable it in application
+  config (e.g. Home Assistant's `prometheus:` block with `requires_auth: false`, Woodpecker's
+  `server.metrics.enabled`), confirm the scraped port really renders, allow the otel-collector scrape
+  path in both components' network policies, and ship a `PodMonitor` (60s) per CNPG `Cluster`.
 - Application telemetry, anonymous usage statistics, upgrade checkers, and
   external phone-home mechanisms must be completely disabled across all
   manifests and Helm values unless explicitly requested and documented.
@@ -72,12 +76,32 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   ask the user.
 - Public HTTP/gRPC endpoints use Gateway API resources plus the
   `external-dns.alpha.kubernetes.io/hostname` annotation. Keep Gateway listeners,
-  route hostnames, TLS hostnames, and backend ports aligned.
+  route hostnames, TLS hostnames, and backend ports aligned. Every route backend also
+  needs a matching per-service `allow-envoy-backend-<service>` egress CiliumNetworkPolicy
+  in `apps/envoy-gateway` (one port per rule — Cilium applies `toPorts` to every
+  `toServices` entry) plus an ingress rule on the app side, and a `docs/network-policies.md` row.
+- Under default-deny ingress, kubelet readiness/liveness probes are denied too: every
+  workload with probes needs a CiliumNetworkPolicy allowing `fromEntities: host` to the
+  probe port.
 - Preserve `${VARIABLE}` placeholders in tracked files. They are intended for
   `envsubst` during deployment.
 - Never place real credentials, tokens, passwords, private keys, or substituted
   secret values in the repository. Prefer the existing External Secrets /
-  Infisical pattern for new secret material.
+  Infisical pattern for new secret material. Every container env `secretKeyRef`
+  must have a matching `data` entry in the component's wave-`-1` ExternalSecret
+  and a `docs/secrets.md` row — a missing key fails the pod with
+  `CreateContainerConfigError`.
+- Charts rendered through `kustomize` keep their `helm.sh/hook` Jobs in the Argo
+  sync path, where hook annotations are inert and the immutable Job spec breaks
+  every chart bump (the completed Job from the first sync rejects the new image
+  tag). Disable such jobs via chart values or patch-delete them from the render
+  (Longhorn's `preUpgradeChecker`/uninstall jobs are the canonical example). A
+  hook job whose work is genuinely wanted (Longhorn's post-upgrade cleanup) is
+  instead converted to an Argo CD sync hook: patch its annotations to
+  `argocd.argoproj.io/hook: PostSync` (or `PreSync`) plus
+  `argocd.argoproj.io/hook-delete-policy: HookSucceeded` so it runs at the right
+  phase with the fresh image and self-deletes instead of blocking upgrades.
+  Never let an upgrade-checker or uninstall job run from a synced manifest.
 - Every PostgreSQL database must be provisioned as a CloudNativePG `Cluster`
   instance; do not deploy application-bundled PostgreSQL.
 - Every Redis or Redis-compatible datastore (including Valkey) must be provisioned
@@ -151,7 +175,9 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `access_token_signed_response_alg: none` — Envoy Gateway's OIDC filter sends
   no PKCE, and its access token never leaves Envoy's encrypted session cookie
   (`forwardAccessToken: false`), so no claims can be read from it (official
-  Envoy Gateway client guide).
+  Envoy Gateway client guide). The `velero-ui` client also sets
+  `require_pkce: false`: velero-ui's passport-oauth2 flow sends no PKCE
+  (no official Authelia client guide exists for it).
 - CLI or localhost-redirect flows get their own public client
   (`token_endpoint_auth_method: none`, `offline_access` scope,
   `refresh_token` grant); never merge the localhost redirect into the
@@ -164,8 +190,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   them — see the `apps` policy in `apps/authelia/helm/configuration.yaml.tmpl`
   and docs/oidc.md). Role mapping follows the custom-claim pattern:
   `definitions.user_attributes` expression + a `claims_policies` entry with
-  `custom_claims` + a matching custom scope (see `immich_role`,
-  `vaultwarden_roles`).
+  `custom_claims` + a matching custom scope (see `immich_role`).
 - Authelia group names are singular and app-prefixed (`<app>-admin`,
   `<app>-user`) and must exist in the Infisical users database. Exception: the
   cross-app `platform` group gates the gateway-OIDC routes and deliberately
@@ -283,7 +308,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 
 - Opt every compatible Pod into gVisor runtime sandboxing with `spec.runtimeClassName: gvisor`.
 - For Helm workloads, use the chart's exact value key or a Kustomize patch if not exposed. For handwritten manifests, declare `runtimeClassName: gvisor` directly in the Pod template spec. For operator-generated Pods, use a supported operator pod-template or patch mechanism.
-- A Pod with `runtimeClassName: gvisor` must not use `hostNetwork`, host block devices, or direct node filesystem integration. Preserve standard runtimes only for documented exceptions (`cilium-agent`, `cilium-envoy`, `cilium-operator`, `longhorn-manager`, `otel-collector-node`, `velero-node-agent`, `zigbee2mqtt`).
+- A Pod with `runtimeClassName: gvisor` must not use `hostNetwork`, host block devices, or direct node filesystem integration. Preserve standard runtimes only for the documented exceptions (`cilium-agent`, `cilium-envoy`, `cilium-operator`, `crowdsec-agent`, `generic-device-plugin`, `longhorn-manager`, `otel-collector-node`, `velero-node-agent`, the gluetun-based qBittorrent pod, `zigbee2mqtt`, and operator-generated operands whose pod templates the CRD cannot set — CNPG, Dragonfly, DocumentDB, and RustFS Tenant operands). Keep the gVisor table in `docs/pod-security.md` as the source of truth for the exact list. Operator-spawned pods that accept a runtime class per-instance (e.g. Woodpecker pipeline pods) opt in through the operator's allow-from-step flag plus per-pipeline backend options, never a repo-level manifest.
 
 ## New component checklist
 
@@ -300,7 +325,9 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - Document Pod Security Standards compliance and User Namespaces status in `docs/pod-security.md`.
 - Document Authelia OIDC integration status or sign-in behavior in `docs/oidc.md`.
 - Authelia OIDC client per the Authelia OIDC client conventions (if the app has user login).
-- Add the destination namespace to the world-egress policy selector, or explicitly justify an egress exception.
+- Scope the component's internet egress with dedicated, per-app CiliumNetworkPolicies
+  (FQDN- or port-scoped — there is no shared world-egress selector) and add a matching
+  `docs/network-policies.md` row.
 - Set requests and limits on all regular, init, and sidecar containers. Preserve
   higher upstream values; use the documented profile fallbacks when absent.
 - Application telemetry, anonymous usage metrics, and upgrade checkers disabled
@@ -327,7 +354,9 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `README.md` accurate.
 - Check whether the component's pinned chart, image, or remote revision is
   covered by `renovate.json`; update Renovate configuration when its existing
-  managers and matchers do not support the new dependency field.
+  managers and matchers do not support the new dependency field. This includes
+  e2e hooks, compose files, `go.mod`, and any other version-bearing field: add
+  a custom regex manager when no built-in manager can see it.
 - Apply the new-component checklist as applicable.
 - Keep `docs/pod-security.md` updated with any changes or additions to Pod Security
   Standards compliance and User Namespaces status.

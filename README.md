@@ -79,12 +79,29 @@ Label the node with the physical Zigbee USB adapter attached:
 ```bash
 kubectl label node <node-name> environment=zigbee
 ```
-This pins `homeassistant-zigbee2mqtt` to the host hardware where the serial dongle is connected.
+This pins `homeassistant-zigbee2mqtt` to the host hardware where the serial dongle is connected. The first start seeds `/app/data/configuration.yaml` with the broker and frontend pre-wired; fill in `serial.port` with your adapter's path under the mounted `/dev/serial/by-id` (Zigbee2MQTT cannot start without it).
+
+Also note: Forgejo git SSH (`git@${BASE_DOMAIN}`) rides the merged Gateway's TCP listener, so the router must forward port 22 to `${EXTERNAL_IP}` alongside 443.
 
 ### 3. Provision Infisical Secrets
 Every component synchronizes its secrets from Infisical via the External Secrets Operator. The complete list of required keys, per component, is documented in [docs/secrets.md](docs/secrets.md). Create the keys for a component in Infisical before deploying it; a missing key leaves the generated `Secret` incomplete and the pod fails with `CreateContainerConfigError`.
 
 Two bootstrap exceptions exist (detailed in [docs/secrets.md](docs/secrets.md)): the External Secrets Operator's own Infisical Universal Auth credentials are seeded manually during [cluster bootstrap](docs/talos.md) (the operator cannot fetch the credentials that grant it access to Infisical), and non-secret deployment variables (domain, IP, ACME email, Infisical endpoint) are rendered by envsubst rather than stored as secrets.
+
+### Required environment variables
+
+Deployment rendering (`envsubst`) substitutes these non-secret variables; every secret lives in Infisical instead (see [docs/secrets.md](docs/secrets.md)).
+
+| Variable | Purpose |
+| --- | --- |
+| `BASE_DOMAIN` | Base DNS domain for every public hostname (`app.${BASE_DOMAIN}`). |
+| `EXTERNAL_IP` | Public IP the Gateway advertises in DNS records and ACME DNS-01 requests. |
+| `ACME_EMAIL` | ACME registration email for the cert-manager ClusterIssuers. |
+| `AUTHELIA_SMTP_HOST` | SMTP relay hostname for Authelia's email notifier. |
+| `AUTHELIA_SMTP_USERNAME` / `AUTHELIA_SMTP_SENDER` | SMTP credentials and sender address for Authelia's notifier (password stays in Infisical). |
+| `B2_BUCKET` / `B2_REGION` | Velero's Backblaze B2 backup target. |
+| `INFISICAL_HOST` / `INFISICAL_HOSTNAME` | Infisical endpoint (in-cluster and external forms). |
+| `INFISICAL_PROJECT_SLUG` / `INFISICAL_ENVIRONMENT_SLUG` | Infisical scoping for the ClusterSecretStore. |
 
 ### 4. Create the Authelia Users Database
 Every OIDC sign-in resolves against Authelia's file-backed user database, stored in Infisical as `/authelia/USERS_DATABASE` (the full `users_database.yml` content). Generate an Argon2id digest per user, then list their groups — group memberships drive each application's role mapping:
@@ -110,7 +127,7 @@ users:
 | `grafana-admin` | Grafana server admin (everyone else is a Viewer) |
 | `immich-admin` | Immich admin (everyone else is a user) |
 | `opencloud-admin` / `opencloud-spaceadmin` / `opencloud-user` / `opencloud-user-light` | OpenCloud roles; sign-in requires one of these groups (deny-by-default) |
-| `vaultwarden-admin` / `vaultwarden-user` | Vaultwarden admin / user role (invited users in neither group default to the user role) |
+| `vaultwarden-admin` / `vaultwarden-user` | Vaultwarden sign-in groups (role mapping is not supported by the upstream image; admin access is assigned in the admin panel via `ADMIN_TOKEN`) |
 | `homeassistant-admin` | Home Assistant admin role |
 
 After editing the Infisical value, the change reaches the cluster on the ExternalSecret's hourly refresh (or immediately with `kubectl -n authelia delete secret authelia-files`, which External Secrets recreates at once). Authelia reads the database only at startup (`watch: false`), so finish with `kubectl -n authelia rollout restart deploy/authelia`.

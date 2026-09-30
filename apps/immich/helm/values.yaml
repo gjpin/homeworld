@@ -18,6 +18,9 @@ defaultContainerOptions:
 immich:
   metrics:
     enabled: true
+    # Documented telemetry exception: the chart hardcodes IMMICH_TELEMETRY_INCLUDE=all
+    # on the server container (not values-configurable). It only enables the local
+    # OTel metrics endpoint consumed by the required ServiceMonitor — no phone-home.
   persistence:
     library:
       existingClaim: photos

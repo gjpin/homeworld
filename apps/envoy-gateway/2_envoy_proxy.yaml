@@ -54,6 +54,7 @@ spec:
           type: StrategicMerge
           value:
             spec:
+              # Single replica: single-node homelab trade-off, no HA failover.
               replicas: 1
               template:
                 spec:

@@ -1,5 +1,8 @@
 fullnameOverride: external-dns
-namespaced: true
+# Cluster-wide watch: namespaced mode renders --namespace=external-dns, which
+# scopes the Gateway-API route informers to this namespace so cross-namespace
+# HTTPRoutes are never seen.
+namespaced: false
 replicaCount: 1
 
 image:
@@ -20,6 +23,13 @@ sources:
 # "sync" policy has issues:
 # https://github.com/kubernetes-sigs/external-dns/issues/4059
 policy: upsert-only
+
+# Scope this instance to its own zone; the txt registry only adopts records
+# carrying this prefix/owner id.
+domainFilters:
+  - ${BASE_DOMAIN}
+txtPrefix: external-dns.
+txtOwnerId: external-dns
 
 provider:
   name: cloudflare

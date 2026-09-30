@@ -61,6 +61,7 @@
      after the OpenTelemetry Operator (CRDs) and VictoriaMetrics (export)
    * forgejo
    * grafana
+   * homepage: application dashboard, gateway-OIDC protected (`platform` group)
    * notesnook: fully featured encrypted notes sync server with MongoDB, SSE, Monograph, Themes, CORS proxy, and Inbox API
    * radicale: internal CalDAV and CardDAV backend, before OpenCloud's
      authenticated DAV proxy
@@ -71,6 +72,8 @@
      device), External Secrets, and the CrowdSec Envoy bouncer
 * **Sync wave 7**
    * collabora: standalone Collabora chart and WOPI endpoint
+   * woodpecker: CI server and Kubernetes-backend agents, after Forgejo (the
+     OAuth source and webhook target)
    * openchamber: persistent AI agent workspace (OpenChamber, OpenCode, Codex
      CLI, Pi agent), after Envoy Gateway, cert-manager, External Secrets,
      Longhorn, and the CrowdSec Envoy bouncer
@@ -151,8 +154,8 @@ Standard Helm (`helm upgrade`) intentionally ignores the `crds/` directory, prev
 Within an individual sync wave, Argo CD sorts manifests by Kubernetes `Kind` priority, applying `CustomResourceDefinition` resources before controller workloads (`Deployment`, `StatefulSet`, `DaemonSet`).
 
 ### Dedicated CRD Applications vs. Bundled Helm Releases
-- **Standalone CRDs:** Shared ecosystem CRD suites without local controller dependencies (`prometheus-operator-crd`, `gateway-api-crd`, and `cilium-crds`) are separated into dedicated Argo CD applications and sync waves. The `cilium` Helm chart ships no CRDs, so `cilium-crds` applies the full `pkg/k8s/apis/cilium.io/client/crds/v2` set from the chart-aligned Git tag; Talos bootstrap (see [docs/talos.md](talos.md)) installs them before Argo CD exists, and the application takes over ownership for declarative upgrades. Pruning is deliberately disabled on `cilium-crds`: garbage-collecting the Cilium CRDs would delete every `CiliumNetworkPolicy` in the cluster along with them, cutting all workload networking.
-- **Bundled Operator CRDs:** Operators (`cloudnative-pg`, `cert-manager`, `external-secrets`, `dragonfly-operator`, `documentdb-operator`, `opentelemetry-operator`, etc.) bundle their upstream CRDs within their Helm charts, relying on Server-Side Apply and Kind-based sorting for in-place schema upgrades. Two charts are vendored and patched under `apps/<component>/helm/local-charts` because their upstream packaging breaks Kustomize's Helm inflation: the `documentdb-operator` chart (see `scripts/vendor-documentdb-operator.sh`) bundles a CloudNativePG subchart that collides with the standalone operator and hardcodes the `cnpg-system` namespace, and the `rustfs-operator` chart (see `scripts/vendor-rustfs-operator.sh`) ships the `tenants.rustfs.com` CRD twice under `crds/`, which Kustomize rejects as a duplicate resource ID. Renovate bumps the vendored `Chart.yaml` version and re-vendors the complete tree in the same PR.
+- **Standalone CRDs:** Shared ecosystem CRD suites without local controller dependencies are separated into dedicated Argo CD applications and sync waves: `prometheus-operator-crd` is a root application, while `cilium-crds` and `gateway-api-crd` are child Applications inside their component directories (all three precede every CR consumer). The `cilium` Helm chart ships no CRDs, so `cilium-crds` applies the full `pkg/k8s/apis/cilium.io/client/crds/v2` set from the chart-aligned Git tag; Talos bootstrap (see [docs/talos.md](talos.md)) installs them before Argo CD exists, and the application takes over ownership for declarative upgrades. Pruning is deliberately disabled on `cilium-crds`: garbage-collecting the Cilium CRDs would delete every `CiliumNetworkPolicy` in the cluster along with them, cutting all workload networking.
+- **Bundled Operator CRDs:** Operators (`cloudnative-pg`, `cert-manager`, `external-secrets`, `dragonfly-operator`, `documentdb-operator`, `opentelemetry-operator`, `longhorn`, `velero`, etc.) bundle their upstream CRDs within their Helm charts, relying on Server-Side Apply and Kind-based sorting for in-place schema upgrades. Two charts are vendored and patched under `apps/<component>/helm/local-charts` because their upstream packaging breaks Kustomize's Helm inflation: the `documentdb-operator` chart (see `scripts/vendor-documentdb-operator.sh`) bundles a CloudNativePG subchart that collides with the standalone operator and hardcodes the `cnpg-system` namespace, and the `rustfs-operator` chart (see `scripts/vendor-rustfs-operator.sh`) ships the `tenants.rustfs.com` CRD twice under `crds/`, which Kustomize rejects as a duplicate resource ID. Renovate bumps the vendored `Chart.yaml` version and re-vendors the complete tree in the same PR. Helm-hook Jobs are inert under Argo and their immutable specs block chart bumps: Longhorn's `preUpgradeChecker` is disabled (its online version check is a phone-home) and its uninstall Job is patch-deleted, while the post-upgrade cleanup is re-annotated as an Argo CD PostSync hook (`argocd.argoproj.io/hook: PostSync` + `hook-delete-policy: HookSucceeded`) so it runs after every sync with the fresh image and self-deletes instead of breaking upgrades.
 
 ## Intra-Component Sync Wave Architecture
 

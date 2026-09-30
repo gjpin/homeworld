@@ -1,5 +1,3 @@
-fullnameOverride: woodpecker
-
 server:
   enabled: true
   replicaCount: 1
@@ -17,6 +15,13 @@ server:
     WOODPECKER_DATABASE_DRIVER: postgres
     WOODPECKER_FORGEJO: "true"
     WOODPECKER_FORGEJO_URL: "https://git.${BASE_DOMAIN}"
+
+  # Expose the internal metrics endpoint the ServiceMonitor scrapes
+  # (bearer token arrives via envFrom woodpecker-secrets,
+  # WOODPECKER_PROMETHEUS_AUTH_TOKEN; the chart renders
+  # WOODPECKER_METRICS_SERVER_ADDR and the named `metrics` port 9001).
+  metrics:
+    enabled: true
 
   createAgentSecret: false
   extraSecretNamesForEnvFrom:
@@ -73,7 +78,16 @@ agent:
     WOODPECKER_BACKEND_K8S_STORAGE_RWX: false
     WOODPECKER_BACKEND_K8S_VOLUME_SIZE: 10G
     WOODPECKER_CONNECT_RETRY_COUNT: "5"
-    WOODPECKER_BACKEND_K8S_POD_RUNTIME_CLASS_NAME: "gvisor"
+    # v3.18 has no agent-wide runtime-class flag: pipelines opt into gVisor
+    # per-step via backend_options.runtimeClassName, which this gate allows.
+    WOODPECKER_BACKEND_K8S_RUNTIME_CLASS_ALLOW_FROM_STEP: "true"
+    # Label spawned pipeline pods so allow-pipeline-egress
+    # (-2_network_policy.yaml) can select them; without it they match no
+    # policy and get DNS-only egress under default-deny.
+    WOODPECKER_BACKEND_K8S_POD_LABELS: '{"app.kubernetes.io/managed-by": "woodpecker"}'
+    # Schedule pipeline pods on homelab nodes like every other workload
+    # (YAML mapping string, unmarshaled by the k8s backend).
+    WOODPECKER_BACKEND_K8S_POD_NODE_SELECTOR: "node-role.kubernetes.io/homelab: homelab"
 
   extraSecretNamesForEnvFrom:
     - woodpecker-default-agent-secret

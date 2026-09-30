@@ -21,5 +21,8 @@ config:
   kubernetesAPIBurst: 10000
 prometheus:
   servicemonitor:
+    # Metrics only flow with both netpols in place: a metrics-ingress policy
+    # here (otel-collector -> 9402/tcp) and an allow-otel-pod-scrape-cert-manager
+    # egress policy in apps/otel-collector/-2_network_policy.yaml.
     enabled: true
     interval: 60s

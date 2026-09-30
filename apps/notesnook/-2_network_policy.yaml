@@ -129,6 +129,30 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: allow-sse-smtp
+  namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The SMTP relay host comes from the notesnook-secrets ExternalSecret so it
+  # cannot be pinned by FQDN; allow submission ports to world (vaultwarden
+  # SMTP egress precedent).
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: notesnook-sse
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "465"
+              protocol: TCP
+            - port: "587"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-metrics-scraping
   namespace: notesnook
   annotations:
@@ -159,8 +183,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  # The notesnook-documentdb PodMonitor scrapes the CNPG instance metrics
-  # exporter.
+  # The notesnook-documentdb PodMonitor scrapes the DocumentDB instance metrics
+  # exporter (port 9188).
   endpointSelector:
     matchLabels:
       k8s:cnpg.io/cluster: notesnook

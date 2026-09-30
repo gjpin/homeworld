@@ -1,4 +1,7 @@
 nameOverride: authelia
+# versionOverride pins version-gated chart rendering to the deployed image
+# (chart appVersion 4.39.24) so it matches image.tag until the next chart bump.
+versionOverride: '4.39.28'
 image:
   registry: ghcr.io
   repository: authelia/authelia

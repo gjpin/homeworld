@@ -32,6 +32,7 @@ spec:
         runAsUser: 1883
         runAsGroup: 1883
         fsGroup: 1883
+        fsGroupChangePolicy: OnRootMismatch
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -53,6 +54,18 @@ spec:
             runAsNonRoot: true
             runAsUser: 1883
             runAsGroup: 1883
+          readinessProbe:
+            tcpSocket:
+              port: mqtt
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: mqtt
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
           resources:
             requests:
               cpu: 10m

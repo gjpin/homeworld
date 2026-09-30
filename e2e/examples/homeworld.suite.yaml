@@ -116,7 +116,9 @@ spec:
           releaseName: argocd
           chart: argo-cd
           repoURL: https://argoproj.github.io/argo-helm
-          version: "9.5.9"
+          # Matches the pinned chart in apps/argocd/helm/kustomization.yaml;
+          # Renovate bumps this together with the app pin.
+          version: "10.9.2"
           namespace: argocd
           createNamespace: true
           wait: true
@@ -205,6 +207,13 @@ spec:
             - notesnook
             - woodpecker
             - vaultwarden
+            - homepage
+            - qbittorrent
+            - opentelemetry-operator
+            # kube-system hosts metrics-server, the kubelet-serving-cert
+            # approver, and the generic-device-plugin alongside kind's own
+            # infra (kube-proxy/coredns/kindnet), all workload-backed.
+            - kube-system
       - name: eso-store
         resourceCondition:
           apiVersion: external-secrets.io/v1
@@ -303,10 +312,85 @@ spec:
           condition: Ready
           status: "True"
           timeout: 10m
+      # The DocumentDB CR itself must be ready (the operator layers the
+      # documentdb-gateway sidecar on the CNPG cluster asserted above).
+      - name: documentdb-notesnook-cr
+        resourceCondition:
+          apiVersion: documentdb.io/preview
+          kind: DocumentDB
+          name: notesnook
+          namespace: notesnook
+          condition: Ready
+          status: "True"
+          timeout: 10m
+      # The shared RustFS Tenant store must be reconciled and serving.
+      - name: rustfs-tenant
+        resourceCondition:
+          apiVersion: rustfs.com/v1alpha1
+          kind: Tenant
+          name: rustfs
+          namespace: rustfs
+          condition: Ready
+          status: "True"
+          timeout: 10m
       - name: gateway-envoy
         gatewayReady:
           name: envoy
           namespace: envoy-gateway
+          timeout: 10m
+      # Application HTTP health: each probe drives the real ClusterIP
+      # service + port from the component's HTTPRoute backend.
+      - name: forgejo-health
+        serviceProbe:
+          namespace: forgejo
+          service: forgejo-http
+          port: 3000
+          path: "/api/healthz"
+          timeout: 10m
+      - name: immich-health
+        serviceProbe:
+          namespace: immich
+          service: immich-server
+          port: 80
+          path: "/api/server-info/ping"
+          bodyContains: pong
+          timeout: 10m
+      - name: authelia-health
+        serviceProbe:
+          namespace: authelia
+          service: authelia
+          port: 80
+          path: "/api/health"
+          timeout: 10m
+      - name: vaultwarden-health
+        serviceProbe:
+          namespace: vaultwarden
+          service: vaultwarden
+          port: 8080
+          path: "/alive"
+          timeout: 10m
+      # Collabora's WOPI discovery endpoint must serve its XML.
+      - name: collabora-wopi-discovery
+        serviceProbe:
+          namespace: collabora
+          service: collabora
+          port: 9980
+          path: "/hosting/discovery"
+          bodyContains: wopi-discovery
+          timeout: 10m
+      - name: opencloud-status
+        serviceProbe:
+          namespace: opencloud
+          service: opencloud
+          port: 9200
+          path: "/status.php"
+          timeout: 10m
+      - name: woodpecker-health
+        serviceProbe:
+          namespace: woodpecker
+          service: woodpecker-server
+          port: 80
+          path: "/healthz"
           timeout: 10m
       # VictoriaMetrics must actually hold OTel-exported series, not just run.
       - name: victoria-metrics-data

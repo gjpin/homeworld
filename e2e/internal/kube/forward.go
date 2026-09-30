@@ -25,6 +25,9 @@ func PortForward(ctx context.Context, cfg *rest.Config, typed kubernetes.Interfa
 	if err != nil {
 		return 0, nil, fmt.Errorf("get service %s/%s: %w", namespace, service, err)
 	}
+	if len(svc.Spec.Selector) == 0 {
+		return 0, nil, fmt.Errorf("service %s/%s has no pod selector: port-forwarding would match every pod in the namespace", namespace, service)
+	}
 	pods, err := typed.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{
 		LabelSelector: labelSelectorFromMap(svc.Spec.Selector),
 	})
@@ -33,13 +36,13 @@ func PortForward(ctx context.Context, cfg *rest.Config, typed kubernetes.Interfa
 	}
 	var podName string
 	for _, p := range pods.Items {
-		if p.Status.Phase == corev1.PodRunning {
+		if podIsReady(p) {
 			podName = p.Name
 			break
 		}
 	}
 	if podName == "" {
-		return 0, nil, fmt.Errorf("no running pods for service %s/%s", namespace, service)
+		return 0, nil, fmt.Errorf("no ready pods for service %s/%s", namespace, service)
 	}
 
 	transport, upgrader, err := spdy.RoundTripperFor(cfg)
@@ -103,6 +106,21 @@ func labelSelectorFromMap(m map[string]string) string {
 		fmt.Fprintf(buf, "%s=%s", k, v)
 	}
 	return buf.String()
+}
+
+// podIsReady reports whether the pod is Running with a True Ready condition;
+// a freshly started pod that has not passed readiness yet cannot serve the
+// forwarded traffic.
+func podIsReady(p corev1.Pod) bool {
+	if p.Status.Phase != corev1.PodRunning {
+		return false
+	}
+	for _, c := range p.Status.Conditions {
+		if c.Type == corev1.PodReady && c.Status == corev1.ConditionTrue {
+			return true
+		}
+	}
+	return false
 }
 
 // ExecInPod runs a command in a pod and returns combined stdout/stderr.

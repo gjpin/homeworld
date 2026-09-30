@@ -43,3 +43,16 @@ spec:
       owner: crowdsec
       secret:
         name: postgres-credentials
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: crowdsec
+  namespace: crowdsec
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: crowdsec
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 60s

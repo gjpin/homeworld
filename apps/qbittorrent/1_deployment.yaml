@@ -128,8 +128,10 @@ spec:
                       "\n"
                       "[Preferences]\n"
                       # The metrics exporter shares the pod's network
-                      # namespace and scrapes 127.0.0.1:8080 without
-                      # credentials.
+                      # namespace and scrapes 127.0.0.1:8080 using the
+                      # stateless WebAPI key (QBITTORRENT_API_KEY): loopback
+                      # still requires auth, and the key flow works through
+                      # the shared netns.
                       "WebUI\\LocalHostAuth=false\n"
                       "WebUI\\Password_PBKDF2=" + pbkdf2 + "\n"
                       "WebUI\\Port=8080\n"
@@ -380,9 +382,11 @@ spec:
               devic.es/tun: "1"
               cpu: 500m
               memory: 256Mi
+              ephemeral-storage: 1Gi
             requests:
               cpu: 10m
               memory: 64Mi
+              ephemeral-storage: 64Mi
           volumeMounts:
             - name: gluetun
               mountPath: /gluetun

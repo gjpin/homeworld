@@ -1,6 +1,8 @@
 namespaceOverride: longhorn-system # mandatory namespace for this helm chart
 persistence:
   defaultClass: false
+  # Inert while createStorageClass: false (the chart's own class is never
+  # created); longhorn-crypto's replica count is set in helm/storage_class.yaml.
   defaultClassReplicaCount: 1
   # The chart-generated `longhorn` StorageClass has no SELinux mountOptions
   # (the chart exposes no mountOptions knob), so its creation is disabled;
@@ -12,6 +14,20 @@ defaultSettings:
   systemManagedComponentsNodeSelector: "node-role.kubernetes.io/homelab:homelab"
   defaultReplicaCount: 1
   concurrentAutomaticEngineUpgradePerNodeLimit: 2
+# Helm hook Jobs rendered through kustomize land in the Argo sync path as
+# plain Jobs, where hook annotations are inert and the immutable Job spec
+# breaks every chart bump (the completed Jobs from the first sync reject
+# the new image tag). The pre-upgrade checker is therefore disabled — its
+# online version check is the manager phone-home this repo already refuses
+# via defaultSettings.upgradeChecker, and Renovate's sequential-minor rule
+# plus automatic engine upgrades cover its compatibility purpose. The
+# post-upgrade cleanup is kept, but converted into an Argo CD PostSync
+# hook in kustomization.yaml so it actually runs in the GitOps flow; the
+# uninstall Job (longhorn-manager uninstall --force) is patch-deleted —
+# it must never run from a sync.
+preUpgradeChecker:
+  jobEnabled: false
+  upgradeVersionCheck: false
 networkPolicies:
   enabled: false
 metrics:

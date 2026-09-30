@@ -242,3 +242,33 @@ spec:
         - ports:
             - port: "9187"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # First-use model downloads for machine learning: the CLIP text model is
+  # fetched from Hugging Face (TRANSFORMERS_CACHE / HF_XET_CACHE persist on
+  # the cache PVC, so only first use needs egress; the Xet path adds the
+  # cas-bridge host), and facial-recognition/detection models (buffalo_l)
+  # come from GitHub release assets.
+  name: allow-immich-ml-models
+  namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: immich
+      k8s:app.kubernetes.io/name: machine-learning
+  egress:
+    - toFQDNs:
+        - matchName: "huggingface.co"
+        - matchName: "cdn-lfs.huggingface.co"
+        - matchName: "cdn-lfs-us-1.huggingface.co"
+        - matchName: "cas-bridge.xethub.hf.co"
+        - matchName: "github.com"
+        - matchName: "objects.githubusercontent.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

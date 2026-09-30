@@ -48,6 +48,17 @@ spec:
   pools:
     - name: primary
       servers: 1
+      # Requests+limits for the RustFS server container (the operator CRD
+      # supports standard ResourceRequirements per pool).
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+          ephemeral-storage: 128Mi
+        limits:
+          cpu: "1"
+          memory: 2Gi
+          ephemeral-storage: 2Gi
       persistence:
         volumesPerServer: 1
         volumeClaimTemplate:
@@ -65,6 +76,11 @@ spec:
   # after the user (see -1_user_secrets.yaml); policies are scoped to the
   # single bucket the application uses (see 0_user_policies.yaml).
   buckets:
+    # NOTE: no ServiceMonitor scrapes the Tenant S3 (:9000) or console
+    # (:9001) workloads and no metrics ingress policy exists for them — the
+    # operator chart's monitors cover the operator and console only. Add a
+    # monitor plus netpol pair if the RustFS server exposes Prometheus
+    # metrics on its ports.
     - name: notesnook-attachments
     - name: opencloud
   policies:

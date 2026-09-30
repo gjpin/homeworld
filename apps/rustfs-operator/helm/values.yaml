@@ -5,6 +5,12 @@ commonAnnotations:
 operator:
   image:
     repository: docker.io/rustfs/operator
+    # Renovate tracks this image tag independently of the vendored chart
+    # version: upstream publishes no chart 0.0.6 (chart versions jumped
+    # 0.0.5 -> 0.07), so the binary runs ahead of the vendored chart. The
+    # Tenant CRD the chart ships is the same one the 0.0.6 binary manages
+    # (verified by the working kustomize render); the next chart bump
+    # re-vendors the whole tree via scripts/vendor-rustfs-operator.sh.
     tag: 0.0.6
     pullPolicy: IfNotPresent
   resources:

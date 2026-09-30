@@ -28,6 +28,15 @@ spec:
     runAsNonRoot: true
     seccompProfile:
       type: RuntimeDefault
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+      ephemeral-storage: 128Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+      ephemeral-storage: 2Gi
   storage:
     storageClass: longhorn-crypto
     size: 5Gi

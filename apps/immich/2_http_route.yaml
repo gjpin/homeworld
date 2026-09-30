@@ -11,6 +11,7 @@ spec:
   parentRefs:
     - name: envoy
       namespace: immich
+      sectionName: immich-https
   hostnames:
     - "photos.${BASE_DOMAIN}"
   rules:

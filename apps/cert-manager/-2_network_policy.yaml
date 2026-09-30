@@ -1,4 +1,7 @@
 ---
+# NOTE: ServiceMonitor scraping additionally needs a metrics-ingress policy
+# here (otel-collector -> 9402/tcp http-metrics) plus an
+# allow-otel-pod-scrape-cert-manager egress policy in apps/otel-collector.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:

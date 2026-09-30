@@ -9,7 +9,10 @@ autoscaling:
   enabled: false
 resources:
   requests:
-    cpu: 10m
+    # coolwsd forks a kit process per open document; 10m starves the office
+    # engine at startup and slows first render. 100m keeps the idle cost
+    # negligible (single idle coolwsd) while letting the scheduler place it sanely.
+    cpu: 100m
     memory: 64Mi
     ephemeral-storage: 64Mi
   limits:
@@ -46,6 +49,12 @@ nodeSelector:
 podLabels:
   app: collabora
 podSecurityContext:
+  # Hardened over the chart's deliberately-empty defaults (podSecurityContext
+  # and securityContext both ship as {}): UID/GID 1000, RuntimeDefault seccomp,
+  # drop ALL, no privilege escalation, plus gvisor/hostUsers via the
+  # kustomization patches. coolwsd runs its own internal forkit sandboxing, so
+  # smoke-test document editing live after deploy; if kit-namespace failures
+  # occur, scope a documented exception instead of weakening the namespace.
   runAsNonRoot: true
   runAsUser: 1000
   runAsGroup: 1000

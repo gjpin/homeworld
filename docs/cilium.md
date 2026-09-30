@@ -21,5 +21,6 @@ The cluster runs Cilium as its CNI in kube-proxy-replacement mode. This page rec
 
 ## Operational notes
 
+- **Host firewall disabled:** the Cilium host firewall stays off. The host-network `cilium-agent`/`cilium-envoy`/`cilium-operator` pods are outside Cilium's policy scope either way, so node-level policy for them is accepted as absent (also recorded in [docs/network-policies.md](network-policies.md)); enabling the host firewall would require host-scoped policies for all node traffic without adding enforcement for these pods.
 - Rebuilding a node requires re-running the bootstrap ([docs/talos.md](talos.md)); the machine configuration alone does not restore the CNI. This is the accepted trade-off of the manifest-apply bootstrap in exchange for a single owner (Argo CD) and no machine-config embedded render to keep fresh.
 - Upgrades are git-driven from the first Argo CD sync on: Renovate opens one version-aligned PR bumping both the Helm chart and the CRD tag, and the `cilium` Argo CD application rolls them out.

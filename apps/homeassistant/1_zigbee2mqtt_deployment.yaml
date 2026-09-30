@@ -32,10 +32,60 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
         supplementalGroups:
           - 20
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+        # Seeds Zigbee2MQTT's bootstrap configuration on the first start of
+        # an empty PVC (same create-if-missing pattern as the Home Assistant
+        # bootstrap): broker and frontend are pre-wired so only the serial
+        # port remains hardware-specific. Without a seed z2m generates a
+        # default configuration pointing at a localhost broker that does not
+        # exist and crashloops. Later git changes to the seed must be
+        # applied by editing /app/data/configuration.yaml directly.
+        - name: zigbee2mqtt-config-bootstrap
+          image: docker.io/library/alpine:3.24.2
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -ec
+            - |
+              [ -f /app/data/configuration.yaml ] || cat > /app/data/configuration.yaml <<'YAML'
+              homeassistant: false
+              mqtt:
+                base_topic: zigbee2mqtt
+                server: mqtt://homeassistant-mosquitto:1883
+              frontend:
+                enabled: true
+                port: 8080
+              # Fill in your Zigbee adapter under the mounted
+              # /dev/serial/by-id (see README "Zigbee Coordinator"):
+              # z2m cannot start without a serial port.
+              serial:
+                port: ""
+              YAML
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+              ephemeral-storage: 2Gi
+          volumeMounts:
+            - mountPath: /app/data
+              name: homeassistant-zigbee2mqtt-claim0
       containers:
         - image: ghcr.io/koenkk/zigbee2mqtt:2.14.1
           imagePullPolicy: IfNotPresent
@@ -55,6 +105,18 @@ spec:
             runAsNonRoot: true
             runAsUser: 1000
             runAsGroup: 1000
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
           resources:
             requests:
               cpu: 10m

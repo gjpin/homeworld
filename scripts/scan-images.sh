@@ -9,8 +9,21 @@ images=()
 if [[ $# -ge 1 ]] && [[ "$1" =~ : ]]; then
   images+=("$1")
 else
-  base_ref="${1:-${GITHUB_BASE_REF:-origin/main}}"
-  if ! git rev-parse --verify "$base_ref" >/dev/null 2>&1; then
+  if [[ -n "${1:-}" ]]; then
+    base_ref="$1"
+  elif [[ -n "${GITHUB_BASE_REF:-}" ]]; then
+    # Pull request: diff against the PR base branch (existing behavior).
+    base_ref="$GITHUB_BASE_REF"
+  elif git rev-parse --verify "HEAD~1" >/dev/null 2>&1; then
+    # Push event: GITHUB_BASE_REF is unset and origin/main points at HEAD,
+    # which would produce an empty diff, so diff against the previous commit.
+    base_ref="HEAD~1"
+  else
+    # Single-commit repo: no HEAD~1 exists, so diff against the empty tree
+    # to scan the full image inventory instead of nothing.
+    base_ref="4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+  fi
+  if [[ "$base_ref" != "4b825dc642cb6eb9a060e54bf8d69288fbee4904" ]] && ! git rev-parse --verify "$base_ref" >/dev/null 2>&1; then
     if git rev-parse --verify "origin/$base_ref" >/dev/null 2>&1; then
       base_ref="origin/$base_ref"
     elif git rev-parse --verify "origin/main" >/dev/null 2>&1; then
@@ -139,7 +152,7 @@ EOF
 fi
 
 if [[ ${#images[@]} -eq 0 ]]; then
-  echo "No updated container images detected in PR diff."
+  echo "No updated container images detected."
   exit 0
 fi
 

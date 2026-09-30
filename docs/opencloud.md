@@ -34,3 +34,7 @@ If manual intervention or maintenance is required:
   ```
 * **Restore previous configuration backup:**
   Timestamped backups are stored under `/etc/opencloud/opencloud.yaml.<timestamp>.bak`.
+
+## Not configured
+
+- **Outbound email:** no SMTP environment is set, so share-invitation emails are not sent — invitations surface in-app instead. Add SMTP settings to the OpenCloud deployment if email delivery is ever needed.

@@ -749,8 +749,8 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   # The ServiceMonitor scrapes the sync server's OpenTelemetry Prometheus
-  # exporter (5067) and the PodMonitor scrapes the CNPG instance metrics
-  # exporter of the notesnook DocumentDB cluster (9188).
+  # exporter (5067) and the PodMonitor scrapes the DocumentDB instance metrics
+  # exporter (port 9188).
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -893,8 +893,8 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   # Woodpecker's ServiceMonitor scrapes the server's authenticated metrics
-  # endpoint and its PodMonitor scrapes the CloudNativePG instance metrics
-  # port.
+  # endpoint (named port 9001, enabled via server.metrics.enabled) and its
+  # PodMonitor scrapes the CloudNativePG instance metrics port.
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -907,6 +907,8 @@ spec:
       toPorts:
         - ports:
             - port: "8000"
+              protocol: TCP
+            - port: "9001"
               protocol: TCP
             - port: "9187"
               protocol: TCP

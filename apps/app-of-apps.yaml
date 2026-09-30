@@ -775,7 +775,8 @@ spec:
       allowEmpty: false
     syncOptions:
     - Validate=true
-    - CreateNamespace=true
+    # No CreateNamespace: envoy-gateway is created (with its PSA labels) by
+    # envoy-gateway-app in root wave 2, before this wave-6 bouncer.
     - PrunePropagationPolicy=foreground
     - PruneLast=true
     - ServerSideApply=true

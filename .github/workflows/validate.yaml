@@ -10,6 +10,9 @@ permissions:
   contents: read
 
 jobs:
+  # Parse-only validation: CEL admission policies and pinned-CRD custom
+  # resources are only parse-checked here; cluster-side schema validation is
+  # impossible without the CRDs installed (see AGENTS.md Validation section).
   manifests:
     runs-on: ubuntu-latest
     steps:
@@ -18,8 +21,20 @@ jobs:
 
       - name: Parse Kubernetes manifests
         run: |
-          find apps -type f -name '*.yaml' -not -path '*/local-charts/*' -print0 |
+          find apps -type f -name '*.yaml' -not -path '*/charts/*' -not -path '*/local-charts/*' -print0 |
             xargs -0 -n1 yq eval '.' >/dev/null
+
+      - name: Validate Grafana dashboards
+        # jq ships preinstalled on the runner image, so no install step needed.
+        run: |
+          find apps/grafana/dashboards -type f -name '*.json' -print0 |
+            xargs -0 -n1 jq empty
+
+      - name: Check shell script syntax
+        run: |
+          for f in scripts/*.sh e2e/examples/hooks/*.sh; do
+            bash -n "$f"
+          done
 
       - name: Check Kubernetes version pin consistency
         run: scripts/check-k8s-version.sh

@@ -6,7 +6,9 @@
   "enabledManagers": [
     "argocd",
     "custom.regex",
+    "docker-compose",
     "github-actions",
+    "gomod",
     "kustomize",
     "kubernetes"
   ],
@@ -133,6 +135,14 @@
         "cilium/cilium"
       ],
       "groupName": "cilium"
+    },
+    {
+      "customType": "regex",
+      "description": "Group the Prometheus Operator CRD tag bumps (repo pin + e2e hook) so the release and its CRDs stay version-aligned",
+      "matchPackageNames": [
+        "prometheus-operator/prometheus-operator"
+      ],
+      "groupName": "prometheus-operator-crds"
     },
     {
       "description": "Group every OpenChamber workspace image update (base image digest and all pinned tools, majors included) into one PR; automerge-openchamber.yaml merges it once the PR smoke build passes",
@@ -532,9 +542,10 @@
     },
     {
       "customType": "regex",
-      "description": "Update the Authelia Dragonfly image",
+      "description": "Update the Dragonfly operand images (authelia, immich)",
       "managerFilePatterns": [
-        "/^apps/authelia/0_dragonfly\\.yaml$/"
+        "/^apps/authelia/0_dragonfly\\.yaml$/",
+        "/^apps/immich/0_dragonfly\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^\\s*image:\\s*(?<depName>docker\\.dragonflydb\\.io/dragonflydb/dragonfly):(?<currentValue>[^\\s#]+)\\s*$"
@@ -1101,6 +1112,113 @@
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Woodpecker server and agent images",
+      "managerFilePatterns": [
+        "/^apps/woodpecker/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^\\s+image:\\s*\\n\\s+registry:\\s*docker\\.io\\s*\\n\\s+repository:\\s*(?<depName>woodpeckerci/woodpecker-server|woodpeckerci/woodpecker-agent)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Prometheus Operator CRD bundle tag",
+      "managerFilePatterns": [
+        "/^apps/prometheus-operator-crd/0_crds\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)repoURL:\\s+https://github\\.com/(?<depName>prometheus-operator/prometheus-operator)\\.git\\s+targetRevision:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "datasourceTemplate": "git-tags",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Prometheus Operator CRD version applied by the e2e hook",
+      "managerFilePatterns": [
+        "/^e2e/examples/hooks/apply-operator-crds\\.sh$/"
+      ],
+      "matchStrings": [
+        "PROMETHEUS_OPERATOR_VERSION:-(?<currentValue>v[\\d.]+)"
+      ],
+      "depNameTemplate": "prometheus-operator/prometheus-operator",
+      "datasourceTemplate": "git-tags",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Cilium version pinned by the e2e suite and CRD hook",
+      "managerFilePatterns": [
+        "/^e2e/examples/homeworld\\.suite\\.ya?ml$/",
+        "/^e2e/examples/hooks/apply-cilium-crds\\.sh$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*chartVersion:\\s*\"?(?<currentValue>[\\d.]+)\"?\\s*$",
+        "CILIUM_VERSION:-(?<currentValue>[\\d.]+)"
+      ],
+      "depNameTemplate": "cilium",
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm",
+      "registryUrlTemplate": "https://helm.cilium.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Argo CD chart version installed by the e2e bootstrap (kept aligned with apps/argocd)",
+      "managerFilePatterns": [
+        "/^e2e/examples/homeworld\\.suite\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "(?ms)chart:\\s+argo-cd\\s*\\n\\s+repoURL:\\s+https://argoproj\\.github\\.io/argo-helm\\s*\\n(?:\\s*#[^\\n]*\\n\\s*)*version:\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "argo-cd",
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm",
+      "registryUrlTemplate": "https://argoproj.github.io/argo-helm"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Kubescape controls framework version pinned by the security scan",
+      "managerFilePatterns": [
+        "/^scripts/scan-security\\.sh$/"
+      ],
+      "matchStrings": [
+        "--controls-version\\s+v(?<currentValue>[\\d.]+)"
+      ],
+      "depNameTemplate": "kubescape/regolibrary",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Renovate version used by the workflow",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/renovate\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s+renovate-version:\\s*(?<currentValue>[\\d.]+)\\s*$"
+      ],
+      "depNameTemplate": "renovatebot/renovate",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Envoy bouncer image default in the e2e load hook",
+      "managerFilePatterns": [
+        "/^e2e/examples/hooks/load-bouncer-image\\.sh$/"
+      ],
+      "matchStrings": [
+        "BOUNCER_IMAGE:-ghcr\\.io/kdwils/(?<depName>envoy-proxy-bouncer):(?<currentValue>[^\\\"]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
     }
   ]
 }

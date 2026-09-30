@@ -89,11 +89,12 @@ done
 echo "node is up"
 
 # Prepare Cilium; no cluster access needed yet
-# Upstream Cilium source: CRDs only (chart ships none)
-git clone --depth 1 --branch v1.20.2 https://github.com/cilium/cilium.git /tmp/cilium-src
+# Upstream Cilium source: CRDs only (chart ships none). The tag always
+# matches the Cilium chart pinned in apps/cilium/helm/kustomization.yaml.
+git clone https://github.com/gjpin/homeworld.git /tmp/homeworld
+git clone --depth 1 --branch "$(yq '.helmCharts[0].version' /tmp/homeworld/apps/cilium/helm/kustomization.yaml)" https://github.com/cilium/cilium.git /tmp/cilium-src
 
 # Render the release Argo CD will adopt
-git clone https://github.com/gjpin/homeworld.git /tmp/homeworld
 kubectl kustomize --enable-helm /tmp/homeworld/apps/cilium/helm > /tmp/cilium.yaml
 
 # Helm renders no release namespace

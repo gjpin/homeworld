@@ -82,6 +82,16 @@ spec:
                 secretKeyRef:
                   name: homepage-secrets
                   key: HOMEPAGE_VAR_IMMICH_API_KEY
+            - name: HOMEPAGE_VAR_QBITTORRENT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secrets
+                  key: HOMEPAGE_VAR_QBITTORRENT_USERNAME
+            - name: HOMEPAGE_VAR_QBITTORRENT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secrets
+                  key: HOMEPAGE_VAR_QBITTORRENT_PASSWORD
           ports:
             - name: http
               containerPort: 3000

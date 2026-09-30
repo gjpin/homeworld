@@ -29,3 +29,12 @@ spec:
         certificateRefs:
           - name: forgejo-tls-cert
             kind: Secret
+    # Plain TCP passthrough for git SSH (git@ clone/push). ExternalDNS's
+    # gateway-tcproute source reads the hostname annotation on the TCPRoute;
+    # port 22 must also be forwarded to ${EXTERNAL_IP} on the router.
+    - name: forgejo-ssh
+      protocol: TCP
+      port: 22
+      allowedRoutes:
+        namespaces:
+          from: all

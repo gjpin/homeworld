@@ -1,0 +1,22 @@
+---
+# Git SSH (git@ clone/push) through the merged Gateway's TCP listener
+# (0_gateway.yaml). The external-dns gateway-tcproute source creates the
+# git.${BASE_DOMAIN} A record from the hostname annotation below — TCPRoute
+# carries no spec.hostnames of its own.
+apiVersion: gateway.networking.k8s.io/v1
+kind: TCPRoute
+metadata:
+  name: forgejo-ssh
+  namespace: forgejo
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    external-dns.alpha.kubernetes.io/hostname: "git.${BASE_DOMAIN}"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: forgejo
+      sectionName: forgejo-ssh
+  rules:
+    - backendRefs:
+        - name: forgejo-ssh
+          port: 22
