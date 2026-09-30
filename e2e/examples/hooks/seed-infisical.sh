@@ -324,7 +324,7 @@ seed_secrets() {
   token=$(cat "${OUT_DIR}/token")
   project_id=$(cat "${OUT_DIR}/project_id")
 
-  for folder in grafana homepage authelia immich forgejo rustfs opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker openchamber vaultwarden; do
+  for folder in grafana homepage authelia immich forgejo rustfs opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker openchamber vaultwarden qbittorrent; do
     ensure_folder "${token}" "${project_id}" "${folder}"
   done
 
@@ -368,6 +368,11 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_VELERO_UI" "e2e-oidc-velero-ui"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_RUSTFS" "e2e-oidc-rustfs"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_VAULTWARDEN" "e2e-oidc-vaultwarden"
+  # Shared gateway-OIDC client: consumed by the authelia, envoy-gateway,
+  # homepage, victoria-metrics, homeassistant, and longhorn ExternalSecrets
+  # (the latter two apps are omitted on kind, but seeding the key keeps the
+  # omit list independent of the secret set).
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_ENVOY" "e2e-oidc-envoy"
   put_secret "${token}" "${project_id}" "/authelia/SMTP_PASSWORD" "e2e-authelia-smtp"
   put_secret "${token}" "${project_id}" "/authelia/USERS_DATABASE" "${authelia_users}"
   put_secret "${token}" "${project_id}" "/cloudflare/API_TOKEN" "e2e-cloudflare-token"
@@ -400,15 +405,25 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/notesnook/DOCUMENTDB_PASSWORD" "e2e-notesnook-db"
   put_secret "${token}" "${project_id}" "/notesnook/RUSTFS_ACCESS_KEY" "e2eaccesskey"
   put_secret "${token}" "${project_id}" "/notesnook/RUSTFS_SECRET_KEY" "e2esecretkey"
+  # The SSE server's mail notifier: unreachable on kind by design (it fails
+  # at send time, never at startup).
+  put_secret "${token}" "${project_id}" "/notesnook/SMTP_USERNAME" "e2e"
+  put_secret "${token}" "${project_id}" "/notesnook/SMTP_PASSWORD" "e2e-notesnook-smtp"
+  put_secret "${token}" "${project_id}" "/notesnook/SMTP_HOST" "smtp.e2e.local"
+  put_secret "${token}" "${project_id}" "/notesnook/SMTP_PORT" "465"
   put_secret "${token}" "${project_id}" "/woodpecker/POSTGRES_USERNAME" "woodpecker"
   put_secret "${token}" "${project_id}" "/woodpecker/POSTGRES_PASSWORD" "e2e-woodpecker-db"
   put_secret "${token}" "${project_id}" "/woodpecker/AGENT_SECRET" "e2e-woodpecker-agent-secret"
   put_secret "${token}" "${project_id}" "/woodpecker/FORGEJO_CLIENT" "e2e-woodpecker-forgejo-client"
   put_secret "${token}" "${project_id}" "/woodpecker/FORGEJO_SECRET" "e2e-woodpecker-forgejo-secret"
   put_secret "${token}" "${project_id}" "/woodpecker/PROMETHEUS_AUTH_TOKEN" "e2e-woodpecker-metrics"
-  put_secret "${token}" "${project_id}" "/openchamber/OPENCHAMBER_UI_PASSWORD" "e2e-openchamber"
-  put_secret "${token}" "${project_id}" "/openchamber/OPENAI_API_KEY" "e2e-openai-key"
-  put_secret "${token}" "${project_id}" "/openchamber/GITHUB_TOKEN" "e2e-github-token"
+  # The qbittorrent app itself is omitted on kind (gluetun needs TUN and real
+  # VPN credentials), but Homepage's service widgets read the WebUI pair, and
+  # qBittorrent enforces a minimum username length of 3 without a colon and
+  # a minimum password length of 6.
+  put_secret "${token}" "${project_id}" "/qbittorrent/WEBUI_USERNAME" "e2e-qbittorrent"
+  put_secret "${token}" "${project_id}" "/qbittorrent/WEBUI_PASSWORD" "e2e-qbittorrent-pass"
+  put_secret "${token}" "${project_id}" "/qbittorrent/WEBUI_API_KEY" "e2e-qbittorrent-api-key"
   # Plain token instead of an Argon2 PHC string: Vaultwarden accepts it for
   # the admin panel (with a startup warning), keeping the seed dependency-free.
   put_secret "${token}" "${project_id}" "/vaultwarden/ADMIN_TOKEN" "e2e-vaultwarden-admin"

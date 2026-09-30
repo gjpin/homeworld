@@ -180,6 +180,7 @@ spec:
             - otel-collector
             - otel-collector-node
             - openchamber
+            - qbittorrent
           ignoreCompletedJobs: true
       - name: workloads
         workloadsReady:
@@ -208,11 +209,14 @@ spec:
             - woodpecker
             - vaultwarden
             - homepage
-            - qbittorrent
             - opentelemetry-operator
-            # kube-system hosts metrics-server, the kubelet-serving-cert
-            # approver, and the generic-device-plugin alongside kind's own
-            # infra (kube-proxy/coredns/kindnet), all workload-backed.
+            # metrics-server and the kubelet-serving-cert approver run in
+            # their own dedicated namespaces (apps/app-of-apps.yaml
+            # destinations), not kube-system.
+            - metrics-server
+            - kubelet-serving-cert-approver
+            # kube-system hosts the generic-device-plugin alongside kind's
+            # own infra (kube-proxy/coredns/kindnet), all workload-backed.
             - kube-system
       - name: eso-store
         resourceCondition:
@@ -346,6 +350,7 @@ spec:
           service: forgejo-http
           port: 3000
           path: "/api/healthz"
+          bodyContains: pass
           timeout: 10m
       - name: immich-health
         serviceProbe:
@@ -384,6 +389,7 @@ spec:
           service: opencloud
           port: 9200
           path: "/status.php"
+          bodyContains: '"installed":true'
           timeout: 10m
       - name: woodpecker-health
         serviceProbe:
@@ -391,6 +397,41 @@ spec:
           service: woodpecker-server
           port: 80
           path: "/healthz"
+          timeout: 10m
+      - name: homepage-health
+        serviceProbe:
+          namespace: homepage
+          service: homepage
+          port: 3000
+          path: "/api/healthcheck"
+          timeout: 10m
+      # The notesnook-sync service's own health endpoint.
+      - name: notesnook-sync-health
+        serviceProbe:
+          namespace: notesnook
+          service: notesnook-sync
+          port: 5264
+          path: "/health"
+          timeout: 10m
+      # The Authelia OIDC discovery document must be served and name its
+      # issuer; every browser OIDC flow starts here.
+      - name: authelia-oidc-discovery
+        serviceProbe:
+          namespace: authelia
+          service: authelia
+          port: 80
+          path: "/.well-known/openid-configuration"
+          bodyContains: '"issuer"'
+          timeout: 10m
+      # The shared RustFS Tenant must serve its S3 readiness endpoint
+      # (docs.rustfs.com: /health/ready returns 200 only when storage, IAM,
+      # and peers are ready).
+      - name: rustfs-s3-ready
+        serviceProbe:
+          namespace: rustfs
+          service: rustfs-io
+          port: 9000
+          path: "/health/ready"
           timeout: 10m
       # VictoriaMetrics must actually hold OTel-exported series, not just run.
       - name: victoria-metrics-data

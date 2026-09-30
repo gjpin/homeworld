@@ -28,6 +28,9 @@ OMIT_APPS = {
     # Image ghcr.io/gjpin/openchamber is private; kind cannot pull it
     # without credentials (401 Unauthorized).
     "openchamber-app",
+    # Gluetun needs /dev/net/tun and real VPN credentials, neither of which
+    # exists on kind; the qBittorrent pod can never become Ready.
+    "qbittorrent-app",
 }
 
 GIT_REPO_URL = "git://host.docker.internal:9418/homeworld.git"
@@ -1221,34 +1224,6 @@ def rewrite_documentdb_kind(root: pathlib.Path) -> None:
     print(f"[rewrite-staging] documentdb webhook Ignore + probe timeouts in {count} files")
 
 
-def rewrite_openchamber_kind(root: pathlib.Path) -> None:
-    """Single-node kind cannot afford 100Gi hostPath or 2CPU/4Gi requests."""
-    pvc = root / "apps" / "openchamber" / "0_pvc.yaml"
-    if pvc.exists():
-        text = pvc.read_text()
-        new = text.replace("storage: 100Gi", "storage: 10Gi")
-        if new != text:
-            pvc.write_text(new)
-            print("[rewrite-staging] openchamber PVC 100Gi->10Gi")
-        else:
-            print("[rewrite-staging] openchamber PVC unchanged")
-    dep = root / "apps" / "openchamber" / "1_deployment.yaml"
-    if dep.exists():
-        text = dep.read_text()
-        new = text.replace(
-            "            requests:\n              cpu: \"2\"\n              memory: 4Gi",
-            "            requests:\n              cpu: \"500m\"\n              memory: 1Gi",
-        ).replace(
-            "            limits:\n              cpu: \"8\"\n              memory: 16Gi",
-            "            limits:\n              cpu: \"2\"\n              memory: 4Gi",
-        )
-        if new != text:
-            dep.write_text(new)
-            print("[rewrite-staging] openchamber resources relaxed for kind")
-        else:
-            print("[rewrite-staging] openchamber resources unchanged")
-
-
 def rewrite_nested_sync_options(root: pathlib.Path) -> None:
     count = 0
     for path in root.rglob("*.yaml"):
@@ -1328,7 +1303,6 @@ def main() -> int:
     rewrite_authelia_rolling_update(root)
     rewrite_operator_probes(root)
     rewrite_documentdb_kind(root)
-    rewrite_openchamber_kind(root)
     patch_infisical_cnp(root / "apps" / "external-secrets" / "-2_network_policy.yaml")
     patch_argocd_repo_cnp(root / "apps" / "argocd" / "-2_network_policy.yaml")
     return 0
