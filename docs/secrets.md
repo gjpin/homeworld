@@ -42,6 +42,7 @@ Two categories of values are not synchronized from Infisical:
 | | `/crowdsec/BOUNCER_KEY_envoy` | Envoy Gateway bouncer API key. | `openssl rand -hex 32` (the LAPI entrypoint registers it from the `BOUNCER_KEY_envoy` env var) |
 | **Forgejo** | `/forgejo/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `forgejo` (the CNPG `owner` user) |
 | | `/forgejo/POSTGRES_PASSWORD` | CloudNativePG application password. | `openssl rand -hex 32` |
+| **Home Assistant** | `/homeassistant/POSTGRES_PASSWORD` | CloudNativePG application password for the recorder database; rendered into both the `postgres-credentials` secret (CNPG bootstrap) and the `RECORDER_DB_URL` connection string. | `openssl rand -hex 32` (RFC 3986 unreserved characters only — it is embedded unescaped in the URL) |
 | **Grafana** | `/grafana/GF_SECURITY_ADMIN_USER` | Admin username (required for startup; login is via Authelia OIDC). | Chosen username |
 | | `/grafana/GF_SECURITY_ADMIN_PASSWORD` | Admin password (required for startup; login is via Authelia OIDC). | Chosen strong password |
 | **Homepage** | `/homepage/ARGOCD_TOKEN` | Read-only Argo CD account API token for the Argo CD widget. | Manual — README §6 |

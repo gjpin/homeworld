@@ -70,7 +70,7 @@ The table below details user namespace implementation across all cluster workloa
 | **Cilium (Hubble Relay / UI)** | `cilium` | **Enabled** (`false`) | Helm `values.yaml` | `hubble.hostUsers: false` applied to the `hubble-relay` and `hubble-ui` Deployments. |
 | **Cilium (Agent / Envoy / Operator)** | `cilium` | **Disabled** (`true`) | *None (Host integration)* | **Why not enabled:** `cilium-agent`, `cilium-envoy`, and `cilium-operator` run `hostNetwork` (upstream default), which prohibits `hostUsers: false`; the kube-proxy replacement datapath requires direct node networking. |
 | **CloudNativePG Operator** | `cloudnative-pg` | **Enabled** (`false`) | Kustomize patch | Applied to operator Deployment. |
-| **CloudNativePG Clusters** | `authelia`, `crowdsec`, `forgejo`, `immich`, `vaultwarden`, `woodpecker` | **Enabled** (`false`) | CNPG `podPatch` annotation | `cnpg.io/podPatch` injects `hostUsers: false` into PostgreSQL instance pods. |
+| **CloudNativePG Clusters** | `authelia`, `crowdsec`, `forgejo`, `homeassistant`, `immich`, `vaultwarden`, `woodpecker` | **Enabled** (`false`) | CNPG `podPatch` annotation | `cnpg.io/podPatch` injects `hostUsers: false` into PostgreSQL instance pods. |
 | **Collabora** | `collabora` | **Enabled** (`false`) | Kustomize patch | Applied to Collabora Deployment. |
 | **CrowdSec** | `crowdsec` | **Enabled** (`false`) | Kustomize patch | Applied to LAPI, AppSec, and the registration jobs. **Disabled** on the Agent DaemonSet: the agent's read-only `/var/log` hostPath is incompatible with user namespaces (see the PSS exception row). |
 | **CrowdSec Envoy Bouncer** | `envoy-gateway` | **Enabled** (`false`) | Kustomize patch | Applied to bouncer Deployment. |

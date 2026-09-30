@@ -117,9 +117,19 @@ spec:
               # Metrics endpoint for the ServiceMonitor. requires_auth is
               # disabled because the tokenless OTel collector is the only
               # client and its scrape path is Cilium-restricted
-              # (-2_network_policy.yaml: allow-otel-pod-scrape-homeassistant).
+              # (-2_network_policy.yaml: allow-homeassistant-metrics).
               prometheus:
                 requires_auth: false
+
+              # Recorder history lives on the CloudNativePG cluster
+              # (0_postgres.yaml) instead of SQLite on the config PVC, per
+              # the repo's datastore convention. Home Assistant resolves
+              # the URL through its built-in !env_var tag, so the password
+              # (delivered by the homeassistant-secrets ExternalSecret)
+              # never lands on the /config PVC.
+              recorder:
+                db_url: !env_var RECORDER_DB_URL
+                purge_keep_days: 10
 
               # Load frontend themes from the themes folder
               frontend:
@@ -179,6 +189,13 @@ spec:
                 secretKeyRef:
                   name: homeassistant-oidc
                   key: clientSecret
+            # CloudNativePG connection URL consumed by the recorder block in
+            # configuration.yaml through Home Assistant's !env_var tag.
+            - name: RECORDER_DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: homeassistant-secrets
+                  key: RECORDER_DB_URL
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

@@ -716,6 +716,9 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
+  # The chart's ServiceMonitor scrapes the app metrics port (8123) and the
+  # handwritten PodMonitor scrapes the CloudNativePG instance metrics port
+  # (9187).
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -728,6 +731,8 @@ spec:
       toPorts:
         - ports:
             - port: "8123"
+              protocol: TCP
+            - port: "9187"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
