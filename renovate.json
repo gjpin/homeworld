@@ -418,6 +418,19 @@
     },
     {
       "customType": "regex",
+      "description": "Update the CrowdSec wait-for-LAPI helper images",
+      "managerFilePatterns": [
+        "/^apps/crowdsec/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^\\s+wait_for_lapi:\\s*\\n(?:\\s*#[^\\n]*\\n)*\\s+image:\\s*\\n\\s+repository:\\s*docker\\.io/(?<depName>library/busybox)\\s*\\n\\s+tag:\\s*[\"']?(?<currentValue>[^\"'\\s#]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
       "description": "Update the CrowdSec kubectl helper image",
       "managerFilePatterns": [
         "/^apps/crowdsec/helm/values\\.yaml$/"
@@ -619,7 +632,7 @@
         "/^apps/rustfs-operator/helm/values\\.yaml$/"
       ],
       "matchStrings": [
-        "(?ms)^operator:\\s*\\n\\s+image:\\s*\\n\\s+repository:\\s*docker\\.io/(?<depName>rustfs/operator)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
+        "(?ms)^operator:\\s*\\n\\s+image:\\s*\\n\\s+repository:\\s*docker\\.io/(?<depName>rustfs/operator)\\s*\\n(?:\\s*#.*\\n)*\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",

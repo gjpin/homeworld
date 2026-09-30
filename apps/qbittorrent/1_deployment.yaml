@@ -129,9 +129,11 @@ spec:
                       "[Preferences]\n"
                       # The metrics exporter shares the pod's network
                       # namespace and scrapes 127.0.0.1:8080 using the
-                      # stateless WebAPI key (QBITTORRENT_API_KEY): loopback
-                      # still requires auth, and the key flow works through
-                      # the shared netns.
+                      # stateless WebAPI key (QBITTORRENT_API_KEY): with
+                      # WebUI\LocalHostAuth=false the exporter's loopback
+                      # requests bypass auth entirely; the API key stays
+                      # functional for non-loopback clients through the
+                      # shared netns.
                       "WebUI\\LocalHostAuth=false\n"
                       "WebUI\\Password_PBKDF2=" + pbkdf2 + "\n"
                       "WebUI\\Port=8080\n"

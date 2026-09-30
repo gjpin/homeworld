@@ -406,20 +406,6 @@ def rewrite_eso_decoding_none(root: pathlib.Path) -> None:
     print(f"[rewrite-staging] decodingStrategy Auto->None in {count} files")
 
 
-def rewrite_statefulset_strategy(root: pathlib.Path) -> None:
-    """StatefulSet has updateStrategy, not strategy; SSA rejects the unknown field."""
-    count = 0
-    for path in root.rglob("*.yaml"):
-        text = path.read_text()
-        if "kind: StatefulSet" not in text:
-            continue
-        new = re.sub(r"(?m)^  strategy:\n    type: Recreate\n", "", text)
-        if new != text:
-            path.write_text(new)
-            count += 1
-    print(f"[rewrite-staging] removed StatefulSet spec.strategy in {count} files")
-
-
 def rewrite_grafana_pvc_name(root: pathlib.Path) -> None:
     """Drop Grafana persistentVolumeClaim on kind.
 
@@ -1321,7 +1307,6 @@ def main() -> int:
     rewrite_kind_runtime_class(root)
     rewrite_gateway_from_all(root)
     rewrite_eso_decoding_none(root)
-    rewrite_statefulset_strategy(root)
     rewrite_grafana_pvc_name(root)
     rewrite_opencloud_web_extensions(root)
     rewrite_opencloud_collaboration_insecure(root)
