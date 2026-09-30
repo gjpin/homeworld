@@ -120,6 +120,14 @@ E2E_IGNORE_ITEMS = (
     "        - .spec.rules[].backendRefs[].weight\n"
     "        - .spec.rules[].matches\n",
     "    - group: gateway.networking.k8s.io\n"
+    "      kind: TCPRoute\n"
+    "      jqPathExpressions:\n"
+    "        - .spec.parentRefs[].group\n"
+    "        - .spec.parentRefs[].kind\n"
+    "        - .spec.rules[].backendRefs[].group\n"
+    "        - .spec.rules[].backendRefs[].kind\n"
+    "        - .spec.rules[].backendRefs[].weight\n",
+    "    - group: gateway.networking.k8s.io\n"
     "      kind: GRPCRoute\n"
     "      jqPathExpressions:\n"
     "        - .spec.parentRefs[].group\n"
