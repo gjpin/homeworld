@@ -172,10 +172,22 @@ patches:
       kind: ^(ServiceAccount|Role|ClusterRole|RoleBinding|ClusterRoleBinding|MutatingWebhookConfiguration)$
       name: ^(envoy-gateway-gateway-helm-certgen(:envoy-gateway)?|envoy-gateway-topology-injector\.envoy-gateway)$
     patch: |-
-      # The chart ships these as Helm pre-install/pre-upgrade hooks; under
-      # Argo the annotations are inert and the resources apply with the
-      # normal sync instead, which is what the certgen PostSync hook below
-      # expects to already exist.
+      # The chart ships these as Helm pre-install/pre-upgrade hooks. Under
+      # Argo the same ordering must be reproduced with Argo's own hook
+      # annotations: the certgen Job (PreSync, weight 0 below) patches the
+      # MutatingWebhookConfiguration caBundle and needs this RBAC and the
+      # webhook configuration to already exist, so they become PreSync
+      # hooks at weight -1, ahead of the Job. Argo's default
+      # before-hook-creation handling re-applies them (and re-runs the
+      # Job) on every sync; the Job tolerates existing secrets
+      # (ErrSecretExists is logged, not fatal) and re-patches the freshly
+      # re-created webhook configuration.
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1hook
+        value: PreSync
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1hook-weight
+        value: "-1"
       - op: remove
         path: /metadata/annotations/helm.sh~1hook
       - op: remove
@@ -187,22 +199,22 @@ patches:
       name: ^envoy-gateway-gateway-helm-certgen$
       namespace: ^envoy-gateway$
     patch: |-
-      # The chart's helm.sh/hook annotations are inert under Argo, and a
-      # plain Job breaks every chart bump: spec.template is immutable, so
-      # the completed Job from the first sync rejects the new image tag and
-      # the sync fails. The certgen work is genuinely wanted (it provisions
-      # the webhook's self-signed certificate and patches the
-      # MutatingWebhookConfiguration caBundle), so re-annotate it as an
-      # Argo CD PostSync hook instead: the ServiceAccount/Role/Binding and
-      # webhook configuration above have already applied by then, the job
-      # runs after every sync (always with the fresh image), and
-      # hook-delete-policy removes it on success so it is re-created —
-      # never updated. The controller Deployment briefly waits for the
-      # certificate secret on the very first sync and recovers as soon as
-      # the hook delivers it.
+      # The certgen Job provisions the webhook's self-signed serving
+      # certificate (the controller mounts secret "envoy-gateway") and
+      # patches the topology-injector webhook caBundle. It must run as a
+      # PreSync hook: the controller Deployment mounts the secret at
+      # startup, so a plain (or PostSync) job leaves the Deployment
+      # un-reconcilable — Argo's sync waits for the Deployment's health
+      # and would never reach a PostSync phase. PreSync weight 0 places it
+      # after the weight -1 RBAC and webhook configuration above;
+      # hook-delete-policy removes the completed Job so it is re-created —
+      # never updated — with the fresh image on every sync.
       - op: add
         path: /metadata/annotations/argocd.argoproj.io~1hook
-        value: PostSync
+        value: PreSync
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1hook-weight
+        value: "0"
       - op: add
         path: /metadata/annotations/argocd.argoproj.io~1hook-delete-policy
         value: HookSucceeded
