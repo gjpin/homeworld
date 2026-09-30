@@ -1234,7 +1234,10 @@ def rewrite_metrics_server_kind_kubelet_tls(root: pathlib.Path) -> None:
         print("[rewrite-staging] metrics-server values missing; skipping kubelet TLS rewrite")
         return
     text = path.read_text()
-    if "kubelet-insecure-tls" in text:
+    # Guard on the exact appended block: the repo values mention
+    # --kubelet-insecure-tls in a comment, so a substring check on the
+    # whole file would always pass and skip the rewrite.
+    if "\nargs:\n  - --kubelet-insecure-tls\n" in text:
         print("[rewrite-staging] metrics-server kubelet TLS rewrite unchanged")
         return
     new = text + "\n# kind only: kubelet serving certs carry no IP SANs.\nargs:\n  - --kubelet-insecure-tls\n"

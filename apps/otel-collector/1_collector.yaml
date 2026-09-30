@@ -75,7 +75,7 @@ spec:
       # The operator annotates generated pods with prometheus.io/scrape by
       # default; ServiceMonitor and PodMonitor discovery through the Target
       # Allocator is the only scrape mechanism in this cluster.
-      DisablePrometheusAnnotations: true
+      disablePrometheusAnnotations: true
   targetAllocator:
     enabled: true
     allocationStrategy: consistent-hashing
@@ -121,7 +121,7 @@ spec:
       podMonitorSelector: {}
       podMonitorNamespaceSelector: {}
       denyFSAccessThroughSMs: true
-  config: |
+  config:
     receivers:
       otlp:
         protocols:
