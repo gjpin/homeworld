@@ -30,6 +30,13 @@ ipam:
 bpf:
   # BPF masquerading; see the forwardKubeDNSToHost note above.
   masquerade: true
+  # Talos pre-mounts bpffs at /sys/fs/bpf just like cgroup2 below; the agent
+  # must not remount it. Disabling the auto-mount also drops the privileged
+  # mount-bpf-fs init container from the agent DaemonSet, and shifts the
+  # remaining init containers down by one index (resource patches in
+  # kustomization.yaml are indexed accordingly).
+  autoMount:
+    enabled: false
 l7Proxy: true
 localRedirectPolicy: true
 rollOutCiliumPods: true

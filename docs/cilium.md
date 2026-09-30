@@ -9,7 +9,7 @@ The cluster runs Cilium as its CNI in kube-proxy-replacement mode. This page rec
 | Machine config: CNI set to `none` (Helm/Cilium CLI methods) | `KubeFlannelCNIConfig` deleted in `/tmp/cilium-talos-prereqs.yaml`, applied via `--config-patch-control-plane` at `gen config` time ([docs/talos.md](talos.md)) |
 | Machine config (kube-proxy-free): kube-proxy disabled | `KubeProxyConfig` with `enabled: false` in the same patch |
 | IPAM mode must be `kubernetes` | `ipam.mode: kubernetes` in `apps/cilium/helm/values.yaml` |
-| Talos already mounts cgroupv2 and bpffs; do not let Cilium remount them | `cgroup.autoMount.enabled: false` and `cgroup.hostRoot: /sys/fs/cgroup` in values |
+| Talos already mounts cgroupv2 and bpffs; do not let Cilium remount them | `cgroup.autoMount.enabled: false` with `cgroup.hostRoot: /sys/fs/cgroup`, and `bpf.autoMount.enabled: false`, in values (the latter also drops the privileged `mount-bpf-fs` init container from the agent DaemonSet) |
 | `SYS_MODULE` dropped from the capability set (Talos forbids workloads loading kernel modules) | `securityContext.capabilities` override in values (`ciliumAgent` and `cleanCiliumState` without `SYS_MODULE`/`SYSLOG`) |
 | KubePrism enabled and configured on port 7445 | enabled on port 7445 by default (no `KubePrismConfig` patch needed); the chart targets `k8sServiceHost: localhost` / `k8sServicePort: "7445"` |
 
