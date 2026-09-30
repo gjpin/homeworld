@@ -1,8 +1,13 @@
 # The OpenTelemetry Operator's CRDs do not expose a runtimeClassName
-# pod-template field, and the Target Allocator CR it generates from a
-# collector CR does not inherit the collector's hostUsers setting. Mutate
-# only the operator-generated pods in the otel-collector namespace at
-# admission so the operator-owned workloads remain the source of truth.
+# pod-template field, so mutate the operator-generated pods in the
+# otel-collector namespace at admission: inject gVisor (and user namespaces
+# where the operator leaves them unset — the Target Allocator CR it generates
+# from a collector CR does not inherit the collector's hostUsers setting).
+# The mutation must also match collector pods that already carry
+# hostUsers: false from the CR (apps/otel-collector/1_collector.yaml):
+# setting both fields is the desired end state, and an ApplyConfiguration
+# mutation of an already-equal field is a no-op. The operator-owned workloads
+# remain the source of truth for everything else.
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingAdmissionPolicy
@@ -30,8 +35,6 @@ spec:
         object.metadata.labels['app.kubernetes.io/managed-by'] == 'opentelemetry-operator'
     - name: runtime-class-not-set
       expression: "!has(object.spec.runtimeClassName)"
-    - name: user-namespaces-not-already-enabled
-      expression: "!has(object.spec.hostUsers) || object.spec.hostUsers"
   mutations:
     - patchType: ApplyConfiguration
       applyConfiguration:
