@@ -66,8 +66,8 @@ echo "[apply-operator-crds] grafana-operator CRDs applied"
 apply_helm_crds dragonfly-operator \
   "$(chart_dir "${ROOT}/apps/dragonfly-operator/helm/charts/dragonfly-operator-*/dragonfly-operator")"
 
-RUSTFS_CRDS="$(chart_dir "${ROOT}/apps/rustfs-operator/helm/charts/rustfs-operator-*/rustfs-operator/crds")"
-# Chart 0.0.5 ships identical tenants.rustfs.com CRDs; skip tenant.yaml.
+RUSTFS_CRDS="${ROOT}/apps/rustfs-operator/helm/local-charts/rustfs-operator/crds"
+# The vendored chart ships identical tenants.rustfs.com CRDs; skip tenant.yaml.
 kubectl apply --server-side --force-conflicts \
   -f "${RUSTFS_CRDS}/tenant-crd.yaml" \
   -f "${RUSTFS_CRDS}/policybinding-crd.yaml"
