@@ -42,6 +42,7 @@
 | ExternalDNS | — | DNS record management. |
 | External Secrets | — | Infisical-backed secret synchronization. |
 | Forgejo | `git.${BASE_DOMAIN}` | Git forge. |
+| Generic Device Plugin | — | Exposes the host `/dev/net/tun` device to non-privileged pods through the device plugin API (`devic.es/tun`); required by gluetun. |
 | Grafana | `grafana.${BASE_DOMAIN}` | Dashboards and observability visualization. |
 | Grafana Operator | — | Grafana instance, dashboard, and datasource operator. |
 | Home Assistant | `home.${BASE_DOMAIN}`<br>`z2m.${BASE_DOMAIN}` | Home automation and Zigbee bridge. |
@@ -59,6 +60,7 @@
 | OpenTelemetry Operator | — | Manages the collector and its Target Allocator, which discovers ServiceMonitor and PodMonitor scrape targets. |
 | OpenCloud | `cloud.${BASE_DOMAIN}` | Files, sharing, search, collaboration, CalDAV, and CardDAV. |
 | Prometheus Operator CRDs | — | Custom resource definitions required for monitoring resources; consumed by the OpenTelemetry Operator's Target Allocator. |
+| qBittorrent | `qbittorrent.${BASE_DOMAIN}` | Torrent client with a gluetun VPN sidecar, a three-layer kill switch (gluetun firewall, Cilium egress allowlist, readiness gate), and VPN port-forwarding (see [qbittorrent.md](docs/qbittorrent.md)). |
 | Radicale | — | Internal CalDAV and CardDAV backend authenticated by OpenCloud. |
 | RustFS | `s3.${BASE_DOMAIN}`<br>`console.rustfs.${BASE_DOMAIN}` | Shared S3-compatible object storage and Tenant console. |
 | RustFS Operator | `rustfs.${BASE_DOMAIN}` | RustFS storage operator and management console. |

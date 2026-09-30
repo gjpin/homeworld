@@ -63,6 +63,18 @@ Two categories of values are not synchronized from Infisical:
 | **OpenCloud** | `/opencloud/IDM_ADMIN_PASSWORD` | OpenCloud IDM administrator password. | `openssl rand -hex 32` |
 | | `/opencloud/RUSTFS_ACCESS_KEY` | RustFS S3 access key for primary storage. | Chosen access key ID (≥8 characters, no whitespace, `=` or `,`) |
 | | `/opencloud/RUSTFS_SECRET_KEY` | RustFS S3 secret key for primary storage. | `openssl rand -hex 16` |
+| **qBittorrent** | `/qbittorrent/VPN_SERVICE_PROVIDER` | Active gluetun VPN provider. The values are gluetun's literal provider identifiers, spaces included. | Fixed: `protonvpn` or `private internet access` |
+| | `/qbittorrent/VPN_TYPE` | Tunnel protocol for the active provider: gluetun supports Private Internet Access natively over OpenVPN only. Switch together with `VPN_SERVICE_PROVIDER`. | Fixed: `wireguard` (ProtonVPN) or `openvpn` (Private Internet Access) |
+| | `/qbittorrent/VPN_PORT_FORWARDING_PROVIDER` | Port-forwarding mechanism matching the active provider (`protonvpn` uses NAT-PMP, `private internet access` its own API). | Fixed: same value as `VPN_SERVICE_PROVIDER` |
+| | `/qbittorrent/SERVER_NAMES` | Preferred servers from the provider's gluetun server list. Required for Private Internet Access port forwarding (pick a port-forwarding-capable server); optional refinement for ProtonVPN. | Server name from the provider's server list |
+| | `/qbittorrent/WIREGUARD_PRIVATE_KEY` | ProtonVPN WireGuard private key. Placeholder when using Private Internet Access, which tunnels over OpenVPN with the credentials below. | `wg genkey` / from a ProtonVPN WireGuard configuration |
+| | `/qbittorrent/WIREGUARD_ADDRESSES` | ProtonVPN WireGuard interface address (i.e. `10.2.0.6/32`). Placeholder when using Private Internet Access. | From the same ProtonVPN WireGuard configuration |
+| | `/qbittorrent/OPENVPN_USER` | Private Internet Access username (authenticates the OpenVPN tunnel and the port-forwarding API). Placeholder when using ProtonVPN. | From the Private Internet Access account |
+| | `/qbittorrent/OPENVPN_PASSWORD` | Private Internet Access password. Placeholder when using ProtonVPN. | From the Private Internet Access account |
+| | `/qbittorrent/WEBUI_USERNAME` | qBittorrent WebUI username, shared with the Homepage widget. At least 3 characters, no colon. | Chosen username |
+| | `/qbittorrent/WEBUI_PASSWORD` | qBittorrent WebUI password, seeded into `qBittorrent.conf` as a PBKDF2 hash by the config-bootstrap init container. At least 6 characters. | Chosen strong password |
+| | `/qbittorrent/WEBUI_API_KEY` | Stateless WebAPI key (qBittorrent ≥ 5.2) seeded into `qBittorrent.conf`, used by the metrics exporter and the port-forward sync job. Must be exactly 32 characters (`qbt_` prefix + 28, `src/base/utils/apikey.cpp`); qBittorrent **silently ignores** a non-empty key of the wrong length and Bearer auth stops working with no error. | `printf 'qbt_%s' "$(openssl rand -hex 14)"` |
+| | `/qbittorrent/GLUETUN_CONTROL_ROLE` | gluetun control-server role JSON (`{"auth":"apikey","apikey":"..."}`); the port-forward sync job parses the key back out. | `printf '{"auth":"apikey","apikey":"%s"}' "$(openssl rand -hex 16)"` |
 | **RustFS** | `/rustfs/RUSTFS_ACCESS_KEY` | Root S3 access key for the storage Tenant. | Chosen access key ID (≥8 characters, no whitespace, `=` or `,`) |
 | | `/rustfs/RUSTFS_SECRET_KEY` | Root S3 secret key for the storage Tenant. | `openssl rand -hex 16` |
 | **Velero** | `/velero/B2_APPLICATION_KEY_ID` | Backblaze B2 key ID for backup storage. | From the Backblaze B2 console (App Keys) |

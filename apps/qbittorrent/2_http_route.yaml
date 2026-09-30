@@ -1,0 +1,21 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: qbittorrent
+  namespace: qbittorrent
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    external-dns.alpha.kubernetes.io/hostname: "qbittorrent.${BASE_DOMAIN}"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: qbittorrent
+  hostnames:
+    - "qbittorrent.${BASE_DOMAIN}"
+  rules:
+    - backendRefs:
+        - name: qbittorrent
+          namespace: qbittorrent
+          kind: Service
+          port: 8080

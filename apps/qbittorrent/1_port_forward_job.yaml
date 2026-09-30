@@ -1,0 +1,99 @@
+---
+# Syncs the VPN provider's forwarded port into qBittorrent every 5 minutes
+# (TrueCharts pattern, reimplemented as a small shell script): reads the
+# port gluetun obtained (ProtonVPN NAT-PMP or Private Internet Access API)
+# from the control server and applies it to qBittorrent's listening-port
+# setting through the WebAPI. Both endpoints authenticate with dedicated
+# API keys, so no WebUI password is involved.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: qbittorrent-port-forward
+  namespace: qbittorrent
+  labels:
+    app.kubernetes.io/name: qbittorrent-port-forward
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 240
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: qbittorrent-port-forward
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          runtimeClassName: gvisor
+          hostUsers: false
+          nodeSelector:
+            node-role.kubernetes.io/homelab: homelab
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: qbittorrent-port-forward
+              image: docker.io/library/alpine:3.24.2
+              imagePullPolicy: IfNotPresent
+              command:
+                - sh
+                - -ec
+                - |
+                  # The control-server secret is gluetun's role JSON
+                  # ({"auth":"apikey","apikey":"..."}); extract the key.
+                  key="$(
+                    printf '%s' "$GLUETUN_CONTROL_ROLE" |
+                    sed -n 's/.*"apikey":"\([^"]*\)".*/\1/p'
+                  )"
+                  port="$(
+                    wget -q -O - \
+                      --header="X-API-Key: $key" \
+                      "$GTN_ADDR/v1/portforward" |
+                    sed -n 's/.*"port":\([0-9][0-9]*\).*/\1/p'
+                  )"
+                  if [ -z "$port" ] || [ "$port" -eq 0 ]; then
+                    echo "no forwarded port yet; nothing to sync"
+                    exit 0
+                  fi
+                  # qBittorrent reads the port forward as the urlencoded
+                  # json=<{"listen_port":N}> form field.
+                  wget -q -O /dev/null \
+                    --header="Authorization: Bearer $QBT_API_KEY" \
+                    --post-data='json=%7B%22listen_port%22%3A'"$port"'%7D' \
+                    "$QBT_ADDR/api/v2/app/setPreferences"
+                  echo "synced forwarded port $port"
+              env:
+                - name: GTN_ADDR
+                  value: http://qbittorrent:8000
+                - name: QBT_ADDR
+                  value: http://qbittorrent:8080
+                - name: GLUETUN_CONTROL_ROLE
+                  valueFrom:
+                    secretKeyRef:
+                      name: qbittorrent-vpn
+                      key: controlRole
+                - name: QBT_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: qbittorrent-webui
+                      key: webuiApiKey
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 128Mi

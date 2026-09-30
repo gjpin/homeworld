@@ -1049,6 +1049,58 @@
       "depNameTemplate": "github/copilot-cli",
       "datasourceTemplate": "github-releases",
       "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the qBittorrent image",
+      "managerFilePatterns": [
+        "/^apps/qbittorrent/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/home-operations/qbittorrent):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the gluetun VPN sidecar image",
+      "managerFilePatterns": [
+        "/^apps/qbittorrent/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/qdm12/gluetun):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the qBittorrent exporter image",
+      "managerFilePatterns": [
+        "/^apps/qbittorrent/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/martabal/qbittorrent-exporter):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the generic-device-plugin image",
+      "managerFilePatterns": [
+        "/^apps/generic-device-plugin/1_daemonset\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>docker\\.io/squat/generic-device-plugin):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
     }
   ]
 }

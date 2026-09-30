@@ -565,6 +565,29 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: allow-otel-pod-scrape-generic-device-plugin
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:app.kubernetes.io/name: generic-device-plugin
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-otel-pod-scrape-grafana
   namespace: otel-collector
   annotations:
@@ -764,6 +787,30 @@ spec:
       toPorts:
         - ports:
             - port: "9205"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-qbittorrent
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The ServiceMonitor scrapes the qBittorrent exporter sidecar.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: qbittorrent
+            k8s:app.kubernetes.io/name: qbittorrent
+      toPorts:
+        - ports:
+            - port: "17871"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2

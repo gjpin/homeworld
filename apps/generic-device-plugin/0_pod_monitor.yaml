@@ -1,0 +1,16 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: generic-device-plugin
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: generic-device-plugin
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: generic-device-plugin
+  podMetricsEndpoints:
+    - port: http
+      path: /metrics
+      interval: 60s

@@ -1,0 +1,448 @@
+---
+# qBittorrent + gluetun VPN sidecar + Prometheus exporter in one pod.
+#
+# Kill switch (qBittorrent must not work when the VPN is down):
+#   1. gluetun owns this pod's network namespace. From container start it
+#      installs a default-deny iptables firewall (all chains DROP, IPv4
+#      and IPv6) that only allows the VPN endpoint, established
+#      connections, loopback, and its own DNS bootstrap, and moves the
+#      default route into the tun device once the tunnel is up. If the
+#      tunnel drops, the rules stay in blocking state: qBittorrent's
+#      packets have no route out of the pod.
+#      FIREWALL_INPUT_PORTS only opens inbound cluster traffic (WebUI,
+#      control server, health, metrics); it does not touch the outbound
+#      kill switch.
+#   2. The CiliumNetworkPolicy in -2_network_policy.yaml independently
+#      allows only the VPN tunnel protocols (WireGuard for ProtonVPN,
+#      OpenVPN for Private Internet Access) and the DoT bootstrap out of
+#      the pod. TCP egress has no rule, so a gluetun firewall failure
+#      cannot leak tracker or peer traffic either.
+#   3. The qbittorrent container's readinessProbe targets the gluetun
+#      health server on 127.0.0.1:9999 (shared network namespace), so a
+#      down tunnel flips the pod NotReady and the WebUI drops out of the
+#      Service.
+#
+# DNS is routed through the tunnel: the pod sets dnsPolicy None with
+# dnsConfig pointing at 127.0.0.1 only, where gluetun's built-in
+# DNS-over-TLS resolver listens. All qBittorrent lookups resolve through
+# the encrypted tunnel and die with it; the cluster resolver is never in
+# the pod's resolv.conf.
+#
+# No gVisor: the runtime sandbox does not implement the TUN device gluetun
+# requires, so this pod keeps the standard runtime and compensates with
+# user namespaces (hostUsers: false), the Cilium default-deny policy, and
+# the non-privileged device allocation of /dev/net/tun through the
+# generic-device-plugin (devic.es/tun).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent
+  namespace: qbittorrent
+  labels:
+    app.kubernetes.io/name: qbittorrent
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    security.homeworld/exception-reason: "The gluetun VPN sidecar requires the NET_ADMIN and NET_RAW capabilities and the /dev/net/tun device to establish the VPN tunnel; PSS baseline forbids added capabilities. hostUsers: false isolates gluetun's container-root in an unprivileged host user namespace, and the tun device is allocated without hostPath or privileged mode through the generic-device-plugin."
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: qbittorrent
+  # Recreate, per the gluetun Kubernetes guide: a rolling replacement would
+  # overlap two pods owning the same tunnel routing state on the node.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: qbittorrent
+    spec:
+      serviceAccountName: qbittorrent
+      automountServiceAccountToken: false
+      hostUsers: false
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab
+      securityContext:
+        # The qBittorrent image runs as nobody:nogroup (65534); Longhorn's
+        # kubelet-side fsGroup handling chowns the PVCs to this group on the
+        # first mount, giving the rootless init container write access.
+        fsGroup: 65534
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      # All pod DNS resolves through gluetun's in-tunnel DoT resolver.
+      # dnsPolicy None is required: with ClusterFirst the kubelet merges
+      # dnsConfig nameservers after the cluster DNS server, which would put
+      # the cluster resolver in resolv.conf ahead of the tunnel.
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          - 127.0.0.1
+      initContainers:
+        # Seeds qBittorrent's configuration on the first start of an empty
+        # PVC. qBittorrent leaves an existing qBittorrent.conf untouched,
+        # so the seed happens once and the PVC stays user-owned state
+        # afterwards; later git changes to the seeded settings must be
+        # applied by editing the file directly.
+        - name: qbittorrent-config-bootstrap
+          image: docker.io/library/python:3.14-alpine3.24
+          imagePullPolicy: IfNotPresent
+          command:
+            - python3
+            - -c
+            - |
+              import base64, hashlib, os, pathlib
+
+              username = os.environ["QBT_WEBUI_USERNAME"]
+              password = os.environ["QBT_WEBUI_PASSWORD"]
+
+              # qBittorrent stores WebUI credentials as
+              # WebUI\Password_PBKDF2="@ByteArray(b64(salt):b64(key))"
+              # with PBKDF2-HMAC-SHA512, 100000 iterations (compiled in,
+              # not stored), a 16-byte salt (4x uint32 in upstream), and a
+              # 64-byte key (src/base/utils/password.cpp: verify() rejects
+              # anything that is not exactly two colon-separated parts).
+              salt = os.urandom(16)
+              key = hashlib.pbkdf2_hmac("sha512", password.encode(), salt, 100000, 64)
+              pbkdf2 = "@ByteArray(" + base64.b64encode(salt).decode() + ":" + base64.b64encode(key).decode() + ")"
+
+              conf = pathlib.Path("/config/qBittorrent/qBittorrent.conf")
+              if not conf.exists():
+                  conf.parent.mkdir(parents=True, exist_ok=True)
+                  conf.write_text(
+                      "[BitTorrent]\n"
+                      "Session\\DefaultSavePath=/downloads\n"
+                      # Initial listening port; the port-forward sync job
+                      # owns this setting once the VPN is up.
+                      "Session\\Port=6881\n"
+                      "\n"
+                      "[LegalNotice]\n"
+                      "Accepted=true\n"
+                      "\n"
+                      # UPnP/NAT-PMP port mapping would fight the VPN's
+                      # forwarded port (TRaSH guides) and leak mappings onto
+                      # the node network; the listening port is reachable
+                      # through the tunnel instead.
+                      "[Network]\n"
+                      "PortForwardingEnabled=false\n"
+                      "\n"
+                      "[Preferences]\n"
+                      # The metrics exporter shares the pod's network
+                      # namespace and scrapes 127.0.0.1:8080 without
+                      # credentials.
+                      "WebUI\\LocalHostAuth=false\n"
+                      "WebUI\\Password_PBKDF2=" + pbkdf2 + "\n"
+                      "WebUI\\Port=8080\n"
+                      # Host header whitelist (DNS-rebinding defense).
+                      # Semicolon-separated (src/webui/webapplication.cpp).
+                      # The second entry is the in-cluster Service name: the
+                      # port-forward sync job and one-off scripts reach the
+                      # WebUI as http://qbittorrent:8080, and qBittorrent's
+                      # Host validation 401s any Host that is neither the
+                      # listener's own address (loopback/pod IP, which
+                      # covers the exporter and kubelet probes) nor a
+                      # listed domain.
+                      "WebUI\\ServerDomains=qbittorrent.${BASE_DOMAIN};qbittorrent\n"
+                      "WebUI\\UseUPnP=false\n"
+                      "WebUI\\Username=" + username + "\n"
+                      # Stateless WebAPI key for the exporter and the sync
+                      # job (qBittorrent >= 5.2).
+                      "WebUI\\APIKey=" + os.environ["QBT_WEBUI_API_KEY"] + "\n"
+                  )
+          env:
+            - name: QBT_WEBUI_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: qbittorrent-webui
+                  key: username
+            - name: QBT_WEBUI_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: qbittorrent-webui
+                  key: password
+            - name: QBT_WEBUI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: qbittorrent-webui
+                  key: webuiApiKey
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      containers:
+        - name: qbittorrent
+          # Renovate tracks the image tag below. The upstream image is
+          # rootless (nobody:nogroup) and contains no update-check or
+          # phone-home mechanism (the update check only exists in the
+          # Windows and macOS builds).
+          image: ghcr.io/home-operations/qbittorrent:5.2.3
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: TZ
+              value: UTC
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          # Kill switch layer 3: this probe reaches gluetun's health server
+          # through the shared network namespace, so the pod reports
+          # NotReady and the Service drops its endpoints while the VPN
+          # tunnel is down.
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9999
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+              ephemeral-storage: 128Mi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+              ephemeral-storage: 2Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: downloads
+              mountPath: /downloads
+        - name: gluetun
+          # Renovate tracks the image tag below. Runs as container UID 0
+          # inside the pod's unprivileged user namespace; capabilities are
+          # valid only inside the namespace, so it has no host privileges.
+          image: ghcr.io/qdm12/gluetun:v3.41.3
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: health
+              containerPort: 9999
+              protocol: TCP
+            - name: control
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: TZ
+              value: UTC
+            - name: VPN_SERVICE_PROVIDER
+              valueFrom:
+                secretKeyRef:
+                  name: qbittorrent-vpn
+                  key: vpnServiceProvider
+            # Tunnel protocol for the active provider: wireguard
+            # (ProtonVPN) or openvpn (Private Internet Access). gluetun
+            # supports PIA natively over OpenVPN only, so these two keys
+            # must be switched together.
+            - name: VPN_TYPE
+              valueFrom:
+                secretKeyRef:
+                  name: qbittorrent-vpn
+                  key: vpnType
+            # Preferred servers from the provider's gluetun server list.
+            # Required for Private Internet Access port forwarding; pick a
+            # server supporting port forwarding.
+            - name: SERVER_NAMES
+              valueFrom:
+                secretKeyRef:
+                  name: qbittorrent-vpn
+                  key: serverNames
+            # ProtonVPN WireGuard credentials.
+            - name: WIREGUARD_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: qbittorrent-vpn
+                  key: wireguardPrivateKey
+            - name: WIREGUARD_ADDRESSES
+              valueFrom:
+                secretKeyRef:
+                  name: qbittorrent-vpn
+                  key: wireguardAddresses
+            # Private Internet Access credentials (authenticate the
+            # OpenVPN tunnel and the PIA port-forwarding API).
+            - name: OPENVPN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: qbittorrent-vpn
+                  key: openvpnUser
+            - name: OPENVPN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: qbittorrent-vpn
+                  key: openvpnPassword
+            # Port forwarding: ProtonVPN uses NAT-PMP, Private Internet
+            # Access its own API. gluetun writes the forwarded port to
+            # /tmp/gluetun/forwarded_port, which the sync job reads through
+            # the control server.
+            - name: VPN_PORT_FORWARDING
+              value: "on"
+            - name: VPN_PORT_FORWARDING_PROVIDER
+              valueFrom:
+                secretKeyRef:
+                  name: qbittorrent-vpn
+                  key: vpnPortForwardingProvider
+            # Inbound cluster traffic through eth0 (the Kubernetes sidecar
+            # exception documented by gluetun). The outbound kill switch is
+            # unaffected.
+            - name: FIREWALL_INPUT_PORTS
+              value: "8080,8000,9999,17871"
+            - name: HEALTH_SERVER_ADDRESS
+              value: ":9999"
+            - name: HTTP_CONTROL_SERVER_ADDRESS
+              value: ":8000"
+            # The control server is private since gluetun v3.39.1; the sync
+            # job authenticates with the API key embedded in this role JSON
+            # ({"auth":"apikey","apikey":"..."}) via the X-API-Key header.
+            # Ingress is additionally restricted to the sync job by the
+            # CiliumNetworkPolicy.
+            - name: HTTP_CONTROL_SERVER_AUTH_DEFAULT_ROLE
+              valueFrom:
+                secretKeyRef:
+                  name: qbittorrent-vpn
+                  key: controlRole
+            # No periodic server-list refresh: it would add GitHub egress
+            # and server churn; the vendored list is sufficient.
+            - name: UPDATER_PERIOD
+              value: "0"
+          # Clean up leftover WireGuard ip rules from an abruptly terminated
+          # container restart inside the same network namespace (gluetun
+          # Kubernetes guide).
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - (ip rule del table 51820; ip -6 rule del table 51820) 2>/dev/null || true
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - NET_ADMIN
+                - NET_RAW
+            runAsNonRoot: false
+            runAsUser: 0
+          startupProbe:
+            httpGet:
+              path: /
+              port: health
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /
+              port: health
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            # The TUN device is allocated through the generic-device-plugin.
+            limits:
+              devic.es/tun: "1"
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+          volumeMounts:
+            - name: gluetun
+              mountPath: /gluetun
+        - name: qbittorrent-exporter
+          # Renovate tracks the image tag below. Authenticates with the
+          # stateless WebAPI key (qBittorrent >= 5.2) — no WebUI password in
+          # this container — and serves Prometheus metrics on :17871.
+          image: ghcr.io/martabal/qbittorrent-exporter:v2.0.3
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: metrics
+              containerPort: 17871
+              protocol: TCP
+          env:
+            - name: QBITTORRENT_BASE_URL
+              value: http://127.0.0.1:8080
+            - name: QBITTORRENT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: qbittorrent-webui
+                  key: webuiApiKey
+            - name: EXPORTER_PORT
+              value: "17871"
+            - name: LOG_LEVEL
+              value: INFO
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+          # /healthz responds without querying qBittorrent; probing /metrics
+          # would trigger a full collection on every hit.
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: qbittorrent-config
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: qbittorrent-downloads
+        - name: gluetun
+          emptyDir: {}

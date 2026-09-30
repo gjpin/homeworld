@@ -49,6 +49,16 @@ data:
               type: immich
               url: https://photos.${BASE_DOMAIN}
               key: "{{HOMEPAGE_VAR_IMMICH_API_KEY}}"
+        - qBittorrent:
+            icon: qbittorrent
+            href: https://qbittorrent.${BASE_DOMAIN}
+            description: Torrent downloads over VPN
+            siteMonitor: https://qbittorrent.${BASE_DOMAIN}
+            widget:
+              type: qbittorrent
+              url: https://qbittorrent.${BASE_DOMAIN}
+              username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
+              password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
     - Home:
         - Home Assistant:
             icon: home-assistant

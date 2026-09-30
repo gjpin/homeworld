@@ -44,6 +44,11 @@
      Target Allocator that consumes the Prometheus Operator
      ServiceMonitor/PodMonitor CRDs, after cert-manager (admission webhook
      certificates) and ahead of the collector custom resource in wave 6
+   * generic-device-plugin: TUN device plugin DaemonSet in kube-system;
+     Talos's runc 1.2 removed default /dev/net/tun access for unprivileged
+     pods, and the plugin restores it to non-privileged workloads that
+     request the devic.es/tun resource (the gluetun sidecar in wave 6's
+     qbittorrent)
 * **Sync wave 6**
    * crowdsec-envoy-bouncer: pinned community Envoy external-auth bouncer,
      after CrowdSec and Envoy Gateway; the Gateway policies remain owned by
@@ -61,6 +66,9 @@
      authenticated DAV proxy
    * vaultwarden: Bitwarden-compatible password manager (CloudNativePG-backed)
      with optional Authelia SSO
+   * qbittorrent: torrent client with a gluetun VPN sidecar and a
+     port-forward sync job, after generic-device-plugin (the /dev/net/tun
+     device), External Secrets, and the CrowdSec Envoy bouncer
 * **Sync wave 7**
    * collabora: standalone Collabora chart and WOPI endpoint
    * openchamber: persistent AI agent workspace (OpenChamber, OpenCode, Codex

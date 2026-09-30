@@ -1,0 +1,48 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: kube-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: generic-device-plugin
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-generic-device-plugin-metrics
+  namespace: kube-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: generic-device-plugin
+  ingress:
+    # The plugin serves health and Prometheus metrics on :8080. Only the
+    # operator-managed OpenTelemetry Collector (Target Allocator discovery)
+    # and the kubelet's probes reach it; the kubelet registers the device
+    # plugin over the /var/lib/kubelet/device-plugins unix socket, which is
+    # hostPath filesystem access and not network policy scope.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP

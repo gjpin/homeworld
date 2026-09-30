@@ -47,6 +47,9 @@ spec:
       namespace: opencloud
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
+      namespace: qbittorrent
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
       namespace: victoria-metrics
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy

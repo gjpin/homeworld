@@ -1,0 +1,216 @@
+---
+# Kill switch layer 3 of 3 (see 1_deployment.yaml for the full picture):
+# gluetun's iptables firewall blocks everything except the tunnel, and this
+# default-deny Cilium policy independently restricts pod egress to the VPN
+# tunnel protocols (WireGuard for ProtonVPN, OpenVPN for Private Internet
+# Access) and gluetun's DNS-over-TLS bootstrap. All BitTorrent traffic is
+# invisible to Cilium while the tunnel is up: it is tunnel-encapsulated to
+# the provider endpoint, the only destination allowed here.
+# TCP egress has no rule at all, so qBittorrent cannot send a single packet
+# outside the tunnel even if gluetun crashed and its firewall was wiped.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: qbittorrent
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: qbittorrent
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Scoped to the port-forward sync job: it resolves the qbittorrent
+  # service through cluster DNS. The main pod has no route to kube-dns at
+  # all - its dnsConfig points at 127.0.0.1 (gluetun's in-tunnel DoT
+  # resolver), and policy-level denial keeps any hypothetical bypass of
+  # that resolver configuration from leaking hostnames through the
+  # cluster resolver.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: qbittorrent-port-forward
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-qbittorrent-gateway
+  namespace: qbittorrent
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: qbittorrent
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-qbittorrent-metrics
+  namespace: qbittorrent
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: qbittorrent
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "17871"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-qbittorrent-probes
+  namespace: qbittorrent
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: qbittorrent
+  ingress:
+    # kubelet probe traffic originates from the node.
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "9999"
+              protocol: TCP
+            - port: "17871"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-qbittorrent-port-forward
+  namespace: qbittorrent
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: qbittorrent
+  ingress:
+    # The port-forward sync job reads the forwarded port from gluetun's
+    # control server (:8000) and applies it to qBittorrent (:8080).
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: qbittorrent
+            k8s:app.kubernetes.io/name: qbittorrent-port-forward
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-qbittorrent-vpn-egress
+  namespace: qbittorrent
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Egress is scoped by protocol and port, not FQDN: the pod resolves through
+  # gluetun's internal resolver over loopback, so Cilium's DNS proxy never
+  # observes a query for the provider endpoint and toFQDNs identities would
+  # never populate. The tunnel ports are provider-specific: UDP 51820 for
+  # ProtonVPN's WireGuard, UDP 8080 for Private Internet Access's OpenVPN
+  # (the default strong encryption preset over the default UDP protocol;
+  # a custom OPENVPN_ENDPOINT_PORT or OPENVPN_PROTOCOL=tcp must be reflected
+  # here). qBittorrent's own traffic (TCP to trackers/peers, UDP DHT on
+  # arbitrary ports) has no rule here and only exists inside the VPN tunnel.
+  #
+  # gluetun's built-in DNS resolver bootstraps its DNS-over-TLS upstream
+  # (Cloudflare, 1.1.1.1/1.0.0.1) outside the tunnel before it is up; those
+  # two addresses are the only IPs named explicitly. While the tunnel is
+  # down these bootstrap flows remain reachable, so DNS lookups are the one
+  # documented residual traffic class (encrypted DoT to Cloudflare only) —
+  # every payload connection still dies at this policy and at gluetun's
+  # firewall.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: qbittorrent
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "51820"
+              protocol: UDP
+            - port: "8080"
+              protocol: UDP
+    - toCIDR:
+        - 1.1.1.1/32
+        - 1.0.0.1/32
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+            - port: "853"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-qbittorrent-port-forward-egress
+  namespace: qbittorrent
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: qbittorrent-port-forward
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: qbittorrent
+            k8s:app.kubernetes.io/name: qbittorrent
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+            - port: "8080"
+              protocol: TCP

@@ -1,0 +1,89 @@
+---
+# Exposes the host /dev/net/tun device to unprivileged pods as the
+# devic.es/tun extended resource. Talos ships runc 1.2, which removed the
+# default device-cgroup access to /dev/net/tun (opencontainers/runc#3468),
+# so a non-privileged pod cannot open a TUN device it merely mknods or
+# hostPath-mounts. Requesting the device through the device plugin API makes
+# the runtime add the device to the container spec, which restores access
+# without privileged pods (apps/qbittorrent's gluetun sidecar).
+#
+# This manifest mirrors the structure of the official upstream Helm chart
+# (charts/generic-device-plugin in squat/generic-device-plugin): the chart
+# hardcodes the wrong device set for this deployment (serial, video0, fuse,
+# audio, capture — with no values knob), is not published to any Helm
+# repository or OCI registry, and defaults to a short-form `latest` image,
+# so it is implemented here in repository conventions per AGENTS.md.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: generic-device-plugin
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: generic-device-plugin
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    security.homeworld/exception-reason: "The Kubernetes device plugin API requires a privileged container that enumerates host /dev and registers its socket under the kubelet's /var/lib/kubelet/device-plugins; both are hostPath mounts PSS baseline forbids."
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: generic-device-plugin
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: generic-device-plugin
+    spec:
+      serviceAccountName: generic-device-plugin
+      automountServiceAccountToken: false
+      priorityClassName: system-node-critical
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab
+      tolerations:
+        - operator: "Exists"
+          effect: "NoExecute"
+        - operator: "Exists"
+          effect: "NoSchedule"
+      containers:
+        - name: generic-device-plugin
+          # Renovate tracks the image tag below.
+          image: docker.io/squat/generic-device-plugin:0.2.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - --device
+            - |
+              name: tun
+              groups:
+                - count: 1000
+                  paths:
+                    - path: /dev/net/tun
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          securityContext:
+            privileged: true
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 10Mi
+            limits:
+              cpu: 50m
+              memory: 20Mi
+          volumeMounts:
+            - name: device-plugin
+              mountPath: /var/lib/kubelet/device-plugins
+            - name: dev
+              mountPath: /dev
+      volumes:
+        - name: device-plugin
+          hostPath:
+            path: /var/lib/kubelet/device-plugins
+        - name: dev
+          hostPath:
+            path: /dev

@@ -946,6 +946,38 @@ spec:
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.37
 ---
+# generic-device-plugin
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: generic-device-plugin-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/generic-device-plugin"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+---
 # authelia
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -1360,6 +1392,53 @@ spec:
         pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.37
+---
+# qbittorrent
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: qbittorrent-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/qbittorrent"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: qbittorrent
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        # The gluetun VPN sidecar requires NET_ADMIN/NET_RAW capabilities
+        # and the /dev/net/tun device; PSS baseline forbids added
+        # capabilities, so the namespace follows the Home Assistant
+        # exception profile.
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+      annotations:
+        security.homeworld/exception-reason: The gluetun VPN sidecar requires NET_ADMIN/NET_RAW capabilities and the /dev/net/tun device to tunnel all qBittorrent traffic; PSS baseline forbids added capabilities. The pod runs in an unprivileged user namespace with Cilium default-deny egress limited to the VPN endpoints, and the tun device is allocated without hostPath or privileged mode through the generic-device-plugin.
 ---
 # collabora
 apiVersion: argoproj.io/v1alpha1
