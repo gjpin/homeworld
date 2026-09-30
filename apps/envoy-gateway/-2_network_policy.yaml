@@ -138,6 +138,18 @@ spec:
         - ports:
             - port: "443"
               protocol: TCP
+    # OIDC hairpin: Envoy's own token calls to auth.${BASE_DOMAIN} resolve to
+    # the gateway's public address and re-enter this listener from the data
+    # plane pod itself (allow-envoy-authelia-oidc egress).
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: envoy-gateway
@@ -210,6 +222,30 @@ spec:
       toPorts:
         - ports:
             - port: "19001"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-authelia-oidc
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    # Envoy's OIDC filter calls the Authelia authorization and token
+    # endpoints on auth.${BASE_DOMAIN}. The name resolves to the gateway's
+    # own public address, so the connection hairpins through the merged
+    # listener back to the Authelia HTTPRoute (docs/network-policies.md).
+    - toFQDNs:
+        - matchName: "auth.${BASE_DOMAIN}"
+      toPorts:
+        - ports:
+            - port: "443"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2

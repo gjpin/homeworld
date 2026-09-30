@@ -20,3 +20,102 @@ spec:
           name: crowdsec-envoy-bouncer
           namespace: envoy-gateway
           port: 8080
+---
+# Gateway OIDC for the VictoriaMetrics UI. Authelia is the only login:
+# the UI has no built-in authentication, and the route requires the platform
+# group (docs/oidc.md). StrategicMerge keeps this policy from overriding the
+# Gateway-level CrowdSec extAuth above.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authelia-oidc-victoria-metrics
+  namespace: victoria-metrics
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  mergeType: StrategicMerge
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: victoria-metrics
+  oidc:
+    provider:
+      issuer: https://auth.${BASE_DOMAIN}
+      authorizationEndpoint: https://auth.${BASE_DOMAIN}/api/oidc/authorization
+      tokenEndpoint: https://auth.${BASE_DOMAIN}/api/oidc/token
+    clientID: envoy
+    clientSecret:
+      name: envoy-oidc-client-secret
+    scopes:
+      - openid
+      - offline_access
+    redirectURL: https://victoria-metrics.${BASE_DOMAIN}/oauth2/callback
+    logoutPath: /logout
+    cookieDomain: victoria-metrics.${BASE_DOMAIN}
+    forwardAccessToken: false
+    refreshToken: true
+    passThroughAuthHeader: false
+---
+# Gateway OIDC for the VictoriaLogs UI (see authelia-oidc-victoria-metrics).
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authelia-oidc-victoria-logs
+  namespace: victoria-metrics
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  mergeType: StrategicMerge
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: victoria-logs
+  oidc:
+    provider:
+      issuer: https://auth.${BASE_DOMAIN}
+      authorizationEndpoint: https://auth.${BASE_DOMAIN}/api/oidc/authorization
+      tokenEndpoint: https://auth.${BASE_DOMAIN}/api/oidc/token
+    clientID: envoy
+    clientSecret:
+      name: envoy-oidc-client-secret
+    scopes:
+      - openid
+      - offline_access
+    redirectURL: https://victoria-logs.${BASE_DOMAIN}/oauth2/callback
+    logoutPath: /logout
+    cookieDomain: victoria-logs.${BASE_DOMAIN}
+    forwardAccessToken: false
+    refreshToken: true
+    passThroughAuthHeader: false
+---
+# Gateway OIDC for the VictoriaTraces UI (see authelia-oidc-victoria-metrics).
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authelia-oidc-victoria-traces
+  namespace: victoria-metrics
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  mergeType: StrategicMerge
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: victoria-traces
+  oidc:
+    provider:
+      issuer: https://auth.${BASE_DOMAIN}
+      authorizationEndpoint: https://auth.${BASE_DOMAIN}/api/oidc/authorization
+      tokenEndpoint: https://auth.${BASE_DOMAIN}/api/oidc/token
+    clientID: envoy
+    clientSecret:
+      name: envoy-oidc-client-secret
+    scopes:
+      - openid
+      - offline_access
+    redirectURL: https://victoria-traces.${BASE_DOMAIN}/oauth2/callback
+    logoutPath: /logout
+    cookieDomain: victoria-traces.${BASE_DOMAIN}
+    forwardAccessToken: false
+    refreshToken: true
+    passThroughAuthHeader: false

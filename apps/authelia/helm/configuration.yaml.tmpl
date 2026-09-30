@@ -140,6 +140,16 @@ identity_providers:
               - group:opencloud-spaceadmin
               - group:opencloud-user
               - group:opencloud-user-light
+      # Platform gates the Envoy Gateway OIDC routes (the browser UIs without
+      # usable app-native auth). "platform" deliberately breaks the
+      # <app>-admin/<app>-user naming: it is a cross-app group, not tied to a
+      # single application (docs/oidc.md).
+      platform:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject:
+              - group:platform
     jwks:
       - key_id: opencloud-rs256
         algorithm: RS256
@@ -435,5 +445,46 @@ identity_providers:
           - groups
         grant_types:
           - authorization_code
+        response_types:
+          - code
+      # Envoy Gateway itself is the OIDC client for the browser UIs that
+      # have no usable app-native auth: victoria-metrics, victoria-logs,
+      # victoria-traces, longhorn, homepage, the envoy admin listener, and
+      # zigbee2mqtt. Each host gets its own HTTPRoute-scoped SecurityPolicy
+      # with a per-host redirect URL and cookie domain (docs/oidc.md).
+      # Reference: https://www.authelia.com/integration/openid-connect/clients/envoy-gateway/
+      - client_id: envoy
+        client_name: Envoy Gateway
+        client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_envoy" | msquote }}
+        public: false
+        authorization_policy: platform
+        # Envoy's oauth2 filter does not send PKCE, so it cannot be required
+        # for this client.
+        require_pkce: false
+        consent_mode: pre-configured
+        pre_configured_consent_duration: 1 week
+        token_endpoint_auth_method: client_secret_basic
+        # The access token never leaves Envoy's encrypted session cookie
+        # (every SecurityPolicy sets forwardAccessToken: false) and is never
+        # validated as a JWT, so it stays opaque.
+        access_token_signed_response_alg: none
+        # No claims_policy: Envoy only validates the ID token's issuer,
+        # audience, and expiry; no claims are read or forwarded.
+        redirect_uris:
+          - https://victoria-metrics.${BASE_DOMAIN}/oauth2/callback
+          - https://victoria-logs.${BASE_DOMAIN}/oauth2/callback
+          - https://victoria-traces.${BASE_DOMAIN}/oauth2/callback
+          - https://longhorn.${BASE_DOMAIN}/oauth2/callback
+          - https://homepage.${BASE_DOMAIN}/oauth2/callback
+          - https://envoy.${BASE_DOMAIN}/oauth2/callback
+          - https://z2m.${BASE_DOMAIN}/oauth2/callback
+        # offline_access backs the SecurityPolicies' refreshToken: true,
+        # which renews gateway sessions without a new authorization flow.
+        scopes:
+          - openid
+          - offline_access
+        grant_types:
+          - authorization_code
+          - refresh_token
         response_types:
           - code

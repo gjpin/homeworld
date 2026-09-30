@@ -20,3 +20,38 @@ spec:
           name: crowdsec-envoy-bouncer
           namespace: envoy-gateway
           port: 8080
+---
+# Gateway OIDC for the Longhorn UI. Authelia is the only login: the UI
+# has no built-in authentication, and the route requires the platform group
+# (docs/oidc.md). StrategicMerge keeps this policy from overriding the
+# Gateway-level CrowdSec extAuth above.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authelia-oidc
+  namespace: longhorn-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  mergeType: StrategicMerge
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: longhorn
+  oidc:
+    provider:
+      issuer: https://auth.${BASE_DOMAIN}
+      authorizationEndpoint: https://auth.${BASE_DOMAIN}/api/oidc/authorization
+      tokenEndpoint: https://auth.${BASE_DOMAIN}/api/oidc/token
+    clientID: envoy
+    clientSecret:
+      name: envoy-oidc-client-secret
+    scopes:
+      - openid
+      - offline_access
+    redirectURL: https://longhorn.${BASE_DOMAIN}/oauth2/callback
+    logoutPath: /logout
+    cookieDomain: longhorn.${BASE_DOMAIN}
+    forwardAccessToken: false
+    refreshToken: true
+    passThroughAuthHeader: false

@@ -146,7 +146,12 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   velero-ui) and comment the reason inline.
 - Every client sets `require_pkce: true` with `pkce_challenge_method: S256`,
   `consent_mode: pre-configured` with `pre_configured_consent_duration: 1 week`,
-  and `access_token_signed_response_alg: RS256`.
+  and `access_token_signed_response_alg: RS256`. Exception: the shared Envoy
+  Gateway client (`envoy`) sets `require_pkce: false` and
+  `access_token_signed_response_alg: none` — Envoy Gateway's OIDC filter sends
+  no PKCE, and its access token never leaves Envoy's encrypted session cookie
+  (`forwardAccessToken: false`), so no claims can be read from it (official
+  Envoy Gateway client guide).
 - CLI or localhost-redirect flows get their own public client
   (`token_endpoint_auth_method: none`, `offline_access` scope,
   `refresh_token` grant); never merge the localhost redirect into the
@@ -162,7 +167,9 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `custom_claims` + a matching custom scope (see `immich_role`,
   `vaultwarden_roles`).
 - Authelia group names are singular and app-prefixed (`<app>-admin`,
-  `<app>-user`) and must exist in the Infisical users database.
+  `<app>-user`) and must exist in the Infisical users database. Exception: the
+  cross-app `platform` group gates the gateway-OIDC routes and deliberately
+  carries no app prefix.
 - Client secrets are stored in Infisical as `/authelia/OIDC_CLIENT_SECRET_<APP>`,
   pulled into the `authelia-files` ExternalSecret as
   `oidc_client_secret_<app>`, and delivered to the app through its own
@@ -173,6 +180,22 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - Apps doing server-side token exchange get an `allow-<app>-authelia`
   CiliumNetworkPolicy egress (`toFQDNs: auth.${BASE_DOMAIN}:443`) and a
   matching `docs/network-policies.md` egress entry.
+- Public browser-UI routes for workloads with no usable app-native OIDC or
+  login must be authenticated by Envoy Gateway itself as the shared `envoy`
+  client: one HTTPRoute-scoped `SecurityPolicy` per hostname with
+  `mergeType: StrategicMerge` (a route-level policy silently overrides the
+  Gateway-level CrowdSec extAuth without it), a
+  `https://<host>/oauth2/callback` redirect URI with a matching
+  `cookieDomain`, and the `platform` authorization policy; the client secret
+  is delivered to each protected app's namespace as the
+  `envoy-oidc-client-secret` ExternalSecret (key `client-secret`). Never
+  apply this pattern to routes used by non-browser clients
+  (CalDAV/CardDAV, WOPI, device pairing, API or CLI endpoints): the OIDC
+  redirect cannot complete without a browser. Remove headless consumers of a
+  protected route (e.g. Homepage siteMonitors) instead of exempting them.
+  Apps that cannot delegate their login at all (Collabora's WOPI route, the
+  RustFS operator console, OpenChamber pairing, the Notesnook stack) keep
+  app-native access control, with the reason documented in `docs/oidc.md`.
 - Apps without native OIDC support may use a pinned community integration
   delivered by a sha256-verified init container (hass-oidc-auth pattern,
   Renovate-tracked). PVC-resident bootstrap configuration (e.g.

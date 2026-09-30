@@ -3,9 +3,12 @@
 # restart the deployment to pick up the new configuration:
 #   kubectl -n homepage rollout restart deploy/homepage
 #
-# Services without a siteMonitor either require an authenticated session
-# before serving the root path (Longhorn) or are not user-facing web pages
-# (Envoy Gateway control-plane listener).
+# Services without a siteMonitor sit behind the Envoy Gateway OIDC
+# SecurityPolicy (Longhorn, Envoy admin listener, VictoriaMetrics,
+# VictoriaLogs, VictoriaTraces, Zigbee2MQTT): an unauthenticated probe is
+# redirected to the Authelia portal, so a siteMonitor would measure the
+# portal instead of the app. The href links keep working for signed-in
+# browsers (docs/oidc.md).
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -60,7 +63,6 @@ data:
             icon: zigbee2mqtt
             href: https://z2m.${BASE_DOMAIN}
             description: Zigbee bridge
-            siteMonitor: https://z2m.${BASE_DOMAIN}
     - Productivity:
         - OpenCloud:
             icon: mdi-cloud-outline
@@ -91,17 +93,14 @@ data:
             icon: victoriametrics
             href: https://victoria-metrics.${BASE_DOMAIN}
             description: Metrics backend
-            siteMonitor: https://victoria-metrics.${BASE_DOMAIN}
         - VictoriaLogs:
             icon: victorialogs
             href: https://victoria-logs.${BASE_DOMAIN}
             description: Logs backend
-            siteMonitor: https://victoria-logs.${BASE_DOMAIN}
         - VictoriaTraces:
             icon: mdi-chart-timeline-variant
             href: https://victoria-traces.${BASE_DOMAIN}
             description: Traces backend
-            siteMonitor: https://victoria-traces.${BASE_DOMAIN}
     - Platform:
         - Argo CD:
             icon: argo-cd
