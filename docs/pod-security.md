@@ -14,7 +14,7 @@ The table below outlines the Pod Security Standard compliance level for every co
 
 | Application | Namespace | PSA Level | Compliance | Details & Rationale |
 | :--- | :--- | :---: | :---: | :--- |
-| **Argo CD** | `argocd` | Restricted | **Restricted** | All components (`server`, `repo-server`, `application-controller`, `redis`, `dex`) run as non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
+| **Argo CD** | `argocd` | Restricted | **Restricted** | All components (`server`, `repo-server`, `application-controller`, `applicationset-controller`, `notifications-controller`) run as non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. The attached Dragonfly instance (the chart's bundled Redis is disabled) runs as the image's `dfly` user (UID/GID `999`) with dropped capabilities and `RuntimeDefault` seccomp. Dex and the bundled Redis are disabled in values. |
 | **Authelia** | `authelia` | Restricted | **Restricted** | Application container runs as UID `1000` with read-only root filesystem, dropped capabilities (`ALL`), and `RuntimeDefault` seccomp. Attached PostgreSQL and Dragonfly instances also conform to Restricted. |
 | **cert-manager** | `cert-manager` | Restricted | **Restricted** | Controller, cainjector, webhook, and startup check run non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
 | **Cilium** | `cilium` | Privileged | **Exception** | **Why not Restricted:** `cilium-agent` and `cilium-envoy` (DaemonSets) provide the kube-proxy replacement datapath and require BPF access, bpffs/cgroup host mounts, `hostNetwork`, and hostPath CNI state; `cilium-operator` runs `hostNetwork` by upstream chart default. PSS `baseline` forbids hostPath volumes and host networking, so the namespace enforces `privileged` (Restricted `audit`/`warn` retained).<br><br>*Mitigations:* `SYS_MODULE` and `SYSLOG` are dropped from the agent capability set (Talos forbids workloads loading kernel modules), `allowPrivilegeEscalation: false`, and the pod-network `hubble-relay` and `hubble-ui` run under gVisor with user namespaces. |
@@ -63,7 +63,7 @@ The table below details user namespace implementation across all cluster workloa
 
 | Workload | Namespace | User Namespaces | Implementation Mechanism | Details & Rationale |
 | :--- | :--- | :---: | :--- | :--- |
-| **Argo CD** | `argocd` | **Enabled** (`false`) | Kustomize patch | Applied to `server`, `repo-server`, `application-controller`, `redis`, `applicationset-controller`, `notifications-controller`, and the `redis-secret-init` Job. |
+| **Argo CD** | `argocd` | **Enabled** (`false`) | Kustomize patch | Applied to `server`, `repo-server`, `application-controller`, `applicationset-controller`, and `notifications-controller`. The Dragonfly operand runs in standard host namespaces (CRD lacks a `hostUsers` field). |
 | **Authelia** | `authelia` | **Enabled** (`false`) | Kustomize patch | Applied to the Authelia Deployment. The attached CNPG cluster uses the `cnpg.io/podPatch` annotation; Dragonfly operand pods run in standard host namespaces (CRD lacks a `hostUsers` field). |
 | **cert-manager** | `cert-manager` | **Enabled** (`false`) | Helm `values.yaml` | `global.hostUsers: false` applied across controller, cainjector, and webhook. |
 | **Cilium (Hubble Relay / UI)** | `cilium` | **Enabled** (`false`) | Helm `values.yaml` | `hubble.hostUsers: false` applied to the `hubble-relay` and `hubble-ui` Deployments. |
@@ -133,7 +133,7 @@ Only workloads requiring direct host device access, raw block devices, or kernel
 
 | Workload | Namespace | gVisor Sandboxing | Implementation Mechanism | Details & Rationale |
 | :--- | :--- | :---: | :--- | :--- |
-| **Argo CD** | `argocd` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `server`, `repo-server`, `application-controller`, `redis`, `applicationset-controller`, `notifications-controller`, and the `redis-secret-init` Job. |
+| **Argo CD** | `argocd` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `server`, `repo-server`, `application-controller`, `applicationset-controller`, and `notifications-controller`. The Dragonfly operand is a documented standard-runtime exception (CRD lacks a `runtimeClassName` field). |
 | **Authelia** | `authelia` | **Enabled** (`gvisor`) | Kustomize patch | Applied to Authelia Deployment. |
 | **cert-manager** | `cert-manager` | **Enabled** (`gvisor`) | Kustomize patch | Applied across `controller`, `cainjector`, and `webhook` Deployments and the `startupapicheck` Job. |
 | **Cilium (Hubble Relay / UI)** | `cilium` | **Enabled** (`gvisor`) | Kustomize patch | Applied to the `hubble-relay` and `hubble-ui` Deployments; the chart has no `runtimeClassName` value. |

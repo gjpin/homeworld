@@ -84,12 +84,20 @@ dex:
   enabled: false
   name: argocd-dex-server
 # redis
+# The repo provisions every Redis-compatible datastore with the Dragonfly
+# operator; the chart's bundled Redis stays disabled and the controllers use
+# a Dragonfly instance in this namespace (apps/argocd/0_dragonfly.yaml).
 redis:
-  name: argocd-redis
-  metrics:
-    enabled: false
-    serviceMonitor:
-      enabled: false
+  enabled: false
+# Point every Redis client at the in-namespace Dragonfly instance. The chart
+# reads the existingSecret's `redis-password` key (and optional
+# `redis-username`); the ExternalSecret apps/argocd/-1_secrets.yaml renders
+# both that key and the `password` key the Dragonfly CR's passwordFromSecret
+# references, from the same Infisical value.
+externalRedis:
+  host: dragonfly.argocd.svc.cluster.local
+  port: 6379
+  existingSecret: dragonfly-credentials
 # application set
 applicationSet:
   name: argocd-applicationset-controller

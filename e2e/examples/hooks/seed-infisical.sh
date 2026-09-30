@@ -324,7 +324,7 @@ seed_secrets() {
   token=$(cat "${OUT_DIR}/token")
   project_id=$(cat "${OUT_DIR}/project_id")
 
-  for folder in grafana homepage authelia immich forgejo rustfs opencloud crowdsec velero-ui velero longhorn notesnook woodpecker openchamber vaultwarden; do
+  for folder in grafana homepage authelia immich forgejo rustfs opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker openchamber vaultwarden; do
     ensure_folder "${token}" "${project_id}" "${folder}"
   done
 
@@ -346,6 +346,7 @@ seed_secrets() {
     '      - immich-admin' \
     '      - consoleAdmin')
 
+  put_secret "${token}" "${project_id}" "/argocd/DRAGONFLY_PASSWORD" "e2e-argocd-dragonfly"
   put_secret "${token}" "${project_id}" "/grafana/GF_SECURITY_ADMIN_USER" "admin"
   put_secret "${token}" "${project_id}" "/grafana/GF_SECURITY_ADMIN_PASSWORD" "e2e-grafana"
   put_secret "${token}" "${project_id}" "/homepage/ARGOCD_TOKEN" "e2e-homepage-argocd"

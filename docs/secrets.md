@@ -13,6 +13,7 @@ Two categories of values are not synchronized from Infisical:
 
 | Component | Infisical path | Description | Generation |
 | :--- | :--- | :--- | :--- |
+| **Argo CD** | `/argocd/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for the controllers' cache; rendered into both the `password` key (Dragonfly CR) and the chart's `redis-password` key. | `openssl rand -hex 32` |
 | **Authelia** | `/authelia/SESSION_SECRET` | Session cookie encryption secret. | `openssl rand -hex 32` |
 | | `/authelia/STORAGE_ENCRYPTION_KEY` | At-rest encryption key for the SQL configuration storage. | `openssl rand -hex 32` |
 | | `/authelia/USERS_DATABASE` | Full `users_database.yml` content (the authentication backend). | Handwritten YAML; per-user Argon2id digest: `docker run --rm -it ghcr.io/authelia/authelia authelia crypto hash generate argon2` |

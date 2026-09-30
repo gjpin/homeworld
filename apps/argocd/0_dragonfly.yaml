@@ -1,0 +1,51 @@
+# https://www.dragonflydb.io/docs/managing-dragonfly/operator/dragonfly-configuration
+# Replaces the argo-cd chart's bundled Redis (redis.enabled: false): the
+# controllers cache against this in-namespace Dragonfly instance through the
+# chart's externalRedis block (redis.server: dragonfly.argocd.svc:6379).
+---
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  labels:
+    app.kubernetes.io/part-of: dragonfly-operator
+    app.kubernetes.io/created-by: dragonfly-operator
+  name: dragonfly
+  namespace: argocd
+spec:
+  replicas: 1
+  # Pin the operand image so it cannot drift with the operator's built-in
+  # default; kept in sync with apps/authelia/0_dragonfly.yaml.
+  image: docker.dragonflydb.io/dragonflydb/dragonfly:v2.0.0
+  imagePullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 50Mi
+    limits:
+      cpu: 500m
+      memory: 2Gi
+  authentication:
+    passwordFromSecret:
+      name: dragonfly-credentials
+      key: password
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+  podSecurityContext:
+    runAsNonRoot: true
+    # The pinned image declares no USER and only drops to the dfly user via
+    # setpriv when started as root; run the container as the image's dfly
+    # user directly so runAsNonRoot holds under Restricted admission.
+    runAsUser: 999
+    runAsGroup: 999
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    runAsNonRoot: true
+    runAsUser: 999
+    runAsGroup: 999
+    seccompProfile:
+      type: RuntimeDefault
