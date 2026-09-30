@@ -53,6 +53,10 @@ configuration:
 snapshotsEnabled: false
 credentials:
   existingSecret: velero-credentials
+# CRDs are applied declaratively through includeCRDs (ServerSideApply); the
+# chart's upgrade-crds pre-upgrade hook Job would be an inert Helm hook
+# under Argo and block chart bumps with its immutable spec.
+upgradeCRDs: false
 deployNodeAgent: true
 nodeSelector:
   node-role.kubernetes.io/homelab: homelab

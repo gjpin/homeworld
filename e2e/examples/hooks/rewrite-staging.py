@@ -22,6 +22,9 @@ OMIT_APPS = {
     # datapath cannot start on kind; the suite installs its own CRD-only
     # Cilium in kube-system.
     "cilium-app",
+    # Kind's local-path provisioner has no CSI driver, so there is nothing
+    # for the snapshot controller to act on; keep the suite lean.
+    "snapshot-controller-app",
     # Image ghcr.io/gjpin/openchamber is private; kind cannot pull it
     # without credentials (401 Unauthorized).
     "openchamber-app",

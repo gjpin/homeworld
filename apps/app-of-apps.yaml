@@ -289,6 +289,47 @@ spec:
       annotations:
         security.homeworld/exception-reason: Longhorn node integration requires privileged containers and hostPath volumes.
 ---
+# snapshot-controller
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: snapshot-controller-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/snapshot-controller"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: snapshot-controller
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
 # kubelet-serving-cert-approver
 apiVersion: argoproj.io/v1alpha1
 kind: Application

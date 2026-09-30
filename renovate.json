@@ -145,6 +145,14 @@
       "groupName": "prometheus-operator-crds"
     },
     {
+      "description": "Group the external-snapshotter CRD tag and the snapshot-controller image so the release and its controller stay version-aligned",
+      "matchPackageNames": [
+        "kubernetes-csi/external-snapshotter",
+        "sig-storage/snapshot-controller"
+      ],
+      "groupName": "snapshot-controller"
+    },
+    {
       "description": "Group every OpenChamber workspace image update (base image digest and all pinned tools, majors included) into one PR; automerge-openchamber.yaml merges it once the PR smoke build passes",
       "matchFileNames": [
         "images/openchamber/Dockerfile"
@@ -1137,6 +1145,31 @@
       ],
       "datasourceTemplate": "git-tags",
       "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the external-snapshotter CRD tag",
+      "managerFilePatterns": [
+        "/^apps/snapshot-controller/0_crds\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)repoURL:\\s+https://github\\.com/(?<depName>kubernetes-csi/external-snapshotter)\\.git\\s+targetRevision:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "datasourceTemplate": "git-tags",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the snapshot-controller image",
+      "managerFilePatterns": [
+        "/^apps/snapshot-controller/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s+image:\\s*(?<depName>registry\\.k8s\\.io/sig-storage/snapshot-controller):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://registry.k8s.io"
     },
     {
       "customType": "regex",

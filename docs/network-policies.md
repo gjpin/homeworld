@@ -38,6 +38,7 @@ All applications enforce default-deny egress via Cilium Network Policies, with b
 | RustFS | **No** | Envoy Gateway (S3 `9000`, Console `9001`), OpenCloud (`9000`), RustFS Operator (`9000`, `9001`) | `otel-collector-pod-collector:4318` (OTLP/HTTP metrics push; RustFS exposes no Prometheus scrape endpoint)<br>`auth.${BASE_DOMAIN}:443` (OIDC/STS) | — |
 | RustFS Operator | **No** | Envoy Gateway (`9090`) | `kube-apiserver:443`<br>`rustfs-io:9000`<br>`rustfs-console:9001` | — |
 | VictoriaMetrics | **No** | Envoy Gateway (`8428`, `9428`, `10428`), Grafana (`8428`, `9428`, `10428`), OpenTelemetry Collector (`8428`, `9428`, `10428`) | — | — |
+| Snapshot Controller | **No** | OpenTelemetry Collector (metrics `8080`) | `kube-apiserver:443` | — |
 | Velero | **Yes** | OpenTelemetry Collector (metrics `8085`) | `kube-apiserver:443`<br>Kubelet (`host:10250` for node-agent volume backups)<br>CSI data-mover pods (the per-DataUpload/DataDownload pods carry `velero.io/data-upload`/`velero.io/data-download` labels, not the Helm instance label — their policies allow the same kube-apiserver and B2 egress) | Backblaze B2 S3 storage (`s3.${B2_REGION}.backblazeb2.com:443`) |
 | Velero UI | **No** | Envoy Gateway (`3000`) | `kube-apiserver:443`<br>`auth.${BASE_DOMAIN}:443` (OIDC) | — |
 | Vaultwarden | **Yes** | Envoy Gateway (`8080`), OpenTelemetry Collector (CloudNativePG instance metrics `9187`) | `vaultwarden-rw:5432` (PostgreSQL)<br>`auth.${BASE_DOMAIN}:443` (OIDC) | Icon downloads (`world:80`, `world:443`)<br>SMTP relay (`world:587`, `world:465`) |
