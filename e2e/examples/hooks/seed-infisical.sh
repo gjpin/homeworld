@@ -373,6 +373,10 @@ seed_secrets() {
   # (the latter two apps are omitted on kind, but seeding the key keeps the
   # omit list independent of the secret set).
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_ENVOY" "e2e-oidc-envoy"
+  # The Home Assistant app is omitted on kind, but its ExternalSecret is
+  # part of the tracked manifest set; seeding the key keeps the omit list
+  # independent of the secret set.
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_HOMEASSISTANT" "e2e-oidc-homeassistant"
   put_secret "${token}" "${project_id}" "/authelia/SMTP_PASSWORD" "e2e-authelia-smtp"
   put_secret "${token}" "${project_id}" "/authelia/USERS_DATABASE" "${authelia_users}"
   put_secret "${token}" "${project_id}" "/cloudflare/API_TOKEN" "e2e-cloudflare-token"
