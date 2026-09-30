@@ -403,32 +403,6 @@ def rewrite_eso_decoding_none(root: pathlib.Path) -> None:
     print(f"[rewrite-staging] decodingStrategy Auto->None in {count} files")
 
 
-def rewrite_dragonfly_nonroot(root: pathlib.Path) -> None:
-    """Run Dragonfly as the image's dfly user (UID/GID 999).
-
-    The image has no USER (root by default) and the entrypoint only calls
-    setpriv when started as root. Running as 999 skips setpriv, keeps
-    runAsNonRoot, and stays within Restricted Pod Security (the previous
-    root + SETUID rewrite is rejected by PSA enforcement).
-    """
-    count = 0
-    for path in root.rglob("*.yaml"):
-        text = path.read_text()
-        if "kind: Dragonfly" not in text:
-            continue
-        new = text
-        if "runAsUser:" not in new:
-            new = re.sub(
-                r"(?m)^(\s*)runAsNonRoot: true\s*$",
-                r"\1runAsNonRoot: true\n\1runAsUser: 999\n\1runAsGroup: 999",
-                new,
-            )
-        if new != text:
-            path.write_text(new)
-            count += 1
-    print(f"[rewrite-staging] Dragonfly dfly user 999 in {count} files")
-
-
 def rewrite_statefulset_strategy(root: pathlib.Path) -> None:
     """StatefulSet has updateStrategy, not strategy; SSA rejects the unknown field."""
     count = 0
@@ -524,23 +498,6 @@ def rewrite_crowdsec_credential_secrets(root: pathlib.Path) -> None:
             path.write_text(new)
             count += 1
     print(f"[rewrite-staging] crowdsec store*CredentialsInSecret false in {count} files")
-
-
-def rewrite_crowdsec_postgres_template(root: pathlib.Path) -> None:
-    """CrowdSec ES template.data lists only username, so ESO drops the password key."""
-    path = root / "apps" / "crowdsec" / "-1_secrets.yaml"
-    if not path.exists():
-        return
-    text = path.read_text()
-    new = text.replace(
-        "        username: crowdsec\n",
-        '        username: crowdsec\n        password: "{{ .password }}"\n',
-    )
-    if new != text:
-        path.write_text(new)
-        print("[rewrite-staging] crowdsec postgres-credentials template includes password")
-    else:
-        print("[rewrite-staging] crowdsec postgres-credentials template unchanged")
 
 
 def rewrite_crowdsec_skip_hooks(root: pathlib.Path) -> None:
@@ -897,77 +854,6 @@ def rewrite_collabora_kind_jail(root: pathlib.Path) -> None:
         print("[rewrite-staging] collabora jail rewrite unchanged")
 
 
-
-
-def rewrite_immich_vchord(root: pathlib.Path) -> None:
-    """VectorChord must be preloaded; Immich CREATE EXTENSION needs a superuser.
-
-    Tracked Cluster image is cloudnative-vectorchord but does not set
-    shared_preload_libraries. Without it, CREATE EXTENSION vchord fails with
-    "vchord must be loaded via shared_preload_libraries". Immich then runs
-    CREATE EXTENSION as the app role (not a superuser) and CrashLoops even
-    after the Database CR has applied the extension.
-    """
-    path = root / "apps" / "immich" / "0_postgres.yaml"
-    if not path.exists():
-        print("[rewrite-staging] immich postgres missing; skipping vchord rewrite")
-        return
-    docs = split_docs(path.read_text())
-    out = []
-    changed = False
-    image_line = "  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:18.1-1.0.0\n"
-    preload = (
-        image_line
-        + "  postgresql:\n"
-        + "    shared_preload_libraries:\n"
-        + "      - vchord\n"
-        + "  managed:\n"
-        + "    roles:\n"
-        + "      - name: immich\n"
-        + "        ensure: present\n"
-        + "        login: true\n"
-        + "        superuser: true\n"
-    )
-    secret_line = "        name: postgres-credentials\n"
-    postinit = (
-        secret_line
-        + "      postInitSQL:\n"
-        + "        - CREATE EXTENSION IF NOT EXISTS vchord CASCADE\n"
-        + "        - CREATE EXTENSION IF NOT EXISTS cube\n"
-        + "        - CREATE EXTENSION IF NOT EXISTS earthdistance\n"
-    )
-    extra_ext = (
-        "    - name: vchord\n"
-        "      ensure: present\n"
-        "    - name: vector\n"
-        "      ensure: present\n"
-        "    - name: cube\n"
-        "      ensure: present\n"
-        "    - name: earthdistance\n"
-        "      ensure: present\n"
-    )
-    for doc in docs:
-        if re.search(r"(?m)^kind: Cluster\s*$", doc) and "vectorchord" in doc:
-            if "shared_preload_libraries" not in doc and image_line in doc:
-                doc = doc.replace(image_line, preload, 1)
-                changed = True
-            if "postInitSQL:" not in doc and secret_line in doc:
-                doc = doc.replace(secret_line, postinit, 1)
-                changed = True
-        if re.search(r"(?m)^kind: Database\s*$", doc):
-            if "name: cube" not in doc and "name: vchord" in doc:
-                doc = doc.replace(
-                    "    - name: vchord\n      ensure: present\n",
-                    extra_ext,
-                    1,
-                )
-                changed = True
-        out.append(doc)
-    if changed:
-        path.write_text(join_docs(out))
-        print("[rewrite-staging] immich VectorChord preload + superuser + extensions")
-    else:
-        print("[rewrite-staging] immich vchord rewrite unchanged")
 
 
 def rewrite_immich_kind_storage(root: pathlib.Path) -> None:
@@ -1432,13 +1318,11 @@ def main() -> int:
     rewrite_kind_runtime_class(root)
     rewrite_gateway_from_all(root)
     rewrite_eso_decoding_none(root)
-    rewrite_dragonfly_nonroot(root)
     rewrite_statefulset_strategy(root)
     rewrite_grafana_pvc_name(root)
     rewrite_opencloud_web_extensions(root)
     rewrite_opencloud_collaboration_insecure(root)
     rewrite_crowdsec_credential_secrets(root)
-    rewrite_crowdsec_postgres_template(root)
     rewrite_forgejo_oidc_http(root)
     rewrite_crowdsec_registration_token(root)
     rewrite_crowdsec_disable_enroll(root)
@@ -1448,7 +1332,6 @@ def main() -> int:
     # Controller memory patch lives in rewrite_argocd_disable_extras.
     rewrite_collabora_kind_jail(root)
     rewrite_immich_kind_storage(root)
-    rewrite_immich_vchord(root)
     rewrite_rustfs_map_hostusers(root)
     rewrite_route_sync_wave(root)
     rewrite_crowdsec_disable_agent(root)

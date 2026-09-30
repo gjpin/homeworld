@@ -30,6 +30,11 @@ spec:
     node-role.kubernetes.io/homelab: homelab
   podSecurityContext:
     runAsNonRoot: true
+    # The pinned image declares no USER and only drops to the dfly user via
+    # setpriv when started as root; run the container as the image's dfly
+    # user directly so runAsNonRoot holds under Restricted admission.
+    runAsUser: 999
+    runAsGroup: 999
     seccompProfile:
       type: RuntimeDefault
   containerSecurityContext:
@@ -38,5 +43,7 @@ spec:
       drop:
         - ALL
     runAsNonRoot: true
+    runAsUser: 999
+    runAsGroup: 999
     seccompProfile:
       type: RuntimeDefault
