@@ -31,15 +31,6 @@ patches:
         path: /metadata/namespace
         value: crowdsec
   - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^crowdsec-(capi-register|lapi-cscli-register)-job$
-    patch: |-
-      - op: add
-        path: /metadata/namespace
-        value: crowdsec
-  - target:
       group: apps
       version: v1
       kind: Deployment
@@ -108,6 +99,16 @@ patches:
       kind: Job
       name: ^crowdsec-(capi-register|lapi-cscli-register)-job$
     patch: |-
+      # The chart ships these as plain one-shot Jobs; under Argo a completed
+      # Job breaks every chart bump (spec.template is immutable, so the
+      # completed Job from the first sync rejects the new image tag and the
+      # sync fails). The registration work is genuinely wanted, so
+      # re-annotate them as Argo CD PostSync hooks: they run after every
+      # sync, once the LAPI Deployment and RBAC have applied, and both are
+      # idempotent by design (they exit 0 when their credential secret
+      # already exists). hook-delete-policy removes them on success so
+      # they are re-created — never updated — and a failed run stays
+      # visible for debugging.
       - op: add
         path: /spec/template/spec/hostUsers
         value: false
@@ -168,6 +169,14 @@ patches:
       - op: add
         path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
         value: The pinned CrowdSec image has no non-root USER and the registration hook runs with the preserved root context to write its generated credentials; seccomp, dropped capabilities, and no privilege escalation remain enabled.
+      # Argo CD PostSync hook conversion (see the comment at the top of this
+      # patch): these adds must come after the annotations map reset above.
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1hook
+        value: PostSync
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1hook-delete-policy
+        value: HookSucceeded
   - target:
       group: apps
       version: v1

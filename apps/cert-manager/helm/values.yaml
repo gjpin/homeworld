@@ -8,6 +8,12 @@ global:
 
 fullnameOverride: cert-manager
 namespace: cert-manager
+# The post-install startupapicheck Job is an upgrade checker (it phones
+# Let's Encrypt/API-version data to verify compatibility); it is inert as a
+# Helm hook under Argo and its immutable spec would block chart bumps, so
+# it stays disabled.
+startupapicheck:
+  enabled: false
 crds:
   enabled: true
   keep: true

@@ -50,12 +50,47 @@ patches:
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
   - target:
+      group: (^$|rbac\.authorization\.k8s\.io|admissionregistration\.k8s\.io)
+      version: v1
+      kind: ^(ServiceAccount|Role|ClusterRole|RoleBinding|ClusterRoleBinding|MutatingWebhookConfiguration)$
+      name: ^(envoy-gateway-gateway-helm-certgen(:envoy-gateway)?|envoy-gateway-topology-injector\.envoy-gateway)$
+    patch: |-
+      # The chart ships these as Helm pre-install/pre-upgrade hooks; under
+      # Argo the annotations are inert and the resources apply with the
+      # normal sync instead, which is what the certgen PostSync hook below
+      # expects to already exist.
+      - op: remove
+        path: /metadata/annotations/helm.sh~1hook
+      - op: remove
+        path: /metadata/annotations/helm.sh~1hook-weight
+  - target:
       group: batch
       version: v1
       kind: Job
       name: ^envoy-gateway-gateway-helm-certgen$
       namespace: ^envoy-gateway$
     patch: |-
+      # The chart's helm.sh/hook annotations are inert under Argo, and a
+      # plain Job breaks every chart bump: spec.template is immutable, so
+      # the completed Job from the first sync rejects the new image tag and
+      # the sync fails. The certgen work is genuinely wanted (it provisions
+      # the webhook's self-signed certificate and patches the
+      # MutatingWebhookConfiguration caBundle), so re-annotate it as an
+      # Argo CD PostSync hook instead: the ServiceAccount/Role/Binding and
+      # webhook configuration above have already applied by then, the job
+      # runs after every sync (always with the fresh image), and
+      # hook-delete-policy removes it on success so it is re-created —
+      # never updated. The controller Deployment briefly waits for the
+      # certificate secret on the very first sync and recovers as soon as
+      # the hook delivers it.
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1hook
+        value: PostSync
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1hook-delete-policy
+        value: HookSucceeded
+      - op: remove
+        path: /metadata/annotations/helm.sh~1hook
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
