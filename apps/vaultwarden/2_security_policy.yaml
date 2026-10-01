@@ -20,5 +20,4 @@ spec:
           name: crowdsec-envoy-bouncer
           namespace: envoy-gateway
           port: 8080
-          group: ""
           weight: 1

@@ -20,7 +20,6 @@ spec:
           name: crowdsec-envoy-bouncer
           namespace: envoy-gateway
           port: 8080
-          group: ""
           weight: 1
 ---
 # Gateway OIDC for the Zigbee2MQTT web UI. Authelia is the only login:

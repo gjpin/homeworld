@@ -376,6 +376,26 @@ def rewrite_kind_runtime_class(root: pathlib.Path) -> None:
             "",
             ktext,
         )
+        # The kind bootstrap Argo CD compares client-side, whose frozen
+        # OpenAPI v2 schema predates StatefulSet maxSurge ("field not
+        # declared in schema" on the argocd child app). Production Argo CD
+        # diffs server-side, where the apiserver accepts the surge — keep
+        # the patch in git, drop it from the kind staging tree. The patch
+        # block carries explanatory comments, so match through to the end
+        # of its ops.
+        # Split into "  - target:" blocks and drop the StatefulSet
+        # updateStrategy block (its patch body carries comments).
+        if "updateStrategy" in knew:
+            blocks = re.split(r"(?m)^(?=  - target:)", knew)
+            kept = [
+                b for b in blocks
+                if not (
+                    "kind: StatefulSet" in b
+                    and "argocd-argocd-application-controller" in b
+                    and "updateStrategy" in b
+                )
+            ]
+            knew = "".join(kept)
         # Dropping the only op in a patch leaves `patch: |-` with an empty
         # body, which kustomize rejects. Remove such emptied patch entries.
         knew = re.sub(
