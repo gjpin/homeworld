@@ -57,4 +57,9 @@ console:
   nodeSelector:
     node-role.kubernetes.io/homelab: homelab
 sts:
-  enabled: true
+  # Disable the operator's STS service (container port 4223): nothing in
+  # this cluster consumes it — no CiliumNetworkPolicy admits it and no docs
+  # row exists — and the tenant's own S3 endpoint (rustfs-io:9000) serves
+  # AssumeRole for in-cluster clients. Re-enable with matching CNP rules and
+  # a docs/network-policies.md row if an STS consumer ever appears.
+  enabled: false

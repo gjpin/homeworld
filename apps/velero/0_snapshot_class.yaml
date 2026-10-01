@@ -8,6 +8,13 @@
 # the BackupStorageLocation (CSI snapshot data movement) before the snapshot
 # is deleted. deletionPolicy: Delete lets those transient snapshots clean
 # up after each upload; Velero manages retention through the backup.
+#
+# parameters.type: snap is load-bearing: the Longhorn CSI driver treats an
+# empty type as "bak" for backward compatibility, which creates a Longhorn
+# *backup* instead of an in-cluster snapshot — that path requires a backup
+# target (this cluster has none; backups are delegated to Velero) and fails
+# outright. "snap" creates the in-cluster snapshot the data-movement flow
+# above expects.
 ---
 apiVersion: snapshot.storage.k8s.io/v1
 kind: VolumeSnapshotClass
@@ -21,3 +28,5 @@ metadata:
 spec:
   driver: driver.longhorn.io
   deletionPolicy: Delete
+  parameters:
+    type: snap

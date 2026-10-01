@@ -11,6 +11,10 @@ persistence:
   createStorageClass: false
 defaultSettings:
   upgradeChecker: false
+  # Anonymous usage-metrics reporting to longhorn.io is on upstream by
+  # default; disabled per the AGENTS.md telemetry rule (the namespace's
+  # egress policy would block it anyway).
+  allowCollectingLonghornUsageMetrics: false
   systemManagedComponentsNodeSelector: "node-role.kubernetes.io/homelab:homelab"
   defaultReplicaCount: 1
   concurrentAutomaticEngineUpgradePerNodeLimit: 2

@@ -3041,8 +3041,8 @@
       {
         "current": {
           "selected": false,
-          "text": "Prometheus",
-          "value": "PBFA97CFB590B2093"
+          "text": "VictoriaMetrics",
+          "value": "victoriametrics"
         },
         "hide": 0,
         "includeAll": false,
@@ -3057,15 +3057,7 @@
       },
       {
         "allValue": ".*",
-        "current": {
-          "selected": true,
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
-        },
+        "current": {"selected": false, "text": "VictoriaMetrics", "value": "victoriametrics"},
         "datasource": {
           "uid": "$datasource"
         },

@@ -19,6 +19,12 @@ spec:
       name: envoy
   extAuth:
     failOpen: false
+    # Envoy Gateway only forwards request bodies to the ext-auth service when
+    # bodyToExtAuth is set; without it CrowdSec AppSec never sees request
+    # bodies (in-band virtual patching) and the gap is silent — path and
+    # header bans keep working.
+    bodyToExtAuth:
+      maxRequestBytes: 65536
     grpc:
       backendRefs:
         - group: ""

@@ -101,18 +101,23 @@ spec:
               # Loads default set of integrations. Do not remove.
               # default_config includes the analytics integration (reporting
               # requires an explicit opt-in via the UI) and the update
-              # checker; both are accepted telemetry surface for this
-              # component and left at their defaults.
+              # checker. Recorded telemetry exception: both stay enabled
+              # because default_config is load-bearing for core HA
+              # functionality, reporting is opt-in and never enabled, and
+              # the update checker is unreachable — the namespace's egress
+              # policy has no internet allowlist for it (AGENTS.md
+              # telemetry rule).
               default_config:
 
               # Reverse proxy: Envoy terminates TLS, so trust its forwarded
-              # headers (envoy-gateway pods live in the pod CIDR the Cilium
-              # policies exclude — see -2_network_policy.yaml) and generate
+              # headers (Envoy's pod IP lives in the Talos default pod CIDR;
+              # the Cilium policies exclude the cluster CIDRs — see
+              # -2_network_policy.yaml and docs/talos.md) and generate
               # https callback URLs for the OIDC flow.
               http:
                 use_x_forwarded_for: true
                 trusted_proxies:
-                  - 10.42.0.0/16
+                  - 10.244.0.0/16
 
               # Metrics endpoint for the ServiceMonitor. requires_auth is
               # disabled because the tokenless OTel collector is the only

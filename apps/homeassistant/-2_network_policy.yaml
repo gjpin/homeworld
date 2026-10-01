@@ -44,13 +44,14 @@ spec:
     matchLabels:
       k8s:io.kompose.service: homeassistant
   egress:
-    # Home Assistant integrations may reach the home LAN, but never the k3s
-    # pod or service CIDRs contained in 10.0.0.0/8.
+    # Home Assistant integrations may reach the home LAN, but never the
+    # cluster's pod or service CIDRs. The cluster runs Talos defaults:
+    # 10.244.0.0/16 pods and 10.96.0.0/12 services (docs/talos.md).
     - toCIDRSet:
         - cidr: 10.0.0.0/8
           except:
-            - 10.42.0.0/16
-            - 10.43.0.0/16
+            - 10.244.0.0/16
+            - 10.96.0.0/12
         - cidr: 172.16.0.0/12
         - cidr: 192.168.0.0/16
       toPorts:
@@ -226,11 +227,14 @@ spec:
     matchLabels:
       k8s:io.kompose.service: homeassistant-zigbee2mqtt
   egress:
+    # Zigbee2MQTT frontend websockets may reach the home LAN, but never the
+    # cluster's pod or service CIDRs (Talos defaults — see the
+    # allow-homeassistant-lan comment and docs/talos.md).
     - toCIDRSet:
         - cidr: 10.0.0.0/8
           except:
-            - 10.42.0.0/16
-            - 10.43.0.0/16
+            - 10.244.0.0/16
+            - 10.96.0.0/12
         - cidr: 172.16.0.0/12
         - cidr: 192.168.0.0/16
       toPorts:

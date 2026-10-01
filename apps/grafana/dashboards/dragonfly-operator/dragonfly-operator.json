@@ -83,7 +83,7 @@
 		}
 	  ]
 	},
-	"description": "",
+	"description": "Adapted from the official dragonflydb/dragonfly-operator repo dashboard (monitoring/grafana-dashboard.json, linked from the dragonflydb.io operator docs); __inputs converted to a datasource variable; datasource hardcoded to the in-cluster victoriametrics uid.",
 	"editable": true,
 	"fiscalYearStartMonth": 0,
 	"gnetId": 11692,

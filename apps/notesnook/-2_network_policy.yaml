@@ -162,6 +162,29 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  # The identity service sends the account-verification, 2FA, and
+  # password-reset mail; same FQDN-less SMTP rationale as allow-sse-smtp.
+  name: allow-identity-smtp
+  namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: notesnook-identity
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "465"
+              protocol: TCP
+            - port: "587"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-metrics-scraping
   namespace: notesnook
   annotations:

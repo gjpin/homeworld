@@ -143,6 +143,12 @@ patches:
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
+      # One-shot hook Jobs, but they are still workloads: schedule them on
+      # homelab nodes like every other pod in the repo.
+      - op: add
+        path: /spec/template/spec/nodeSelector
+        value:
+          node-role.kubernetes.io/homelab: homelab
       - op: add
         path: /spec/template/spec/securityContext
         value:

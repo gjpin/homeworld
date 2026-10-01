@@ -135,9 +135,13 @@ try:
         if m_repo:
             current_repo = m_repo.group(1).strip()
         if line.startswith("+") and not line.startswith("+++"):
-            m = re.search(r'(?:image|imageName):\s*["\']?([a-zA-Z0-9._/-]+:[a-zA-Z0-9._-]+)["\']?', line)
+            m = re.search(r'(?:image|imageName):\s*["\']?([a-zA-Z0-9._/-]+:[a-zA-Z0-9._-]+(?:@sha256:[a-f0-9]{64})?)["\']?', line)
             if m:
                 images_to_scan.add(m.group(1).strip())
+            # Digest-only pins: repository + digest (no tag).
+            m_digest = re.search(r'(?:image|imageName):\s*["\']?([a-zA-Z0-9._/-]+@sha256:[a-f0-9]{64})["\']?', line)
+            if m_digest:
+                images_to_scan.add(m_digest.group(1).strip())
             m_tag = re.search(r'tag:\s*["\']?([a-zA-Z0-9._-]+)["\']?', line)
             if m_tag and current_repo:
                 images_to_scan.add(f"{current_repo}:{m_tag.group(1).strip()}")
@@ -145,7 +149,7 @@ except Exception:
     pass
 
 for img in sorted(images_to_scan):
-    if "${" not in img and "$" not in img and ":" in img:
+    if "${" not in img and "$" not in img and (":" in img or "@sha256:" in img):
         print(img)
 EOF
   )

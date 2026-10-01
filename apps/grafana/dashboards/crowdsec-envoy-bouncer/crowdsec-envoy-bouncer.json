@@ -5,7 +5,7 @@
   },
   "id": null,
   "uid": "envoy-crowdsec-bouncer",
-  "description": "Envoy CrowdSec Bouncer \u2014 security proxy observability",
+  "description": "Envoy CrowdSec Bouncer \u2014 security proxy observability Provenance: official chart-bundled dashboards/bouncer.json from the kdwils/envoy-proxy-crowdsec-bouncer chart; datasource hardcoded to the in-cluster victoriametrics uid.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,

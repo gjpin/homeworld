@@ -32,7 +32,7 @@
   "panels": [
     {
       "collapsed": false,
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -43,7 +43,7 @@
       "panels": [],
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "refId": "A"
         }
       ],
@@ -51,7 +51,7 @@
       "type": "row"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "description": "Currently opened documents",
       "fieldConfig": {
         "defaults": {
@@ -97,7 +97,7 @@
       "pluginVersion": "9.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "exemplar": true,
           "expr": "sum(document_active_views_active_count_total)",
           "instant": false,
@@ -110,7 +110,7 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "description": "Total number of views (active or expired) of all documents (active and expired)",
       "fieldConfig": {
         "defaults": {
@@ -155,7 +155,7 @@
       "pluginVersion": "9.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "sum(document_all_views_all_count_total)",
@@ -169,7 +169,7 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "description": "Total number of views (active or expired) of all documents (active and expired).",
       "fieldConfig": {
         "defaults": {
@@ -214,7 +214,7 @@
       "pluginVersion": "9.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "exemplar": true,
           "expr": "sum(document_all_views_all_count_total)",
           "instant": false,
@@ -227,7 +227,7 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "description": "Total number of all views (active or expired) of expired documents",
       "fieldConfig": {
         "defaults": {
@@ -272,7 +272,7 @@
       "pluginVersion": "9.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "exemplar": true,
           "expr": "sum(document_expired_views_all_count_total)",
           "instant": false,
@@ -285,7 +285,7 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "description": "Total number of expired views of all active documents",
       "fieldConfig": {
         "defaults": {
@@ -334,7 +334,7 @@
       "pluginVersion": "9.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "exemplar": true,
           "expr": "sum(document_active_views_expired_count_total)",
           "instant": false,
@@ -347,7 +347,7 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "description": "Total number of bytes received from clients by all documents (active or expired)",
       "fieldConfig": {
         "defaults": {
@@ -393,7 +393,7 @@
       "pluginVersion": "9.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "sum(document_all_received_from_clients_total_bytes)/1048576",
@@ -407,7 +407,7 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "description": "Total number of bytes sent to clients by all documents (active or expired)",
       "fieldConfig": {
         "defaults": {
@@ -453,7 +453,7 @@
       "pluginVersion": "9.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "sum(document_all_sent_to_clients_total_bytes)/1048576",
@@ -468,7 +468,7 @@
     },
     {
       "collapsed": false,
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -479,7 +479,7 @@
       "panels": [],
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "refId": "A"
         }
       ],
@@ -487,7 +487,7 @@
       "type": "row"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -535,7 +535,7 @@
       "pluginVersion": "9.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "exemplar": true,
           "expr": "sum(coolwsd_count)",
           "instant": false,
@@ -548,7 +548,7 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -596,7 +596,7 @@
       "pluginVersion": "9.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "exemplar": true,
           "expr": "sum(coolwsd_thread_count)",
           "instant": false,
@@ -609,7 +609,7 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -657,7 +657,7 @@
       "pluginVersion": "9.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "exemplar": true,
           "expr": "sum(forkit_count)",
           "instant": false,
@@ -670,7 +670,7 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -718,7 +718,7 @@
       "pluginVersion": "9.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "exemplar": true,
           "expr": "sum(forkit_thread_count)",
           "instant": false,
@@ -731,7 +731,7 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -780,7 +780,7 @@
       "repeatDirection": "h",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "exemplar": true,
           "expr": "sum(kit_count)",
           "instant": false,
@@ -793,7 +793,7 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -842,7 +842,7 @@
       "repeatDirection": "h",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "exemplar": true,
           "expr": "sum(kit_assigned_count)",
           "instant": false,
@@ -855,7 +855,7 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -904,7 +904,7 @@
       "repeatDirection": "h",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "exemplar": true,
           "expr": "sum(kit_unassigned_count)",
           "instant": false,
@@ -917,7 +917,7 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -966,7 +966,7 @@
       "repeatDirection": "h",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "exemplar": true,
           "expr": "sum(kit_thread_count_total)",
           "instant": false,
@@ -980,7 +980,7 @@
     },
     {
       "collapsed": false,
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -991,7 +991,7 @@
       "panels": [],
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "refId": "A"
         }
       ],
@@ -999,7 +999,7 @@
       "type": "row"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1066,7 +1066,7 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "sum(document_active_views_active_count_total)",
@@ -1080,7 +1080,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -1153,7 +1153,7 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "avg(rate(document_all_view_load_duration_total_milliseconds[1m]))/1000",
@@ -1163,7 +1163,7 @@
           "refId": "A"
         },
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "avg(rate(document_active_view_load_duration_total_milliseconds[1m]))/1000",
@@ -1174,7 +1174,7 @@
           "refId": "B"
         },
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "avg(rate(document_expired_view_load_duration_total_milliseconds[1m]))/1000",
@@ -1189,7 +1189,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1261,7 +1261,7 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "sum(rate(coolwsd_cpu_time_seconds[3m]))",
@@ -1272,7 +1272,7 @@
           "refId": "A"
         },
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "sum(rate(forkit_cpu_time_seconds[3m]))",
@@ -1283,7 +1283,7 @@
           "refId": "B"
         },
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "sum(rate(kit_cpu_time_total_seconds[3m]))",
@@ -1298,7 +1298,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1370,7 +1370,7 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "sum(coolwsd_memory_used_bytes)/1048576",
@@ -1380,7 +1380,7 @@
           "refId": "A"
         },
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "sum(forkit_memory_used_bytes)/1048576",
@@ -1391,7 +1391,7 @@
           "refId": "B"
         },
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "sum(kit_memory_used_total_bytes)/1048576",
@@ -1406,7 +1406,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1510,7 +1510,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1578,7 +1578,7 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "sum(rate(document_all_received_from_clients_total_bytes[1m]))/1048576",
@@ -1588,7 +1588,7 @@
           "refId": "A"
         },
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "sum(rate(document_active_received_from_clients_total_bytes[1m]))/1048576",
@@ -1599,7 +1599,7 @@
           "refId": "B"
         },
         {
-          "datasource": {},
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
           "editorMode": "code",
           "exemplar": true,
           "expr": "sum(rate(document_expired_received_from_clients_total_bytes[1m]))/1048576",

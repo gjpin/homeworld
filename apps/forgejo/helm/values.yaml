@@ -40,6 +40,9 @@ initContainers:
       ephemeral-storage: 2Gi
 
 gitea:
+  # No admin user is seeded: with INSTALL_LOCK and OAuth auto-registration,
+  # the first user to sign in through Authelia becomes the site admin —
+  # intended for this single-operator instance (docs/oidc.md).
   admin:
     username: ""
     password: ""
@@ -52,6 +55,9 @@ gitea:
       scopes: "openid profile email groups"
       groupClaimName: groups
       adminGroup: forgejo-admin
+  # Cache, session, and queue stay on Forgejo's in-memory adapters (the
+  # defaults). That is only correct at exactly one replica — the deployment
+  # is pinned to a single replica below; revisit before scaling out.
   config:
     database:
       DB_TYPE: postgres
@@ -68,6 +74,11 @@ gitea:
       # allow webhooks to cluster-internal endpoints (SSRF surface).
       ALLOWED_HOST_LIST: "external,loopback"
     cron.update_checker:
+      ENABLED: false
+    # Woodpecker is this cluster's CI: Forgejo Actions stays disabled so the
+    # Actions UI never appears and no workflow ever resolves runner images
+    # from the default upstream actions URL (data.forgejo.org).
+    actions:
       ENABLED: false
     security:
       REVERSE_PROXY_TRUSTED_PROXIES: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.1/8
@@ -96,6 +107,12 @@ gitea:
           name: postgres-credentials
           key: password
   metrics:
+    # The chart scrapes (and exposes) gitea's /metrics on the same :3000 port
+    # the public route backs onto, so the endpoint is world-reachable behind
+    # the Gateway-level CrowdSec WAF only. Accepted residual: /metrics
+    # carries no secrets (counters and durations), and restricting it at the
+    # gateway would need a path-scoped policy Woodpecker-style clients never
+    # touch. Documented in docs/network-policies.md (forgejo row).
     enabled: true
     serviceMonitor:
       enabled: true

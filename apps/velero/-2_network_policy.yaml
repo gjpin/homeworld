@@ -54,25 +54,6 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-velero-upgrade-hook-api
-  namespace: velero
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  endpointSelector:
-    matchLabels:
-      k8s:batch.kubernetes.io/job-name: velero-upgrade-crds
-  egress:
-    - toEntities:
-        - kube-apiserver
-      toPorts:
-        - ports:
-            - port: "443"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
   name: allow-velero-backblaze
   namespace: velero
   annotations:

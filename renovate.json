@@ -137,7 +137,6 @@
       "groupName": "cilium"
     },
     {
-      "customType": "regex",
       "description": "Group the Prometheus Operator CRD tag bumps (repo pin + e2e hook) so the release and its CRDs stay version-aligned",
       "matchPackageNames": [
         "prometheus-operator/prometheus-operator"
@@ -148,9 +147,26 @@
       "description": "Group the external-snapshotter CRD tag and the snapshot-controller image so the release and its controller stay version-aligned",
       "matchPackageNames": [
         "kubernetes-csi/external-snapshotter",
-        "sig-storage/snapshot-controller"
+        "registry.k8s.io/sig-storage/snapshot-controller"
       ],
       "groupName": "snapshot-controller"
+    },
+    {
+      "description": "Group the CrowdSec Envoy bouncer chart, image, and the e2e load-hook image so one bump arrives in a single PR",
+      "matchPackageNames": [
+        "ghcr.io/kdwils/charts/envoy-proxy-bouncer",
+        "ghcr.io/kdwils/envoy-proxy-bouncer",
+        "envoy-proxy-bouncer"
+      ],
+      "groupName": "crowdsec-envoy-bouncer"
+    },
+    {
+      "description": "Group the Envoy Gateway chart and the Gateway API CRD bundle so the release and its CRDs stay version-aligned",
+      "matchPackageNames": [
+        "docker.io/envoyproxy/gateway-helm",
+        "kubernetes-sigs/gateway-api"
+      ],
+      "groupName": "envoy-gateway"
     },
     {
       "description": "Group every OpenChamber workspace image update (base image digest and all pinned tools, majors included) into one PR; automerge-openchamber.yaml merges it once the PR smoke build passes",
@@ -285,7 +301,7 @@
       "customType": "regex",
       "description": "Update CloudNativePG Cluster images",
       "managerFilePatterns": [
-        "/^apps/(?:authelia|crowdsec|forgejo|immich|vaultwarden|woodpecker)/0_postgres\\.yaml$/"
+        "/^apps/(?:authelia|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker)/0_postgres\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^\\s*imageName:\\s*(?<depName>ghcr\\.io/[^:\\s]+):(?<currentValue>[^\\s#]+)\\s*$"
@@ -331,9 +347,8 @@
       ],
       "depNameTemplate": "ghcr.io/documentdb/documentdb/documentdb-local",
       "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io",
-      "extractVersionTemplate": "^pg18-(?<version>.+)$"
+      "versioningTemplate": "regex:^(?:pg\\d+-)?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
     },
     {
       "customType": "regex",
@@ -346,9 +361,8 @@
       ],
       "depNameTemplate": "ghcr.io/documentdb/documentdb/documentdb-local",
       "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io",
-      "extractVersionTemplate": "^pg18-(?<version>.+)$"
+      "versioningTemplate": "regex:^(?:pg\\d+-)?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
     },
     {
       "customType": "regex",
@@ -376,6 +390,18 @@
       "datasourceTemplate": "helm",
       "versioningTemplate": "helm",
       "registryUrlTemplate": "https://helm.cilium.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Gateway API CRD bundle tag",
+      "managerFilePatterns": [
+        "/^apps/envoy-gateway/0_crds\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)repoURL:\\s+https://github\\.com/(?<depName>kubernetes-sigs/gateway-api)\\.git\\s+targetRevision:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "datasourceTemplate": "git-tags",
+      "versioningTemplate": "semver"
     },
     {
       "customType": "regex",
@@ -563,8 +589,9 @@
     },
     {
       "customType": "regex",
-      "description": "Update the Dragonfly operand images (authelia, immich)",
+      "description": "Update the Dragonfly operand images (argocd, authelia, immich)",
       "managerFilePatterns": [
+        "/^apps/argocd/0_dragonfly\\.yaml$/",
         "/^apps/authelia/0_dragonfly\\.yaml$/",
         "/^apps/immich/0_dragonfly\\.yaml$/"
       ],
@@ -1084,6 +1111,54 @@
     },
     {
       "customType": "regex",
+      "description": "Update the Home Assistant and Zigbee2MQTT images",
+      "managerFilePatterns": [
+        "/^apps/homeassistant/1_homeassistant_deployment\\.yaml$/",
+        "/^apps/homeassistant/1_zigbee2mqtt_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*(?:-\\s*)?image:\\s*(?<depName>ghcr\\.io/home-assistant/home-assistant|ghcr\\.io/koenkk/zigbee2mqtt):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Mosquitto broker and Home Assistant alpine init images",
+      "managerFilePatterns": [
+        "/^apps/homeassistant/1_mosquitto_deployment\\.yaml$/",
+        "/^apps/homeassistant/1_homeassistant_deployment\\.yaml$/",
+        "/^apps/homeassistant/1_zigbee2mqtt_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*(?:-\\s*)?image:\\s*(?<depName>docker\\.io/library/eclipse-mosquitto|docker\\.io/library/alpine):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Notesnook server images",
+      "managerFilePatterns": [
+        "/^apps/notesnook/1_sync\\.yaml$/",
+        "/^apps/notesnook/1_identity\\.yaml$/",
+        "/^apps/notesnook/1_sse\\.yaml$/",
+        "/^apps/notesnook/1_monograph\\.yaml$/",
+        "/^apps/notesnook/1_themes\\.yaml$/",
+        "/^apps/notesnook/1_cors_proxy\\.yaml$/",
+        "/^apps/notesnook/1_inbox_api\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>docker\\.io/streetwriters/notesnook-sync|docker\\.io/streetwriters/identity|docker\\.io/streetwriters/sse|docker\\.io/streetwriters/monograph|docker\\.io/streetwriters/themes-server|docker\\.io/streetwriters/cors-proxy|docker\\.io/streetwriters/notesnook-inbox|docker\\.io/library/busybox):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
       "description": "Update the qBittorrent image",
       "managerFilePatterns": [
         "/^apps/qbittorrent/1_deployment\\.yaml$/"
@@ -1133,6 +1208,47 @@
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Velero-UI image tag",
+      "managerFilePatterns": [
+        "/^apps/velero-ui/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*tag:\\s*\"?(?<currentValue>[^\"\\s#]+)"
+      ],
+      "depNameTemplate": "docker.io/otwld/velero-ui",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the kube-state-metrics Helm chart",
+      "managerFilePatterns": [
+        "/^apps/kube-state-metrics/helm/kustomization\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^\\s+- name:\\s+kube-state-metrics\\s+repo:\\s+https://prometheus-community\\.github\\.io/helm-charts\\s+version:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "depNameTemplate": "kube-state-metrics",
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm",
+      "registryUrlTemplate": "https://prometheus-community.github.io/helm-charts"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the kube-state-metrics image",
+      "managerFilePatterns": [
+        "/^apps/kube-state-metrics/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^image:\\s*\\n\\s+registry:\\s*registry\\.k8s\\.io\\s*\\n\\s+repository:\\s*(?<depName>kube-state-metrics/kube-state-metrics)\\s*\\n\\s+tag:\\s*\"?(?<currentValue>[^\"\\s#]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://registry.k8s.io"
     },
     {
       "customType": "regex",

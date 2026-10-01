@@ -29,3 +29,16 @@ patches:
           spec:
             hostUsers: false
             runtimeClassName: gvisor
+  # The chart's ServiceMonitor template omits metadata.namespace; AGENTS.md
+  # requires namespaced resources to declare it explicitly (and the Argo
+  # destination fallback is fragile for ServiceMonitors consumed by the
+  # Target Allocator's namespace-qualified lookups).
+  - target:
+      group: monitoring.coreos.com
+      version: v1
+      kind: ServiceMonitor
+      name: ^dragonfly-operator-controller-manager-metrics$
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: dragonfly-operator

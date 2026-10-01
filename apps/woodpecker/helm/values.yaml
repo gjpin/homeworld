@@ -15,6 +15,15 @@ server:
     WOODPECKER_DATABASE_DRIVER: postgres
     WOODPECKER_FORGEJO: "true"
     WOODPECKER_FORGEJO_URL: "https://git.${BASE_DOMAIN}"
+    # The chart's default WOODPECKER_ADMIN is the placeholder
+    # 'woodpecker,admin', which would silently make any Forgejo user named
+    # woodpecker or admin a CI admin. Keep the list empty until a real
+    # admin username is decided; set it explicitly when one is.
+    WOODPECKER_ADMIN: ""
+    # Disable the admin-UI version check against woodpecker-ci.org (AGENTS.md
+    # upgrade-checker rule); it runs in the admin's browser, so the server's
+    # own egress policy does not stop it.
+    WOODPECKER_DISABLE_VERSION_CHECK: "true"
 
   # Expose the internal metrics endpoint the ServiceMonitor scrapes
   # (bearer token arrives via envFrom woodpecker-secrets,

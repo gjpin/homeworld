@@ -65,6 +65,11 @@ pod:
       seccompProfile:
         type: RuntimeDefault
 configMap:
+  # Inert placeholder kept for chart compatibility: everything under
+  # existingConfigMap below is superseded by the template rendered into the
+  # `authelia-configuration` ConfigMap (configuration.yaml.tmpl). The chart
+  # only reads these sub-keys when existingConfigMap is unset, which it
+  # never is here — do not treat them as live configuration.
   existingConfigMap: authelia-configuration
   authentication_backend:
     file:

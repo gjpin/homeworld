@@ -330,6 +330,7 @@ spec:
         - matchName: cloudnative-pg.github.io
         - matchName: collaboraonline.github.io
         - matchName: code.forgejo.org
+        - matchName: crowdsecurity.github.io
         - matchName: charts.external-secrets.io
         - matchName: charts.longhorn.io
         - matchName: victoriametrics.github.io
@@ -338,6 +339,8 @@ spec:
         - matchName: helm.otwld.com
         - matchName: vmware-tanzu.github.io
         - matchName: kubernetes-sigs.github.io
+        - matchName: helm.cilium.io
+        - matchName: woodpecker-ci.org
         - matchName: ghcr.io
         - matchName: docker.io
         - matchName: registry-1.docker.io

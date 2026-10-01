@@ -507,30 +507,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^StatefulSet$",
           "name": "^argocd-argocd-application-controller$",
           "namespace": "^argocd$"
@@ -841,14 +817,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^RoleBinding$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
           "name": "^crowdsec-configmap-updater-binding$",
           "namespace": "^crowdsec$"
         }
@@ -983,14 +951,6 @@
         "attributes": {
           "kind": "^Deployment$",
           "name": "^velero$",
-          "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
       },
@@ -1150,14 +1110,6 @@
         "attributes": {
           "kind": "^Deployment$",
           "name": "^velero$",
-          "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
       },
@@ -1404,32 +1356,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -1747,32 +1675,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -2270,32 +2174,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -3055,13 +2935,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^ClusterRoleBinding$",
-          "name": "^velero-upgrade-crds$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^RoleBinding$",
           "name": "^external-dns-viewer$"
         }
@@ -3246,14 +3119,6 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^velero-ui$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
         }
       },
       {
@@ -3513,14 +3378,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^DaemonSet$",
           "name": "^cilium-envoy$",
           "namespace": "^cilium$"
@@ -3657,32 +3514,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -4051,24 +3884,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -4220,14 +4037,6 @@
           "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -4505,14 +4314,6 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^documentdb-operator-cluster-rolebinding$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
         }
       },
       {
@@ -4960,32 +4761,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -5726,14 +5503,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^DaemonSet$",
           "name": "^cilium$",
           "namespace": "^cilium$"
@@ -6022,32 +5791,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -6421,24 +6166,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -7089,32 +6818,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -7504,24 +7209,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -7538,14 +7227,6 @@
           "kind": "^Deployment$",
           "name": "^documentdb-operator$",
           "namespace": "^documentdb-operator$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
         }
       },
       {
@@ -7817,14 +7498,6 @@
           "kind": "^Deployment$",
           "name": "^documentdb-operator$",
           "namespace": "^documentdb-operator$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
         }
       },
       {

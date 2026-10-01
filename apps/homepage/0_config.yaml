@@ -4,7 +4,8 @@
 #   kubectl -n homepage rollout restart deploy/homepage
 #
 # Services without a siteMonitor sit behind the Envoy Gateway OIDC
-# SecurityPolicy (Longhorn, Envoy admin listener, VictoriaMetrics,
+# SecurityPolicy (Longhorn, Envoy control-plane metrics route,
+# VictoriaMetrics,
 # VictoriaLogs, VictoriaTraces, Zigbee2MQTT): an unauthenticated probe is
 # redirected to the Authelia portal, so a siteMonitor would measure the
 # portal instead of the app. The href links keep working for signed-in
@@ -94,11 +95,19 @@ data:
             icon: grafana
             href: https://grafana.${BASE_DOMAIN}
             description: Dashboards and observability
-            siteMonitor: https://grafana.${BASE_DOMAIN}
+            # No siteMonitor: unauthenticated probes hit Grafana's OIDC
+            # auto_login redirect and would measure the Authelia portal,
+            # not Grafana (same class as the gateway-OIDC hosts above).
             widget:
               type: grafana
               url: https://grafana.${BASE_DOMAIN}
-              key: "{{HOMEPAGE_VAR_GRAFANA_TOKEN}}"
+              # The v2.4.0 grafana widget proxies through the generic
+              # handler, which only sets Authorization from username/
+              # password and silently ignores `key:`. Send the existing
+              # service-account token as a Bearer header instead
+              # (HOMEPAGE_VAR_GRAFANA_TOKEN, /homepage/GRAFANA_TOKEN).
+              headers:
+                Authorization: Bearer {{HOMEPAGE_VAR_GRAFANA_TOKEN}}
         - VictoriaMetrics:
             icon: victoriametrics
             href: https://victoria-metrics.${BASE_DOMAIN}

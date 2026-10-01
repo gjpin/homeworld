@@ -129,7 +129,7 @@ patches:
         value: The pinned upstream agent image and its init containers write runtime state (generated CNI configuration, staged binaries) to their root filesystems.
       - op: add
         path: /metadata/annotations/ignore-check.kube-linter.io~1privilege-escalation-container
-        value: The cilium-agent and its BPF init containers require SYS_ADMIN for the kube-proxy replacement datapath; they keep the preserved root context and cannot set allowPrivilegeEscalation false without breaking BPF setup.
+        value: The cilium-agent's BPF init containers require privileged execution to stage the datapath before the agent container starts; the agent container itself pins allowPrivilegeEscalation false via the securityContext patch in this kustomization.
       - op: add
         path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
         value: The upstream agent image and its init containers run with the preserved root context required for BPF and host datapath access.
