@@ -2,6 +2,14 @@
 
 All cluster secrets are synchronized from [Infisical](https://infisical.com) by the External Secrets Operator through the `infisical` ClusterSecretStore (hourly refresh). No credentials are stored in this repository. Every key below must exist in Infisical at the listed path before the consuming component can start; missing keys leave the generated `Secret` incomplete and the pod fails with `CreateContainerConfigError`.
 
+Every `ExternalSecret` key in this repository pins `decodingStrategy: None`: values
+are delivered exactly as stored in Infisical. Store secrets **raw** — a hex string
+like `openssl rand -hex 32` output, a chosen username like `authelia`, a
+`wg genkey` key — never base64-encoded. (`decodingStrategy: Auto` base64-decodes
+any value that happens to parse as base64, which silently corrupts hex secrets,
+8-character usernames, and WireGuard keys; `None` guarantees the raw passthrough
+the RFC 3986-unreserved guidance below and the CNPG bootstrap both assume.)
+
 ## Bootstrap exceptions
 
 Two categories of values are not synchronized from Infisical:
@@ -25,7 +33,7 @@ Two categories of values are not synchronized from Infisical:
 | | `/authelia/OIDC_JWK_RS256` | RSA private key (JWK) for signing OIDC tokens. | `openssl genrsa 2048` (private-key PEM, including the BEGIN/END lines; Authelia derives the public key) |
 | | `/authelia/RESET_PASSWORD_JWT_SECRET` | JWT secret for the password-reset flow. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_ARGOCD` | Argo CD OIDC client secret. | `openssl rand -hex 32` |
-| | `/authelia/OIDC_CLIENT_SECRET_ENVOY` | Envoy Gateway OIDC client secret (shared by every gateway-OIDC route; delivered to each protected app's namespace as `envoy-oidc-client-secret`). | `openssl rand -hex 32` |
+| | `/authelia/OIDC_CLIENT_SECRET_ENVOY` | Envoy Gateway OIDC client secret (shared by every gateway-OIDC route; delivered to each protected app's namespace — envoy-gateway, homepage, longhorn-system, victoria-metrics, and homeassistant — as `envoy-oidc-client-secret`). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_FORGEJO` | Forgejo OIDC client secret. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_GRAFANA` | Grafana OIDC client secret. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_HOMEASSISTANT` | Home Assistant OIDC client secret. | `openssl rand -hex 32` |
@@ -62,7 +70,7 @@ Two categories of values are not synchronized from Infisical:
 | | `/notesnook/DOCUMENTDB_PASSWORD` | DocumentDB gateway password. | `openssl rand -hex 32` |
 | | `/notesnook/RUSTFS_ACCESS_KEY` | RustFS S3 access key for note attachments. | Chosen access key ID (≥8 characters, no whitespace, `=` or `,`) |
 | | `/notesnook/RUSTFS_SECRET_KEY` | RustFS S3 secret key for note attachments. | `openssl rand -hex 16` |
-| **Cloudflare** | `/cloudflare/API_TOKEN` | Cloudflare DNS API token (Zone → DNS → Edit) shared by the cert-manager ClusterIssuers and external-dns. | From the Cloudflare dashboard (My Profile → API Tokens) |
+| **Cloudflare** | `/cloudflare/API_TOKEN` | Cloudflare DNS API token (Zone → DNS → Edit **plus** Zone → Zone → Read, so external-dns and cert-manager can resolve the zone ID for each record) shared by the cert-manager ClusterIssuers and external-dns. | From the Cloudflare dashboard (My Profile → API Tokens) |
 | **OpenChamber** | `/openchamber/OPENCHAMBER_UI_PASSWORD` | Password protecting the OpenChamber web UI. | Chosen strong password |
 | | `/openchamber/OPENAI_API_KEY` | OpenAI API key for Codex CLI and OpenCode. | From OpenAI |
 | | `/openchamber/GITHUB_TOKEN` | GitHub token for agent git operations. | From GitHub (needs the Copilot Requests permission — README §7) |
@@ -83,6 +91,7 @@ Two categories of values are not synchronized from Infisical:
 | | `/qbittorrent/GLUETUN_CONTROL_ROLE` | gluetun control-server role JSON (`{"auth":"apikey","apikey":"..."}`); the port-forward sync job parses the key back out. | `printf '{"auth":"apikey","apikey":"%s"}' "$(openssl rand -hex 16)"` |
 | **RustFS** | `/rustfs/RUSTFS_ACCESS_KEY` | Root S3 access key for the storage Tenant. | Chosen access key ID (≥8 characters, no whitespace, `=` or `,`) |
 | | `/rustfs/RUSTFS_SECRET_KEY` | Root S3 secret key for the storage Tenant. | `openssl rand -hex 16` |
+| **RustFS Operator** | `/rustfs-operator/JWT_SECRET` | Console session-cookie JWT secret (Secret `rustfs-operator-console-secret`, key `jwt-secret`); the chart's generated Secret is patch-deleted from the render because its `randAlphaNum` fallback rotates on every offline render. | `openssl rand -hex 32` |
 | **Velero** | `/velero/B2_APPLICATION_KEY_ID` | Backblaze B2 key ID for backup storage. | From the Backblaze B2 console (App Keys) |
 | | `/velero/B2_APPLICATION_KEY` | Backblaze B2 application key for backup storage. | From the Backblaze B2 console (App Keys) |
 | | `/velero/KOPIA_REPOSITORY_PASSWORD` | Kopia repository encryption password. | `openssl rand -hex 32` (must stay unchanged for the lifetime of the repository) |

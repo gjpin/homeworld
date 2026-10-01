@@ -62,11 +62,16 @@ Certain upstream applications require sequential version progression and prohibi
 To prevent breaking jumps while keeping standard application updates streamlined, `renovate.json` implements targeted `packageRules`:
 
 * **Global Defaults:** `separateMajorMinor: false`, `separateMinorPatch: false`, and `separateMultipleMajor: false` (standard applications receive direct updates to the latest release in a single PR).
+* **Kubernetes version pin:** the `kindest/node` group carries every place a
+  Kubernetes minor is pinned — the e2e suite's `kubeVersion`, the README's
+  Kubernetes version note, the pod-security docs, e2e hook comments, and every
+  `managedNamespaceMetadata` PSA `*-version` label across `apps/` — in one PR
+  (`scripts/check-k8s-version.sh` fails the build if any of them drift).
 * **Strict Components:** Forgejo, Immich, Longhorn, cert-manager, and CloudNativePG operand images have `separateMajorMinor: true`, `separateMultipleMajor: true`, or `separateMinorPatch: true` enabled. This guarantees:
   * Renovate opens individual PRs for each major or minor increment rather than jumping to the highest version.
   * PR bodies include automated notices linking to upstream release notes, breaking change checklists, and backup reminders.
 * **OpenChamber Workspace Image:** Node.js major bumps are separated (`separateMajorMinor: true`) because OpenChamber requires a minimum Node.js version; the PR body reminds you to verify it before merging.
-* **Kubernetes version pins:** every reference to the cluster's Kubernetes minor — the `managedNamespaceMetadata` Pod Security Admission labels in `apps/app-of-apps.yaml` and `apps/otel-collector/1_helm_node.yaml`, the e2e suite's `kubeVersion` (kind node image) and its README, the user-namespaces documentation in `README.md`, `AGENTS.md`, and `docs/pod-security.md`, and the e2e staging hook comments — is tracked by `customManagers` in `renovate.json` and grouped into a single `kubernetes-version` PR. Updates are sourced from `kindest/node` Docker Hub tags, so Renovate can never propose a node image kind cannot pull (patch bumps roll the e2e suite pin forward on their own; minor bumps move every reference together). Merge the PR only after the Talos nodes run the new minor and the local kind CLI is new enough to pull the new node image. `scripts/check-k8s-version.sh` (run by the [validate workflow](../.github/workflows/validate.yaml)) fails CI when any reference drifts from the rest.
+* **Kubernetes version pins:** every reference to the cluster's Kubernetes minor — the `managedNamespaceMetadata` Pod Security Admission labels in `apps/app-of-apps.yaml` and `apps/otel-collector/1_helm_node.yaml`, the e2e suite's `kubeVersion` (kind node image) and its README, the user-namespaces documentation in `AGENTS.md` and `docs/pod-security.md`, and the e2e staging hook comments — is tracked by `customManagers` in `renovate.json` and grouped into a single `kubernetes-version` PR. Updates are sourced from `kindest/node` Docker Hub tags, so Renovate can never propose a node image kind cannot pull (patch bumps roll the e2e suite pin forward on their own; minor bumps move every reference together). Merge the PR only after the Talos nodes run the new minor and the local kind CLI is new enough to pull the new node image. `scripts/check-k8s-version.sh` (run by the [validate workflow](../.github/workflows/validate.yaml)) fails CI when any reference drifts from the rest.
 * **`ignorePaths` override:** `config:recommended` defaults `ignorePaths` to `**/examples/**`, `**/tests/**`, and similar patterns, which silently excludes `e2e/examples/` from every manager (the suite pin, the e2e README tag, and the staging hook comments). The explicit `ignorePaths` in `renovate.json` keeps only `**/node_modules/**` and `**/bower_components/**`; do not remove it or the Kubernetes version automation stops seeing the e2e suite.
 
 ---
@@ -91,12 +96,16 @@ over a generated CloudNativePG `Cluster`.
 
 * **Operator track** (controller, sidecar injector, WAL replica images):
   `apps/documentdb-operator/helm/local-charts/documentdb-operator/Chart.yaml`
-  `version` (currently `0.3.0`). Upgrades are fully automated: Renovate bumps
+  `version`. Upgrades are fully automated: Renovate bumps
   the version and runs `scripts/vendor-documentdb-operator.sh` on the PR
   branch (a `postUpgradeTasks` command allowed via `RENOVATE_ALLOWED_COMMANDS`
   in the Renovate workflow), so the PR contains the complete re-vendored tree
   with the homeworld patches re-applied (subchart strip, `cloudnative-pg`
-  plugin namespace) — approve and merge. The script fails closed if upstream
+  plugin namespace) — approve and merge. The operator, sidecar injector, and
+  WAL replica images default to the chart's `appVersion` in the vendored
+  templates, so the single chart-version PR moves all three together (the
+  re-vendored tree pins what actually renders; no separate image pins are
+  tracked). The script fails closed if upstream
   renames templates or namespaces, surfacing the needed script fix as an
   artifact error on the Renovate PR; it can also be run locally at any time
   (no arguments re-vendor the currently pinned version).
@@ -107,10 +116,14 @@ over a generated CloudNativePG `Cluster`.
   engine version. Engine `X.Y.0` ↔ upstream tag `vX.Y-0` at
   [documentdb/documentdb releases](https://github.com/documentdb/documentdb/releases).
 
-Renovate tracks all four fields via `customManagers` in `renovate.json`
-(the engine managers follow `pg18-*` tags on
-`ghcr.io/documentdb/documentdb/documentdb-local`, matching the pinned
-PostgreSQL 18 base image).
+Renovate tracks all four fields via `customManagers` in `renovate.json`.
+The engine managers use the docker datasource against
+`ghcr.io/documentdb/documentdb/documentdb-local`, whose tags carry the
+PostgreSQL base as a prefix (`pg17-0.117.0`, `pg18-0.117.0`, ...); a custom
+`versioningTemplate` regex strips the `pgNN-` prefix, so the bare `X.Y.0`
+values above compare directly against the per-base image tags. (The
+`vX.Y-0` form above is the GitHub *release* tag — a human-facing alias of
+the same version; Renovate tracks the image tags, not the releases.)
 
 ### Schema Upgrades Are Two-Phase
 

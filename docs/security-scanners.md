@@ -54,7 +54,7 @@ Trivy image scanning has no exception mechanism by design. The scan gates on unp
 
 ### Pod Security Standards exceptions
 
-The privileged and baseline namespaces required by host-integration workloads (Cilium, CrowdSec, Home Assistant, Longhorn, the OTel node collector, RustFS, Velero) are Pod Security exceptions documented in [pod-security.md](pod-security.md). They are enforced by Pod Security Admission at deploy time and are not scanner suppressions. The same underlying facts (hostPath volumes, host networking, privileged containers, root images) are what many of the Kubescape controls below flag; the two exception systems are kept separate on purpose.
+The privileged and baseline namespaces required by host-integration workloads (Cilium, CrowdSec, Home Assistant, Longhorn, the OTel node collector, qBittorrent, RustFS, Velero) are Pod Security exceptions documented in [pod-security.md](pod-security.md). They are enforced by Pod Security Admission at deploy time and are not scanner suppressions. The same underlying facts (hostPath volumes, host networking, privileged containers, root images) are what many of the Kubescape controls below flag; the two exception systems are kept separate on purpose.
 
 ---
 
@@ -65,7 +65,7 @@ The privileged and baseline namespaces required by host-integration workloads (C
 3. For a kube-linter finding: add `ignore-check.kube-linter.io/<check-name>` on the exact rendered resource, with the reason as the annotation value, through a kustomize patch or the chart's annotation values.
 4. Run `scripts/validate-security-exceptions.sh` and re-run the scan to confirm the report is clean.
 
-Registry reasons should name the concrete behavior and component ("the velero node-agent requires hostPath mounts to `/var/lib/kubelet/pods` for file-level backups"), not generic boilerplate — the registry and this document are the audit trail for every waiver.
+Registry reasons should name the concrete behavior and component ("the velero node-agent requires hostPath mounts to `/var/lib/kubelet/pods` for CSI volume snapshots"), not generic boilerplate — the registry and this document are the audit trail for every waiver.
 
 ---
 

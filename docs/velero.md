@@ -18,7 +18,25 @@ pods (one per DataUpload/DataDownload, labeled `velero.io/data-upload`/
 `velero.io/data-download`), which carry their own kube-apiserver and B2 egress
 policies, and the transient CSI snapshot is deleted afterwards
 (`deletionPolicy: Delete`). Kopia remains the uploader format for the backup
-repository.
+repository. The class pins `parameters.type: snap` — the Longhorn CSI driver
+treats an empty type as `bak` (a Longhorn backup needing a backup target this
+cluster does not have), which would fail every Velero snapshot.
+
+## Database-native volume-snapshot backups
+
+Every CloudNativePG cluster also takes a **daily 01:00 UTC volume-snapshot
+backup** (a `ScheduledBackup` with `method: volumeSnapshot` in each
+component's `1_scheduled_backup.yaml`) against the dedicated
+`cnpg-longhorn` VolumeSnapshotClass (`apps/cloudnative-pg/0_snapshot_class.yaml`,
+`deletionPolicy: Delete`, `parameters.type: snap`). Volume-snapshot backups
+give the databases a same-day in-cluster restore point independent of Velero
+and B2. Two caveats: Longhorn runs `numberOfReplicas: "1"`, so a volume
+snapshot is a point-in-time rollback chain on the *same single copy* — it is
+not a second copy, and Velero/B2 remains the disaster-recovery path; and CNPG
+volume-snapshot backups have no built-in retention: prune old `Backup` CRs
+(`kubectl -n <namespace> delete backup <name>`) and their `VolumeSnapshots` —
+and the Longhorn snapshot contents — are garbage-collected with them
+(`snapshotOwnerReference: backup` on each Cluster).
 
 Before syncing Velero, create a dedicated Backblaze B2 application key limited
 to the backup bucket with list, read, write, and delete permissions. Enable

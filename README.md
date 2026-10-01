@@ -49,7 +49,9 @@
 | Homepage | `homepage.${BASE_DOMAIN}` | Application dashboard aggregating links, status, and live service widgets. |
 | Immich | `photos.${BASE_DOMAIN}` | Photo and video management. |
 | Kubelet Serving Cert Approver | — | Approves kubelet serving certificate CSRs so metrics-server scrapes kubelets over verified TLS. |
+| Kube State Metrics | — | Cluster-state `kube_*` metrics for the OpenTelemetry pipeline and the CloudNativePG dashboard. |
 | Longhorn | `longhorn.${BASE_DOMAIN}` | Distributed block-storage management. |
+| Snapshot Controller | — | CSI volume-snapshot controller driving the Longhorn CSI driver for Velero data movement and CNPG volume-snapshot backups. |
 | Metrics Server | — | Resource metrics for `kubectl top` and HPA, scraped from kubelets over verified TLS. |
 | Notesnook | `notes.${BASE_DOMAIN}`<br>`auth.notes.${BASE_DOMAIN}`<br>`sse.notes.${BASE_DOMAIN}`<br>`monograph.notes.${BASE_DOMAIN}`<br>`themes.notes.${BASE_DOMAIN}`<br>`cors.notes.${BASE_DOMAIN}`<br>`inbox.notes.${BASE_DOMAIN}` | End-to-end encrypted note-taking sync server with auth, SSE, Monograph, Themes, CORS proxy, and Inbox API. |
 | OpenChamber | `openchamber.${BASE_DOMAIN}` | Persistent AI agent workspace: OpenChamber web server, OpenCode, Codex CLI, the Pi agent, Grok Build, the Antigravity CLI, and the Copilot CLI on Debian 13 with a PVC-backed HOME. |
@@ -90,7 +92,7 @@ Two bootstrap exceptions exist (detailed in [docs/secrets.md](docs/secrets.md)):
 
 ### Required environment variables
 
-Deployment rendering (`envsubst`) substitutes these non-secret variables; every secret lives in Infisical instead (see [docs/secrets.md](docs/secrets.md)).
+Deployment rendering (`envsubst`) substitutes these non-secret variables; every secret lives in Infisical instead (see [docs/secrets.md](docs/secrets.md)). The substitution is codified in `scripts/render-deploy.sh`, which renders `apps/` into a deployable git checkout (or pushes it to the git remote Argo CD tracks) with the same variable allowlist as the e2e staging hook — everything outside the allowlist, including `$argocd-oidc:clientSecret` and CrowdSec's `${DB_PASSWORD}`/`${REGISTRATION_TOKEN}`, is preserved verbatim.
 
 | Variable | Purpose |
 | --- | --- |

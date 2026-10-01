@@ -19,11 +19,23 @@ or the provisioned datasource uids drift apart.
 
 ## Datasource conventions
 
-Metrics arrive in VictoriaMetrics via the OpenTelemetry Collector (scraped
-ServiceMonitor/PodMonitor targets plus RustFS's OTLP push, see below).
-Scraped series carry `namespace`, `pod`, `job`, and `instance` labels, so custom
-dashboards scope queries with `namespace="<app-ns>"` and the app's metric
-prefix. The Grafana datasources used by dashboards:
+Metrics arrive in VictoriaMetrics via the OpenTelemetry Collector. There are
+three series populations, and dashboards must scope with the labels the
+population actually carries:
+
+* Target-Allocator-discovered ServiceMonitor/PodMonitor scrapes carry
+  `namespace`, `pod`, `job` (`<namespace>/<monitor-name>`), and `instance`
+  labels — custom dashboards scope these with `namespace="<app-ns>"`.
+* OTLP-exported series (the node collector's kubeletstats families, RustFS's
+  push) carry VictoriaMetrics' promoted OTel resource attributes as labels
+  with dots preserved (`k8s.namespace.name`, `k8s.pod.name`,
+  `k8s.persistentvolumeclaim.name`, ...; no `-opentelemetry.usePrometheusNaming`).
+* The collectors' own self-scrape targets are static configs and carry only
+  `job` (`otel-collector-pod`/`-cluster`/`-node`) and `instance` — the
+  OpenTelemetry Collector dashboard scopes by the job prefix precisely
+  because those series have no `namespace` label.
+
+The Grafana datasources used by dashboards:
 
 - `victoriametrics` (default, MetricsQL): custom dashboards hardcode this uid on
   every panel.
@@ -63,7 +75,7 @@ dashboard's JSON `description` cites its provenance.
 | CrowdSec | Crowdsec Overview, LAPI Metrics | official: crowdsecurity/grafana-dashboards (`dashboards_v5`); `__inputs` converted to a datasource variable |
 | CrowdSec Envoy Bouncer | Envoy CrowdSec Bouncer | official: chart-bundled `dashboards/bouncer.json` |
 | Dragonfly Operator | Dragonfly Dashboard | official: dragonflydb/dragonfly-operator repo `monitoring/grafana-dashboard.json` (linked from dragonflydb.io docs); `__inputs` converted to a datasource variable |
-| Envoy Gateway | Envoy Gateway Global, Clusters, Envoy Proxy Global, Global Ratelimit, Resources Monitor | official: envoyproxy/gateway repo `charts/gateway-addons-helm/dashboards/`; upstream's stale target-level datasource uids normalized to the panels' `$datasource` variable |
+| Envoy Gateway | Envoy Gateway Global, Envoy Clusters, Envoy Global, Global Ratelimit, Resources Monitor | official: envoyproxy/gateway repo `charts/gateway-addons-helm/dashboards/`; upstream's stale target-level datasource uids normalized to the panels' `$datasource` variable |
 | ExternalDNS | ExternalDNS | custom (official Available Metrics docs; the project publishes no dashboard) |
 | External Secrets | External Secrets Operator | official: chart-bundled monitoring dashboard; `service=~` matchers rewritten to `namespace` |
 | Forgejo | Forgejo | custom (forgejo `modules/metrics/collector.go`; the project publishes no dashboard — the gitea-monitoring mixin is a third-party fork) |
@@ -73,23 +85,28 @@ dashboard's JSON `description` cites its provenance.
 | Home Assistant | Home Assistant | custom (HA prometheus integration, `components/prometheus`; no official dashboard) |
 | Immich | Immich | custom (OTel `http_server_duration` metrics and `immich_queues_*` gauges verified in the immich source; the project publishes no dashboard) |
 | Kubelet Serving Cert Approver | Kubelet Serving Cert Approver | custom (alex1989hu/kubelet-serving-cert-approver metrics table; no official dashboard) |
+| Kube State Metrics | Kube State Metrics | custom (kube-state-metrics standard `kube_*` families from its own docs; the project ships no dashboard); panels match the scrape job because `kube_*` series carry the target's namespace, not the exporter's |
 | Longhorn | Longhorn Example v1.1.0 | official: grafana.com 13032, the dashboard referenced by the longhorn.io monitoring docs; `__inputs` converted to a datasource variable |
 | metrics-server | Metrics Server | custom (metrics-server `metrics_server_manager_tick_duration_seconds` plus component-base apiserver metrics; no official dashboard) |
 | Notesnook | Notesnook | custom (notesnook sync `SyncEventCounterSource` meter; DocumentDB `documentdb_postgres_up` per the operator monitoring contract) |
 | OpenCloud | OpenCloud | custom (docs.opencloud.eu proxy metrics, `opencloud_proxy_*`; no official dashboard) |
-| OpenTelemetry Collector | OpenTelemetry Collector | custom (otelcol self-observability metrics verified against the opentelemetry-collector source; the project publishes no production dashboard — the demo repo's dashboard is demo-tailored and the helm-charts port is unmerged) |
+| OpenTelemetry Collector | OpenTelemetry Collector | custom (otelcol self-observability metrics verified against the opentelemetry-collector source; the project publishes no production dashboard — the demo repo's dashboard is demo-tailored and the helm-charts port is unmerged); scoped by the self-scrape job label, since static targets carry no namespace label |
 | qBittorrent | qBittorrent | official: martabal/qbittorrent-exporter bundled dashboard; `__inputs` converted to a datasource variable |
 | RustFS | RustFS | custom (docs.rustfs.com observability metrics reference; OTLP-pushed `rustfs_*`; the grafana.com RustFS dashboards are third-party) |
 | RustFS Operator | RustFS Operator | custom (rustfs/operator `src/metrics.rs`; duration metrics are summaries, so averages come from `_sum`/`_count`) |
+| Snapshot Controller | Snapshot Controller | custom (kubernetes-csi external-snapshotter; controller-runtime `workqueue_*`/`rest_client_*`/`go_*`/`process_*` families; upstream ships no dashboard) |
 | Velero | Velero Backups | custom (velero `pkg/metrics/metrics.go`; the project publishes no dashboard — the grafana.com ones are third-party) |
 | VictoriaMetrics | VictoriaMetrics - single-node (VM), VictoriaLogs - single-node (VM), VictoriaTraces - single-node | official: VictoriaMetrics repo `dashboards/vm/` variants for VM and VictoriaLogs, grafana.com 24136 (VictoriaMetrics org) for VictoriaTraces; the VictoriaLogs `__inputs` convention converted to a datasource variable |
-| Woodpecker CI | Woodpecker CI | custom (woodpecker `server/metric/metrics_server.go`; no official dashboard; step-level metrics are not enabled in this deployment) |
+| Woodpecker | Woodpecker CI | custom (woodpecker `server/metric/metrics_server.go`; no official dashboard; step-level metrics are not enabled in this deployment) |
 
 Apps without collectible metrics have no folder: `admission-policies` and
 `prometheus-operator-crd` deploy no workloads; `homepage`, `radicale`,
-`openchamber`, `velero-ui`, `vaultwarden`, and `opentelemetry-operator` expose
-no scrapeable metrics; the DocumentDB operator's controller-runtime metrics
-endpoint is disabled upstream with no chart toggle.
+`openchamber`, `velero-ui`, and `opentelemetry-operator` expose no scrapeable
+metrics; the DocumentDB operator's controller-runtime metrics endpoint is
+disabled upstream with no chart toggle. Apps whose only metrics are the
+shared CloudNativePG instance metrics (`vaultwarden`, `homeassistant` and the
+other CNPG-backed apps) are covered by the CloudNativePG folder's dashboards
+and the per-cluster 60s PodMonitors rather than a folder of their own.
 
 ## Adding a dashboard
 

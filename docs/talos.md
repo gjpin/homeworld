@@ -182,7 +182,21 @@ kubectl create secret generic universal-auth-credentials \
 ```
 
 ## Configure WireGuard
-1. Follow https://docs.siderolabs.com/talos/v1.14/networking/advanced/wireguard
+Cilium's WireGuard encryption (`encryption.type: wireguard` in
+apps/cilium/helm/values.yaml) expects every node to carry a WireGuard key.
+Key material is node-local secret material and stays out of this git tree:
+
+1. Generate a keypair per node:
+   `wg genkey | tee privatekey | wg pubkey > publickey`.
+2. Distribute the private keys through the Talos machine config following
+   https://docs.siderolabs.com/talos/v1.14/networking/advanced/wireguard
+   (keys are injected per node, never committed here).
+3. Cilium discovers peer public keys from the cluster automatically once
+   each node's key exists (node-to-node encryption; see
+   https://docs.cilium.io/en/stable/security/network/encryption-wireguard/).
+
+Generated keys must never land in this repository or in Infisical project
+secrets: they are per-node machine config values.
 
 ## Longhorn
 ```bash
