@@ -388,8 +388,10 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/rustfs/RUSTFS_ACCESS_KEY" "e2eaccesskey"
   put_secret "${token}" "${project_id}" "/rustfs/RUSTFS_SECRET_KEY" "e2esecretkey"
   put_secret "${token}" "${project_id}" "/opencloud/IDM_ADMIN_PASSWORD" "e2e-opencloud-admin"
-  put_secret "${token}" "${project_id}" "/opencloud/RUSTFS_ACCESS_KEY" "e2eaccesskey"
-  put_secret "${token}" "${project_id}" "/opencloud/RUSTFS_SECRET_KEY" "e2esecretkey"
+  # The RustFS operator rejects a Tenant whose provisioning users resolve to
+  # the same access key (UserSecretInvalid), so every user needs its own pair.
+  put_secret "${token}" "${project_id}" "/opencloud/RUSTFS_ACCESS_KEY" "e2eaccesskey-opencloud"
+  put_secret "${token}" "${project_id}" "/opencloud/RUSTFS_SECRET_KEY" "e2esecretkey-opencloud"
   put_secret "${token}" "${project_id}" "/opencloud/COLLABORA_ADMIN_USER" "e2e-collabora"
   put_secret "${token}" "${project_id}" "/opencloud/COLLABORA_ADMIN_PASSWORD" "e2e-collabora-admin"
   put_secret "${token}" "${project_id}" "/opencloud/COLLABORA_PROOF_KEY" "${proof_key}"
@@ -407,8 +409,8 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/notesnook/NOTESNOOK_API_SECRET" "e2e-notesnook-api-secret-0123456789abcdef0123456789abcdef"
   put_secret "${token}" "${project_id}" "/notesnook/DOCUMENTDB_USERNAME" "notesnook"
   put_secret "${token}" "${project_id}" "/notesnook/DOCUMENTDB_PASSWORD" "e2e-notesnook-db"
-  put_secret "${token}" "${project_id}" "/notesnook/RUSTFS_ACCESS_KEY" "e2eaccesskey"
-  put_secret "${token}" "${project_id}" "/notesnook/RUSTFS_SECRET_KEY" "e2esecretkey"
+  put_secret "${token}" "${project_id}" "/notesnook/RUSTFS_ACCESS_KEY" "e2eaccesskey-notesnook"
+  put_secret "${token}" "${project_id}" "/notesnook/RUSTFS_SECRET_KEY" "e2esecretkey-notesnook"
   # The SSE server's mail notifier: unreachable on kind by design (it fails
   # at send time, never at startup).
   put_secret "${token}" "${project_id}" "/notesnook/SMTP_USERNAME" "e2e"
