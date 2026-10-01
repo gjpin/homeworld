@@ -369,7 +369,7 @@ spec:
           namespace: immich
           service: immich-server
           port: 80
-          path: "/api/server-info/ping"
+          path: "/api/server/ping"
           bodyContains: pong
           timeout: 10m
       - name: authelia-health
@@ -433,6 +433,9 @@ spec:
           service: authelia
           port: 80
           path: "/.well-known/openid-configuration"
+          host: auth.e2e.local
+          headers:
+            X-Forwarded-Proto: https
           bodyContains: '"issuer"'
           timeout: 10m
       # The shared RustFS Tenant must serve its S3 readiness endpoint
@@ -446,18 +449,17 @@ spec:
           path: "/health/ready"
           timeout: 10m
       # VictoriaMetrics must actually hold OTel-exported series, not just run.
-      # The stored name is otelcol_process_uptime_total: the collectors
-      # expose an unsuffixed otelcol_process_uptime gauge at :8888, and
-      # VictoriaMetrics' OTLP ingest maps the datapoint to a Prometheus
-      # counter, appending the _total suffix (verified live on the kind
-      # cluster, identical with and without
-      # -opentelemetry.usePrometheusNaming).
+      # The name is the collector's raw exposition name (verified live): the
+      # OTel telemetry renders its counters without the Prometheus _total
+      # suffix, and VictoriaMetrics stores the OTLP-exported samples
+      # verbatim once -opentelemetry.usePrometheusNaming is off — that flag
+      # renames the series (appends _total) to names nothing queries.
       - name: victoria-metrics-data
         serviceProbe:
           namespace: victoria-metrics
           service: victoria-metrics
           port: 8428
-          path: "/api/v1/query?query=otelcol_process_uptime_total"
+          path: "/api/v1/query?query=otelcol_process_uptime"
           bodyContains: '"result":[{'
           timeout: 10m
       # VictoriaLogs must actually hold OTel-exported log lines, not just run.

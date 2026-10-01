@@ -196,6 +196,15 @@ type ServiceProbe struct {
 	// Username/Password add HTTP basic auth to the probe request.
 	Username string `yaml:"username,omitempty"`
 	Password string `yaml:"password,omitempty"`
+	// Host overrides the request's Host header. The port-forward dials the
+	// pod directly, so virtual-host-validated endpoints (Authelia's OIDC
+	// discovery, Homepage's host allowlist, Grafana behind its root_url)
+	// would otherwise reject the probe with 400/401.
+	Host string `yaml:"host,omitempty"`
+	// Headers adds arbitrary request headers: Authelia derives its endpoint
+	// URLs from X-Forwarded-Proto and rejects requests that skip the proxy
+	// chain without it.
+	Headers map[string]string `yaml:"headers,omitempty"`
 	// BodyContains requires the response body to contain the substring.
 	// The probe keeps retrying until the deadline when it is absent,
 	// which proves data actually arrived (not just HTTP 200).

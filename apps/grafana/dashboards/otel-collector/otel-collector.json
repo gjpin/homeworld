@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "OpenTelemetry Collector self-observability across the cluster's pod, node, and cluster collectors: receiver acceptance, processor throughput, exporter queues, and process health. The OTel project publishes no production-collector dashboard, so this custom dashboard references only the otelcol_* metrics verified against the opentelemetry-collector source (receiver/exporter/processor generated telemetry and service process metrics). Panel queries use the names stored by VictoriaMetrics after the collectors' OTLP export, verified live: the collectors expose unsuffixed process gauges at :8888 (otelcol_process_uptime, otelcol_process_memory_rss), and VictoriaMetrics' OTLP ingest maps the uptime datapoint to a Prometheus counter, storing it with the _total suffix (otelcol_process_uptime_total).",
+  "description": "OpenTelemetry Collector self-observability across the cluster's pod, node, and cluster collectors: receiver acceptance, processor throughput, exporter queues, and process health. The OTel project publishes no production-collector dashboard, so this custom dashboard references only the otelcol_* metrics verified against the opentelemetry-collector source (receiver/exporter/processor generated telemetry and service process metrics). Panel queries use the collectors' raw exposition names: the OTel project's telemetry renders its counter instruments without the Prometheus `_total` suffix (e.g. `otelcol_process_uptime`, `otelcol_processor_incoming_items`), and VictoriaMetrics stores the OTLP-exported samples verbatim with -opentelemetry.usePrometheusNaming removed \u2014 verified live against the ingested name set.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -114,7 +114,7 @@
         "type": "victoriametrics-metrics-datasource",
         "uid": "victoriametrics"
       },
-      "description": "Shortest process uptime across the selected collector jobs (otelcol_process_uptime_total).",
+      "description": "Shortest process uptime across the selected collector jobs (otelcol_process_uptime).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -165,7 +165,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "min(otelcol_process_uptime_total{job=~\"$job\"})",
+          "expr": "min(otelcol_process_uptime{job=~\"$job\"})",
           "legendFormat": "Process uptime (min)",
           "range": false,
           "refId": "A"
@@ -299,7 +299,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(increase(otelcol_receiver_refused_spans_total{job=~\"$job\"}[24h])) + sum(increase(otelcol_receiver_refused_metric_points_total{job=~\"$job\"}[24h])) + sum(increase(otelcol_receiver_refused_log_records_total{job=~\"$job\"}[24h]))",
+          "expr": "sum(increase(otelcol_receiver_refused_spans{job=~\"$job\"}[24h])) + sum(increase(otelcol_receiver_refused_metric_points{job=~\"$job\"}[24h])) + sum(increase(otelcol_receiver_refused_log_records{job=~\"$job\"}[24h]))",
           "legendFormat": "Refused items (24h)",
           "range": false,
           "refId": "A"
@@ -410,7 +410,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (receiver) (rate(otelcol_receiver_accepted_spans_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (receiver) (rate(otelcol_receiver_accepted_spans{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "spans: {{receiver}}",
           "range": true,
           "refId": "A"
@@ -421,7 +421,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (receiver) (rate(otelcol_receiver_accepted_metric_points_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (receiver) (rate(otelcol_receiver_accepted_metric_points{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "metric points: {{receiver}}",
           "range": true,
           "refId": "B"
@@ -432,7 +432,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (receiver) (rate(otelcol_receiver_accepted_log_records_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (receiver) (rate(otelcol_receiver_accepted_log_records{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "log records: {{receiver}}",
           "range": true,
           "refId": "C"
@@ -526,7 +526,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (receiver) (rate(otelcol_receiver_refused_spans_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (receiver) (rate(otelcol_receiver_refused_spans{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "spans: {{receiver}}",
           "range": true,
           "refId": "A"
@@ -537,7 +537,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (receiver) (rate(otelcol_receiver_refused_metric_points_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (receiver) (rate(otelcol_receiver_refused_metric_points{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "metric points: {{receiver}}",
           "range": true,
           "refId": "B"
@@ -548,7 +548,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (receiver) (rate(otelcol_receiver_refused_log_records_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (receiver) (rate(otelcol_receiver_refused_log_records{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "log records: {{receiver}}",
           "range": true,
           "refId": "C"
@@ -562,7 +562,7 @@
         "type": "victoriametrics-metrics-datasource",
         "uid": "victoriametrics"
       },
-      "description": "Receiver requests by transport (otelcol_receiver_requests_total).",
+      "description": "Receiver requests by transport (otelcol_receiver_requests).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -642,7 +642,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (receiver, transport) (rate(otelcol_receiver_requests_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (receiver, transport) (rate(otelcol_receiver_requests{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "{{receiver}} ({{transport}})",
           "range": true,
           "refId": "A"
@@ -736,7 +736,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (receiver) (rate(otelcol_receiver_failed_spans_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (receiver) (rate(otelcol_receiver_failed_spans{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "spans: {{receiver}}",
           "range": true,
           "refId": "A"
@@ -747,7 +747,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (receiver) (rate(otelcol_receiver_failed_metric_points_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (receiver) (rate(otelcol_receiver_failed_metric_points{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "metric points: {{receiver}}",
           "range": true,
           "refId": "B"
@@ -758,7 +758,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (receiver) (rate(otelcol_receiver_failed_log_records_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (receiver) (rate(otelcol_receiver_failed_log_records{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "log records: {{receiver}}",
           "range": true,
           "refId": "C"
@@ -789,7 +789,7 @@
         "type": "victoriametrics-metrics-datasource",
         "uid": "victoriametrics"
       },
-      "description": "Items entering and leaving each processor (otelcol_processor_incoming_items_total, otelcol_processor_outgoing_items_total).",
+      "description": "Items entering and leaving each processor (otelcol_processor_incoming_items, otelcol_processor_outgoing_items).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -869,7 +869,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (processor) (rate(otelcol_processor_incoming_items_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (processor) (rate(otelcol_processor_incoming_items{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "in: {{processor}}",
           "range": true,
           "refId": "A"
@@ -880,7 +880,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (processor) (rate(otelcol_processor_outgoing_items_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (processor) (rate(otelcol_processor_outgoing_items{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "out: {{processor}}",
           "range": true,
           "refId": "B"
@@ -974,7 +974,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (processor) (rate(otelcol_processor_memory_limiter_refused_spans_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (processor) (rate(otelcol_processor_memory_limiter_refused_spans{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "spans: {{processor}}",
           "range": true,
           "refId": "A"
@@ -985,7 +985,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (processor) (rate(otelcol_processor_memory_limiter_refused_metric_points_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (processor) (rate(otelcol_processor_memory_limiter_refused_metric_points{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "metric points: {{processor}}",
           "range": true,
           "refId": "B"
@@ -996,7 +996,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (processor) (rate(otelcol_processor_memory_limiter_refused_log_records_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (processor) (rate(otelcol_processor_memory_limiter_refused_log_records{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "log records: {{processor}}",
           "range": true,
           "refId": "C"
@@ -1090,7 +1090,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (exporter) (rate(otelcol_exporter_sent_spans_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (exporter) (rate(otelcol_exporter_sent_spans{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "spans: {{exporter}}",
           "range": true,
           "refId": "A"
@@ -1101,7 +1101,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (exporter) (rate(otelcol_exporter_sent_metric_points_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (exporter) (rate(otelcol_exporter_sent_metric_points{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "metric points: {{exporter}}",
           "range": true,
           "refId": "B"
@@ -1112,7 +1112,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (exporter) (rate(otelcol_exporter_sent_log_records_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (exporter) (rate(otelcol_exporter_sent_log_records{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "log records: {{exporter}}",
           "range": true,
           "refId": "C"
@@ -1206,7 +1206,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (exporter) (rate(otelcol_exporter_send_failed_spans_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (exporter) (rate(otelcol_exporter_send_failed_spans{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "send fail spans: {{exporter}}",
           "range": true,
           "refId": "A"
@@ -1217,7 +1217,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (exporter) (rate(otelcol_exporter_send_failed_metric_points_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (exporter) (rate(otelcol_exporter_send_failed_metric_points{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "send fail metric points: {{exporter}}",
           "range": true,
           "refId": "B"
@@ -1228,7 +1228,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (exporter) (rate(otelcol_exporter_send_failed_log_records_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (exporter) (rate(otelcol_exporter_send_failed_log_records{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "send fail log records: {{exporter}}",
           "range": true,
           "refId": "C"
@@ -1239,7 +1239,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (exporter) (rate(otelcol_exporter_enqueue_failed_spans_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (exporter) (rate(otelcol_exporter_enqueue_failed_spans{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "enqueue fail spans: {{exporter}}",
           "range": true,
           "refId": "D"
@@ -1563,7 +1563,7 @@
         "type": "victoriametrics-metrics-datasource",
         "uid": "victoriametrics"
       },
-      "description": "Process CPU usage (otelcol_process_cpu_seconds_total; 1.0 = one core).",
+      "description": "Process CPU usage (otelcol_process_cpu_seconds; 1.0 = one core).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1643,7 +1643,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (job) (rate(otelcol_process_cpu_seconds_total{job=~\"$job\"}[$__rate_interval]))",
+          "expr": "sum by (job) (rate(otelcol_process_cpu_seconds{job=~\"$job\"}[$__rate_interval]))",
           "legendFormat": "{{job}}",
           "range": true,
           "refId": "A"
@@ -1672,7 +1672,7 @@
         "multi": true,
         "name": "job",
         "options": [],
-        "query": "label_values(otelcol_process_uptime_total{job=~\"otel-collector.*\"}, job)",
+        "query": "label_values(otelcol_process_uptime{job=~\"otel-collector.*\"}, job)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
