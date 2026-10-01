@@ -130,16 +130,23 @@ spec:
           http:
             endpoint: 0.0.0.0:4318
       prometheus:
-        # The operator replaces the receiver's config with the Target
-        # Allocator's http_sd config at render time (verified live: the
-        # generated ConfigMap carries `config: {}` plus the allocator
-        # block), so any static scrape job declared here is silently
-        # dropped. The receiver must stay declared for the allocator to
-        # attach; the collector's own telemetry is scraped through the
-        # ServiceMonitor on the operator-generated monitoring Service
-        # (0_service_monitor.yaml), which puts it on the allocator's target
-        # list like any other workload.
-        config: {}
+        # The TargetAllocator controller reads these scrape_configs to seed
+        # its own configuration and allocate every target back to the
+        # collector over http_sd — with no scrape_configs the allocator
+        # errors ("no scrape_configs available") and its mTLS client-cert
+        # Secret is never issued, wedging the collector pod on the missing
+        # volume. The collector's rendered config replaces this block with
+        # the http_sd pointer, so the static self-scrape target below is
+        # served to the collector through the allocator, not from here; it
+        # names the operator-generated monitoring Service because the
+        # allocator's config performs no environment substitution.
+        config:
+          scrape_configs:
+            - job_name: otel-collector-pod
+              scrape_interval: 10s
+              static_configs:
+                - targets:
+                    - otel-collector-pod-collector-monitoring.otel-collector.svc.cluster.local:8888
     processors:
       batch: {}
       memory_limiter:
