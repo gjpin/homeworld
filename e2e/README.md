@@ -188,6 +188,10 @@ Images are pinned (`postgres:14.17-alpine`, `redis:7.4.2-alpine`) — never `lat
 
 Argo CD gives up on an application after five failed sync attempts, and self-heal never re-fires after a failed sync. A first-boot transient (for example the grafana operator pinging its instance before the pod is ready) can therefore leave an application stuck OutOfSync forever even though the underlying condition cleared minutes later. The suite's `wait-argo` step re-triggers the sync on stuck OutOfSync homeworld applications every three minutes (`resyncInterval`) to recover from those transients.
 
+### Deploy ordering
+
+`patch-coredns` runs before `wait-argo` on purpose: the forgejo `configure-gitea` init resolves `auth.e2e.local` through the patched CoreDNS stub, and the wave-6 pods start while `wait-argo` polls. The envoy LoadBalancer Service it waits for comes from wave 2 plus the certificate chain (wave 3), which completes before wave 6 — the 600s deadline covers the cold-node case.
+
 ### Seed and staging hooks
 
 | Hook | Role |
