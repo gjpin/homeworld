@@ -189,9 +189,12 @@ To minimize attack surface and prevent credential exfiltration in the event of p
 
 Standalone applications use dedicated ServiceAccounts rather than the namespace `default` ServiceAccount:
 - `opencloud`: Dedicated `opencloud` ServiceAccount with `automountServiceAccountToken: false`.
-- `homeassistant`: Dedicated `homeassistant` ServiceAccount with `automountServiceAccountToken: false` applied to `homeassistant`, `mosquitto`, and `zigbee2mqtt`.
+- `homeassistant`: Dedicated `homeassistant-app` ServiceAccount with `automountServiceAccountToken: false` applied to `homeassistant`, `mosquitto`, and `zigbee2mqtt` (the name avoids colliding with the CloudNativePG cluster-derived `homeassistant` ServiceAccount, which CNPG adopts as-is and needs a mounted token).
 - `radicale`: Dedicated `radicale` ServiceAccount with `automountServiceAccountToken: false`.
 - `homepage`: Dedicated `homepage` ServiceAccount with `automountServiceAccountToken: true` — the dashboard's Kubernetes integration reads pods, nodes, and `metrics.k8s.io` from the API server, scoped to a read-only ClusterRole.
+
+Handwritten application ServiceAccounts:
+- `vaultwarden`: Dedicated `vaultwarden-app` ServiceAccount with `automountServiceAccountToken: false` (the name avoids colliding with the CloudNativePG cluster-derived `vaultwarden` ServiceAccount, which CNPG adopts as-is and needs a mounted token).
 
 Helm workloads with API access disabled via patches or values:
 - `forgejo`: `automountServiceAccountToken: false`
