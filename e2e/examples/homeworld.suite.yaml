@@ -401,7 +401,7 @@ spec:
           service: opencloud
           port: 9200
           path: "/status.php"
-          bodyContains: '"installed":true'
+          bodyContains: '"installed": true'
           timeout: 10m
       - name: woodpecker-health
         serviceProbe:
@@ -416,6 +416,7 @@ spec:
           service: homepage
           port: 3000
           path: "/api/healthcheck"
+          host: homepage.e2e.local
           timeout: 10m
       # The notesnook-sync service's own health endpoint.
       - name: notesnook-sync-health
