@@ -4,6 +4,8 @@ kind: GrafanaDashboard
 metadata:
   name: envoy-gateway-clusters
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
@@ -18,6 +20,8 @@ kind: GrafanaDashboard
 metadata:
   name: envoy-gateway-envoy-proxy-global
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
@@ -32,6 +36,8 @@ kind: GrafanaDashboard
 metadata:
   name: envoy-gateway-global-ratelimit
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
@@ -46,6 +52,8 @@ kind: GrafanaDashboard
 metadata:
   name: envoy-gateway-global
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
@@ -60,6 +68,8 @@ kind: GrafanaDashboard
 metadata:
   name: envoy-gateway-resources-monitor
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:

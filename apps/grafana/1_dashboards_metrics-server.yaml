@@ -2,13 +2,15 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: cert-manager
+  name: metrics-server
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  folderRef: folder-cert-manager
+  folderRef: folder-metrics-server
   configMapRef:
-    name: grafana-dashboard-cert-manager
+    name: grafana-dashboard-metrics-server
     key: json

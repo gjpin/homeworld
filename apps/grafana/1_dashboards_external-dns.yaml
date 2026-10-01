@@ -2,13 +2,15 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: otel-collector
+  name: external-dns
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  folderRef: folder-otel-collector
+  folderRef: folder-external-dns
   configMapRef:
-    name: grafana-dashboard-otel-collector
+    name: grafana-dashboard-external-dns
     key: json

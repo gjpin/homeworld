@@ -2,13 +2,15 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: homeassistant
+  name: rustfs
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  folderRef: folder-homeassistant
+  folderRef: folder-rustfs
   configMapRef:
-    name: grafana-dashboard-homeassistant
+    name: grafana-dashboard-rustfs
     key: json

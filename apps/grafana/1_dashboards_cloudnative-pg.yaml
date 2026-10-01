@@ -2,13 +2,15 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: grafana
+  name: cloudnative-pg
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  folderRef: folder-grafana
+  folderRef: folder-cloudnative-pg
   configMapRef:
-    name: grafana-dashboard-grafana
+    name: grafana-dashboard-cloudnative-pg
     key: json

@@ -6,7 +6,12 @@ declared as `GrafanaFolder` CRs in `apps/grafana/0_folders.yaml`; each
 dashboard JSON from a kustomize-generated ConfigMap. The repository mirrors the
 Grafana folder layout: dashboard JSON lives in
 `apps/grafana/dashboards/<app>/<dashboard>.json`, and the `GrafanaDashboard` CRs
-for one app live in `apps/grafana/0_dashboards_<app>.yaml`.
+for one app live in `apps/grafana/1_dashboards_<app>.yaml`. The `GrafanaDashboard` CRs
+carry `argocd.argoproj.io/sync-wave: "1"` and the folder CRs stay on wave 0:
+the dashboards POST to the instance with the folderRef's uid, so applying
+them in the same wave as the folders races the operator's folder seeding on
+a fresh instance ("folder not found") and leaves the losers in the
+operator's exponential reconcile backoff.
 
 `scripts/check-dashboards.sh` (wired into CI) fails when dashboard JSON files,
 the kustomize `configMapGenerator`, `GrafanaDashboard` CRs, `GrafanaFolder` CRs,
@@ -92,7 +97,7 @@ endpoint is disabled upstream with no chart toggle.
 2. Add a `configMapGenerator` entry (`grafana-dashboard-<dashboard>`) in
    `apps/grafana/kustomization.yaml`.
 3. Add a `GrafanaDashboard` CR with `spec.folderRef: folder-<app>` in
-   `apps/grafana/0_dashboards_<app>.yaml` (create the file and the folder CR for
+   `apps/grafana/1_dashboards_<app>.yaml` (create the file and the folder CR for
    new apps).
 4. Verify every referenced metric against the app's upstream source or official
    documentation, and cite the provenance in the dashboard `description`.

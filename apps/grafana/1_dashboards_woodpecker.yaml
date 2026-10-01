@@ -2,13 +2,15 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: qbittorrent
+  name: woodpecker
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  folderRef: folder-qbittorrent
+  folderRef: folder-woodpecker
   configMapRef:
-    name: grafana-dashboard-qbittorrent
+    name: grafana-dashboard-woodpecker
     key: json

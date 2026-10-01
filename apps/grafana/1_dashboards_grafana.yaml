@@ -2,13 +2,15 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: opencloud
+  name: grafana
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  folderRef: folder-opencloud
+  folderRef: folder-grafana
   configMapRef:
-    name: grafana-dashboard-opencloud
+    name: grafana-dashboard-grafana
     key: json

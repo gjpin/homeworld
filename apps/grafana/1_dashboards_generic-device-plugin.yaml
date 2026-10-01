@@ -2,13 +2,15 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: forgejo
+  name: generic-device-plugin
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  folderRef: folder-forgejo
+  folderRef: folder-generic-device-plugin
   configMapRef:
-    name: grafana-dashboard-forgejo
+    name: grafana-dashboard-generic-device-plugin
     key: json

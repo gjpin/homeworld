@@ -2,13 +2,15 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: velero
+  name: rustfs-operator
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  folderRef: folder-velero
+  folderRef: folder-rustfs-operator
   configMapRef:
-    name: grafana-dashboard-velero
+    name: grafana-dashboard-rustfs-operator
     key: json

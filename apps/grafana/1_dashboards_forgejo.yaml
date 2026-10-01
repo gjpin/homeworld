@@ -2,13 +2,15 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: notesnook
+  name: forgejo
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  folderRef: folder-notesnook
+  folderRef: folder-forgejo
   configMapRef:
-    name: grafana-dashboard-notesnook
+    name: grafana-dashboard-forgejo
     key: json

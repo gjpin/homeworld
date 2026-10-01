@@ -4,6 +4,8 @@ kind: GrafanaDashboard
 metadata:
   name: victorialogs
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
@@ -18,6 +20,8 @@ kind: GrafanaDashboard
 metadata:
   name: victoriametrics
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
@@ -32,6 +36,8 @@ kind: GrafanaDashboard
 metadata:
   name: victoriatraces
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:

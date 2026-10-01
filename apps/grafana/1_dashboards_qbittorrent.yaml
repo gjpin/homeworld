@@ -2,13 +2,15 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: metrics-server
+  name: qbittorrent
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  folderRef: folder-metrics-server
+  folderRef: folder-qbittorrent
   configMapRef:
-    name: grafana-dashboard-metrics-server
+    name: grafana-dashboard-qbittorrent
     key: json

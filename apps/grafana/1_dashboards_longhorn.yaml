@@ -2,13 +2,15 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: dragonfly-operator
+  name: longhorn
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  folderRef: folder-dragonfly-operator
+  folderRef: folder-longhorn
   configMapRef:
-    name: grafana-dashboard-dragonfly-operator
+    name: grafana-dashboard-longhorn
     key: json

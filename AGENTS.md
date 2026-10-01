@@ -69,7 +69,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   path in both components' network policies, and ship a `PodMonitor` (60s) per CNPG `Cluster`.
 - Every app with collectible metrics ships a Grafana dashboard in its own Grafana folder:
   `apps/grafana/dashboards/<app>/<dashboard>.json`, one configMapGenerator entry, a `GrafanaFolder` CR
-  (`apps/grafana/0_folders.yaml`), and a `0_dashboards_<app>.yaml` whose `GrafanaDashboard` CRs set
+  (`apps/grafana/0_folders.yaml`), and a `1_dashboards_<app>.yaml` whose wave-`1` `GrafanaDashboard` CRs set
   `spec.folderRef` (see docs/grafana-dashboards.md). Use the project's own upstream dashboard when it
   publishes one — chart-bundled, in its repository, or on its grafana.com org page; never a
   third-party dashboard — adapted only as needed to resolve here (`${DS_*}` prometheus/loki

@@ -2,13 +2,15 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: argocd
+  name: crowdsec-envoy-bouncer
   namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  folderRef: folder-argocd
+  folderRef: folder-crowdsec-envoy-bouncer
   configMapRef:
-    name: grafana-dashboard-argocd
+    name: grafana-dashboard-crowdsec-envoy-bouncer
     key: json
