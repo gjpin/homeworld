@@ -10,7 +10,7 @@ SRC_NS="${SRC_NS:-authelia}"
 SRC_SECRET="${SRC_SECRET:-authelia-tls-cert}"
 DST_NS="${DST_NS:-forgejo}"
 DST_SECRET="${DST_SECRET:-gateway-ca}"
-WAIT_SECS="${WAIT_SECS:-900}"
+WAIT_SECS="${WAIT_SECS:-1200}"
 
 log() { printf '[copy-gateway-ca] %s\n' "$*"; }
 
