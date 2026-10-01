@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -30,6 +31,19 @@ type globalFlags struct {
 	keepCluster bool
 	keepDeps    bool
 }
+
+// exitError carries a specific process exit code through cobra's error
+// return path. Returning errors instead of calling os.Exit lets the run
+// command's deferred cleanup execute — os.Exit skips defers, which used to
+// leak the kind cluster and compose dependencies on every pipeline
+// failure (and made --keep-cluster/--keep-deps meaningless).
+type exitError struct {
+	code int
+	err  error
+}
+
+func (e *exitError) Error() string { return e.err.Error() }
+func (e *exitError) Unwrap() error { return e.err }
 
 func main() {
 	g := &globalFlags{
@@ -62,6 +76,10 @@ func main() {
 
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
+		var ec *exitError
+		if errors.As(err, &ec) {
+			os.Exit(ec.code)
+		}
 		os.Exit(report.ExitPipelineError)
 	}
 }
@@ -118,7 +136,7 @@ func newRunCmd(g *globalFlags) *cobra.Command {
 			if err := depsMgr.Up(ctx); err != nil {
 				rep.Add(report.Fail("deps", "up", "", time.Since(start), err))
 				_ = rep.WriteToStdout(g.output)
-				os.Exit(report.ExitPipelineError)
+				return &exitError{report.ExitPipelineError, err}
 			}
 			rep.Add(report.Pass("deps", "up", "compose ready", time.Since(start)))
 
@@ -126,7 +144,7 @@ func newRunCmd(g *globalFlags) *cobra.Command {
 			if err := clusterMgr.Up(ctx); err != nil {
 				rep.Add(report.Fail("cluster", "up", "", time.Since(start), err))
 				_ = rep.WriteToStdout(g.output)
-				os.Exit(report.ExitPipelineError)
+				return &exitError{report.ExitPipelineError, err}
 			}
 			rep.Add(report.Pass("cluster", "up", "kind+cilium ready", time.Since(start)))
 
@@ -134,24 +152,24 @@ func newRunCmd(g *globalFlags) *cobra.Command {
 			if err != nil {
 				rep.Add(report.Fail("kube", "client", "", 0, err))
 				_ = rep.WriteToStdout(g.output)
-				os.Exit(report.ExitPipelineError)
+				return &exitError{report.ExitPipelineError, err}
 			}
 
 			deployer := &deploy.Runner{Suite: suite, Clients: clients, Report: rep, Timeout: g.timeout}
 			if err := deployer.Prepare(ctx); err != nil {
 				_ = rep.WriteToStdout(g.output)
-				os.Exit(report.ExitPipelineError)
+				return &exitError{report.ExitPipelineError, err}
 			}
 			if err := deployer.Deploy(ctx); err != nil {
 				_ = rep.WriteToStdout(g.output)
-				os.Exit(report.ExitPipelineError)
+				return &exitError{report.ExitPipelineError, err}
 			}
 
 			asserter := &assert.Runner{Suite: suite, Clients: clients, Report: rep, Timeout: g.timeout, FailFast: g.failFast}
 			assertErr := asserter.Run(ctx)
 			_ = rep.WriteToStdout(g.output)
 			if assertErr != nil {
-				os.Exit(report.ExitAssertFailed)
+				return &exitError{report.ExitAssertFailed, assertErr}
 			}
 
 			failed = false
@@ -172,7 +190,7 @@ func newValidateCmd(g *globalFlags) *cobra.Command {
 			suite, err := requireSuite(g)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
-				os.Exit(report.ExitUsageError)
+				return &exitError{report.ExitUsageError, err}
 			}
 			fmt.Printf("suite %q OK (%s)\n", suite.Metadata.Name, suite.Path)
 
@@ -184,7 +202,7 @@ func newValidateCmd(g *globalFlags) *cobra.Command {
 				}
 				return nil
 			}
-			fmt.Println("prerequisites: docker, docker compose, kind, kubectl, helm — OK")
+			fmt.Println("prerequisites: docker, docker compose, kind, kubectl, helm, rsync, envsubst, python3, git, openssl, jq, curl — OK")
 			return nil
 		},
 	}
@@ -192,7 +210,14 @@ func newValidateCmd(g *globalFlags) *cobra.Command {
 
 func checkPrereqs() []string {
 	var missing []string
-	for _, bin := range []string{"docker", "kind", "kubectl", "helm"} {
+	// The run pipeline's own tools, plus every host binary the suite hooks
+	// invoke (seed-infisical.sh, stage-local-repo.sh, rewrite-staging.py, and
+	// the examples/manifests helpers): `validate` passing must mean the full
+	// run can proceed.
+	for _, bin := range []string{
+		"docker", "kind", "kubectl", "helm",
+		"rsync", "envsubst", "python3", "git", "openssl", "jq", "curl",
+	} {
 		if _, err := exec.LookPath(bin); err != nil {
 			missing = append(missing, bin)
 		}
@@ -299,11 +324,11 @@ func newDeployCmd(g *globalFlags) *cobra.Command {
 			runner := &deploy.Runner{Suite: suite, Clients: clients, Report: rep, Timeout: g.timeout}
 			if err := runner.Prepare(ctx); err != nil {
 				_ = rep.WriteToStdout(g.output)
-				os.Exit(report.ExitPipelineError)
+				return &exitError{report.ExitPipelineError, err}
 			}
 			if err := runner.Deploy(ctx); err != nil {
 				_ = rep.WriteToStdout(g.output)
-				os.Exit(report.ExitPipelineError)
+				return &exitError{report.ExitPipelineError, err}
 			}
 			return rep.WriteToStdout(g.output)
 		},
@@ -330,7 +355,7 @@ func newAssertCmd(g *globalFlags) *cobra.Command {
 			assertErr := runner.Run(ctx)
 			_ = rep.WriteToStdout(g.output)
 			if assertErr != nil {
-				os.Exit(report.ExitAssertFailed)
+				return &exitError{report.ExitAssertFailed, assertErr}
 			}
 			return nil
 		},

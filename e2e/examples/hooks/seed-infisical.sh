@@ -386,6 +386,7 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/forgejo/POSTGRES_USERNAME" "forgejo"
   put_secret "${token}" "${project_id}" "/forgejo/POSTGRES_PASSWORD" "e2e-forgejo-db"
   put_secret "${token}" "${project_id}" "/rustfs/RUSTFS_ACCESS_KEY" "e2eaccesskey"
+  put_secret "${token}" "${project_id}" "/rustfs-operator/JWT_SECRET" "e2e-rustfs-operator-jwt-secret-0123456789"
   put_secret "${token}" "${project_id}" "/rustfs/RUSTFS_SECRET_KEY" "e2esecretkey"
   put_secret "${token}" "${project_id}" "/opencloud/IDM_ADMIN_PASSWORD" "e2e-opencloud-admin"
   # The RustFS operator rejects a Tenant whose provisioning users resolve to
@@ -400,8 +401,6 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/crowdsec/ENROLL_KEY" "e2e-crowdsec-enroll"
   put_secret "${token}" "${project_id}" "/crowdsec/BOUNCER_KEY_envoy" "e2e-crowdsec-bouncer"
   put_secret "${token}" "${project_id}" "/velero-ui/AUTH_SECRET_PASSPHRASE" "e2e-velero-ui"
-  put_secret "${token}" "${project_id}" "/velero-ui/BASIC_AUTH_USERNAME" "e2e"
-  put_secret "${token}" "${project_id}" "/velero-ui/BASIC_AUTH_PASSWORD" "e2e-velero"
   put_secret "${token}" "${project_id}" "/velero/B2_APPLICATION_KEY_ID" "e2e-b2-id"
   put_secret "${token}" "${project_id}" "/velero/B2_APPLICATION_KEY" "e2e-b2-key"
   put_secret "${token}" "${project_id}" "/velero/KOPIA_REPOSITORY_PASSWORD" "e2e-kopia"

@@ -1,5 +1,141 @@
+replicaCount: 1
+
+# Disable inbuilt databases
+postgresql-ha:
+  enabled: false
+postgresql:
+  enabled: false
+redis-cluster:
+  enabled: false
+
+image:
+  pullPolicy: IfNotPresent
+
+# Pin the shared-storage PVC to the repo StorageClass explicitly instead of
+# relying on the cluster default (the chart defaults storageClass to '').
+persistence:
+  enabled: true
+  claimName: gitea-shared-storage
+  storageClass: longhorn-crypto
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+    ephemeral-storage: 64Mi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+    ephemeral-storage: 2Gi
+
+initContainers:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+      ephemeral-storage: 64Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+      ephemeral-storage: 2Gi
+
 gitea:
+  # No admin user is seeded: with INSTALL_LOCK and OAuth auto-registration,
+  # the first user to sign in through Authelia becomes the site admin —
+  # intended for this single-operator instance (docs/oidc.md).
+  admin:
+    username: ""
+    password: ""
+    existingSecret: ""
   oauth:
     - name: Authelia
       provider: openidConnect
+      existingSecret: forgejo-oauth
       autoDiscoverUrl: https://auth.${BASE_DOMAIN}/.well-known/openid-configuration
+      scopes: "openid profile email groups"
+      groupClaimName: groups
+      adminGroup: forgejo-admin
+  # Cache, session, and queue stay on Forgejo's in-memory adapters (the
+  # defaults). That is only correct at exactly one replica — the deployment
+  # is pinned to a single replica below; revisit before scaling out.
+  config:
+    database:
+      DB_TYPE: postgres
+      HOST: forgejo-rw.forgejo.svc.cluster.local:5432
+      NAME: forgejo
+      USER: forgejo
+    server:
+      DOMAIN: git.${BASE_DOMAIN}
+      ROOT_URL: https://git.${BASE_DOMAIN}/
+      SSH_DOMAIN: git.${BASE_DOMAIN}
+    webhook:
+      # Upstream default is `external`; Woodpecker's Forgejo guide adds
+      # `loopback` for same-cluster delivery. `private` would additionally
+      # allow webhooks to cluster-internal endpoints (SSRF surface).
+      ALLOWED_HOST_LIST: "external,loopback"
+    cron.update_checker:
+      ENABLED: false
+    # Woodpecker is this cluster's CI: Forgejo Actions stays disabled so the
+    # Actions UI never appears and no workflow ever resolves runner images
+    # from the default upstream actions URL (data.forgejo.org).
+    actions:
+      ENABLED: false
+    security:
+      REVERSE_PROXY_TRUSTED_PROXIES: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.1/8
+      REVERSE_PROXY_LIMIT: 1
+    service:
+      ENABLE_INTERNAL_SIGNIN: false
+      ENABLE_BASIC_AUTHENTICATION: false
+      SHOW_REGISTRATION_BUTTON: false
+      ALLOW_ONLY_EXTERNAL_REGISTRATION: true
+      DISABLE_REGISTRATION: false
+      REGISTER_EMAIL_CONFIRM: false
+    # Disable the legacy OpenID 2.0 sign-in surface; Authelia is the only
+    # external identity source (via the OIDC auth source below).
+    openid:
+      ENABLE_OPENID_SIGNIN: false
+      ENABLE_OPENID_SIGNUP: false
+    oauth2_client:
+      ENABLE_AUTO_REGISTRATION: true
+      USERNAME: preferred_username
+      OPENID_CONNECT_SCOPES: openid profile email groups
+      ACCOUNT_LINKING: disabled
+  additionalConfigFromEnvs:
+    - name: FORGEJO__DATABASE__PASSWD
+      valueFrom:
+        secretKeyRef:
+          name: postgres-credentials
+          key: password
+  metrics:
+    # The chart scrapes (and exposes) gitea's /metrics on the same :3000 port
+    # the public route backs onto, so the endpoint is world-reachable behind
+    # the Gateway-level CrowdSec WAF only. Accepted residual: /metrics
+    # carries no secrets (counters and durations), and restricting it at the
+    # gateway would need a path-scoped policy Woodpecker-style clients never
+    # touch. Documented in docs/network-policies.md (forgejo row).
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab
+
+podSecurityContext:
+  fsGroup: 1000
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+test:
+  enabled: false

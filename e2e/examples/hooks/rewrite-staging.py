@@ -409,18 +409,6 @@ def rewrite_kind_runtime_class(root: pathlib.Path) -> None:
     print(f"[rewrite-staging] runtimeClassName gvisor removed in {count} files")
 
 
-def rewrite_gateway_from_all(root: pathlib.Path) -> None:
-    """Gateway API v1 enum is All/Selector/Same; homelab YAML uses lowercase all."""
-    count = 0
-    for path in root.rglob("*.yaml"):
-        text = path.read_text()
-        new = re.sub(r"(?m)^(\s+from:) all\s*$", r"\1 All", text)
-        if new != text:
-            path.write_text(new)
-            count += 1
-    print(f"[rewrite-staging] Gateway from: all -> All in {count} files")
-
-
 def rewrite_eso_decoding_none(root: pathlib.Path) -> None:
     """Infisical stores plaintext; Auto base64-decodes values that happen to be valid b64.
 
@@ -599,33 +587,6 @@ def rewrite_forgejo_oidc_http(root: pathlib.Path) -> None:
         text += "\n"
     path.write_text(text + entry)
     print("[rewrite-staging] forgejo OIDC discovery trusts kind Gateway CA")
-
-
-def rewrite_crowdsec_registration_token(root: pathlib.Path) -> None:
-    """CrowdSec 1.7 rejects auto_registration tokens shorter than 32 characters."""
-    short = 'token: "e2e-crowdsec-registration-token"'
-    long = 'token: "e2e-crowdsec-registration-token-x"'
-    count = 0
-    for path in root.rglob("*.yaml"):
-        text = path.read_text()
-        if short not in text:
-            continue
-        path.write_text(text.replace(short, long))
-        count += 1
-    print(f"[rewrite-staging] crowdsec registration token padded in {count} files")
-
-
-def rewrite_rustfs_duplicate_tenant_crd(root: pathlib.Path) -> None:
-    """Chart 0.0.5 ships identical tenants.rustfs.com CRDs; kustomize --enable-helm rejects the dup."""
-    count = 0
-    for path in root.rglob("tenant.yaml"):
-        if path.parent.name != "crds" or "rustfs" not in path.as_posix():
-            continue
-        if not (path.parent / "tenant-crd.yaml").exists():
-            continue
-        path.unlink()
-        count += 1
-    print(f"[rewrite-staging] removed {count} duplicate rustfs tenant.yaml CRDs")
 
 
 def rewrite_argocd_disable_extras(root: pathlib.Path) -> None:
@@ -1306,16 +1267,13 @@ def main() -> int:
     rewrite_metrics_server_kind_kubelet_tls(root)
     rewrite_kind_userns(root)
     rewrite_kind_runtime_class(root)
-    rewrite_gateway_from_all(root)
     rewrite_eso_decoding_none(root)
     rewrite_opencloud_web_extensions(root)
     rewrite_opencloud_collaboration_insecure(root)
     rewrite_crowdsec_credential_secrets(root)
     rewrite_forgejo_oidc_http(root)
-    rewrite_crowdsec_registration_token(root)
     rewrite_crowdsec_disable_enroll(root)
     rewrite_crowdsec_skip_hooks(root)
-    rewrite_rustfs_duplicate_tenant_crd(root)
     rewrite_argocd_disable_extras(root)
     # Controller memory patch lives in rewrite_argocd_disable_extras.
     rewrite_collabora_kind_jail(root)

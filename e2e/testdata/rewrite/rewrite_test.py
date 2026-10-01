@@ -41,18 +41,18 @@ def main() -> int:
             raise SystemExit("nested Application repoURL not rewritten")
         if "git://host.docker.internal:9418/homeworld.git" not in nested:
             raise SystemExit("nested Application missing local git URL")
-        if "hostUsers: false" in nested:
-            raise SystemExit("hostUsers: false left in place")
-        if "hostUsers: true" not in nested:
-            raise SystemExit("hostUsers not flipped to true")
-        if '"/spec/hostUsers","value":false' in nested:
+        # hostUsers flips: kustomize patch values (Deployment patches) and the
+        # CNPG podPatch JSON string (Cluster manifests) must both be flipped.
+        argocd_k = (dest / "apps" / "argocd" / "helm" / "kustomization.yaml").read_text()
+        if "path: /spec/template/spec/hostUsers\n        value: false" in argocd_k:
+            raise SystemExit("kustomize hostUsers patch value not flipped")
+        if "path: /spec/template/spec/hostUsers\n        value: true" not in argocd_k:
+            raise SystemExit("kustomize hostUsers patch value missing")
+        immich_pg = (dest / "apps" / "immich" / "0_postgres.yaml").read_text()
+        if '"/spec/hostUsers","value":false' in immich_pg:
             raise SystemExit("cnpg podPatch still sets hostUsers false")
-        if '"/spec/hostUsers","value":true' not in nested:
+        if '"/spec/hostUsers","value":true' not in immich_pg:
             raise SystemExit("cnpg podPatch hostUsers not flipped")
-        if "from: all" in nested:
-            raise SystemExit("Gateway from: all not capitalized")
-        if "from: All" not in nested:
-            raise SystemExit("Gateway from: All missing")
         if "SkipDryRunOnMissingResource=true" not in nested:
             raise SystemExit("nested Application missing SkipDryRunOnMissingResource")
         if "RespectIgnoreDifferences=true" not in apps:
@@ -66,7 +66,21 @@ def main() -> int:
         if "/operation" not in apps:
             raise SystemExit("parent Applications missing Application /operation ignore")
         if 'argocd.argoproj.io/sync-wave: "2"' in apps:
-            raise SystemExit("parent Application should not gain HTTPRoute sync-wave")
+            # envoy-gateway-app and cilium-app legitimately sit at dependency
+            # wave 2; no OTHER parent Application may carry the route wave.
+            allowed = ("envoy-gateway-app", "cilium-app")
+            for doc in apps.split("\n---\n"):
+                if 'sync-wave: "2"' in doc:
+                    name = next(
+                        (l.split("name: ", 1)[1].strip()
+                         for l in doc.splitlines()
+                         if l.strip().startswith("name: ") and "-app" in l),
+                        None,
+                    )
+                    if name not in allowed:
+                        raise SystemExit(
+                            "parent Application should not gain HTTPRoute sync-wave"
+                        )
         nested_app = nested.split("kind: Application", 1)[1].split("---")[0]
         if 'argocd.argoproj.io/sync-wave: "2"' in nested_app:
             raise SystemExit("nested Application should not gain HTTPRoute sync-wave")
@@ -93,10 +107,6 @@ def main() -> int:
             raise SystemExit("Dragonfly missing dfly runAsUser")
         if "SETUID" in dfly:
             raise SystemExit("Dragonfly must not add SETUID under Restricted PSA")
-        if "strategy:" in work.split("kind: StatefulSet", 1)[1].split("---")[0]:
-            raise SystemExit("StatefulSet spec.strategy not removed")
-        if "persistentVolumeClaim:" in work.split("kind: Grafana", 1)[1].split("---")[0]:
-            raise SystemExit("Grafana persistentVolumeClaim not removed")
         if "/usr/share/nginx/html/external-sites/" in work:
             raise SystemExit("opencloud web-extensions path not rewritten")
         if "/usr/share/nginx/html/apps/external-sites/" not in work:
@@ -137,19 +147,10 @@ def main() -> int:
         if '{{ .password }}' not in cs:
             raise SystemExit("crowdsec postgres template missing password")
         token = (dest / "apps" / "crowdsec" / "helm" / "values.yaml").read_text()
-        if 'token: "e2e-crowdsec-registration-token"' in token:
-            raise SystemExit("crowdsec registration token still shorter than 32 chars")
-        if 'token: "e2e-crowdsec-registration-token-x"' not in token:
-            raise SystemExit("crowdsec registration token not padded")
         if "ENROLL_KEY" in token:
             raise SystemExit("crowdsec ENROLL_KEY should be removed")
         if "DISABLE_ONLINE_API" not in token:
             raise SystemExit("crowdsec DISABLE_ONLINE_API missing")
-        rustfs_crds = dest / "apps" / "rustfs-operator" / "helm" / "chart" / "crds"
-        if (rustfs_crds / "tenant.yaml").exists():
-            raise SystemExit("duplicate rustfs tenant.yaml CRD not removed")
-        if not (rustfs_crds / "tenant-crd.yaml").exists():
-            raise SystemExit("rustfs tenant-crd.yaml should be kept")
         argocd_vals = (dest / "apps" / "argocd" / "helm" / "values.yaml").read_text()
         if "enabled: false" not in argocd_vals.split("dex:", 1)[1].split("\n", 2)[1]:
             raise SystemExit("argocd dex not disabled")
@@ -231,8 +232,8 @@ def main() -> int:
             raise SystemExit("immich role not rewritten to superuser")
         if "CREATE EXTENSION IF NOT EXISTS vchord CASCADE" not in pg:
             raise SystemExit("immich postInitSQL missing vchord")
-        if "name: earthdistance" not in pg:
-            raise SystemExit("immich Database missing earthdistance extension")
+        if "CREATE EXTENSION IF NOT EXISTS earthdistance CASCADE" not in pg:
+            raise SystemExit("immich postInitSQL missing earthdistance extension")
         vm_vals = dest / "apps" / "victoria-metrics" / "helm" / "metrics" / "values.yaml"
         if not vm_vals.exists():
             raise SystemExit("victoria-metrics helm values missing")
@@ -257,6 +258,16 @@ def main() -> int:
             raise SystemExit("crowdsec agent still enabled")
         if "agent:\n  enabled: false\n" not in cs_vals:
             raise SystemExit("crowdsec agent not disabled")
+        ms_vals = (
+            dest / "apps" / "metrics-server" / "helm" / "values.yaml"
+        ).read_text()
+        if "--kubelet-insecure-tls" not in ms_vals:
+            raise SystemExit("metrics-server kubelet TLS not relaxed for kind")
+        otel_node = (
+            dest / "apps" / "otel-collector" / "helm" / "node" / "values.yaml"
+        ).read_text()
+        if "kubeletMetrics:\n    enabled: false" not in otel_node:
+            raise SystemExit("otel node kubeletstats not disabled for kind")
         cs_app = (dest / "apps" / "crowdsec" / "1_helm.yaml").read_text()
         if "SkipHooks=true" not in cs_app:
             raise SystemExit("crowdsec Application missing SkipHooks")
@@ -356,11 +367,6 @@ def main() -> int:
         ).read_text()
         if "timeoutSeconds: 15" not in doc_op:
             raise SystemExit("documentdb operator probe timeout missing")
-        oc_pvc = (dest / "apps" / "openchamber" / "0_pvc.yaml").read_text()
-        if "storage: 100Gi" in oc_pvc:
-            raise SystemExit("openchamber PVC still 100Gi")
-        if "storage: 10Gi" not in oc_pvc:
-            raise SystemExit("openchamber PVC not shrunk to 10Gi")
         work_after = (dest / "apps" / "workarounds.yaml").read_text()
         if "runtimeClassName: gvisor" in work_after:
             raise SystemExit("runtimeClassName gvisor not removed for kind")
@@ -376,11 +382,6 @@ def main() -> int:
             raise SystemExit("single-op gvisor patch not removed")
         if "patch: |-\n" in eso_k:
             raise SystemExit("emptied kustomize patch block left behind")
-        oc_dep = (dest / "apps" / "openchamber" / "1_deployment.yaml").read_text()
-        if 'cpu: "2"' in oc_dep and "memory: 4Gi" in oc_dep and 'cpu: "8"' in oc_dep:
-            raise SystemExit("openchamber resources not relaxed for kind")
-        if 'cpu: "500m"' not in oc_dep:
-            raise SystemExit("openchamber requests not relaxed")
         fj = (dest / "apps" / "forgejo" / "helm" / "values.yaml").read_text()
         if "http://authelia.authelia.svc.cluster.local" in fj:
             raise SystemExit("forgejo OIDC must keep Gateway HTTPS (Authelia rejects plain HTTP)")

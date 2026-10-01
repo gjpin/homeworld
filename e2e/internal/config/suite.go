@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -250,7 +251,11 @@ func Load(path string) (*Suite, error) {
 		return nil, fmt.Errorf("read suite: %w", err)
 	}
 	var suite Suite
-	if err := yaml.Unmarshal(data, &suite); err != nil {
+	// KnownFields: a typo'd field (e.g. `resyncinterval` instead of
+	// `resyncInterval`) must fail loudly instead of being silently ignored.
+	dec := yaml.NewDecoder(bytes.NewReader(data))
+	dec.KnownFields(true)
+	if err := dec.Decode(&suite); err != nil {
 		return nil, fmt.Errorf("parse suite YAML: %w", err)
 	}
 	suite.Path = abs
