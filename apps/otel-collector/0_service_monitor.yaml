@@ -1,0 +1,25 @@
+# The operator-managed collector exposes its own telemetry on the
+# operator-generated monitoring Service (port 8888). The operator's
+# TargetAllocator rewrite replaces the prometheus receiver's config with the
+# allocator's http_sd config, so any static self-scrape job declared in the
+# CR is dropped at render time; this ServiceMonitor puts the collector's own
+# telemetry on the allocator's target list like any other workload — the
+# only supported scrape path in this cluster (see 1_collector.yaml).
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: otel-collector-pod
+  namespace: otel-collector
+  labels:
+    app.kubernetes.io/name: otel-collector
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: opentelemetry-collector
+      app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      app.kubernetes.io/managed-by: opentelemetry-operator
+  endpoints:
+    - port: monitoring
+      path: /metrics
+      interval: 60s

@@ -9,12 +9,6 @@ server:
   image:
     registry: docker.io
   retentionPeriod: "30d"
-  # Normalize metric names ingested over OTLP to Prometheus style (dots
-  # become underscores, unit suffixes follow the Prometheus convention):
-  # the collector exports every scraped series through VM's OTLP endpoint,
-  # and upstream Prometheus-style dashboards query the Prometheus names.
-  extraArgs:
-    opentelemetry.usePrometheusNaming: true
   runtimeClassName: gvisor
   nodeSelector:
     node-role.kubernetes.io/homelab: homelab

@@ -446,12 +446,18 @@ spec:
           path: "/health/ready"
           timeout: 10m
       # VictoriaMetrics must actually hold OTel-exported series, not just run.
+      # The stored name is otelcol_process_uptime_total: the collectors
+      # expose an unsuffixed otelcol_process_uptime gauge at :8888, and
+      # VictoriaMetrics' OTLP ingest maps the datapoint to a Prometheus
+      # counter, appending the _total suffix (verified live on the kind
+      # cluster, identical with and without
+      # -opentelemetry.usePrometheusNaming).
       - name: victoria-metrics-data
         serviceProbe:
           namespace: victoria-metrics
           service: victoria-metrics
           port: 8428
-          path: "/api/v1/query?query=otelcol_process_uptime"
+          path: "/api/v1/query?query=otelcol_process_uptime_total"
           bodyContains: '"result":[{'
           timeout: 10m
       # VictoriaLogs must actually hold OTel-exported log lines, not just run.

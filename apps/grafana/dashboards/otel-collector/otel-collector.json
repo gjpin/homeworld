@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "OpenTelemetry Collector self-observability across the cluster's pod, node, and cluster collectors: receiver acceptance, processor throughput, exporter queues, and process health. The OTel project publishes no production-collector dashboard, so this custom dashboard references only the otelcol_* metrics verified against the opentelemetry-collector source (receiver/exporter/processor generated telemetry and service process  metrics).",
+  "description": "OpenTelemetry Collector self-observability across the cluster's pod, node, and cluster collectors: receiver acceptance, processor throughput, exporter queues, and process health. The OTel project publishes no production-collector dashboard, so this custom dashboard references only the otelcol_* metrics verified against the opentelemetry-collector source (receiver/exporter/processor generated telemetry and service process metrics). Panel queries use the names stored by VictoriaMetrics after the collectors' OTLP export, verified live: the collectors expose unsuffixed process gauges at :8888 (otelcol_process_uptime, otelcol_process_memory_rss), and VictoriaMetrics' OTLP ingest maps the uptime datapoint to a Prometheus counter, storing it with the _total suffix (otelcol_process_uptime_total).",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -114,7 +114,7 @@
         "type": "victoriametrics-metrics-datasource",
         "uid": "victoriametrics"
       },
-      "description": "Shortest process uptime across the selected collector jobs (otelcol_process_uptime_seconds).",
+      "description": "Shortest process uptime across the selected collector jobs (otelcol_process_uptime_total).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -165,7 +165,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "min(otelcol_process_uptime_seconds{job=~\"$job\"})",
+          "expr": "min(otelcol_process_uptime_total{job=~\"$job\"})",
           "legendFormat": "Process uptime (min)",
           "range": false,
           "refId": "A"
@@ -179,7 +179,7 @@
         "type": "victoriametrics-metrics-datasource",
         "uid": "victoriametrics"
       },
-      "description": "Highest resident memory across the selected collector jobs (otelcol_process_memory_rss_bytes).",
+      "description": "Highest resident memory across the selected collector jobs (otelcol_process_memory_rss).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -230,7 +230,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "max(otelcol_process_memory_rss_bytes{job=~\"$job\"})",
+          "expr": "max(otelcol_process_memory_rss{job=~\"$job\"})",
           "legendFormat": "Resident memory (max)",
           "range": false,
           "refId": "A"
@@ -1375,7 +1375,7 @@
         "type": "victoriametrics-metrics-datasource",
         "uid": "victoriametrics"
       },
-      "description": "Process resident memory (otelcol_process_memory_rss_bytes).",
+      "description": "Process resident memory (otelcol_process_memory_rss).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1455,7 +1455,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (job) (otelcol_process_memory_rss_bytes{job=~\"$job\"})",
+          "expr": "sum by (job) (otelcol_process_memory_rss{job=~\"$job\"})",
           "legendFormat": "{{job}}",
           "range": true,
           "refId": "A"
@@ -1672,7 +1672,7 @@
         "multi": true,
         "name": "job",
         "options": [],
-        "query": "label_values(otelcol_process_uptime_seconds{job=~\"otel-collector.*\"}, job)",
+        "query": "label_values(otelcol_process_uptime_total{job=~\"otel-collector.*\"}, job)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,

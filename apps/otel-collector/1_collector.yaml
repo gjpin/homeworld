@@ -130,17 +130,16 @@ spec:
           http:
             endpoint: 0.0.0.0:4318
       prometheus:
-        # The operator rewrites this scrape config to fetch targets from the
-        # Target Allocator (http_sd); the self-scrape static target uses the
-        # operator-managed monitoring Service because the Target Allocator
-        # config performs no environment substitution.
-        config:
-          scrape_configs:
-            - job_name: otel-collector-pod
-              scrape_interval: 10s
-              static_configs:
-                - targets:
-                    - otel-collector-pod-collector-monitoring.otel-collector.svc.cluster.local:8888
+        # The operator replaces the receiver's config with the Target
+        # Allocator's http_sd config at render time (verified live: the
+        # generated ConfigMap carries `config: {}` plus the allocator
+        # block), so any static scrape job declared here is silently
+        # dropped. The receiver must stay declared for the allocator to
+        # attach; the collector's own telemetry is scraped through the
+        # ServiceMonitor on the operator-generated monitoring Service
+        # (0_service_monitor.yaml), which puts it on the allocator's target
+        # list like any other workload.
+        config: {}
     processors:
       batch: {}
       memory_limiter:
