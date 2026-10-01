@@ -323,15 +323,21 @@ spec:
           status: "True"
           timeout: 10m
       # The DocumentDB CR itself must be ready (the operator layers the
-      # documentdb-gateway sidecar on the CNPG cluster asserted above).
+      # documentdb-gateway sidecar on the CNPG cluster asserted above). The
+      # operator reports readiness through status.status ("Cluster in healthy
+      # state") and status.tls.ready — it publishes no metav1 conditions,
+      # so assert on those fields instead of a Ready condition.
       - name: documentdb-notesnook-cr
         resourceCondition:
           apiVersion: documentdb.io/preview
           kind: DocumentDB
           name: notesnook
           namespace: notesnook
-          condition: Ready
-          status: "True"
+          fields:
+            - path: status.status
+              value: Cluster in healthy state
+            - path: status.tls.ready
+              value: "true"
           timeout: 10m
       # The shared RustFS Tenant store must be reconciled and serving.
       - name: rustfs-tenant
