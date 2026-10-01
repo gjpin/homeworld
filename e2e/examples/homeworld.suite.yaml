@@ -139,13 +139,6 @@ spec:
           name: copy-gateway-ca
           command: ["./e2e/examples/hooks/copy-gateway-ca.sh"]
           timeout: 16m
-      - name: patch-coredns
-        hook:
-          name: patch-coredns-e2e-domain
-          command: ["./e2e/examples/hooks/patch-coredns-e2e-domain.sh"]
-          timeout: 11m
-          env:
-            BASE_DOMAIN: e2e.local
       - name: wait-argo
         wait:
           group: argoproj.io
@@ -164,6 +157,14 @@ spec:
           # first-boot transient (after a failed sync, self-heal never
           # re-fires): re-trigger the sync on stuck OutOfSync apps.
           resyncInterval: 3m
+      - name: patch-coredns
+        hook:
+          name: patch-coredns-e2e-domain
+          command: ["./e2e/examples/hooks/patch-coredns-e2e-domain.sh"]
+          timeout: 11m
+          env:
+            BASE_DOMAIN: e2e.local
+
 
   assert:
     timeout: 20m

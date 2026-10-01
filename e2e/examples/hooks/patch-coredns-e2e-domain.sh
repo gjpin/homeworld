@@ -6,7 +6,7 @@
 set -euo pipefail
 
 DOMAIN="${BASE_DOMAIN:-e2e.local}"
-WAIT_IP_SECS="${WAIT_IP_SECS:-480}"
+WAIT_IP_SECS="${WAIT_IP_SECS:-600}"
 
 log() { printf '[patch-coredns-e2e-domain] %s\n' "$*"; }
 
