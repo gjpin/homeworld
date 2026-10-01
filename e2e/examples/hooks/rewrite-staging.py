@@ -437,30 +437,6 @@ def rewrite_eso_decoding_none(root: pathlib.Path) -> None:
     print(f"[rewrite-staging] decodingStrategy Auto->None in {count} files")
 
 
-def rewrite_grafana_pvc_name(root: pathlib.Path) -> None:
-    """Drop Grafana persistentVolumeClaim on kind.
-
-    The CRD ObjectMeta subset rejects metadata.name (SSA). Without a name the
-    operator still creates grafana-pvc but does not mount it, so the claim
-    stays Pending under WaitForFirstConsumer and the Application is Degraded.
-    emptyDir is enough for e2e.
-    """
-    count = 0
-    for path in root.rglob("*.yaml"):
-        text = path.read_text()
-        if "kind: Grafana" not in text or "persistentVolumeClaim:" not in text:
-            continue
-        new = re.sub(
-            r"(?m)^  persistentVolumeClaim:\n(?:    .*\n)+",
-            "",
-            text,
-        )
-        if new != text:
-            path.write_text(new)
-            count += 1
-    print(f"[rewrite-staging] Grafana persistentVolumeClaim removed in {count} files")
-
-
 def rewrite_opencloud_collaboration_insecure(root: pathlib.Path) -> None:
     """Kind Gateways use self-signed certs; OpenCloud WOPI discovery must skip verify."""
     count = 0
@@ -1332,7 +1308,6 @@ def main() -> int:
     rewrite_kind_runtime_class(root)
     rewrite_gateway_from_all(root)
     rewrite_eso_decoding_none(root)
-    rewrite_grafana_pvc_name(root)
     rewrite_opencloud_web_extensions(root)
     rewrite_opencloud_collaboration_insecure(root)
     rewrite_crowdsec_credential_secrets(root)
