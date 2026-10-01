@@ -87,7 +87,7 @@ strip_sep() { grep -v '^---$' || true; }
 
 dash_cm_refs="$(
   yq ea 'select(.kind == "GrafanaDashboard") | .spec.configMapRef.name' \
-    "$grafana_dir"/0_dashboards_*.yaml | strip_sep | sort
+    "$grafana_dir"/1_dashboards_*.yaml | strip_sep | sort
 )"
 cm_names="$(
   yq '.configMapGenerator[].name' "$grafana_dir/kustomization.yaml" | sort
@@ -126,7 +126,7 @@ done
 
 dash_folder_refs="$(
   yq ea 'select(.kind == "GrafanaDashboard") | .spec.folderRef' \
-    "$grafana_dir"/0_dashboards_*.yaml | strip_sep | sort -u
+    "$grafana_dir"/1_dashboards_*.yaml | strip_sep | sort -u
 )"
 folder_names="$(
   yq ea 'select(.kind == "GrafanaFolder") | .metadata.name' "$grafana_dir"/0_folders.yaml |
