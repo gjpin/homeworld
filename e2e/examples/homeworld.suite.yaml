@@ -71,14 +71,16 @@ spec:
           INFISICAL_HOST_LOCAL: http://127.0.0.1:8080
           INFISICAL_PROJECT_SLUG: homeworld
           INFISICAL_ENVIRONMENT_SLUG: prod
+      # CRDs before credentials: apply-eso-credentials also applies the
+      # ClusterSecretStore, which needs the ClusterSecretStore CRD to exist.
+      - name: apply-eso-crds
+        command: ["./e2e/examples/hooks/apply-eso-crds.sh"]
+        timeout: 2m
       - name: apply-eso-credentials
         command: ["./e2e/examples/hooks/apply-eso-credentials.sh"]
         timeout: 5m
         env:
           INFISICAL_HOST: http://host.docker.internal:8080
-      - name: apply-eso-crds
-        command: ["./e2e/examples/hooks/apply-eso-crds.sh"]
-        timeout: 2m
       - name: apply-operator-crds
         command: ["./e2e/examples/hooks/apply-operator-crds.sh"]
         timeout: 5m
