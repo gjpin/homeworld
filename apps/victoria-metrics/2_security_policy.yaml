@@ -20,6 +20,8 @@ spec:
           name: crowdsec-envoy-bouncer
           namespace: envoy-gateway
           port: 8080
+          group: ""
+          weight: 1
 ---
 # Gateway OIDC for the VictoriaMetrics UI. Authelia is the only login:
 # the UI has no built-in authentication, and the route requires the platform

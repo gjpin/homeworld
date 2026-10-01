@@ -12,6 +12,8 @@ spec:
     - name: envoy
       namespace: notesnook
       sectionName: notes-https
+      group: gateway.networking.k8s.io
+      kind: Gateway
   hostnames:
     - "notes.${BASE_DOMAIN}"
   rules:
@@ -20,6 +22,8 @@ spec:
           namespace: notesnook
           kind: Service
           port: 5264
+          group: ""
+          weight: 1
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -34,6 +38,8 @@ spec:
     - name: envoy
       namespace: notesnook
       sectionName: notes-auth-https
+      group: gateway.networking.k8s.io
+      kind: Gateway
   hostnames:
     - "auth.notes.${BASE_DOMAIN}"
   rules:
@@ -42,6 +48,8 @@ spec:
           namespace: notesnook
           kind: Service
           port: 8264
+          group: ""
+          weight: 1
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -56,6 +64,8 @@ spec:
     - name: envoy
       namespace: notesnook
       sectionName: notes-sse-https
+      group: gateway.networking.k8s.io
+      kind: Gateway
   hostnames:
     - "sse.notes.${BASE_DOMAIN}"
   rules:
@@ -64,6 +74,8 @@ spec:
           namespace: notesnook
           kind: Service
           port: 7264
+          group: ""
+          weight: 1
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -78,6 +90,8 @@ spec:
     - name: envoy
       namespace: notesnook
       sectionName: notes-monograph-https
+      group: gateway.networking.k8s.io
+      kind: Gateway
   hostnames:
     - "monograph.notes.${BASE_DOMAIN}"
   rules:
@@ -86,6 +100,8 @@ spec:
           namespace: notesnook
           kind: Service
           port: 3000
+          group: ""
+          weight: 1
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -100,6 +116,8 @@ spec:
     - name: envoy
       namespace: notesnook
       sectionName: notes-themes-https
+      group: gateway.networking.k8s.io
+      kind: Gateway
   hostnames:
     - "themes.notes.${BASE_DOMAIN}"
   rules:
@@ -108,6 +126,8 @@ spec:
           namespace: notesnook
           kind: Service
           port: 9000
+          group: ""
+          weight: 1
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -122,6 +142,8 @@ spec:
     - name: envoy
       namespace: notesnook
       sectionName: notes-cors-https
+      group: gateway.networking.k8s.io
+      kind: Gateway
   hostnames:
     - "cors.notes.${BASE_DOMAIN}"
   rules:
@@ -130,6 +152,8 @@ spec:
           namespace: notesnook
           kind: Service
           port: 3000
+          group: ""
+          weight: 1
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -144,6 +168,8 @@ spec:
     - name: envoy
       namespace: notesnook
       sectionName: notes-inbox-https
+      group: gateway.networking.k8s.io
+      kind: Gateway
   hostnames:
     - "inbox.notes.${BASE_DOMAIN}"
   rules:
@@ -152,3 +178,5 @@ spec:
           namespace: notesnook
           kind: Service
           port: 5181
+          group: ""
+          weight: 1

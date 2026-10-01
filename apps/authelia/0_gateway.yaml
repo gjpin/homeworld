@@ -21,9 +21,10 @@ spec:
       hostname: "auth.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
-          from: all
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
           - name: authelia-tls-cert
             kind: Secret
+            group: ""
