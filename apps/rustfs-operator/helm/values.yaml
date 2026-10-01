@@ -19,6 +19,12 @@ operator:
     # scripts/vendor-rustfs-operator.sh; chart 0.07's CRD is a superset
     # of the 0.0.6 schema, so that bump supersedes this cleanly.
     tag: 0.0.6
+    # The operator records transient provisioning failures (e.g. the server
+    # API not answering yet behind its first PVC mount) as status
+    # conditions and does not requeue the reconcile, so a Tenant can stay
+    # ProvisioningReady=False until a watched object changes. Recovery:
+    # annotate the Tenant (any spec/label change) to force a reconcile —
+    # see e2e/examples/hooks/kick-rustfs-tenant.sh for the exact nudge.
     pullPolicy: IfNotPresent
   resources:
     requests:

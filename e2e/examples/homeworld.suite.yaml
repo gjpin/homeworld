@@ -167,6 +167,15 @@ spec:
           # first-boot transient (after a failed sync, self-heal never
           # re-fires): re-trigger the sync on stuck OutOfSync apps.
           resyncInterval: 3m
+      # The rustfs-operator records provisioning failures (a transient
+      # request to the still-booting server) as status conditions and never
+      # requeues its own reconcile, so the Tenant can wedge on first boot.
+      # Nudge it once convergence is otherwise complete.
+      - name: kick-rustfs-tenant
+        hook:
+          name: kick-rustfs-tenant
+          command: ["./e2e/examples/hooks/kick-rustfs-tenant.sh"]
+          timeout: 3m
 
 
   assert:
