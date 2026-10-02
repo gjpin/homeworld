@@ -135,6 +135,14 @@ patches:
       # cscli job fabricates its credential locally; the capi job talks to
       # the Central API) and exit 0 when their credential secret already
       # exists. The RBAC above (weight -1) is their ServiceAccount.
+      # The chart templates put no namespace on these Jobs, and the
+      # kustomization namespace field does not reach helm-chart output, so
+      # set it with an explicit patch like the other chart objects: the
+      # register Jobs must land in crowdsec, where the ServiceAccount
+      # above lives.
+      - op: add
+        path: /metadata/namespace
+        value: crowdsec
       # hook-delete-policy removes a completed Job so it is re-created —
       # never updated — with the fresh image on every sync.
       - op: add
