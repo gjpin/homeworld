@@ -23,7 +23,7 @@ FROM docker.io/library/debian:trixie-slim@sha256:a99cfc517144bc59b1978475ec53b46
 # Bumped by the daily check-openchamber-apt-updates workflow when the
 # published image has out-of-date apt packages (including Google Chrome).
 # Bumping it rebuilds the apt layer with refreshed packages.
-ARG APT_REFRESH=2026-09-25
+ARG APT_REFRESH=2026-10-02
 
 # Pinned tool versions, each tracked by its own Renovate custom manager.
 ARG NODE_VERSION=26.10.0
