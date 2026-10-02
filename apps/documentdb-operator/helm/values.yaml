@@ -8,7 +8,7 @@ certManager:
 # (0.110.0 in helm/local-charts/documentdb-operator/values.yaml) is older
 # and must stay overridden here; the vendor script refreshes it on chart
 # bumps, but this override always wins.
-documentDbVersion: "0.117.0"
+documentDbVersion: "pg15-1.0.0"
 walReplica: false
 # CNPG-I only discovers plugin Services in the CloudNativePG operator's own
 # namespace, so the sidecar injector must live in `cloudnative-pg`.
