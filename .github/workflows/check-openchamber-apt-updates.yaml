@@ -31,6 +31,14 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The apt-refresh PR push must authenticate as the renovate-homeworld
+          # app: pushes made with GITHUB_TOKEN neither trigger the PR-side
+          # smoke build nor match the automerge workflow's author filter. A
+          # persisted contents:read GITHUB_TOKEN Authorization header for
+          # https://github.com/ would shadow the app token embedded in the
+          # remote URL and fail the push with 403, so persist no credentials.
+          persist-credentials: false
 
       - name: Log in to GHCR
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
@@ -97,6 +105,10 @@ jobs:
           IMAGE: ${{ steps.check.outputs.image }}
         run: |
           set -euo pipefail
+          # Authenticate the remote before any git network call: the checkout
+          # persists no credentials, so the ls-remote branch check and the
+          # push below both rely on the app token embedded in the URL.
+          git remote set-url origin "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           today="$(date -u +%F)"
           if grep -q "^ARG APT_REFRESH=${today}$" images/openchamber/Dockerfile; then
             echo "APT_REFRESH already bumped to ${today}; nothing to do"
@@ -108,14 +120,15 @@ jobs:
             exit 0
           fi
 
-          git config user.name "openchamber-apt-refresh[bot]"
-          git config user.email "actions@github.com"
+          # Author commits as the app bot, like Renovate's own commits, so the
+          # pushed commits attribute to the account whose token opens the PR.
+          git config user.name "renovate-homeworld[bot]"
+          git config user.email "309082045+renovate-homeworld[bot]@users.noreply.github.com"
           sed -i "s/^ARG APT_REFRESH=.*/ARG APT_REFRESH=${today}/" images/openchamber/Dockerfile
           git checkout -b "$branch"
           git add images/openchamber/Dockerfile
           git commit -m "chore(openchamber): refresh apt packages (${today})"
 
-          git remote set-url origin "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push origin "$branch"
 
           count="${{ steps.check.outputs.updates }}"
