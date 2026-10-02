@@ -87,7 +87,7 @@ spec:
             - mountPath: /app/data
               name: homeassistant-zigbee2mqtt-claim0
       containers:
-        - image: ghcr.io/koenkk/zigbee2mqtt:2.14.1
+        - image: ghcr.io/koenkk/zigbee2mqtt:2.14.2
           imagePullPolicy: IfNotPresent
           name: homeassistant-zigbee2mqtt
           ports:
