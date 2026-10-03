@@ -9,6 +9,13 @@ name: Check OpenChamber workspace package updates
 # automerge-openchamber workflow merges that PR once the PR-side smoke build
 # passes, so refreshed packages reach the image without manual approval.
 #
+# The run also self-heals: an open refresh PR can go permanently red when a
+# pinned tool publishes a release after its branch was cut (the image's
+# strict version guards then reject the branch's stale pins), and unlike
+# Renovate nothing rebases these branches. Each run recreates any open
+# refresh branch whose checks have failed from the current main, so its
+# checks re-run against today's pins and the automerge can merge it.
+#
 # Renovate PRs (base image digest, pinned tool versions) complement this:
 # every merged PR rebuilds the image with `apt-get update` at build time.
 
@@ -24,6 +31,13 @@ concurrency:
 permissions:
   contents: read
   packages: read
+  # The heal step reads PRs and their checks with the workflow token (the
+  # GitHub App installation does not grant actions:read); only the branch
+  # push runs as the app.
+  pull-requests: read
+  checks: read
+  statuses: read
+  actions: read
 
 jobs:
   apt-check:
@@ -97,6 +111,86 @@ jobs:
             echo "all packages are up to date"
             echo "updates=0" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Heal stale apt refresh PRs
+        env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          # Reads run with the workflow token: the GitHub App installation
+          # does not grant actions:read, which gh pr checks needs. Only the
+          # branch push authenticates as the app, so the recreated branch's
+          # checks trigger and the PR stays authored by the automerge
+          # workflow's account.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git remote set-url origin "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch origin main
+
+          healed=0
+          prs="$(gh pr list -R "${GITHUB_REPOSITORY}" --state open \
+            --json number,headRefName,author \
+            --jq '.[] | select(.author.login | test("renovate-homeworld")) | [.number, .headRefName] | @tsv')"
+          if [ -z "$prs" ]; then
+            echo "no open apt refresh PRs; nothing to heal"
+            exit 0
+          fi
+
+          git config user.name "renovate-homeworld[bot]"
+          git config user.email "309082045+renovate-homeworld[bot]@users.noreply.github.com"
+
+          while IFS=$'\t' read -r number branch; do
+            case "$branch" in
+              openchamber-apt-refresh-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) ;;
+              *)
+                echo "PR #${number} (${branch}): not a refresh branch; skipping"
+                continue
+                ;;
+            esac
+
+            # gh pr checks exits 0 when every check passes (the automerge
+            # workflow will merge it) and 8 while checks are pending; only a
+            # failed check leaves a branch that needs healing.
+            set +e
+            gh pr checks -R "${GITHUB_REPOSITORY}" "$number" >/dev/null 2>&1
+            rc=$?
+            set -e
+            if [ "$rc" -ne 1 ]; then
+              echo "PR #${number} (${branch}): checks green or pending (gh pr checks exit ${rc}); skipping"
+              continue
+            fi
+
+            # Recreate the branch from the current main with the same one-line
+            # APT_REFRESH bump instead of rebasing: the refresh line is owned
+            # by this workflow alone (Renovate manages every other pin), so
+            # the recreation is conflict-free and the branch keeps its
+            # single-commit shape.
+            if ! git fetch origin "+refs/heads/${branch}:refs/remotes/origin/${branch}"; then
+              echo "PR #${number} (${branch}): head branch missing on the remote; skipping"
+              continue
+            fi
+            date="${branch#openchamber-apt-refresh-}"
+            git checkout -q -B "$branch" origin/main
+            sed -i "s/^ARG APT_REFRESH=.*/ARG APT_REFRESH=${date}/" images/openchamber/Dockerfile
+            if git diff --quiet -- images/openchamber/Dockerfile; then
+              echo "PR #${number} (${branch}): main already carries the bump; skipping"
+              continue
+            fi
+            git add images/openchamber/Dockerfile
+            git commit -q -m "chore(openchamber): refresh apt packages (${date})"
+            # The lease must be explicit: the runner's checkout is a
+            # single-branch depth-1 clone, where the shorthand lease form
+            # cannot resolve tracking refs outside the configured refspec.
+            if git push --force-with-lease="refs/heads/${branch}:refs/remotes/origin/${branch}" origin "$branch"; then
+              echo "PR #${number} (${branch}): recreated on the current main; its checks will re-run"
+              healed=$((healed + 1))
+            else
+              echo "PR #${number} (${branch}): push failed (branch moved underneath); skipping"
+            fi
+          done <<<"$prs"
+
+          # Leave the tree on the latest main for the PR-opening step below.
+          git checkout -q -B main origin/main
+          echo "healed ${healed} stale apt refresh PR(s)"
 
       - name: Open an apt refresh PR
         if: steps.check.outputs.updates != '0'
