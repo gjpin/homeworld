@@ -18,7 +18,7 @@
 
 # Base image digest is updated by Renovate ("Update the OpenChamber workspace
 # base image digest" custom manager).
-FROM docker.io/library/debian:trixie-slim@sha256:a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a
+FROM docker.io/library/debian:trixie-slim@sha256:a29215f6a35e51e22adffa17f89e9d2ef06214e64a2bad10d765c46aea49f11f
 
 # Bumped by the daily check-openchamber-apt-updates workflow when the
 # published image has out-of-date apt packages (including Google Chrome).
@@ -27,19 +27,19 @@ ARG APT_REFRESH=2026-10-05
 
 # Pinned tool versions, each tracked by its own Renovate custom manager.
 ARG NODE_VERSION=26.10.0
-ARG PNPM_VERSION=12.9.1
+ARG PNPM_VERSION=12.10.0
 ARG UV_VERSION=0.12.23
 ARG OPENCHAMBER_VERSION=2.1.1
 ARG OPENCODE_VERSION=1.18.34
-ARG CODEX_VERSION=0.160.0
-ARG PI_AGENT_VERSION=1.0.3
+ARG CODEX_VERSION=0.160.1
+ARG PI_AGENT_VERSION=1.0.4
 ARG PLAYWRIGHT_TEST_VERSION=1.63.0
 ARG PLAYWRIGHT_CLI_VERSION=0.1.22
 ARG CHROME_DEVTOOLS_MCP_VERSION=1.10.1
 ARG SKILLS_VERSION=1.7.0
 ARG GROK_VERSION=1.0.46
-ARG ANTIGRAVITY_VERSION=1.2.17
-ARG COPILOT_VERSION=1.0.91
+ARG ANTIGRAVITY_VERSION=1.3.0
+ARG COPILOT_VERSION=1.0.92
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
