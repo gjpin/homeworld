@@ -5,7 +5,7 @@ commonAnnotations:
 helmCharts:
   - name: immich
     repo: oci://ghcr.io/immich-app/immich-charts
-    version: 0.13.2
+    version: 0.13.3
     releaseName: immich
     namespace: immich
     includeCRDs: true
