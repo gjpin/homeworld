@@ -74,7 +74,7 @@ spec:
       - role: control-plane
       - role: worker
     cilium:
-      chartVersion: "1.20.2"
+      chartVersion: "<match the pinned chart in apps/cilium/helm/kustomization.yaml>"
       namespace: kube-system
       values:
         image.pullPolicy: IfNotPresent
@@ -119,10 +119,10 @@ go run ./cmd/e2e validate -f testdata/suite.minimal.yaml
 `examples/homeworld.suite.yaml` boots **this checkout** on kind:
 
 1. Infisical via Compose
-2. kind (Kubernetes `v1.37.0` to match PSA labels and kind 0.33's node image) with kindnet on a **single control-plane node** and `networking.kubeProxyMode: nftables` (iptables-restore hits `sendmsg EMSGSIZE` once this suite's Service count is installed, and kube-proxy then leaves stale ClusterIP DNATs after Recreate). A second kind worker doubles kubelet/containerd inotify usage. Raise `fs.inotify.max_user_instances` to 1024 on the Linux Docker VM (Lima); rootless Docker cannot write that sysctl from inside the kind node. Docker Desktop / Lima rootless cannot mount `bpffs` or idmap overlayfs, so the Cilium agent is not started and staging rewrites `hostUsers: false` to `true` and strips `runtimeClassName: gvisor` (kind nodes have no `runsc` runtime; production keeps both). The Cilium 1.20 helm chart does not ship CRDs; `kind.go` and `apply-cilium-crds.sh` apply `CiliumNetworkPolicy` CRDs from the pinned Git tag. Staging Applications also get `SkipDryRunOnMissingResource=true` and `ServerSideApply=true` so directory apps that mix CRDs and CRs can sync on an empty cluster, and large CRDs/dashboard ConfigMaps do not hit the 256Ki last-applied annotation limit. Gateway `from: all` is rewritten to `All` for Gateway API v1. Staging also sets ExternalSecret `decodingStrategy: None` (Auto base64-decodes plaintext Infisical values such as `authelia`), adds `--kubelet-insecure-tls` to metrics-server (kind kubelet serving certificates carry no IP SANs for the docker-network node address), drops the Grafana PVC `metadata.name` (SSA schema), points OpenCloud web-extension 2.x copies at `/usr/share/nginx/html/apps/` (importer-1.0.0 stays on `/usr/share/nginx/html/importer/`), disables CrowdSec `store*CredentialsInSecret` so LAPI does not deadlock on register-job secrets, pads the CrowdSec registration token to 32+ characters, disables CrowdSec console enroll, removes the duplicate RustFS `tenants.rustfs.com` CRD, disables Collabora bind-mount jails (`mount_jail_tree=false`, child roots under `/tmp`), points Immich at the `photos` RWO PVC and raises server/ML limits to 4Gi, sets the DocumentDB webhook `failurePolicy: Ignore` and relaxes its probes, and disables Argo Dex/ApplicationSet/notifications plus the repo-server GPG fsnotify watcher.
+2. kind (Kubernetes `v1.37.0` to match PSA labels and the kind node image) with kindnet on a **single control-plane node** and `networking.kubeProxyMode: nftables` (iptables-restore hits `sendmsg EMSGSIZE` once this suite's Service count is installed, and kube-proxy then leaves stale ClusterIP DNATs after Recreate). A second kind worker doubles kubelet/containerd inotify usage. Raise `fs.inotify.max_user_instances` to 1024 on the Linux Docker VM (Lima); rootless Docker cannot write that sysctl from inside the kind node. Docker Desktop / Lima rootless cannot mount `bpffs` or idmap overlayfs, so the Cilium agent is not started and staging rewrites `hostUsers: false` to `true` and strips `runtimeClassName: gvisor` (kind nodes have no `runsc` runtime; production keeps both). The Cilium helm chart does not ship CRDs; `kind.go` and `apply-cilium-crds.sh` apply `CiliumNetworkPolicy` CRDs from the pinned Git tag. Staging Applications also get `SkipDryRunOnMissingResource=true` and `ServerSideApply=true` so directory apps that mix CRDs and CRs can sync on an empty cluster, and large CRDs/dashboard ConfigMaps do not hit the 256Ki last-applied annotation limit. Gateway `from: all` is rewritten to `All` for Gateway API v1. Staging also sets ExternalSecret `decodingStrategy: None` (Auto base64-decodes plaintext Infisical values such as `authelia`), adds `--kubelet-insecure-tls` to metrics-server (kind kubelet serving certificates carry no IP SANs for the docker-network node address), drops the Grafana PVC `metadata.name` (SSA schema), points OpenCloud web-extension copies at `/usr/share/nginx/html/apps/` (the importer extension stays on `/usr/share/nginx/html/importer/`), disables CrowdSec `store*CredentialsInSecret` so LAPI does not deadlock on register-job secrets, pads the CrowdSec registration token to 32+ characters, disables CrowdSec console enroll, removes the duplicate RustFS `tenants.rustfs.com` CRD, disables Collabora bind-mount jails (`mount_jail_tree=false`, child roots under `/tmp`), points Immich at the `photos` RWO PVC and raises server/ML limits to 4Gi, sets the DocumentDB webhook `failurePolicy: Ignore` and relaxes its probes, and disables Argo Dex/ApplicationSet/notifications plus the repo-server GPG fsnotify watcher.
 3. Seed Infisical, apply ESO credentials, create a `longhorn-crypto` StorageClass on kind's local-path provisioner, raise inotify limits, apply Cilium and Envoy Gateway CRDs, and strip stuck Argo hook-finalizers
 4. Envsubst + rewrite `apps/` (including nested Application `repoURL`s) into `/tmp/homeworld-e2e-git`, serve it with `git daemon` on `:9418`
-5. Helm-install Argo CD chart **10.9.2** (matching `apps/argocd/helm/kustomization.yaml`) with `kustomize.buildOptions: --enable-helm`. `skipIfPresent: true` skips the upgrade when `--keep-cluster` reuses a cluster that already has the release (including `failed` / `pending-upgrade`).
+5. Helm-install the Argo CD chart (matching `apps/argocd/helm/kustomization.yaml`) with `kustomize.buildOptions: --enable-helm`. `skipIfPresent: true` skips the upgrade when `--keep-cluster` reuses a cluster that already has the release (including `failed` / `pending-upgrade`).
 6. Apply generated Applications (`e2e/examples/.generated/app-of-apps.yaml`) pointing at `git://host.docker.internal:9418/homeworld.git`
 7. Wait until those Applications are `status.sync.status=Synced` and `status.health.status=Healthy`
 8. Assert pods, in-scope workloads, ExternalSecrets, CNPG, Dragonfly, and the Envoy Gateway
@@ -141,11 +141,11 @@ Host extra tools for the homeworld suite: `rsync`, `envsubst` (gettext), `python
 
 | Upstream | E2E adaptation |
 | --- | --- |
-| `infisical/infisical:latest` + `pull_policy: always` | Pin `v0.162.12` |
+| `infisical/infisical:latest` + `pull_policy: always` | Pinned tag (see `examples/infisical/docker-compose.yml`) |
 | Host `80:8080` | `8080:8080` |
 | `.env` | `.env.e2e` with local-only encryption/JWT/DB defaults |
 
-Images are pinned (`postgres:14.17-alpine`, `redis:7.4.2-alpine`) — never `latest`.
+Images are pinned (see `examples/infisical/docker-compose.yml`) — never `latest`.
 
 ### Kind → Infisical reachability
 
@@ -167,8 +167,8 @@ Images are pinned (`postgres:14.17-alpine`, `redis:7.4.2-alpine`) — never `lat
    `host.docker.internal:9418` on `allow-argocd-repository-sources` so ESO and
    Argo can reach the host-mapped Infisical API and git daemon. The same
    `extraHosts` mapping is required on Linux for both. Staging also pads the
-   CrowdSec `auto_registration` token to ≥32 characters, leaves OpenCloud
-   `importer-1.0.0` on `/usr/share/nginx/html/importer/`, drops the duplicate
+   CrowdSec `auto_registration` token to ≥32 characters, leaves the OpenCloud
+   importer extension on `/usr/share/nginx/html/importer/`, drops the duplicate
    RustFS `tenants.rustfs.com` CRD, disables Collabora jails and the Argo
    repo-server GPG watcher, and disables Argo Dex/ApplicationSet/
    notifications plus scales CoreDNS to 1 replica. A deploy hook stubs

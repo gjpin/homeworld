@@ -97,7 +97,7 @@ The table below details user namespace implementation across all cluster workloa
 | **OpenChamber** | `openchamber` | **Enabled** (`false`) | Manifest | Declared in the agent workspace Deployment. |
 | **OpenCloud** | `opencloud` | **Enabled** (`false`) | Manifest | Declared in Deployments for `opencloud` server and `opencloud-tika`. |
 | **VictoriaMetrics** | `victoria-metrics` | **Enabled** (`false`) | Kustomize patch | Applied to VictoriaMetrics, VictoriaLogs, and VictoriaTraces StatefulSets. |
-| **OTel Collector (Cluster)** | `otel-collector` | **Enabled** (`false`) | Helm values | The chart's top-level `hostUsers: false` value (chart 0.173.1) applies to the cluster collector Deployment. |
+| **OTel Collector (Cluster)** | `otel-collector` | **Enabled** (`false`) | Helm values | The chart's top-level `hostUsers: false` value applies to the cluster collector Deployment. |
 | **OTel Collector (Pod)** | `otel-collector` | **Enabled** (`false`) | `OpenTelemetryCollector` CR | Declared in the collector CR's `spec.hostUsers`. |
 | **OTel Target Allocator** | `otel-collector` | **Enabled** (`false`) | `MutatingAdmissionPolicy` | The operator's embedded Target Allocator CR does not inherit the collector's `hostUsers`, so the `opentelemetry-gvisor` MutatingAdmissionPolicy injects `hostUsers: false` alongside the runtime class. |
 | **OpenTelemetry Operator** | `opentelemetry-operator` | **Enabled** (`false`) | Helm values | The chart's top-level `hostUsers: false` value applies to the operator manager Deployment. |
@@ -169,7 +169,7 @@ Only workloads requiring direct host device access, raw block devices, or kernel
 | **OpenChamber** | `openchamber` | **Enabled** (`gvisor`) | Manifest | Declared in the agent workspace Deployment; gVisor isolates arbitrary model-generated code executed by the coding agents. |
 | **OpenCloud** | `opencloud` | **Enabled** (`gvisor`) | Manifest | Declared in `opencloud` server and `opencloud-tika` Deployments. |
 | **VictoriaMetrics** | `victoria-metrics` | **Enabled** (`gvisor`) | Helm values | `server.runtimeClassName: gvisor` on VictoriaMetrics, VictoriaLogs, and VictoriaTraces. |
-| **OTel Collector (Cluster)** | `otel-collector` | **Enabled** (`gvisor`) | Helm values | The chart's `runtimeClassName: gvisor` value (chart 0.173.1) applies to the cluster collector Deployment. |
+| **OTel Collector (Cluster)** | `otel-collector` | **Enabled** (`gvisor`) | Helm values | The chart's `runtimeClassName: gvisor` value applies to the cluster collector Deployment. |
 | **OTel Collector (Pod/Target Allocator)** | `otel-collector` | **Enabled** (`gvisor`) | MutatingAdmissionPolicy | The `OpenTelemetryCollector` and `TargetAllocator` CRDs expose no `runtimeClassName` field, so the `opentelemetry-gvisor` MutatingAdmissionPolicy injects it into operator-generated pods at admission. |
 | **OpenTelemetry Operator** | `opentelemetry-operator` | **Enabled** (`gvisor`) | Kustomize patch | Applied to the operator manager Deployment; the chart has no `runtimeClassName` value. |
 | **OTel Collector (Node)** | `otel-collector-node` | **Disabled** | *None (Host integration)* | **Exception:** Node collector DaemonSet requires hostPath mounts (`/proc`, `/sys`, `/var/log`) and host metrics access. |
