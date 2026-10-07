@@ -28,7 +28,8 @@
     {
       "description": "Forgejo requires sequential major upgrades to execute database schema migrations",
       "matchPackageNames": [
-        "code.forgejo.org/forgejo-helm/forgejo"
+        "code.forgejo.org/forgejo-helm/forgejo",
+        "forgejo"
       ],
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
@@ -132,21 +133,22 @@
       "description": "Group Cilium Helm chart and CRD tag bumps into one PR so the release and its CRDs stay version-aligned",
       "matchPackageNames": [
         "cilium",
-        "cilium/cilium"
+        "https://github.com/cilium/cilium.git"
       ],
       "groupName": "cilium"
     },
     {
       "description": "Group the Prometheus Operator CRD tag bumps (repo pin + e2e hook) so the release and its CRDs stay version-aligned",
       "matchPackageNames": [
-        "prometheus-operator/prometheus-operator"
+        "prometheus-operator/prometheus-operator",
+        "https://github.com/prometheus-operator/prometheus-operator.git"
       ],
       "groupName": "prometheus-operator-crds"
     },
     {
       "description": "Group the external-snapshotter CRD tag and the snapshot-controller image so the release and its controller stay version-aligned",
       "matchPackageNames": [
-        "kubernetes-csi/external-snapshotter",
+        "https://github.com/kubernetes-csi/external-snapshotter.git",
         "registry.k8s.io/sig-storage/snapshot-controller"
       ],
       "groupName": "snapshot-controller"
@@ -164,7 +166,8 @@
       "description": "Group the Envoy Gateway chart and the Gateway API CRD bundle so the release and its CRDs stay version-aligned",
       "matchPackageNames": [
         "docker.io/envoyproxy/gateway-helm",
-        "kubernetes-sigs/gateway-api"
+        "gateway-helm",
+        "https://github.com/kubernetes-sigs/gateway-api.git"
       ],
       "groupName": "envoy-gateway"
     },
@@ -412,30 +415,6 @@
     },
     {
       "customType": "regex",
-      "description": "Update the Gateway API CRD bundle tag",
-      "managerFilePatterns": [
-        "/^apps/envoy-gateway/0_crds\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)repoURL:\\s+https://github\\.com/(?<depName>kubernetes-sigs/gateway-api)\\.git\\s+targetRevision:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "datasourceTemplate": "git-tags",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
-      "description": "Update Cilium CRDs",
-      "managerFilePatterns": [
-        "/^apps\\/cilium\\/0_crds\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)repoURL:\\s+https://github\\.com/(?<depName>cilium\\/cilium)\\.git\\s+targetRevision:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "datasourceTemplate": "git-tags",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
       "description": "Update the CrowdSec Helm chart",
       "managerFilePatterns": [
         "/^apps/crowdsec/helm/kustomization\\.yaml$/"
@@ -489,19 +468,6 @@
     },
     {
       "customType": "regex",
-      "description": "Update the Envoy bouncer Helm chart",
-      "managerFilePatterns": [
-        "/^apps/crowdsec-envoy-bouncer/helm/kustomization\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^\\s+- name:\\s+envoy-proxy-bouncer\\s+repo:\\s+oci://ghcr\\.io/kdwils/charts\\s+version:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "depNameTemplate": "ghcr.io/kdwils/charts/envoy-proxy-bouncer",
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
       "description": "Update the Envoy bouncer image",
       "managerFilePatterns": [
         "/^apps/crowdsec-envoy-bouncer/helm/values\\.yaml$/"
@@ -512,71 +478,6 @@
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Dragonfly Operator Helm chart",
-      "managerFilePatterns": [
-        "/^apps/dragonfly-operator/helm/kustomization\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^\\s+- name:\\s+dragonfly-operator\\s+repo:\\s+oci://ghcr\\.io/dragonflydb/dragonfly-operator/helm\\s+version:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "depNameTemplate": "ghcr.io/dragonflydb/dragonfly-operator/helm/dragonfly-operator",
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Envoy Gateway Helm chart",
-      "managerFilePatterns": [
-        "/^apps/envoy-gateway/helm/kustomization\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^\\s+- name:\\s+gateway-helm\\s+repo:\\s+oci://docker\\.io/envoyproxy\\s+version:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "depNameTemplate": "docker.io/envoyproxy/gateway-helm",
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Forgejo Helm chart",
-      "managerFilePatterns": [
-        "/^apps/forgejo/helm/kustomization\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^\\s+- name:\\s+forgejo\\s+repo:\\s+oci://code\\.forgejo\\.org/forgejo-helm\\s+version:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "depNameTemplate": "code.forgejo.org/forgejo-helm/forgejo",
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Immich Helm chart",
-      "managerFilePatterns": [
-        "/^apps/immich/helm/kustomization\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^\\s+- name:\\s+immich\\s+repo:\\s+oci://ghcr\\.io/immich-app/immich-charts\\s+version:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "depNameTemplate": "ghcr.io/immich-app/immich-charts/immich",
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Grafana Operator Helm chart",
-      "managerFilePatterns": [
-        "/^apps/grafana-operator/helm/kustomization\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^\\s+- name:\\s+grafana-operator\\s+repo:\\s+oci://ghcr\\.io/grafana/helm-charts\\s+version:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "depNameTemplate": "ghcr.io/grafana/helm-charts/grafana-operator",
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "semver"
     },
     {
       "customType": "regex",
@@ -679,19 +580,6 @@
       ],
       "matchStrings": [
         "(?ms)^operator:\\s*\\n\\s+image:\\s*\\n\\s+repository:\\s*docker\\.io/(?<depName>rustfs/operator)\\s*\\n(?:\\s*#.*\\n)*\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
-      "registryUrlTemplate": "https://index.docker.io"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the RustFS Tenant image",
-      "managerFilePatterns": [
-        "/^apps/rustfs/0_tenant\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?m)^  image:\\s*docker\\.io/(?<depName>rustfs/rustfs):(?<currentValue>[^\\s#]+)\\s*$"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
@@ -1297,30 +1185,6 @@
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://index.docker.io"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Prometheus Operator CRD bundle tag",
-      "managerFilePatterns": [
-        "/^apps/prometheus-operator-crd/0_crds\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)repoURL:\\s+https://github\\.com/(?<depName>prometheus-operator/prometheus-operator)\\.git\\s+targetRevision:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "datasourceTemplate": "git-tags",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the external-snapshotter CRD tag",
-      "managerFilePatterns": [
-        "/^apps/snapshot-controller/0_crds\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)repoURL:\\s+https://github\\.com/(?<depName>kubernetes-csi/external-snapshotter)\\.git\\s+targetRevision:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "datasourceTemplate": "git-tags",
-      "versioningTemplate": "semver"
     },
     {
       "customType": "regex",
