@@ -120,6 +120,21 @@
       }
     },
     {
+      "description": "Refresh the hass-oidc-auth zip sha256 on version bumps so the PR never ships a stale hash",
+      "matchPackageNames": [
+        "christiaangoossens/hass-oidc-auth"
+      ],
+      "postUpgradeTasks": {
+        "commands": [
+          "bash scripts/refresh-hass-oidc-auth-sha.sh"
+        ],
+        "fileFilters": [
+          "apps/homeassistant/1_homeassistant_deployment.yaml"
+        ],
+        "executionMode": "update"
+      }
+    },
+    {
       "description": "Group every Kubernetes version pin (PSA labels, kind node image, documentation, e2e hook comments) into one PR",
       "matchPackageNames": [
         "kindest/node"
@@ -606,7 +621,7 @@
         "/^apps/collabora/helm/values\\.yaml$/"
       ],
       "matchStrings": [
-        "(?m)^  tag:\\s*(?<currentValue>[^\\s#]+)\\s*$"
+        "(?ms)^image:\\s*\\n\\s+repository:\\s*docker\\.io/collabora/code\\s*\\n(?:\\s*#[^\\n]*\\n)*\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
       ],
       "depNameTemplate": "collabora/code",
       "datasourceTemplate": "docker",
@@ -1126,7 +1141,7 @@
         "/^apps/velero-ui/helm/values\\.yaml$/"
       ],
       "matchStrings": [
-        "(?m)^\\s*tag:\\s*\"?(?<currentValue>[^\"\\s#]+)"
+        "(?ms)^image:\\s*\\n\\s+repository:\\s*docker\\.io/otwld/velero-ui\\s*\\n(?:\\s*#[^\\n]*\\n)*\\s+tag:\\s*\"?(?<currentValue>[^\"\\s#]+)"
       ],
       "depNameTemplate": "docker.io/otwld/velero-ui",
       "datasourceTemplate": "docker",
