@@ -169,6 +169,25 @@
       "groupName": "envoy-gateway"
     },
     {
+      "description": "Group every OpenCloud image bump (server, yjs, web extensions) into one PR",
+      "matchPackageNames": [
+        "docker.io/opencloudeu/opencloud-rolling",
+        "docker.io/opencloudeu/yjs",
+        "/^docker\\.io\\/opencloudeu\\/web-extensions-/"
+      ],
+      "groupName": "opencloud"
+    },
+    {
+      "description": "The variant-aware regex manager owns the web-extension tags; the kubernetes manager cannot parse variant-prefixed tags",
+      "matchManagers": [
+        "kubernetes"
+      ],
+      "matchDepNames": [
+        "docker.io/opencloudeu/web-extensions"
+      ],
+      "enabled": false
+    },
+    {
       "description": "Group every OpenChamber workspace image update (base image digest and all pinned tools, majors included) into one PR; automerge-openchamber.yaml merges it once the PR smoke build passes",
       "matchFileNames": [
         "images/openchamber/Dockerfile"
@@ -708,15 +727,18 @@
     },
     {
       "customType": "regex",
-      "description": "Update OpenCloud, Tika, and web extension images",
+      "description": "Update the OpenCloud web-extension images (variant-prefixed tags)",
       "managerFilePatterns": [
         "/^apps/opencloud/1_deployments\\.yaml$/"
       ],
       "matchStrings": [
-        "(?m)^\\s*image:\\s*docker\\.io/(?<depName>opencloudeu/opencloud-rolling|opencloudeu/yjs|apache/tika|opencloudeu/web-extensions):(?<currentValue>[^\\s#]+)\\s*$"
+        "(?m)^\\s*image:\\s*docker\\.io/opencloudeu/web-extensions:(?<variant>external-sites|json-viewer|progress-bars|unzip|draw-io|calculator|pastebin|bpmn|maps|arcade|cast)-(?<currentValue>\\d+\\.\\d+\\.\\d+)\\s*$"
       ],
+      "depNameTemplate": "docker.io/opencloudeu/web-extensions-{{{variant}}}",
+      "packageNameTemplate": "docker.io/opencloudeu/web-extensions",
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
+      "extractVersionTemplate": "^{{{variant}}}-(?<version>.+)$",
       "registryUrlTemplate": "https://index.docker.io"
     },
     {
@@ -1244,7 +1266,7 @@
         "/^apps/kube-state-metrics/helm/values\\.yaml$/"
       ],
       "matchStrings": [
-        "(?ms)^image:\\s*\\n\\s+registry:\\s*registry\\.k8s\\.io\\s*\\n\\s+repository:\\s*(?<depName>kube-state-metrics/kube-state-metrics)\\s*\\n\\s+tag:\\s*\"?(?<currentValue>[^\"\\s#]+)"
+        "(?ms)^image:\\s*\\n\\s+registry:\\s*registry\\.k8s\\.io\\s*\\n\\s+repository:\\s*(?<depName>kube-state-metrics/kube-state-metrics)\\s*\\n(?:\\s*#[^\\n]*\\n)*\\s+tag:\\s*\"?(?<currentValue>[^\"\\s#]+)"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
@@ -1335,7 +1357,8 @@
       ],
       "matchStrings": [
         "(?m)^\\s*chartVersion:\\s*\"?(?<currentValue>[\\d.]+)\"?\\s*$",
-        "CILIUM_VERSION:-(?<currentValue>[\\d.]+)"
+        "CILIUM_VERSION:-(?<currentValue>[\\d.]+)",
+        "(?m)^\\s*CILIUM_VERSION:\\s*\"(?<currentValue>[\\d.]+)\""
       ],
       "depNameTemplate": "cilium",
       "datasourceTemplate": "helm",
@@ -1389,7 +1412,7 @@
         "/^e2e/examples/hooks/load-bouncer-image\\.sh$/"
       ],
       "matchStrings": [
-        "BOUNCER_IMAGE:-ghcr\\.io/kdwils/(?<depName>envoy-proxy-bouncer):(?<currentValue>[^\\\"]+)"
+        "BOUNCER_IMAGE:-ghcr\\.io/kdwils/(?<depName>envoy-proxy-bouncer):(?<currentValue>[^\\\"}]+)"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
