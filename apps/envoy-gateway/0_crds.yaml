@@ -31,5 +31,5 @@ spec:
       - ServerSideApply=true
   source:
     repoURL: https://github.com/kubernetes-sigs/gateway-api.git
-    targetRevision: v1.6.2
+    targetRevision: v1.6.3
     path: config/crd/experimental
