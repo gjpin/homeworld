@@ -20,7 +20,7 @@ spec:
   networkPolicyEnabled: false
   # Pin the operand image so it cannot drift with the operator's built-in
   # default; kept in sync with apps/authelia/0_dragonfly.yaml.
-  image: docker.dragonflydb.io/dragonflydb/dragonfly:v2.0.0
+  image: docker.dragonflydb.io/dragonflydb/dragonfly:v2.0.2
   imagePullPolicy: IfNotPresent
   resources:
     requests:
