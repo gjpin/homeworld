@@ -120,7 +120,7 @@ spec:
           repoURL: https://argoproj.github.io/argo-helm
           # Matches the pinned chart in apps/argocd/helm/kustomization.yaml;
           # Renovate bumps this together with the app pin.
-          version: "10.9.2"
+          version: "10.10.1"
           namespace: argocd
           createNamespace: true
           wait: true
