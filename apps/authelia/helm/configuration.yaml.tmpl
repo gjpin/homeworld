@@ -488,9 +488,9 @@ identity_providers:
           - code
       # Envoy Gateway itself is the OIDC client for the browser UIs that
       # have no usable app-native auth: victoria-metrics, victoria-logs,
-      # victoria-traces, longhorn, homepage, the envoy control-plane
-      # metrics route (envoy.${BASE_DOMAIN} backs onto the controller's
-      # 19001 metrics port), and zigbee2mqtt. Each host gets its own
+      # victoria-traces, longhorn, homepage, the Envoy Gateway admin console
+      # (envoy.${BASE_DOMAIN} backs onto the controller's 19000 admin port),
+      # and zigbee2mqtt. Each host gets its own
       # HTTPRoute-scoped SecurityPolicy with a per-host redirect URL and
       # cookie domain (docs/oidc.md).
       # Reference: https://www.authelia.com/integration/openid-connect/clients/envoy-gateway/

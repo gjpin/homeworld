@@ -152,7 +152,7 @@ data:
         - Envoy Gateway:
             icon: mdi-lan
             href: https://envoy.${BASE_DOMAIN}
-            description: Gateway API control plane
+            description: Gateway API admin console
         - Authelia:
             icon: authelia
             href: https://auth.${BASE_DOMAIN}

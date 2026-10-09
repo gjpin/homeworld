@@ -38,7 +38,7 @@
 | DocumentDB Operator | — | DocumentDB, a MongoDB-compatible datastore, operator. |
 | CrowdSec Envoy Bouncer | — | Envoy Gateway external-authorization bouncer. |
 | Dragonfly Operator | — | Dragonfly, a Redis-compatible datastore, operator. |
-| Envoy Gateway | `envoy.${BASE_DOMAIN}` | Gateway API implementation and control-plane metrics. |
+| Envoy Gateway | `envoy.${BASE_DOMAIN}` | Gateway API implementation and its admin console. |
 | ExternalDNS | — | DNS record management. |
 | External Secrets | — | Infisical-backed secret synchronization. |
 | Forgejo | `git.${BASE_DOMAIN}` | Git forge. |

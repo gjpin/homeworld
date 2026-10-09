@@ -228,6 +228,54 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: allow-envoy-backend-envoy-gateway-admin
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The admin console route (envoy.${BASE_DOMAIN}, 3_http_route.yaml) backs
+  # onto the controller's 19000 admin port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: envoy-gateway
+            namespace: envoy-gateway
+      toPorts:
+        - ports:
+            - port: "19000"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-gateway-admin-ingress
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: envoy-gateway
+      k8s:app.kubernetes.io/name: gateway-helm
+      k8s:control-plane: envoy-gateway
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+      toPorts:
+        - ports:
+            - port: "19000"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-envoy-authelia-oidc
   namespace: envoy-gateway
   annotations:
