@@ -850,6 +850,13 @@
           "name": "^opentelemetry-operator-leader-election$",
           "namespace": "^opentelemetry-operator$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^kube-state-metrics$"
+        }
       }
     ],
     "posturePolicies": [
@@ -1862,6 +1869,14 @@
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2312,6 +2327,14 @@
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],
@@ -3233,6 +3256,13 @@
           "kind": "^ClusterRoleBinding$",
           "name": "^external-dns-viewer$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^kube-state-metrics$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4015,6 +4045,14 @@
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4352,6 +4390,13 @@
           "kind": "^RoleBinding$",
           "name": "^opentelemetry-operator-leader-election$",
           "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^kube-state-metrics$"
         }
       }
     ],
@@ -4899,6 +4944,14 @@
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],
@@ -5978,6 +6031,14 @@
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7005,6 +7066,14 @@
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7308,6 +7377,14 @@
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7562,6 +7639,14 @@
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],

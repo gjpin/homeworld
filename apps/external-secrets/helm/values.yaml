@@ -31,6 +31,7 @@ serviceMonitor:
 
 webhook:
   hostUsers: false
+  runtimeClassName: gvisor
   image:
     pullPolicy: IfNotPresent
   resources:
@@ -45,6 +46,7 @@ webhook:
 
 certController:
   hostUsers: false
+  runtimeClassName: gvisor
   image:
     pullPolicy: IfNotPresent
   resources:

@@ -18,28 +18,28 @@
 
 # Base image digest is updated by Renovate ("Update the OpenChamber workspace
 # base image digest" custom manager).
-FROM docker.io/library/debian:trixie-slim@sha256:a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a
+FROM docker.io/library/debian:trixie-slim@sha256:a29215f6a35e51e22adffa17f89e9d2ef06214e64a2bad10d765c46aea49f11f
 
 # Bumped by the daily check-openchamber-apt-updates workflow when the
 # published image has out-of-date apt packages (including Google Chrome).
 # Bumping it rebuilds the apt layer with refreshed packages.
-ARG APT_REFRESH=2026-09-25
+ARG APT_REFRESH=2026-10-07
 
 # Pinned tool versions, each tracked by its own Renovate custom manager.
-ARG NODE_VERSION=26.10.0
-ARG PNPM_VERSION=12.8.2
-ARG UV_VERSION=0.12.21
-ARG OPENCHAMBER_VERSION=2.1.0
-ARG OPENCODE_VERSION=1.18.34
-ARG CODEX_VERSION=0.159.3
-ARG PI_AGENT_VERSION=0.99.2
-ARG PLAYWRIGHT_TEST_VERSION=1.63.0
+ARG NODE_VERSION=26.11.1
+ARG PNPM_VERSION=12.11.0
+ARG UV_VERSION=0.12.24
+ARG OPENCHAMBER_VERSION=2.2.0
+ARG OPENCODE_VERSION=1.18.35
+ARG CODEX_VERSION=0.162.0
+ARG PI_AGENT_VERSION=1.1.0
+ARG PLAYWRIGHT_TEST_VERSION=1.64.0
 ARG PLAYWRIGHT_CLI_VERSION=0.1.22
 ARG CHROME_DEVTOOLS_MCP_VERSION=1.10.1
-ARG SKILLS_VERSION=1.7.0
-ARG GROK_VERSION=1.0.46
-ARG ANTIGRAVITY_VERSION=1.2.14
-ARG COPILOT_VERSION=1.0.90
+ARG SKILLS_VERSION=1.7.1
+ARG GROK_VERSION=1.0.50
+ARG ANTIGRAVITY_VERSION=1.3.2
+ARG COPILOT_VERSION=1.0.94
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
@@ -297,10 +297,17 @@ RUN set -eux; \
     command -v copilot; \
     command -v google-chrome-stable
 
+# PI_SKIP_VERSION_CHECK disables the Pi agent's startup release check.
+# OPENCHAMBER_UPDATE_API_URL points the OpenChamber update check (which can
+# also report an install ID) at an unreachable local port: the server has
+# no switch to disable it, and enterprise mode would also block provider
+# connections. Updates come exclusively from image rebuilds.
 ENV HOME=/home/agent \
     PATH=/home/agent/.local/bin:/home/agent/.local/share/pnpm/bin:/home/agent/.opencode/bin:/usr/local/pnpm/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin \
     PNPM_HOME=/home/agent/.local/share/pnpm \
-    NPM_CONFIG_PREFIX=/home/agent/.local
+    NPM_CONFIG_PREFIX=/home/agent/.local \
+    PI_SKIP_VERSION_CHECK=1 \
+    OPENCHAMBER_UPDATE_API_URL=http://127.0.0.1:9/
 
 USER agent
 WORKDIR /home/agent

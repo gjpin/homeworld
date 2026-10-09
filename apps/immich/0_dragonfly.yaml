@@ -20,6 +20,10 @@ spec:
   # default; kept in sync with apps/authelia/0_dragonfly.yaml.
   image: docker.dragonflydb.io/dragonflydb/dragonfly:v2.0.0
   imagePullPolicy: IfNotPresent
+  # Dragonfly's daily release check (--version_check) defaults to on and
+  # polls dragonflydb.io; disabled per the AGENTS.md upgrade-checker rule.
+  args:
+    - --version_check=false
   resources:
     requests:
       cpu: 100m

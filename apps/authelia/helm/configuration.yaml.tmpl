@@ -416,7 +416,10 @@ identity_providers:
         client_name: RustFS
         client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_rustfs" | msquote }}
         public: false
-        authorization_policy: two_factor
+        # Every RustFS console session maps to consoleAdmin
+        # (apps/rustfs/0_tenant.yaml), so sign-in is gated to the platform
+        # group rather than any two-factor user.
+        authorization_policy: platform
         claims_policy: apps
         require_pkce: true
         pkce_challenge_method: S256
@@ -488,9 +491,9 @@ identity_providers:
           - code
       # Envoy Gateway itself is the OIDC client for the browser UIs that
       # have no usable app-native auth: victoria-metrics, victoria-logs,
-      # victoria-traces, longhorn, homepage, the envoy control-plane
-      # metrics route (envoy.${BASE_DOMAIN} backs onto the controller's
-      # 19001 metrics port), and zigbee2mqtt. Each host gets its own
+      # victoria-traces, longhorn, homepage, the Envoy Gateway admin console
+      # (envoy.${BASE_DOMAIN} backs onto the controller's 19000 admin port),
+      # and zigbee2mqtt. Each host gets its own
       # HTTPRoute-scoped SecurityPolicy with a per-host redirect URL and
       # cookie domain (docs/oidc.md).
       # Reference: https://www.authelia.com/integration/openid-connect/clients/envoy-gateway/
