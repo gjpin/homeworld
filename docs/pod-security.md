@@ -152,7 +152,7 @@ Only workloads requiring direct host device access, raw block devices, or kernel
 | **DocumentDB Operator** | `documentdb-operator` / `cloudnative-pg` | **Enabled** (`gvisor`) | Kustomize patch | Applied to operator and sidecar-injector Deployments. DocumentDB operand pods inherit the CNPG default runtime. |
 | **Envoy Gateway** | `envoy-gateway` | **Enabled** (`gvisor`) | Kustomize patch / `EnvoyProxy` | Applied to the gateway controller Deployment, `EnvoyProxy` data-plane pods, and the certgen Job. |
 | **ExternalDNS** | `external-dns` | **Enabled** (`gvisor`) | Kustomize patch | Applied to ExternalDNS Deployment. |
-| **External Secrets** | `external-secrets` | **Enabled** (`gvisor`) | Kustomize patch | Applied across `controller`, `webhook`, and `cert-controller` Deployments. |
+| **External Secrets** | `external-secrets` | **Enabled** (`gvisor`) | Helm `values.yaml` | Applied across `controller`, `webhook`, and `cert-controller` Deployments. |
 | **Forgejo** | `forgejo` | **Enabled** (`gvisor`) | Kustomize patch | Applied to Forgejo Deployment. |
 | **Grafana** | `grafana` | **Enabled** (`gvisor`) | Grafana CR manifest | Declared in `spec.deployment.spec.template.spec.runtimeClassName`. |
 | **Grafana Operator** | `grafana-operator` | **Enabled** (`gvisor`) | Kustomize patch | Applied to operator Deployment. |
