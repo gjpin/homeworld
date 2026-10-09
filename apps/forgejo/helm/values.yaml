@@ -55,9 +55,10 @@ gitea:
       scopes: "openid profile email groups"
       groupClaimName: groups
       adminGroup: forgejo-admin
-  # Cache, session, and queue stay on Forgejo's in-memory adapters (the
-  # defaults). That is only correct at exactly one replica — the deployment
-  # is pinned to a single replica below; revisit before scaling out.
+  # Cache and session stay on Forgejo's in-memory adapters and the queue on
+  # its on-disk LevelDB adapter (the chart defaults without Redis). That is
+  # only correct at exactly one replica — the deployment is pinned to a
+  # single replica above; revisit before scaling out.
   config:
     database:
       DB_TYPE: postgres

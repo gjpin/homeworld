@@ -54,8 +54,9 @@ spec:
             - sh
             - -ec
             - |
-              # Renovate tracks the plugin version below (github-releases).
-              # When bumping a version, refresh the sha256 from the release assets page.
+              # Renovate tracks the plugin version below (github-releases) and
+              # refreshes the sha256 on bumps via postUpgradeTasks
+              # (scripts/refresh-hass-oidc-auth-sha.sh).
               wget -O /tmp/hass-oidc-auth.zip \
                 https://github.com/christiaangoossens/hass-oidc-auth/releases/download/v1.2.1/hass-oidc-auth.zip
               echo 'e5badaaacaa63cfd6fe733924a05e76d75058836190398598fb24de57cd47ccd  /tmp/hass-oidc-auth.zip' | sha256sum -c -
