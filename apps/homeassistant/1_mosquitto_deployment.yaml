@@ -35,6 +35,51 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+        # Hashes the client passwords into Mosquitto's password file on every
+        # start, so a rotated secret takes effect when the pod restarts. The
+        # file lives in a memory-backed emptyDir and never reaches the PVC.
+        - name: mosquitto-passwd
+          image: docker.io/library/eclipse-mosquitto:2.1.2
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -ec
+            - |
+              umask 077
+              mosquitto_passwd -c -b /mosquitto/auth/passwd homeassistant "$HOMEASSISTANT_PASSWORD"
+              mosquitto_passwd -b /mosquitto/auth/passwd zigbee2mqtt "$ZIGBEE2MQTT_PASSWORD"
+          env:
+            - name: HOMEASSISTANT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mosquitto-credentials
+                  key: homeassistant
+            - name: ZIGBEE2MQTT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mosquitto-credentials
+                  key: zigbee2mqtt
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1883
+            runAsGroup: 1883
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+              ephemeral-storage: 16Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+          volumeMounts:
+            - mountPath: /mosquitto/auth
+              name: mosquitto-auth
       containers:
         - image: docker.io/library/eclipse-mosquitto:2.1.2
           imagePullPolicy: IfNotPresent
@@ -79,6 +124,9 @@ spec:
             - mountPath: /mosquitto/config/mosquitto.conf
               name: mosquitto-config
               subPath: mosquitto.conf
+            - mountPath: /mosquitto/auth
+              name: mosquitto-auth
+              readOnly: true
             - mountPath: /mosquitto/data
               name: homeassistant-mosquitto-claim1
       restartPolicy: Always
@@ -86,6 +134,10 @@ spec:
         - name: mosquitto-config
           configMap:
             name: homeassistant-mosquitto-config
+        - name: mosquitto-auth
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Mi
         - name: homeassistant-mosquitto-claim1
           persistentVolumeClaim:
             claimName: homeassistant-mosquitto-claim1

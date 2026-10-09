@@ -106,6 +106,15 @@ spec:
           env:
             - name: TZ
               value: UTC
+            # Broker credentials override mqtt.user/mqtt.password in the PVC
+            # configuration, so the password never lands on the PVC.
+            - name: ZIGBEE2MQTT_CONFIG_MQTT_USER
+              value: zigbee2mqtt
+            - name: ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mosquitto-credentials
+                  key: zigbee2mqtt
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
