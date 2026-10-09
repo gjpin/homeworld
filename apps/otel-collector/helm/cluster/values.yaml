@@ -7,6 +7,8 @@ image:
 replicaCount: 1
 nodeSelector:
   node-role.kubernetes.io/homelab: homelab
+# Prefer the chart-native key over a kustomize patch (chart 0.173.1).
+runtimeClassName: gvisor
 podSecurityContext:
   runAsNonRoot: true
   seccompProfile:
@@ -66,15 +68,15 @@ config:
       spike_limit_percentage: 25
   exporters:
     debug: null
-    otlphttp/victoriametrics:
+    otlp_http/victoriametrics:
       compression: gzip
       encoding: proto
       metrics_endpoint: http://victoria-metrics.victoria-metrics.svc.cluster.local:8428/opentelemetry/v1/metrics
-    otlphttp/victorialogs:
+    otlp_http/victorialogs:
       compression: gzip
       encoding: proto
       logs_endpoint: http://victoria-logs.victoria-metrics.svc.cluster.local:9428/insert/opentelemetry/v1/logs
-    otlphttp/victoriatraces:
+    otlp_http/victoriatraces:
       compression: gzip
       encoding: proto
       traces_endpoint: http://victoria-traces.victoria-metrics.svc.cluster.local:10428/insert/opentelemetry/v1/traces
@@ -100,7 +102,7 @@ config:
           - memory_limiter
           - batch
         exporters:
-          - otlphttp/victorialogs
+          - otlp_http/victorialogs
       metrics:
         receivers:
           - otlp
@@ -109,7 +111,7 @@ config:
           - memory_limiter
           - batch
         exporters:
-          - otlphttp/victoriametrics
+          - otlp_http/victoriametrics
       traces:
         receivers:
           - otlp
@@ -117,4 +119,4 @@ config:
           - memory_limiter
           - batch
         exporters:
-          - otlphttp/victoriatraces
+          - otlp_http/victoriatraces

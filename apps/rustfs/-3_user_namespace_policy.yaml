@@ -1,4 +1,4 @@
-# RustFS Operator 0.0.5 does not expose a Tenant pod-template field or
+# The RustFS Operator chart does not expose a Tenant pod-template field or
 # operator-specific Pod patch for hostUsers. Mutate only this Tenant's Pods at
 # admission so the operator-owned StatefulSet remains the source of truth.
 ---

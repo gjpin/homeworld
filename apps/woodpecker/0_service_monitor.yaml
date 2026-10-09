@@ -10,7 +10,7 @@ spec:
       app.kubernetes.io/name: server
       app.kubernetes.io/instance: woodpecker
   endpoints:
-    - port: http
+    - port: metrics
       path: /metrics
       interval: 60s
       bearerTokenSecret:

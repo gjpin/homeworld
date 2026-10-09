@@ -14,6 +14,42 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  # The chart's ServiceMonitor scrapes the http-metrics endpoint (port
+  # 9402) of the controller, cainjector, and webhook pods through the
+  # OpenTelemetry collector, paired with the
+  # allow-otel-pod-scrape-cert-manager egress policy in apps/otel-collector.
+  name: allow-cert-manager-metrics-ingress
+  namespace: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchExpressions:
+      - key: k8s:app.kubernetes.io/name
+        operator: In
+        values:
+          - cainjector
+          - cert-manager
+          - webhook
+      - key: k8s:app.kubernetes.io/instance
+        operator: In
+        values:
+          - cert-manager
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9402"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-dns
   namespace: cert-manager
   annotations:

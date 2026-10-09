@@ -1,4 +1,45 @@
+# https://docs.victoriametrics.com/helm/victoria-metrics-single/
+rbac:
+  create: false
+serviceAccount:
+  create: false
 server:
+  enabled: true
   fullnameOverride: victoria-metrics
+  image:
+    registry: docker.io
   retentionPeriod: "30d"
   runtimeClassName: gvisor
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+  podSecurityContext:
+    enabled: true
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 2000
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    enabled: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+  persistentVolume:
+    enabled: true
+    storageClassName: longhorn-crypto
+    size: 20Gi
+  serviceMonitor:
+    enabled: true
+    interval: 60s
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+      ephemeral-storage: 64Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+      ephemeral-storage: 2Gi

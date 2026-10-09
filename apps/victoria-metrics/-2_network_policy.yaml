@@ -35,12 +35,15 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-victoria-ingress
+  # VictoriaMetrics (chart pod label victoria-metrics-single) on its API port: Envoy (public UI + OTLP metric ingestion), the three collectors' OTLP pushes, and Grafana's datasource proxy. One port per rule; the previous namespace-wide rule over-permitted cross-pod, cross-port access.
+  name: allow-victoria-metrics-ingress
   namespace: victoria-metrics
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  endpointSelector: {}
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: victoria-metrics-single
   ingress:
     - fromEndpoints:
         - matchLabels:
@@ -49,9 +52,9 @@ spec:
             k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
-            k8s:app.kubernetes.io/instance: otel-collector-pod
-            k8s:app.kubernetes.io/name: opentelemetry-collector
-            k8s:component: standalone-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
             k8s:app.kubernetes.io/instance: otel-collector-cluster
@@ -69,7 +72,85 @@ spec:
         - ports:
             - port: "8428"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # VictoriaLogs (chart pod label victoria-logs-single) on its ingestion/query port: Envoy (public UI), the node collector's OTLP log push, and Grafana's datasource proxy.
+  name: allow-victoria-logs-ingress
+  namespace: victoria-metrics
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: victoria-logs-single
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/instance: otel-collector-cluster
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: standalone-collector
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector-node
+            k8s:app.kubernetes.io/instance: otel-collector-node
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: agent-collector
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: grafana
+            k8s:app.kubernetes.io/name: grafana
+      toPorts:
+        - ports:
             - port: "9428"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # VictoriaTraces (chart pod label vt-single) on its ingestion/query port: Envoy (public UI), the node collector's OTLP trace push, and Grafana's datasource proxy.
+  name: allow-victoria-traces-ingress
+  namespace: victoria-metrics
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: vt-single
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/instance: otel-collector-cluster
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: standalone-collector
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector-node
+            k8s:app.kubernetes.io/instance: otel-collector-node
+            k8s:app.kubernetes.io/name: opentelemetry-collector
+            k8s:component: agent-collector
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: grafana
+            k8s:app.kubernetes.io/name: grafana
+      toPorts:
+        - ports:
             - port: "10428"
               protocol: TCP

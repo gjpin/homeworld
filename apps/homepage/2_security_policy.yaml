@@ -13,6 +13,12 @@ spec:
       name: envoy
   extAuth:
     failOpen: false
+    # Envoy Gateway only forwards request bodies to the ext-auth service when
+    # bodyToExtAuth is set; without it CrowdSec AppSec never sees request
+    # bodies (in-band virtual patching) and the gap is silent — path and
+    # header bans keep working.
+    bodyToExtAuth:
+      maxRequestBytes: 65536
     grpc:
       backendRefs:
         - group: ""
@@ -20,3 +26,40 @@ spec:
           name: crowdsec-envoy-bouncer
           namespace: envoy-gateway
           port: 8080
+          weight: 1
+---
+# Gateway OIDC for the Homepage dashboard. Authelia is the only login:
+# the dashboard has no built-in authentication, and the route requires the
+# platform group (docs/oidc.md). Service widgets use app-native tokens on
+# other routes and are unaffected. StrategicMerge keeps this policy from
+# overriding the Gateway-level CrowdSec extAuth above.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authelia-oidc
+  namespace: homepage
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  mergeType: StrategicMerge
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: homepage
+  oidc:
+    provider:
+      issuer: https://auth.${BASE_DOMAIN}
+      authorizationEndpoint: https://auth.${BASE_DOMAIN}/api/oidc/authorization
+      tokenEndpoint: https://auth.${BASE_DOMAIN}/api/oidc/token
+    clientID: envoy
+    clientSecret:
+      name: envoy-oidc-client-secret
+    scopes:
+      - openid
+      - offline_access
+    redirectURL: https://homepage.${BASE_DOMAIN}/oauth2/callback
+    logoutPath: /logout
+    cookieDomain: homepage.${BASE_DOMAIN}
+    forwardAccessToken: false
+    refreshToken: true
+    passThroughAuthHeader: false

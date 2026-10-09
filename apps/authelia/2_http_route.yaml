@@ -11,6 +11,8 @@ spec:
   parentRefs:
     - name: envoy
       namespace: authelia
+      group: gateway.networking.k8s.io
+      kind: Gateway
   hostnames:
     - "auth.${BASE_DOMAIN}"
   rules:
@@ -19,3 +21,5 @@ spec:
           namespace: authelia
           kind: Service
           port: 80
+          group: ""
+          weight: 1

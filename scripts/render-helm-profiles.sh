@@ -20,7 +20,9 @@ mkdir -p "$output_dir"
 # rustfs-operator is vendored and patched under helm/local-charts (its
 # upstream chart ships tenants.rustfs.com twice under crds/, which Kustomize
 # rejects), so every release renders through the same kustomize path.
+rendered=0
 while IFS= read -r kustomization; do
+  rendered=$((rendered + 1))
   kust_dir="${kustomization%/kustomization.yaml}"
   rel="${kust_dir#"$repo_root/apps/"}"
   component="${rel%%/*}"
@@ -35,4 +37,11 @@ while IFS= read -r kustomization; do
 done < <(
   find "$repo_root/apps" \( -path "*/helm/kustomization.yaml" -o -path "*/helm/*/kustomization.yaml" \) -print | sort
 )
+
+# Fail closed: zero kustomizations means nothing was rendered, and downstream
+# scans over an empty directory would vacuously pass.
+if [[ "$rendered" -eq 0 ]]; then
+  echo "error: no kustomization files found under $repo_root/apps" >&2
+  exit 1
+fi
 

@@ -5,7 +5,6 @@ metadata:
 spec:
   group: rustfs.com
   names:
-    categories: []
     kind: Tenant
     plural: tenants
     shortNames:
@@ -57,13 +56,126 @@ spec:
                 x-kubernetes-list-map-keys:
                 - name
                 x-kubernetes-list-type: map
+              containerSecurityContext:
+                description: |-
+                  RustFS container SecurityContext overrides for every Pool in this Tenant.
+                  Non-empty values merge by field over operator defaults, with Pool-level values taking
+                  precedence. Setting this and `securityContext` to explicit empty objects resets the
+                  defaults and delegates unspecified values to platform admission.
+                nullable: true
+                properties:
+                  allowPrivilegeEscalation:
+                    description: 'AllowPrivilegeEscalation controls whether a process can gain more privileges than its parent process. This bool directly controls if the no_new_privs flag will be set on the container process. AllowPrivilegeEscalation is true always when the container is: 1) run as Privileged 2) has CAP_SYS_ADMIN Note that this field cannot be set when spec.os.name is windows.'
+                    type: boolean
+                  appArmorProfile:
+                    description: appArmorProfile is the AppArmor options to use by this container. If set, this profile overrides the pod's appArmorProfile. Note that this field cannot be set when spec.os.name is windows.
+                    properties:
+                      localhostProfile:
+                        description: localhostProfile indicates a profile loaded on the node that should be used. The profile must be preconfigured on the node to work. Must match the loaded name of the profile. Must be set if and only if type is "Localhost".
+                        type: string
+                      type:
+                        description: |-
+                          type indicates which kind of AppArmor profile will be applied. Valid options are:
+                            Localhost - a profile pre-loaded on the node.
+                            RuntimeDefault - the container runtime's default profile.
+                            Unconfined - no AppArmor enforcement.
+                        type: string
+                    required:
+                    - type
+                    type: object
+                  capabilities:
+                    description: The capabilities to add/drop when running containers. Defaults to the default set of capabilities granted by the container runtime. Note that this field cannot be set when spec.os.name is windows.
+                    properties:
+                      add:
+                        description: Added capabilities
+                        items:
+                          type: string
+                        type: array
+                      drop:
+                        description: Removed capabilities
+                        items:
+                          type: string
+                        type: array
+                    type: object
+                  privileged:
+                    description: Run container in privileged mode. Processes in privileged containers are essentially equivalent to root on the host. Defaults to false. Note that this field cannot be set when spec.os.name is windows.
+                    type: boolean
+                  procMount:
+                    description: procMount denotes the type of proc mount to use for the containers. The default is DefaultProcMount which uses the container runtime defaults for readonly paths and masked paths. This requires the ProcMountType feature flag to be enabled. Note that this field cannot be set when spec.os.name is windows.
+                    type: string
+                  readOnlyRootFilesystem:
+                    description: Whether this container has a read-only root filesystem. Default is false. Note that this field cannot be set when spec.os.name is windows.
+                    type: boolean
+                  runAsGroup:
+                    description: The GID to run the entrypoint of the container process. Uses runtime default if unset. May also be set in PodSecurityContext.  If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence. Note that this field cannot be set when spec.os.name is windows.
+                    format: int64
+                    type: integer
+                  runAsNonRoot:
+                    description: Indicates that the container must run as a non-root user. If true, the Kubelet will validate the image at runtime to ensure that it does not run as UID 0 (root) and fail to start the container if it does. If unset or false, no such validation will be performed. May also be set in PodSecurityContext.  If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence.
+                    type: boolean
+                  runAsUser:
+                    description: The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. May also be set in PodSecurityContext.  If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence. Note that this field cannot be set when spec.os.name is windows.
+                    format: int64
+                    type: integer
+                  seLinuxOptions:
+                    description: The SELinux context to be applied to the container. If unspecified, the container runtime will allocate a random SELinux context for each container.  May also be set in PodSecurityContext.  If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence. Note that this field cannot be set when spec.os.name is windows.
+                    properties:
+                      level:
+                        description: Level is SELinux level label that applies to the container.
+                        type: string
+                      role:
+                        description: Role is a SELinux role label that applies to the container.
+                        type: string
+                      type:
+                        description: Type is a SELinux type label that applies to the container.
+                        type: string
+                      user:
+                        description: User is a SELinux user label that applies to the container.
+                        type: string
+                    type: object
+                  seccompProfile:
+                    description: The seccomp options to use by this container. If seccomp options are provided at both the pod & container level, the container options override the pod options. Note that this field cannot be set when spec.os.name is windows.
+                    properties:
+                      localhostProfile:
+                        description: localhostProfile indicates a profile defined in a file on the node should be used. The profile must be preconfigured on the node to work. Must be a descending path, relative to the kubelet's configured seccomp profile location. Must be set if type is "Localhost". Must NOT be set for any other type.
+                        type: string
+                      type:
+                        description: |-
+                          type indicates which kind of seccomp profile will be applied. Valid options are:
+
+                          Localhost - a profile defined in a file on the node should be used. RuntimeDefault - the container runtime default profile should be used. Unconfined - no profile should be applied.
+                        type: string
+                    required:
+                    - type
+                    type: object
+                  windowsOptions:
+                    description: The Windows specific settings applied to all containers. If unspecified, the options from the PodSecurityContext will be used. If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence. Note that this field cannot be set when spec.os.name is linux.
+                    properties:
+                      gmsaCredentialSpec:
+                        description: GMSACredentialSpec is where the GMSA admission webhook (https://github.com/kubernetes-sigs/windows-gmsa) inlines the contents of the GMSA credential spec named by the GMSACredentialSpecName field.
+                        type: string
+                      gmsaCredentialSpecName:
+                        description: GMSACredentialSpecName is the name of the GMSA credential spec to use.
+                        type: string
+                      hostProcess:
+                        description: HostProcess determines if a container should be run as a 'Host Process' container. All of a Pod's containers must have the same effective HostProcess value (it is not allowed to have a mix of HostProcess containers and non-HostProcess containers). In addition, if HostProcess is true then HostNetwork must also be set to true.
+                        type: boolean
+                      runAsUserName:
+                        description: The UserName in Windows to run the entrypoint of the container process. Defaults to the user specified in image metadata if unspecified. May also be set in PodSecurityContext. If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence.
+                        type: string
+                    type: object
+                type: object
               createServiceAccountRbac:
+                description: |-
+                  Deprecated compatibility field. The operator never grants Kubernetes API permissions to
+                  Tenant workloads. Configure a custom ServiceAccount and manage any required RBAC explicitly.
                 nullable: true
                 type: boolean
               credsSecret:
                 description: |-
                   Optional reference to a Secret containing RustFS credentials.
-                  The Secret must contain 'accesskey' and 'secretkey' keys (both required, minimum 8 characters each).
+                  The Secret must contain 'accesskey' and 'secretkey' keys. Both values must be valid
+                  UTF-8 without NUL bytes and at least 8 UTF-8 bytes after trimming.
                   If not specified, credentials can be provided via environment variables in 'env'.
                   Priority: Secret credentials > Environment variables > RustFS built-in defaults.
                   For production use, always configure credentials via Secret or environment variables.
@@ -111,10 +223,44 @@ spec:
                     description: 'Local: optional key directory override.'
                     nullable: true
                     properties:
+                      allowInsecureDevDefaults:
+                        default: false
+                        description: |-
+                          Explicitly allow RustFS development-only insecure KMS defaults.
+
+                          When true, the operator sets `RUSTFS_KMS_ALLOW_INSECURE_DEV_DEFAULTS=true`, allowing
+                          Local KMS to start without a master key and store key material as plaintext-dev-only.
+                          Do not use this in production.
+                        type: boolean
                       keyDirectory:
-                        description: 'Absolute directory for KMS key files (default: `/data/kms-keys`).'
+                        description: |-
+                          Absolute directory for KMS key files.
+
+                          Must be in a subdirectory under a RustFS data PVC mount. Defaults to the first data PVC mount
+                          under `persistence.path`, for example `/data/rustfs0/.kms-keys`.
                         nullable: true
                         type: string
+                      masterKeySecretRef:
+                        description: |-
+                          Secret key selector for `RUSTFS_KMS_LOCAL_MASTER_KEY`.
+
+                          Required for Local KMS unless `allowInsecureDevDefaults` is explicitly set to `true`.
+                          The referenced Secret key should contain the local master key string used to encrypt
+                          Local KMS key files at rest.
+                        nullable: true
+                        properties:
+                          key:
+                            description: Secret data key containing the local master key string.
+                            minLength: 1
+                            type: string
+                          name:
+                            description: Secret name in the Tenant namespace.
+                            minLength: 1
+                            type: string
+                        required:
+                        - key
+                        - name
+                        type: object
                     type: object
                   vault:
                     description: 'Vault: HTTP(S) endpoint (required when `backend: vault`).'
@@ -127,7 +273,14 @@ spec:
                     - endpoint
                     type: object
                 type: object
+                x-kubernetes-validations:
+                - message: Local KMS requires local.masterKeySecretRef unless local.allowInsecureDevDefaults is true
+                  rule: '!self.enabled || self.backend != ''local'' || (has(self.local) && (has(self.local.masterKeySecretRef) || (has(self.local.allowInsecureDevDefaults) && self.local.allowInsecureDevDefaults == true)))'
               env:
+                description: |-
+                  Additional RustFS container environment variables.
+
+                  `RUSTFS_KMS_*` is reserved; configure KMS through `spec.encryption`.
                 items:
                   description: EnvVar represents an environment variable present in a Container.
                   properties:
@@ -426,8 +579,12 @@ spec:
                   Typical use-case: a StatefulSet Pod gets stuck in Terminating when the node goes down.
                   Setting this to `ForceDelete` allows the operator to force delete the Pod object so the
                   StatefulSet controller can recreate it elsewhere.
+                  Force deletion requires the Node object to be deleted or marked with an effective
+                  `node.kubernetes.io/out-of-service` taint that the target Pod does not tolerate.
+                  Before using force policies, operators must confirm the node is powered off or
+                  otherwise isolated; deleting the Node object is treated as that operational assertion.
 
-                  Values: DoNothing | Delete | ForceDelete
+                  Values: DoNothing | Delete | ForceDelete | DeleteStatefulSetPod | DeleteDeploymentPod | DeleteBothStatefulSetAndDeploymentPod
                 enum:
                 - DoNothing
                 - Delete
@@ -1047,6 +1204,115 @@ spec:
                               type: array
                           type: object
                       type: object
+                    containerSecurityContext:
+                      description: |-
+                        RustFS container SecurityContext overrides for this Pool.
+                        Non-empty values merge by field over Tenant-level settings and operator defaults. An
+                        explicit empty object paired with an empty `securityContext` resets inherited values and
+                        delegates unspecified values to platform admission.
+                      nullable: true
+                      properties:
+                        allowPrivilegeEscalation:
+                          description: 'AllowPrivilegeEscalation controls whether a process can gain more privileges than its parent process. This bool directly controls if the no_new_privs flag will be set on the container process. AllowPrivilegeEscalation is true always when the container is: 1) run as Privileged 2) has CAP_SYS_ADMIN Note that this field cannot be set when spec.os.name is windows.'
+                          type: boolean
+                        appArmorProfile:
+                          description: appArmorProfile is the AppArmor options to use by this container. If set, this profile overrides the pod's appArmorProfile. Note that this field cannot be set when spec.os.name is windows.
+                          properties:
+                            localhostProfile:
+                              description: localhostProfile indicates a profile loaded on the node that should be used. The profile must be preconfigured on the node to work. Must match the loaded name of the profile. Must be set if and only if type is "Localhost".
+                              type: string
+                            type:
+                              description: |-
+                                type indicates which kind of AppArmor profile will be applied. Valid options are:
+                                  Localhost - a profile pre-loaded on the node.
+                                  RuntimeDefault - the container runtime's default profile.
+                                  Unconfined - no AppArmor enforcement.
+                              type: string
+                          required:
+                          - type
+                          type: object
+                        capabilities:
+                          description: The capabilities to add/drop when running containers. Defaults to the default set of capabilities granted by the container runtime. Note that this field cannot be set when spec.os.name is windows.
+                          properties:
+                            add:
+                              description: Added capabilities
+                              items:
+                                type: string
+                              type: array
+                            drop:
+                              description: Removed capabilities
+                              items:
+                                type: string
+                              type: array
+                          type: object
+                        privileged:
+                          description: Run container in privileged mode. Processes in privileged containers are essentially equivalent to root on the host. Defaults to false. Note that this field cannot be set when spec.os.name is windows.
+                          type: boolean
+                        procMount:
+                          description: procMount denotes the type of proc mount to use for the containers. The default is DefaultProcMount which uses the container runtime defaults for readonly paths and masked paths. This requires the ProcMountType feature flag to be enabled. Note that this field cannot be set when spec.os.name is windows.
+                          type: string
+                        readOnlyRootFilesystem:
+                          description: Whether this container has a read-only root filesystem. Default is false. Note that this field cannot be set when spec.os.name is windows.
+                          type: boolean
+                        runAsGroup:
+                          description: The GID to run the entrypoint of the container process. Uses runtime default if unset. May also be set in PodSecurityContext.  If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence. Note that this field cannot be set when spec.os.name is windows.
+                          format: int64
+                          type: integer
+                        runAsNonRoot:
+                          description: Indicates that the container must run as a non-root user. If true, the Kubelet will validate the image at runtime to ensure that it does not run as UID 0 (root) and fail to start the container if it does. If unset or false, no such validation will be performed. May also be set in PodSecurityContext.  If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence.
+                          type: boolean
+                        runAsUser:
+                          description: The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. May also be set in PodSecurityContext.  If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence. Note that this field cannot be set when spec.os.name is windows.
+                          format: int64
+                          type: integer
+                        seLinuxOptions:
+                          description: The SELinux context to be applied to the container. If unspecified, the container runtime will allocate a random SELinux context for each container.  May also be set in PodSecurityContext.  If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence. Note that this field cannot be set when spec.os.name is windows.
+                          properties:
+                            level:
+                              description: Level is SELinux level label that applies to the container.
+                              type: string
+                            role:
+                              description: Role is a SELinux role label that applies to the container.
+                              type: string
+                            type:
+                              description: Type is a SELinux type label that applies to the container.
+                              type: string
+                            user:
+                              description: User is a SELinux user label that applies to the container.
+                              type: string
+                          type: object
+                        seccompProfile:
+                          description: The seccomp options to use by this container. If seccomp options are provided at both the pod & container level, the container options override the pod options. Note that this field cannot be set when spec.os.name is windows.
+                          properties:
+                            localhostProfile:
+                              description: localhostProfile indicates a profile defined in a file on the node should be used. The profile must be preconfigured on the node to work. Must be a descending path, relative to the kubelet's configured seccomp profile location. Must be set if type is "Localhost". Must NOT be set for any other type.
+                              type: string
+                            type:
+                              description: |-
+                                type indicates which kind of seccomp profile will be applied. Valid options are:
+
+                                Localhost - a profile defined in a file on the node should be used. RuntimeDefault - the container runtime default profile should be used. Unconfined - no profile should be applied.
+                              type: string
+                          required:
+                          - type
+                          type: object
+                        windowsOptions:
+                          description: The Windows specific settings applied to all containers. If unspecified, the options from the PodSecurityContext will be used. If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence. Note that this field cannot be set when spec.os.name is linux.
+                          properties:
+                            gmsaCredentialSpec:
+                              description: GMSACredentialSpec is where the GMSA admission webhook (https://github.com/kubernetes-sigs/windows-gmsa) inlines the contents of the GMSA credential spec named by the GMSACredentialSpecName field.
+                              type: string
+                            gmsaCredentialSpecName:
+                              description: GMSACredentialSpecName is the name of the GMSA credential spec to use.
+                              type: string
+                            hostProcess:
+                              description: HostProcess determines if a container should be run as a 'Host Process' container. All of a Pod's containers must have the same effective HostProcess value (it is not allowed to have a mix of HostProcess containers and non-HostProcess containers). In addition, if HostProcess is true then HostNetwork must also be set to true.
+                              type: boolean
+                            runAsUserName:
+                              description: The UserName in Windows to run the entrypoint of the container process. Defaults to the user specified in image metadata if unspecified. May also be set in PodSecurityContext. If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence.
+                              type: string
+                          type: object
+                      type: object
                     name:
                       maxLength: 63
                       minLength: 1
@@ -1236,6 +1502,56 @@ spec:
                           description: 'Requests describes the minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. Requests cannot exceed Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                           type: object
                       type: object
+                    securityContext:
+                      description: |-
+                        Pod SecurityContext overrides for this Pool.
+                        Non-empty values merge by field over Tenant-level settings and operator defaults. An
+                        explicit empty object paired with an empty `containerSecurityContext` resets inherited
+                        values and delegates unspecified values to platform admission.
+                      nullable: true
+                      properties:
+                        fsGroup:
+                          description: GID applied to all volumes mounted in the Pod (`fsGroup`).
+                          format: int64
+                          maximum: 2147483647.0
+                          minimum: 0.0
+                          nullable: true
+                          type: integer
+                        runAsGroup:
+                          description: GID to run the container process as.
+                          format: int64
+                          maximum: 2147483647.0
+                          minimum: 0.0
+                          nullable: true
+                          type: integer
+                        runAsNonRoot:
+                          description: Enforce non-root execution.
+                          nullable: true
+                          type: boolean
+                        runAsUser:
+                          description: UID to run the container process as.
+                          format: int64
+                          maximum: 2147483647.0
+                          minimum: 0.0
+                          nullable: true
+                          type: integer
+                        seccompProfile:
+                          description: Seccomp profile applied to all containers in the Pod.
+                          nullable: true
+                          properties:
+                            localhostProfile:
+                              description: localhostProfile indicates a profile defined in a file on the node should be used. The profile must be preconfigured on the node to work. Must be a descending path, relative to the kubelet's configured seccomp profile location. Must be set if type is "Localhost". Must NOT be set for any other type.
+                              type: string
+                            type:
+                              description: |-
+                                type indicates which kind of seccomp profile will be applied. Valid options are:
+
+                                Localhost - a profile defined in a file on the node should be used. RuntimeDefault - the container runtime default profile should be used. Unconfined - no profile should be applied.
+                              type: string
+                          required:
+                          - type
+                          type: object
+                      type: object
                     servers:
                       format: int32
                       type: integer
@@ -1365,34 +1681,79 @@ spec:
               priorityClassName:
                 nullable: true
                 type: string
+              rpcSecret:
+                description: |-
+                  Optional Secret key selector for RustFS internode RPC authentication.
+
+                  When configured, the operator maps this key to `RUSTFS_RPC_SECRET` for every
+                  RustFS Pod. Keep it stable while rotating `credsSecret`. When omitted, the
+                  operator does not set `RUSTFS_RPC_SECRET`; RustFS resolves it from its own
+                  credential configuration. Secret updates enqueue every Tenant that references
+                  the Secret, so one externally managed Secret can be shared by multiple Tenants.
+                nullable: true
+                properties:
+                  key:
+                    minLength: 1
+                    type: string
+                  name:
+                    minLength: 1
+                    type: string
+                required:
+                - key
+                - name
+                type: object
               scheduler:
                 nullable: true
                 type: string
               securityContext:
                 description: |-
-                  Override the default Pod SecurityContext (runAsUser/runAsGroup/fsGroup = 10001).
-                  Applies to all RustFS pods in this Tenant.
+                  Pod SecurityContext overrides for every Pool in this Tenant.
+                  Non-empty values merge by field over operator defaults, with Pool-level values taking
+                  precedence. Setting this and `containerSecurityContext` to explicit empty objects resets
+                  the defaults and delegates unspecified values to platform admission.
                 nullable: true
                 properties:
                   fsGroup:
                     description: GID applied to all volumes mounted in the Pod (`fsGroup`).
                     format: int64
+                    maximum: 2147483647.0
+                    minimum: 0.0
                     nullable: true
                     type: integer
                   runAsGroup:
                     description: GID to run the container process as.
                     format: int64
+                    maximum: 2147483647.0
+                    minimum: 0.0
                     nullable: true
                     type: integer
                   runAsNonRoot:
-                    description: 'Enforce non-root execution (default in the operator: `true` when set).'
+                    description: Enforce non-root execution.
                     nullable: true
                     type: boolean
                   runAsUser:
                     description: UID to run the container process as.
                     format: int64
+                    maximum: 2147483647.0
+                    minimum: 0.0
                     nullable: true
                     type: integer
+                  seccompProfile:
+                    description: Seccomp profile applied to all containers in the Pod.
+                    nullable: true
+                    properties:
+                      localhostProfile:
+                        description: localhostProfile indicates a profile defined in a file on the node should be used. The profile must be preconfigured on the node to work. Must be a descending path, relative to the kubelet's configured seccomp profile location. Must be set if type is "Localhost". Must NOT be set for any other type.
+                        type: string
+                      type:
+                        description: |-
+                          type indicates which kind of seccomp profile will be applied. Valid options are:
+
+                          Localhost - a profile defined in a file on the node should be used. RuntimeDefault - the container runtime default profile should be used. Unconfined - no profile should be applied.
+                        type: string
+                    required:
+                    - type
+                    type: object
                 type: object
               serviceAccountName:
                 nullable: true
@@ -1400,6 +1761,45 @@ spec:
               tls:
                 nullable: true
                 properties:
+                  caTrust:
+                    nullable: true
+                    properties:
+                      caSecretRef:
+                        nullable: true
+                        properties:
+                          key:
+                            default: ca.crt
+                            type: string
+                          name:
+                            type: string
+                        required:
+                        - name
+                        type: object
+                      clientCaSecretRef:
+                        nullable: true
+                        properties:
+                          key:
+                            default: ca.crt
+                            type: string
+                          name:
+                            type: string
+                        required:
+                        - name
+                        type: object
+                      source:
+                        default: CertificateSecretCa
+                        enum:
+                        - CertificateSecretCa
+                        - SecretRef
+                        - SystemCa
+                        type: string
+                      trustLeafCertificateAsCa:
+                        default: false
+                        type: boolean
+                      trustSystemCa:
+                        default: false
+                        type: boolean
+                    type: object
                   certManager:
                     nullable: true
                     properties:
@@ -1456,7 +1856,7 @@ spec:
                         nullable: true
                         type: string
                       includeGeneratedDnsNames:
-                        default: true
+                        nullable: true
                         type: boolean
                       issuerRef:
                         nullable: true
@@ -1506,6 +1906,128 @@ spec:
                           type: string
                         type: array
                     type: object
+                  certificates:
+                    items:
+                      properties:
+                        certManager:
+                          properties:
+                            caTrust:
+                              nullable: true
+                              properties:
+                                caSecretRef:
+                                  nullable: true
+                                  properties:
+                                    key:
+                                      default: ca.crt
+                                      type: string
+                                    name:
+                                      type: string
+                                  required:
+                                  - name
+                                  type: object
+                                clientCaSecretRef:
+                                  nullable: true
+                                  properties:
+                                    key:
+                                      default: ca.crt
+                                      type: string
+                                    name:
+                                      type: string
+                                  required:
+                                  - name
+                                  type: object
+                                source:
+                                  default: CertificateSecretCa
+                                  enum:
+                                  - CertificateSecretCa
+                                  - SecretRef
+                                  - SystemCa
+                                  type: string
+                                trustLeafCertificateAsCa:
+                                  default: false
+                                  type: boolean
+                                trustSystemCa:
+                                  default: false
+                                  type: boolean
+                              type: object
+                            certificateName:
+                              nullable: true
+                              type: string
+                            commonName:
+                              nullable: true
+                              type: string
+                            dnsNames:
+                              items:
+                                type: string
+                              type: array
+                            duration:
+                              nullable: true
+                              type: string
+                            includeGeneratedDnsNames:
+                              nullable: true
+                              type: boolean
+                            issuerRef:
+                              nullable: true
+                              properties:
+                                group:
+                                  default: cert-manager.io
+                                  type: string
+                                kind:
+                                  default: Issuer
+                                  type: string
+                                name:
+                                  type: string
+                              required:
+                              - name
+                              type: object
+                            manageCertificate:
+                              default: false
+                              type: boolean
+                            privateKey:
+                              nullable: true
+                              properties:
+                                algorithm:
+                                  nullable: true
+                                  type: string
+                                encoding:
+                                  nullable: true
+                                  type: string
+                                rotationPolicy:
+                                  nullable: true
+                                  type: string
+                                size:
+                                  format: int32
+                                  nullable: true
+                                  type: integer
+                              type: object
+                            renewBefore:
+                              nullable: true
+                              type: string
+                            secretName:
+                              nullable: true
+                              type: string
+                            secretType:
+                              nullable: true
+                              type: string
+                            usages:
+                              items:
+                                type: string
+                              type: array
+                          type: object
+                        default:
+                          default: false
+                          type: boolean
+                        hosts:
+                          items:
+                            type: string
+                          type: array
+                        name:
+                          type: string
+                      required:
+                      - certManager
+                      - name
+                      type: object
+                    type: array
                   enableInternodeHttps:
                     default: false
                     type: boolean
@@ -1533,6 +2055,17 @@ spec:
                 description: Regular users that should exist in the RustFS tenant.
                 items:
                   properties:
+                    credsSecret:
+                      description: Optional credentials Secret reference. Defaults to a Secret named after the user.
+                      nullable: true
+                      properties:
+                        name:
+                          maxLength: 253
+                          minLength: 1
+                          type: string
+                      required:
+                      - name
+                      type: object
                     deletionPolicy:
                       enum:
                       - Retain
@@ -1564,6 +2097,8 @@ spec:
                 x-kubernetes-validations:
                 - message: user policies must contain at least one policy
                   rule: self.all(x, has(x.policies) && x.policies.size() > 0)
+                - message: user credential Secret references must be unique
+                  rule: 'self.all(x, self.exists_one(y, (has(x.credsSecret) ? x.credsSecret.name : x.name) == (has(y.credsSecret) ? y.credsSecret.name : y.name)))'
             required:
             - pools
             type: object
@@ -1616,6 +2151,67 @@ spec:
                         - kind
                         - name
                         type: object
+                      certificates:
+                        items:
+                          properties:
+                            certificateRef:
+                              nullable: true
+                              properties:
+                                apiVersion:
+                                  type: string
+                                kind:
+                                  type: string
+                                name:
+                                  type: string
+                                observedGeneration:
+                                  format: int64
+                                  nullable: true
+                                  type: integer
+                                ready:
+                                  nullable: true
+                                  type: boolean
+                                reason:
+                                  nullable: true
+                                  type: string
+                              required:
+                              - apiVersion
+                              - kind
+                              - name
+                              type: object
+                            default:
+                              default: false
+                              type: boolean
+                            dnsNames:
+                              items:
+                                type: string
+                              type: array
+                            hosts:
+                              items:
+                                type: string
+                              type: array
+                            managedCertificate:
+                              nullable: true
+                              type: boolean
+                            name:
+                              type: string
+                            serverSecretRef:
+                              properties:
+                                key:
+                                  nullable: true
+                                  type: string
+                                name:
+                                  type: string
+                                resourceVersion:
+                                  nullable: true
+                                  type: string
+                              required:
+                              - name
+                              type: object
+                          required:
+                          - name
+                          - serverSecretRef
+                          type: object
+                        type: array
                       clientCaSecretRef:
                         nullable: true
                         properties:
@@ -1725,7 +2321,9 @@ spec:
                       description: Status of the condition (True, False, Unknown)
                       type: string
                     type:
-                      description: Type of condition (Ready, Progressing, Degraded)
+                      description: |-
+                        Type of condition (Ready, Reconciling, Degraded, SpecValid, CredentialsReady, KmsReady,
+                        TlsReady, PoolsReady, WorkloadsReady, ProvisioningReady)
                       type: string
                   required:
                   - message
@@ -1895,6 +2493,9 @@ spec:
                         desiredHash:
                           nullable: true
                           type: string
+                        lastAppliedAccessKeyHash:
+                          nullable: true
+                          type: string
                         lastAppliedGeneration:
                           format: int64
                           nullable: true
@@ -1913,6 +2514,9 @@ spec:
                         objectLock:
                           nullable: true
                           type: boolean
+                        observedSecretName:
+                          nullable: true
+                          type: string
                         observedSecretResourceVersion:
                           nullable: true
                           type: string
@@ -1951,6 +2555,9 @@ spec:
                         desiredHash:
                           nullable: true
                           type: string
+                        lastAppliedAccessKeyHash:
+                          nullable: true
+                          type: string
                         lastAppliedGeneration:
                           format: int64
                           nullable: true
@@ -1969,6 +2576,9 @@ spec:
                         objectLock:
                           nullable: true
                           type: boolean
+                        observedSecretName:
+                          nullable: true
+                          type: string
                         observedSecretResourceVersion:
                           nullable: true
                           type: string
@@ -1991,8 +2601,14 @@ spec:
                     type: array
                   users:
                     items:
+                      description: |-
+                        User-specific provisioning status. The flattened item preserves the existing status wire
+                        format while keeping ownership metadata out of policy and bucket status schemas.
                       properties:
                         desiredHash:
+                          nullable: true
+                          type: string
+                        lastAppliedAccessKeyHash:
                           nullable: true
                           type: string
                         lastAppliedGeneration:
@@ -2013,9 +2629,33 @@ spec:
                         objectLock:
                           nullable: true
                           type: boolean
+                        observedSecretName:
+                          nullable: true
+                          type: string
                         observedSecretResourceVersion:
                           nullable: true
                           type: string
+                        ownership:
+                          description: Durable proof that the operator claimed a RustFS user identity before mutating it.
+                          nullable: true
+                          properties:
+                            accessKeyHash:
+                              type: string
+                            state:
+                              enum:
+                              - PendingCreate
+                              - Managed
+                              type: string
+                            tenantUid:
+                              type: string
+                            userName:
+                              type: string
+                          required:
+                          - accessKeyHash
+                          - state
+                          - tenantUid
+                          - userName
+                          type: object
                         policies:
                           items:
                             type: string

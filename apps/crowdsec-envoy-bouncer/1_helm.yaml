@@ -23,7 +23,9 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      # No CreateNamespace: the envoy-gateway namespace (including its PSA
+      # labels) is owned by the parent envoy-gateway app; a child app must
+      # not race it to namespace creation.
       - PruneLast=true
       - PrunePropagationPolicy=foreground
       - Validate=true

@@ -1,0 +1,218 @@
+# https://opentelemetry.io/docs/platforms/kubernetes/operator/
+# https://opentelemetry.io/docs/platforms/kubernetes/operator/target-allocator/
+# https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver
+---
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-collector-pod
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  # The Target Allocator requires statefulset (or daemonset) mode. Keep a
+  # single replica: the Target Allocator shards targets across replicas, but
+  # one collector handles this cluster's scrape load.
+  mode: statefulset
+  replicas: 1
+  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.160.0
+  hostUsers: false
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+  podSecurityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+      ephemeral-storage: 64Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+      ephemeral-storage: 2Gi
+  env:
+    # Downward-API fields backing the service.telemetry.resource block in
+    # the collector config; the operator chart equivalent (opentelemetry-
+    # collector Helm) injects these by default.
+    - name: OTEL_K8S_NODE_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+    - name: OTEL_K8S_NODE_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.hostIP
+    - name: OTEL_K8S_NAMESPACE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
+    - name: OTEL_K8S_POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+    - name: OTEL_K8S_POD_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
+    # Go soft memory limit at 80% of the 2Gi memory limit, matching the
+    # memory_limiter processor; keep both values in sync when the limit
+    # changes. (The operator's operator.golang.flags feature gate would set
+    # this dynamically, but the gate is removed upstream in 0.160.0.)
+    - name: GOMEMLIMIT
+      value: 1638MiB
+  observability:
+    metrics:
+      # The operator annotates generated pods with prometheus.io/scrape by
+      # default; ServiceMonitor and PodMonitor discovery through the Target
+      # Allocator is the only scrape mechanism in this cluster.
+      disablePrometheusAnnotations: true
+  targetAllocator:
+    enabled: true
+    allocationStrategy: consistent-hashing
+    serviceAccount: otel-collector-pod-targetallocator
+    nodeSelector:
+      node-role.kubernetes.io/homelab: homelab
+    # mTLS secures the collector-to-allocator channel so the allocator can
+    # serve the credential secrets referenced by the collabora and woodpecker
+    # ServiceMonitors (basicAuth and bearerTokenSecret); cert-manager
+    # provisions the CA and certificates.
+    mtls:
+      enabled: true
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+        ephemeral-storage: 64Mi
+      limits:
+        cpu: "1"
+        memory: 2Gi
+        ephemeral-storage: 2Gi
+    podSecurityContext:
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+    prometheusCR:
+      # Empty selectors match every ServiceMonitor and PodMonitor in every
+      # namespace; only cluster administrators can create monitors here.
+      # denyFSAccessThroughSMs rejects monitors that reference file-based
+      # credentials (bearerTokenFile); secret-based credentials (basicAuth,
+      # bearerTokenSecret) are served over the mTLS channel.
+      enabled: true
+      serviceMonitorSelector: {}
+      serviceMonitorNamespaceSelector: {}
+      podMonitorSelector: {}
+      podMonitorNamespaceSelector: {}
+      denyFSAccessThroughSMs: true
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      prometheus:
+        # The TargetAllocator controller reads these scrape_configs to seed
+        # its own configuration and allocate every target back to the
+        # collector over http_sd — with no scrape_configs the allocator
+        # errors ("no scrape_configs available") and its mTLS client-cert
+        # Secret is never issued, wedging the collector pod on the missing
+        # volume. The collector's rendered config replaces this block with
+        # the http_sd pointer, so the static self-scrape target below is
+        # served to the collector through the allocator, not from here; it
+        # names the operator-generated monitoring Service because the
+        # allocator's config performs no environment substitution.
+        config:
+          scrape_configs:
+            - job_name: otel-collector-pod
+              scrape_interval: 10s
+              static_configs:
+                - targets:
+                    - otel-collector-pod-collector-monitoring.otel-collector.svc.cluster.local:8888
+    processors:
+      batch: {}
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+    exporters:
+      otlp_http/victoriametrics:
+        compression: gzip
+        encoding: proto
+        metrics_endpoint: http://victoria-metrics.victoria-metrics.svc.cluster.local:8428/opentelemetry/v1/metrics
+      otlp_http/victorialogs:
+        compression: gzip
+        encoding: proto
+        logs_endpoint: http://victoria-logs.victoria-metrics.svc.cluster.local:9428/insert/opentelemetry/v1/logs
+      otlp_http/victoriatraces:
+        compression: gzip
+        encoding: proto
+        traces_endpoint: http://victoria-traces.victoria-metrics.svc.cluster.local:10428/insert/opentelemetry/v1/traces
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+    service:
+      telemetry:
+        # Kubernetes resource attributes on the collector's own telemetry,
+        # mirroring the chart-default block the Helm release merged in; the
+        # referenced env vars are declared in spec.env.
+        resource:
+          k8s.namespace.name: ${env:OTEL_K8S_NAMESPACE}
+          k8s.node.name: ${env:OTEL_K8S_NODE_NAME}
+          k8s.node.ip: ${env:OTEL_K8S_NODE_IP}
+          k8s.pod.name: ${env:OTEL_K8S_POD_NAME}
+          k8s.pod.ip: ${env:OTEL_K8S_POD_IP}
+          host.name: ${env:OTEL_K8S_NODE_NAME}
+        metrics:
+          readers:
+            - pull:
+                exporter:
+                  prometheus:
+                    host: 0.0.0.0
+                    port: 8888
+      extensions:
+        - health_check
+      pipelines:
+        logs:
+          receivers:
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - otlp_http/victorialogs
+        metrics:
+          receivers:
+            - otlp
+            - prometheus
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - otlp_http/victoriametrics
+        traces:
+          receivers:
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - otlp_http/victoriatraces

@@ -9,8 +9,21 @@ images=()
 if [[ $# -ge 1 ]] && [[ "$1" =~ : ]]; then
   images+=("$1")
 else
-  base_ref="${1:-${GITHUB_BASE_REF:-origin/main}}"
-  if ! git rev-parse --verify "$base_ref" >/dev/null 2>&1; then
+  if [[ -n "${1:-}" ]]; then
+    base_ref="$1"
+  elif [[ -n "${GITHUB_BASE_REF:-}" ]]; then
+    # Pull request: diff against the PR base branch (existing behavior).
+    base_ref="$GITHUB_BASE_REF"
+  elif git rev-parse --verify "HEAD~1" >/dev/null 2>&1; then
+    # Push event: GITHUB_BASE_REF is unset and origin/main points at HEAD,
+    # which would produce an empty diff, so diff against the previous commit.
+    base_ref="HEAD~1"
+  else
+    # Single-commit repo: no HEAD~1 exists, so diff against the empty tree
+    # to scan the full image inventory instead of nothing.
+    base_ref="4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+  fi
+  if [[ "$base_ref" != "4b825dc642cb6eb9a060e54bf8d69288fbee4904" ]] && ! git rev-parse --verify "$base_ref" >/dev/null 2>&1; then
     if git rev-parse --verify "origin/$base_ref" >/dev/null 2>&1; then
       base_ref="origin/$base_ref"
     elif git rev-parse --verify "origin/main" >/dev/null 2>&1; then
@@ -122,9 +135,13 @@ try:
         if m_repo:
             current_repo = m_repo.group(1).strip()
         if line.startswith("+") and not line.startswith("+++"):
-            m = re.search(r'(?:image|imageName):\s*["\']?([a-zA-Z0-9._/-]+:[a-zA-Z0-9._-]+)["\']?', line)
+            m = re.search(r'(?:image|imageName):\s*["\']?([a-zA-Z0-9._/-]+:[a-zA-Z0-9._-]+(?:@sha256:[a-f0-9]{64})?)["\']?', line)
             if m:
                 images_to_scan.add(m.group(1).strip())
+            # Digest-only pins: repository + digest (no tag).
+            m_digest = re.search(r'(?:image|imageName):\s*["\']?([a-zA-Z0-9._/-]+@sha256:[a-f0-9]{64})["\']?', line)
+            if m_digest:
+                images_to_scan.add(m_digest.group(1).strip())
             m_tag = re.search(r'tag:\s*["\']?([a-zA-Z0-9._-]+)["\']?', line)
             if m_tag and current_repo:
                 images_to_scan.add(f"{current_repo}:{m_tag.group(1).strip()}")
@@ -132,14 +149,14 @@ except Exception:
     pass
 
 for img in sorted(images_to_scan):
-    if "${" not in img and "$" not in img and ":" in img:
+    if "${" not in img and "$" not in img and (":" in img or "@sha256:" in img):
         print(img)
 EOF
   )
 fi
 
 if [[ ${#images[@]} -eq 0 ]]; then
-  echo "No updated container images detected in PR diff."
+  echo "No updated container images detected."
   exit 0
 fi
 

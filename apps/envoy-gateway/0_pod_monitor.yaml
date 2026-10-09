@@ -1,0 +1,22 @@
+# https://gateway.envoyproxy.io/docs/tasks/observability/metrics/
+# https://prometheus-operator.dev/docs/operator/design/#podmonitor
+---
+# Envoy Gateway creates the Envoy data-plane pods at runtime and annotates
+# them with prometheus.io defaults, but annotation discovery is not used in
+# this cluster; the PodMonitor targets the pods directly through their
+# named metrics port instead. The envoy-gateway dashboards query the raw
+# envoy_* families served from /stats/prometheus.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: envoy-data-plane
+  namespace: envoy-gateway
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: envoy
+      gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  podMetricsEndpoints:
+    - port: metrics
+      path: /stats/prometheus
+      interval: 60s

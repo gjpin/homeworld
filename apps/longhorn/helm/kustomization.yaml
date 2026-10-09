@@ -96,19 +96,59 @@ patches:
       name: ^longhorn-post-upgrade$
       namespace: ^longhorn-system$
     patch: |-
+      # The chart's helm.sh/hook annotations are inert under Argo, and a
+      # plain Job breaks every chart bump: spec.template is immutable, so
+      # the completed Job from the first sync rejects the new image tag and
+      # the sync fails. Replacing them with Argo CD sync-hook annotations
+      # restores the post-upgrade cleanup in the GitOps flow: the job runs
+      # as a PostSync hook after every longhorn sync (including chart
+      # bumps, always with the fresh image), and hook-delete-policy
+      # removes it on success so it is re-created — never updated.
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1hook
+        value: PostSync
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1hook-delete-policy
+        value: HookSucceeded
+      - op: remove
+        path: /metadata/annotations/helm.sh~1hook
+      - op: remove
+        path: /metadata/annotations/helm.sh~1hook-delete-policy
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
-  - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^longhorn-pre-upgrade$
-      namespace: ^longhorn-system$
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/imagePullPolicy
-        value: IfNotPresent
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+      # Close-to-Restricted hardening: the post-upgrade cleanup is a pure
+      # Kubernetes API caller and runs as root only because the chart
+      # preserves that context; it still forbids privilege escalation and
+      # drops all capabilities.
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext
+        value:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsNonRoot: false
+          seccompProfile:
+            type: RuntimeDefault
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1job-ttl-seconds-after-finished
+        value: Argo's HookSucceeded delete policy removes the job after each successful cleanup run; a failed run is deliberately kept for debugging.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream manager image writes to its root filesystem; overriding it would break runtime file access.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The upstream cleanup job keeps the chart's preserved root context for its API calls; it drops all capabilities and forbids privilege escalation.
   - target:
       group: batch
       version: v1
@@ -116,24 +156,12 @@ patches:
       name: ^longhorn-uninstall$
       namespace: ^longhorn-system$
     patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/imagePullPolicy
-        value: IfNotPresent
-  - target:
-      group: batch
-      version: v1
+      apiVersion: batch/v1
       kind: Job
-      name: ^(longhorn-post-upgrade|longhorn-uninstall)$
-      namespace: ^longhorn-system$
-    patch: |-
-      - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
-      # Both jobs are pure Kubernetes API callers; longhorn-pre-upgrade is
-      # the privileged hostPath exception and keeps the standard runtime.
-      - op: add
-        path: /spec/template/spec/runtimeClassName
-        value: gvisor
+      metadata:
+        name: longhorn-uninstall
+        namespace: longhorn-system
+      $patch: delete
   - target:
       group: apps
       version: v1
@@ -144,6 +172,32 @@ patches:
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
+      # Close-to-Restricted hardening: the driver-deployer is a pure
+      # Kubernetes API caller and runs as root only because the chart
+      # preserves that context (see the run-as-non-root exception below);
+      # it still forbids privilege escalation and drops all capabilities.
+      # The wait-longhorn-manager init container (the chart's only init) is
+      # patched with the same context; it only loops on a local HTTP probe.
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext
+        value:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsNonRoot: false
+          seccompProfile:
+            type: RuntimeDefault
+      - op: add
+        path: /spec/template/spec/initContainers/0/securityContext
+        value:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsNonRoot: false
+          seccompProfile:
+            type: RuntimeDefault
   - target:
       group: apps
       version: v1
@@ -189,36 +243,6 @@ patches:
         path: /spec/template/spec/containers/1/resources
         value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
   - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^longhorn-post-upgrade$
-      namespace: ^longhorn-system$
-    patch: |-
-      - op: add
-        path: /spec/template/spec/containers/0/resources
-        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
-  - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^longhorn-pre-upgrade$
-      namespace: ^longhorn-system$
-    patch: |-
-      - op: add
-        path: /spec/template/spec/containers/0/resources
-        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
-  - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^longhorn-uninstall$
-      namespace: ^longhorn-system$
-    patch: |-
-      - op: add
-        path: /spec/template/spec/containers/0/resources
-        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
-  - target:
       group: null
       version: v1
       kind: Service
@@ -226,24 +250,8 @@ patches:
       namespace: ^longhorn-system$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: service-targets-pod
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
-  - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^longhorn-post-upgrade$
-      namespace: ^longhorn-system$
-    patch: |-
-      - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,pod-networkpolicy,container-image-pull-policy
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1dangling-service
+        value: The chart's webhook Service selects labels that longhorn-manager pods only carry at runtime; no matching pod exists in the offline render.
   - target:
       group: apps
       version: v1
@@ -252,24 +260,17 @@ patches:
       namespace: ^longhorn-system$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-privileged,pod-probes,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream manager image writes to its root filesystem; overriding it would break runtime file access.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
-  - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^longhorn-pre-upgrade$
-      namespace: ^longhorn-system$
-    patch: |-
+        path: /metadata/annotations/ignore-check.kube-linter.io~1privileged-container
+        value: The longhorn-manager requires the privileged context to manage the distributed storage datapath; the host integration is documented in docs/pod-security.md.
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,container-security-context-privileged,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1privilege-escalation-container
+        value: The privileged longhorn-manager requires the escalation rights of its privileged context for the storage datapath; the host integration is documented in docs/pod-security.md.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The upstream manager image keeps the chart's preserved root context for host datapath management.
   - target:
       group: apps
       version: v1
@@ -278,11 +279,8 @@ patches:
       namespace: ^longhorn-system$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-readonlyrootfilesystem,pod-probes,pod-networkpolicy,container-security-context-user-group-id,deployment-has-poddisruptionbudget,deployment-replicas,container-image-pull-policy
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream UI image writes to its root filesystem; overriding it would break runtime file access.
   - target:
       group: apps
       version: v1
@@ -291,24 +289,11 @@ patches:
       namespace: ^longhorn-system$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream driver-deployer image writes to its root filesystem; overriding it would break runtime file access.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
-  - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^longhorn-uninstall$
-      namespace: ^longhorn-system$
-    patch: |-
-      - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-readonlyrootfilesystem,pod-networkpolicy,container-security-context-user-group-id,container-image-pull-policy
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The upstream driver-deployer image keeps the chart's preserved root context for CSI driver deployment.
   - target:
       group: null
       version: v1
@@ -317,21 +302,5 @@ patches:
       namespace: ^longhorn-system$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: service-targets-pod
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, and Cilium policy constraints are accepted for this exact resource.
-  - target:
-      group: networking.k8s.io
-      version: v1
-      kind: NetworkPolicy
-      name: ^(backing-image-data-source|backing-image-manager|instance-manager|longhorn-recovery-backend|longhorn-webhook)$
-      namespace: ^longhorn-system$
-    patch: |-
-      - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: networkpolicy-targets-pod
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: These chart-provided policies select the pods that longhorn-manager creates at runtime; those pods do not exist in a static render.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1dangling-service
+        value: The chart's recovery backend Service selects labels that longhorn-manager pods only carry at runtime; no matching pod exists in the offline render.

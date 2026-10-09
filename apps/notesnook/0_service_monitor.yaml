@@ -1,4 +1,8 @@
+# https://github.com/streetwriters/notesnook-sync-server
 ---
+# The sync server exposes its OpenTelemetry Prometheus exporter on the
+# dedicated metrics port; the scraping endpoint only answers on that local
+# port, so the monitor must target it instead of the API port.
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
@@ -12,6 +16,6 @@ spec:
       app.kubernetes.io/name: notesnook-sync
       app.kubernetes.io/instance: notesnook
   endpoints:
-    - port: http
-      path: /health
+    - port: metrics
+      path: /metrics
       interval: 60s

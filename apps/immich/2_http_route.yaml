@@ -11,6 +11,9 @@ spec:
   parentRefs:
     - name: envoy
       namespace: immich
+      sectionName: immich-https
+      group: gateway.networking.k8s.io
+      kind: Gateway
   hostnames:
     - "photos.${BASE_DOMAIN}"
   rules:
@@ -19,3 +22,5 @@ spec:
         namespace: immich
         kind: Service
         port: 80
+        group: ""
+        weight: 1

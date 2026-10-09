@@ -82,7 +82,7 @@ spec:
             - name: PORT
               value: "3000"
             - name: API_HOST
-              value: "https://notes.${BASE_DOMAIN}"
+              value: "http://notesnook-sync:5264"
             - name: PUBLIC_URL
               value: "https://monograph.notes.${BASE_DOMAIN}"
             - name: SELF_HOSTED
@@ -99,6 +99,7 @@ spec:
               value: "notesnook-sse"
             - name: SSE_SERVER_PORT
               value: "7264"
+            # Link generation only; runtime server-to-server calls use the internal *_HOST/*_PORT vars.
             - name: IDENTITY_SERVER_URL
               value: "https://auth.notes.${BASE_DOMAIN}"
             - name: NOTESNOOK_APP_HOST

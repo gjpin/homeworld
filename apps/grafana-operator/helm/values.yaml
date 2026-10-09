@@ -2,8 +2,8 @@ fullnameOverride: grafana-operator
 namespaceOverride: grafana-operator
 
 annotations:
-  kube-score/ignore: pod-networkpolicy,container-security-context-user-group-id,deployment-replicas,container-image-pull-policy
-  security.homeworld/exception-reason: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+  ignore-check.kube-linter.io/liveness-port: The upstream chart probes the health endpoint on undeclared port 8081 instead of a declared containerPort.
+  ignore-check.kube-linter.io/readiness-port: The upstream chart probes the health endpoint on undeclared port 8081 instead of a declared containerPort.
 
 image:
   pullPolicy: IfNotPresent

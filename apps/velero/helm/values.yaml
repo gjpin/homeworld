@@ -1,4 +1,9 @@
 fullnameOverride: velero
+# Prefer the chart-native keys over kustomize patches (AGENTS.md): the
+# Velero deployment runs under the gVisor runtime. The node-agent DaemonSet
+# is a documented gVisor exception (kubelet hostPath integration — see
+# docs/pod-security.md).
+runtimeClassName: gvisor
 initContainers:
   - name: velero-plugin-for-aws
     image: docker.io/velero/velero-plugin-for-aws:v1.14.3
@@ -43,8 +48,20 @@ configuration:
   defaultSnapshotMoveData: true
   defaultVolumesToFsBackup: false
   features: EnableCSI
+# CSI snapshot data movement (snapshotMoveData) uploads volume data to the
+# BackupStorageLocation object storage and deletes the CSI snapshot
+# afterwards, so no provider VolumeSnapshotLocation is required: the upstream
+# v1.18 CSI data-movement docs only require node-agent + BSL + the EnableCSI
+# feature flag. Leaving this unset renders a dead default VSL with
+# provider/credential null for the controller to reconcile, so disable it.
+# backupsEnabled stays at its chart default (true) so the BSL still renders.
+snapshotsEnabled: false
 credentials:
   existingSecret: velero-credentials
+# CRDs are applied declaratively through includeCRDs (ServerSideApply); the
+# chart's upgrade-crds pre-upgrade hook Job would be an inert Helm hook
+# under Argo and block chart bumps with its immutable spec.
+upgradeCRDs: false
 deployNodeAgent: true
 nodeSelector:
   node-role.kubernetes.io/homelab: homelab
@@ -58,6 +75,9 @@ nodeAgent:
     capabilities:
       drop:
         - ALL
+    # The node-agent mounts host filesystems and must run as root —
+    # documented privileged exception.
+    runAsNonRoot: false
     seccompProfile:
       type: RuntimeDefault
 metrics:
@@ -68,6 +88,13 @@ metrics:
     # renders identically in local kustomize builds and live syncs.
     autodetect: false
     enabled: true
+    namespace: velero
+  # The PodMonitor covers the node-agent DaemonSet; enabling it also stops
+  # the chart from annotating the pods with prometheus.io/scrape.
+  nodeAgentPodMonitor:
+    autodetect: false
+    enabled: true
+    namespace: velero
 schedules:
   daily:
     schedule: CRON_TZ=Europe/Lisbon 0 3 * * *

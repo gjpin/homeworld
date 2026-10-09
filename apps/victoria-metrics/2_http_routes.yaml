@@ -12,6 +12,8 @@ spec:
     - name: envoy
       namespace: victoria-metrics
       sectionName: victoria-metrics-https
+      group: gateway.networking.k8s.io
+      kind: Gateway
   hostnames:
     - "victoria-metrics.${BASE_DOMAIN}"
   rules:
@@ -20,6 +22,8 @@ spec:
           namespace: victoria-metrics
           kind: Service
           port: 8428
+          group: ""
+          weight: 1
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -34,6 +38,8 @@ spec:
     - name: envoy
       namespace: victoria-metrics
       sectionName: victoria-logs-https
+      group: gateway.networking.k8s.io
+      kind: Gateway
   hostnames:
     - "victoria-logs.${BASE_DOMAIN}"
   rules:
@@ -42,6 +48,8 @@ spec:
           namespace: victoria-metrics
           kind: Service
           port: 9428
+          group: ""
+          weight: 1
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -56,6 +64,8 @@ spec:
     - name: envoy
       namespace: victoria-metrics
       sectionName: victoria-traces-https
+      group: gateway.networking.k8s.io
+      kind: Gateway
   hostnames:
     - "victoria-traces.${BASE_DOMAIN}"
   rules:
@@ -64,3 +74,5 @@ spec:
           namespace: victoria-metrics
           kind: Service
           port: 10428
+          group: ""
+          weight: 1

@@ -106,3 +106,55 @@ spec:
         - ports:
             - port: "9090"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-rustfs-operator-metrics-ingress
+  namespace: rustfs-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The operator ServiceMonitor scrapes the operator metrics port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: rustfs-operator
+      k8s:app.kubernetes.io/instance: rustfs-operator
+      k8s:app.kubernetes.io/component: operator
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-rustfs-console-metrics-ingress
+  namespace: rustfs-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The console ServiceMonitor scrapes the console metrics endpoint.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: rustfs-operator
+      k8s:app.kubernetes.io/instance: rustfs-operator
+      k8s:app.kubernetes.io/component: console
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP

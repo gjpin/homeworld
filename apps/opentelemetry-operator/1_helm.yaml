@@ -1,0 +1,31 @@
+# https://opentelemetry.io/docs/platforms/kubernetes/operator/
+# https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-operator
+# https://opentelemetry.io/docs/platforms/kubernetes/operator/target-allocator/
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: opentelemetry-operator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: opentelemetry-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/opentelemetry-operator/helm
+    targetRevision: HEAD

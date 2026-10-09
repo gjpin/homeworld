@@ -225,12 +225,24 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
+    # The AppSec pods' wait-for-lapi init container registers them with the
+    # LAPI (cscli lapi register) before the AppSec listener starts; with the
+    # bouncer fail-closed, an unregistered AppSec would turn otherwise
+    # allowed gateway requests into denies.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:k8s-app: crowdsec
+            k8s:type: appsec
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
-            k8s:app.kubernetes.io/instance: otel-collector-pod
-            k8s:app.kubernetes.io/name: opentelemetry-collector
-            k8s:component: standalone-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
       toPorts:
         - ports:
             - port: "6060"
@@ -260,9 +272,9 @@ spec:
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
-            k8s:app.kubernetes.io/instance: otel-collector-pod
-            k8s:app.kubernetes.io/name: opentelemetry-collector
-            k8s:component: standalone-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
       toPorts:
         - ports:
             - port: "6060"
@@ -284,9 +296,9 @@ spec:
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
-            k8s:app.kubernetes.io/instance: otel-collector-pod
-            k8s:app.kubernetes.io/name: opentelemetry-collector
-            k8s:component: standalone-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
       toPorts:
         - ports:
             - port: "6060"
@@ -311,4 +323,29 @@ spec:
       toPorts:
         - ports:
             - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crowdsec-postgres-metrics-ingress
+  namespace: crowdsec
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The handwritten PodMonitor scrapes the CloudNativePG instance metrics
+  # port through the OpenTelemetry collector.
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: crowdsec
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9187"
               protocol: TCP

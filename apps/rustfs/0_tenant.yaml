@@ -34,12 +34,50 @@ spec:
       value: "off"
     - name: RUSTFS_IDENTITY_OPENID_GROUPS_CLAIM
       value: groups
+    # Map every authenticated console SSO session to the built-in
+    # consoleAdmin policy. Deviation from the upstream OIDC guidance, which
+    # prefers mapping a `groups` claim value to a policy of the same name:
+    # Authelia's group taxonomy (<app>-admin / platform) has no
+    # consoleAdmin-named group, and creating one requires Infisical user-DB
+    # changes outside this repo. This is the documented expedient
+    # (docs/oidc.md): Authelia admits only `platform` group members to the
+    # rustfs client (two-factor), and bucket access stays scoped through the
+    # notesnook/opencloud users and their readwrite policies.
+    # Least-privilege follow-up: add a consoleAdmin group in Authelia, then
+    # delete this fallback.
+    - name: RUSTFS_IDENTITY_OPENID_ROLE_POLICY
+      value: consoleAdmin
     - name: RUSTFS_IDENTITY_OPENID_USERNAME_CLAIM
       value: preferred_username
     - name: RUSTFS_IDENTITY_OPENID_DISPLAY_NAME
       value: Authelia
     - name: RUSTFS_BROWSER_REDIRECT_URL
       value: https://console.rustfs.${BASE_DOMAIN}
+    # RustFS exposes no Prometheus scrape endpoint (upstream ships OTLP push
+    # only): push metrics to the cluster collector's OTLP/HTTP receiver, which
+    # exports them to VictoriaMetrics. Traces and log export stay disabled —
+    # the S3 server is not traced, and its stdout logs already flow through the
+    # node collector's filelog receiver (OTLP log export is additive to
+    # stdout, see docs.rustfs.com/en/operations/observability). service.name/
+    # environment become resource attributes on the pushed series.
+    - name: RUSTFS_OBS_ENDPOINT
+      value: http://otel-collector-pod-collector.otel-collector.svc.cluster.local:4318
+    - name: RUSTFS_OBS_SERVICE_NAME
+      value: rustfs
+    - name: RUSTFS_OBS_ENVIRONMENT
+      value: homeworld
+    - name: RUSTFS_OBS_TRACES_EXPORT_ENABLED
+      value: "false"
+    - name: RUSTFS_OBS_LOGS_EXPORT_ENABLED
+      value: "false"
+    # Pin the OTLP metrics export explicitly: traces and logs are pinned
+    # false above, and an upstream default flip here would silently stop
+    # the VictoriaMetrics pipeline for this tenant.
+    - name: RUSTFS_OBS_METRICS_EXPORT_ENABLED
+      value: "true"
+    # The newer-release check defaults to on (upgrade checker).
+    - name: RUSTFS_CHECK_UPDATE
+      value: "false"
   securityContext:
     fsGroup: 10001
     runAsGroup: 10001
@@ -48,6 +86,17 @@ spec:
   pools:
     - name: primary
       servers: 1
+      # Requests+limits for the RustFS server container (the operator CRD
+      # supports standard ResourceRequirements per pool).
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+          ephemeral-storage: 128Mi
+        limits:
+          cpu: "1"
+          memory: 2Gi
+          ephemeral-storage: 2Gi
       persistence:
         volumesPerServer: 1
         volumeClaimTemplate:

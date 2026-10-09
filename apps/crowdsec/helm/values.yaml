@@ -1,4 +1,14 @@
 ---
+# LAPI is intentionally served plaintext HTTP (:8080) in-cluster: tls.enabled
+# stays at the chart default (false) and the chart tls block is unused.
+# East-west traffic is restricted by CiliumNetworkPolicy; agent/appsec
+# LOCAL_API_URL and the envoy bouncer (apps/crowdsec-envoy-bouncer lapiURL)
+# all reach it over http://.
+# The version.crowdsec.net egress in -2_network_policy.yaml is a deliberately
+# accepted exception to the no-phone-home rule: the pinned chart exposes no
+# knob to disable only the online version check (DISABLE_ONLINE_API would also
+# kill the CAPI enrollment and hub-asset downloads the LAPI needs), so hub
+# assets + online version checks stay explicitly allowlisted.
 container_runtime: containerd
 
 image:
@@ -84,6 +94,9 @@ config:
       sslmode: disable
     api:
       server:
+        # Usage metrics are reported to api.crowdsec.net by default; that host
+        # stays allowlisted for CAPI, so the egress policy cannot block them.
+        disable_usage_metrics_export: true
         auto_registration:
           enabled: true
           token: "${REGISTRATION_TOKEN}"
@@ -116,6 +129,10 @@ agent:
       memory: 250Mi
       ephemeral-storage: 2Gi
   wait_for_lapi:
+    # Fully-qualified override: the chart defaults this to short-form busybox.
+    image:
+      repository: docker.io/library/busybox
+      tag: "1.38.0"
     securityContext:
       allowPrivilegeEscalation: false
       capabilities:
@@ -125,6 +142,12 @@ agent:
         type: RuntimeDefault
   hostVarLog: true
   acquisition:
+    # The chart's acquis template hardcodes `force_inotify: true` and renders
+    # `poll_without_inotify` alongside it (default "false"), so both keys land
+    # in acquis.yaml. Per the chart's documented meaning, poll_without_inotify
+    # polls the files via os.Stat instead of relying on inotify, which governs
+    # tailing here: inotify is unreliable on rotated /var/log/containers
+    # hostPath mounts.
     - namespace: envoy-gateway
       podName: envoy-*
       program: envoy
@@ -163,6 +186,10 @@ appsec:
       memory: 250Mi
       ephemeral-storage: 2Gi
   wait_for_lapi:
+    # Fully-qualified override: the chart defaults this to short-form busybox.
+    image:
+      repository: docker.io/library/busybox
+      tag: "1.38.0"
     securityContext:
       allowPrivilegeEscalation: false
       capabilities:

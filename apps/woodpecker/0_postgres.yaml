@@ -27,9 +27,26 @@ spec:
     runAsNonRoot: true
     seccompProfile:
       type: RuntimeDefault
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+      ephemeral-storage: 128Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+      ephemeral-storage: 2Gi
   storage:
     storageClass: longhorn-crypto
     size: 5Gi
+  backup:
+    # Database-native volume-snapshot backups (1_scheduled_backup.yaml); the
+    # cnpg-longhorn class is provisioned by apps/cloudnative-pg. Ownership by
+    # the Backup CR makes pruning old Backup CRs garbage-collect their
+    # snapshots (the class uses deletionPolicy: Delete).
+    volumeSnapshot:
+      className: cnpg-longhorn
+      snapshotOwnerReference: backup
   bootstrap:
     initdb:
       database: woodpecker

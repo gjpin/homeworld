@@ -210,6 +210,21 @@
           "name": "^cilium-operator-ztunnel$",
           "namespace": "^cilium$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^opentelemetry-operator-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^opentelemetry-operator-leader-election$",
+          "namespace": "^opentelemetry-operator$"
+        }
       }
     ],
     "posturePolicies": [
@@ -246,7 +261,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -300,7 +316,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -467,14 +484,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-pod$",
-          "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^rustfs-operator$",
           "namespace": "^rustfs-operator$"
         }
@@ -492,54 +501,6 @@
         "attributes": {
           "kind": "^Deployment$",
           "name": "^velero$",
-          "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
       },
@@ -621,6 +582,14 @@
           "kind": "^Deployment$",
           "name": "^cilium-operator$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -848,14 +817,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^RoleBinding$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
           "name": "^crowdsec-configmap-updater-binding$",
           "namespace": "^crowdsec$"
         }
@@ -873,6 +834,28 @@
           "kind": "^RoleBinding$",
           "name": "^cilium-tlsinterception-secrets$",
           "namespace": "^cilium-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^opentelemetry-operator-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^opentelemetry-operator-leader-election$",
+          "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^kube-state-metrics$"
         }
       }
     ],
@@ -918,7 +901,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -973,47 +957,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-pod$",
-          "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^velero$",
-          "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
       },
@@ -1031,6 +975,14 @@
           "kind": "^DaemonSet$",
           "name": "^cilium-envoy$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -1076,7 +1028,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -1147,14 +1100,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-pod$",
-          "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^rustfs-operator$",
           "namespace": "^rustfs-operator$"
         }
@@ -1172,38 +1117,6 @@
         "attributes": {
           "kind": "^Deployment$",
           "name": "^velero$",
-          "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
       },
@@ -1275,14 +1188,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -1315,6 +1230,22 @@
           "kind": "^Deployment$",
           "name": "^hubble-ui$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opentelemetry-operator$",
+          "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -1432,56 +1363,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -1512,7 +1395,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -1521,6 +1405,14 @@
           "kind": "^Deployment$",
           "name": "^hubble-ui$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -1574,7 +1466,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -1765,14 +1658,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-pod$",
-          "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^rustfs-operator$",
           "namespace": "^rustfs-operator$"
         }
@@ -1797,56 +1682,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -1957,14 +1794,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -2013,6 +1852,30 @@
           "kind": "^Deployment$",
           "name": "^metrics-server$",
           "namespace": "^metrics-server$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opentelemetry-operator$",
+          "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],
@@ -2110,7 +1973,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -2301,14 +2165,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-pod$",
-          "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^rustfs-operator$",
           "namespace": "^rustfs-operator$"
         }
@@ -2333,56 +2189,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -2453,14 +2261,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -2501,6 +2311,30 @@
           "kind": "^Deployment$",
           "name": "^metrics-server$",
           "namespace": "^metrics-server$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opentelemetry-operator$",
+          "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],
@@ -2652,6 +2486,21 @@
           "kind": "^ClusterRoleBinding$",
           "name": "^dragonfly-operator-manager-clusterrolebinding$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^opentelemetry-operator-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^opentelemetry-operator-leader-election$",
+          "namespace": "^opentelemetry-operator$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2773,14 +2622,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^DaemonSet$",
           "name": "^cilium$",
           "namespace": "^cilium$"
@@ -2862,14 +2703,6 @@
           "kind": "^DaemonSet$",
           "name": "^node-agent$",
           "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
         }
       },
       {
@@ -3125,13 +2958,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^ClusterRoleBinding$",
-          "name": "^velero-upgrade-crds$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^RoleBinding$",
           "name": "^external-dns-viewer$"
         }
@@ -3315,22 +3141,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^ClusterRoleBinding$",
-          "name": "^otel-collector-pod$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^ClusterRoleBinding$",
           "name": "^velero-ui$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
         }
       },
       {
@@ -3423,6 +3234,35 @@
           "name": "^metrics-server-auth-reader$",
           "namespace": "^kube-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^opentelemetry-operator-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^opentelemetry-operator-leader-election$",
+          "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^external-dns-viewer$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^kube-state-metrics$"
+        }
       }
     ],
     "posturePolicies": [
@@ -3489,7 +3329,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -3560,47 +3401,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-pod$",
-          "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^velero$",
-          "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
       },
@@ -3610,6 +3411,14 @@
           "kind": "^DaemonSet$",
           "name": "^cilium-envoy$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -3735,56 +3544,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -3823,7 +3584,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -3832,6 +3594,14 @@
           "kind": "^Deployment$",
           "name": "^hubble-ui$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -3854,14 +3624,6 @@
         "attributes": {
           "kind": "^DaemonSet$",
           "name": "^longhorn-manager$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
           "namespace": "^longhorn-system$"
         }
       },
@@ -3984,7 +3746,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -4127,14 +3890,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-pod$",
-          "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^rustfs-operator$",
           "namespace": "^rustfs-operator$"
         }
@@ -4159,48 +3914,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -4255,14 +3970,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -4312,6 +4029,30 @@
           "name": "^metrics-server$",
           "namespace": "^metrics-server$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opentelemetry-operator$",
+          "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4334,14 +4075,6 @@
           "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -4625,14 +4358,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^RoleBinding$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
           "name": "^crowdsec-configmap-updater-binding$",
           "namespace": "^crowdsec$"
         }
@@ -4650,6 +4375,28 @@
           "kind": "^RoleBinding$",
           "name": "^cilium-tlsinterception-secrets$",
           "namespace": "^cilium-secrets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^opentelemetry-operator-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^opentelemetry-operator-leader-election$",
+          "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^kube-state-metrics$"
         }
       }
     ],
@@ -4762,6 +4509,21 @@
           "name": "^woodpecker-agent$",
           "namespace": "^woodpecker$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^opentelemetry-operator-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^opentelemetry-operator-leader-election$",
+          "namespace": "^opentelemetry-operator$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4828,7 +4590,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -5019,14 +4782,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-pod$",
-          "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^rustfs-operator$",
           "namespace": "^rustfs-operator$"
         }
@@ -5051,56 +4806,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -5171,14 +4878,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -5219,6 +4928,30 @@
           "kind": "^Deployment$",
           "name": "^metrics-server$",
           "namespace": "^metrics-server$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opentelemetry-operator$",
+          "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],
@@ -5601,7 +5334,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -5657,14 +5391,6 @@
         "attributes": {
           "kind": "^Deployment$",
           "name": "^otel-collector-cluster$",
-          "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^otel-collector-pod$",
           "namespace": "^otel-collector$"
         }
       },
@@ -5751,7 +5477,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -5822,47 +5549,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-pod$",
-          "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^velero$",
-          "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
       },
@@ -5880,6 +5567,14 @@
           "kind": "^DaemonSet$",
           "name": "^cilium-envoy$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -5933,7 +5628,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -6124,14 +5820,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-pod$",
-          "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^rustfs-operator$",
           "namespace": "^rustfs-operator$"
         }
@@ -6156,56 +5844,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -6316,14 +5956,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -6373,6 +6015,30 @@
           "name": "^metrics-server$",
           "namespace": "^metrics-server$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opentelemetry-operator$",
+          "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
+        }
       }
     ],
     "posturePolicies": [
@@ -6417,7 +6083,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -6560,48 +6227,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -6671,14 +6298,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Deployment$",
-          "name": "^otel-collector-pod$",
-          "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^Job$",
           "name": "^crowdsec-capi-register-job$",
           "namespace": "^crowdsec$"
@@ -6720,14 +6339,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -6768,6 +6389,14 @@
           "kind": "^Deployment$",
           "name": "^hubble-ui$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -6891,14 +6520,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Deployment$",
-          "name": "^otel-collector-pod$",
-          "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^StatefulSet$",
           "name": "^argocd-argocd-application-controller$",
           "namespace": "^argocd$"
@@ -6987,7 +6608,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       }
     ],
@@ -7041,7 +6663,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^velero-ui$"
+          "name": "^velero-ui$",
+          "namespace": "^velero-ui$"
         }
       },
       {
@@ -7232,14 +6855,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^otel-collector-pod$",
-          "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^rustfs-operator$",
           "namespace": "^rustfs-operator$"
         }
@@ -7264,56 +6879,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -7424,14 +6991,16 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-agent$"
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
         }
       },
       {
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^StatefulSet$",
-          "name": "^woodpecker-server$"
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
         }
       },
       {
@@ -7480,6 +7049,30 @@
           "kind": "^Deployment$",
           "name": "^metrics-server$",
           "namespace": "^metrics-server$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opentelemetry-operator$",
+          "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],
@@ -7685,48 +7278,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -7743,22 +7296,6 @@
           "kind": "^Deployment$",
           "name": "^documentdb-operator$",
           "namespace": "^documentdb-operator$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^otel-collector-pod$",
-          "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
         }
       },
       {
@@ -7823,6 +7360,30 @@
           "kind": "^Deployment$",
           "name": "^velero-ui$",
           "namespace": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opentelemetry-operator$",
+          "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],
@@ -8003,30 +7564,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-post-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-pre-upgrade$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^longhorn-uninstall$",
-          "namespace": "^longhorn-system$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^StatefulSet$",
           "name": "^argocd-argocd-application-controller$",
           "namespace": "^argocd$"
@@ -8038,14 +7575,6 @@
           "kind": "^Deployment$",
           "name": "^documentdb-operator$",
           "namespace": "^documentdb-operator$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
         }
       },
       {
@@ -8094,6 +7623,30 @@
           "kind": "^Deployment$",
           "name": "^velero-ui$",
           "namespace": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opentelemetry-operator$",
+          "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],
@@ -8170,6 +7723,21 @@
           "kind": "^RoleBinding$",
           "name": "^velero-server$",
           "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^opentelemetry-operator-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^opentelemetry-operator-leader-election$",
+          "namespace": "^opentelemetry-operator$"
         }
       }
     ],

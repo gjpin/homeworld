@@ -36,16 +36,6 @@ patches:
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
   - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^velero-upgrade-crds$
-      namespace: ^velero$
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/imagePullPolicy
-        value: IfNotPresent
-  - target:
       group: apps
       version: v1
       kind: ^(Deployment|StatefulSet)$
@@ -63,22 +53,6 @@ patches:
       - op: add
         path: /spec/template/spec/hostUsers
         value: false
-      - op: add
-        path: /spec/template/spec/runtimeClassName
-        value: gvisor
-  - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^velero-upgrade-crds$
-      namespace: ^velero$
-    patch: |-
-      - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
-      - op: add
-        path: /spec/template/spec/runtimeClassName
-        value: gvisor
   - target:
       group: apps
       version: v1
@@ -103,29 +77,6 @@ patches:
         path: /spec/template/spec/containers/0/resources
         value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
   - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^velero-upgrade-crds$
-      namespace: ^velero$
-    patch: |-
-      - op: add
-        path: /spec/template/spec/containers/0/resources
-        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
-  - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^velero-upgrade-crds$
-      namespace: ^velero$
-    patch: |-
-      - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,container-image-pull-policy
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
-  - target:
       group: apps
       version: v1
       kind: DaemonSet
@@ -133,11 +84,11 @@ patches:
       namespace: ^velero$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream node-agent image writes to its root filesystem during filesystem backups.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: User namespaces remain disabled because filesystem backup requires kubelet hostPath volumes and HostToContainer mount propagation; upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The upstream node-agent image keeps its preserved root context for kubelet hostPath volume access; the host integration is documented in docs/pod-security.md.
   - target:
       group: apps
       version: v1
@@ -146,8 +97,5 @@ patches:
       namespace: ^velero$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-probes-identical,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-strategy,deployment-replicas,container-image-pull-policy
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream Velero image writes to its root filesystem; overriding it would break runtime file access.

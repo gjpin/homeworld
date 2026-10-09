@@ -72,6 +72,54 @@ spec:
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.37
 ---
+# dragonfly-operator
+# Wave 0: the argocd application's tracked config points the controllers at
+# the in-namespace Dragonfly instance (externalRedis), so the operator that
+# reconciles that instance must install alongside argocd itself; leaving it
+# in the datastore-operator wave would run Argo CD without its cache backend
+# until wave 4 — and the wave-4 apps could never sync through it. The
+# controllers briefly reconnect while the operand starts (~1 minute), which
+# any Argo CD restart incurs anyway.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dragonfly-operator-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/dragonfly-operator"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dragonfly-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
 # envoy-gateway
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -288,6 +336,47 @@ spec:
         pod-security.kubernetes.io/warn-version: v1.37
       annotations:
         security.homeworld/exception-reason: Longhorn node integration requires privileged containers and hostPath volumes.
+---
+# snapshot-controller
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: snapshot-controller-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/snapshot-controller"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: snapshot-controller
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
 ---
 # kubelet-serving-cert-approver
 apiVersion: argoproj.io/v1alpha1
@@ -539,47 +628,7 @@ spec:
         pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.37
----
-# dragonfly-operator
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: dragonfly-operator-app
-  namespace: argocd
-  labels:
-    app.kubernetes.io/part-of: homeworld
-  finalizers:
-  - resources-finalizer.argocd.argoproj.io
-  annotations:
-    argocd.argoproj.io/sync-wave: "4"
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/dragonfly-operator"
-    targetRevision: HEAD
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: dragonfly-operator
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-      allowEmpty: false
-    syncOptions:
-    - Validate=true
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
-    - ServerSideApply=true
-    managedNamespaceMetadata:
-      labels:
-        pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.37
-        pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.37
-        pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.37
+
 ---
 # rustfs-operator
 apiVersion: argoproj.io/v1alpha1
@@ -775,7 +824,8 @@ spec:
       allowEmpty: false
     syncOptions:
     - Validate=true
-    - CreateNamespace=true
+    # No CreateNamespace: envoy-gateway is created (with its PSA labels) by
+    # envoy-gateway-app in root wave 2, before this wave-6 bouncer.
     - PrunePropagationPolicy=foreground
     - PruneLast=true
     - ServerSideApply=true
@@ -904,6 +954,79 @@ spec:
         pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.37
+---
+# opentelemetry-operator
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: opentelemetry-operator-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/opentelemetry-operator"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: opentelemetry-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# generic-device-plugin
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: generic-device-plugin-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/generic-device-plugin"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
 ---
 # authelia
 apiVersion: argoproj.io/v1alpha1
@@ -1054,6 +1177,47 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: immich
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# kube-state-metrics
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-state-metrics-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/kube-state-metrics"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-state-metrics
   syncPolicy:
     automated:
       prune: true
@@ -1319,6 +1483,53 @@ spec:
         pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.37
+---
+# qbittorrent
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: qbittorrent-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/qbittorrent"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: qbittorrent
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        # The gluetun VPN sidecar requires NET_ADMIN/NET_RAW capabilities
+        # and the /dev/net/tun device; PSS baseline forbids added
+        # capabilities, so the namespace follows the Home Assistant
+        # exception profile.
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+      annotations:
+        security.homeworld/exception-reason: The gluetun VPN sidecar requires NET_ADMIN/NET_RAW capabilities and the /dev/net/tun device to tunnel all qBittorrent traffic; PSS baseline forbids added capabilities. The pod runs in an unprivileged user namespace with Cilium default-deny egress limited to the VPN endpoints, and the tun device is allocated without hostPath or privileged mode through the generic-device-plugin.
 ---
 # collabora
 apiVersion: argoproj.io/v1alpha1

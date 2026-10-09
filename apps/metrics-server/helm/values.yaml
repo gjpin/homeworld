@@ -22,6 +22,15 @@ serviceMonitor:
   enabled: true
   interval: 60s
 
+# apiService.insecureSkipTLSVerify stays at the chart default (true): the
+# metrics-server serves a self-signed certificate, and the chart provisions
+# the APIService caBundle through helm lookup — which returns nil under
+# Argo CD's offline render, so a verified APIService would end up
+# unprovisioned and `kubectl top` would break. Accepted residual: the
+# apiserver->metrics-server connection is cluster-internal, and the
+# kubelet-side scrape itself is verified (see the header comment above —
+# no --kubelet-insecure-tls).
+
 podSecurityContext:
   runAsNonRoot: true
   seccompProfile:
@@ -47,6 +56,3 @@ resources:
 nodeSelector:
   node-role.kubernetes.io/homelab: homelab
 
-deploymentAnnotations:
-  kube-score/ignore: container-security-context-user-group-id,pod-networkpolicy,deployment-strategy,deployment-replicas,container-image-pull-policy
-  security.homeworld/exception-reason: The workload intentionally runs as the upstream non-root UID/GID 1000 below kube-score's 10000 threshold, upstream defaults keep a single replica and an unset update strategy, Cilium enforces the network boundary outside the chart render, and the pinned image is pulled IfNotPresent to reuse the node cache.

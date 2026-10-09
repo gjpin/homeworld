@@ -36,10 +36,58 @@ patches:
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
+  # --- close-to-Restricted hardening for the privileged host-integration
+  # components. The agent/envoy/operator run as root with eBPF/datapath
+  # capabilities (documented privileged exceptions — see docs/pod-security.md),
+  # but the chart templates do not expose allowPrivilegeEscalation or
+  # runAsNonRoot for them, so pin both explicitly under securityContext: no
+  # privilege escalation even for the root user, and an explicit (not
+  # implicit) root declaration. The operator's chart-provided securityContext
+  # already forbids privilege escalation; only the root declaration is added.
+  - target:
+      group: apps
+      version: v1
+      kind: DaemonSet
+      name: ^cilium$
+      namespace: ^cilium$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext/allowPrivilegeEscalation
+        value: false
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext/runAsNonRoot
+        value: false
+  - target:
+      group: apps
+      version: v1
+      kind: DaemonSet
+      name: ^cilium-envoy$
+      namespace: ^cilium$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext/allowPrivilegeEscalation
+        value: false
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext/runAsNonRoot
+        value: false
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^cilium-operator$
+      namespace: ^cilium$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext/runAsNonRoot
+        value: false
   # --- requests/limits for the cilium-agent init containers that ship
   # without them (install-cni-binaries already declares upstream cpu/memory
   # requests; only limits and the ephemeral-storage request are added so the
-  # higher upstream values are preserved).
+  # higher upstream values are preserved). Talos pre-mounts bpffs
+  # (bpf.autoMount.enabled: false in values.yaml), so no privileged
+  # mount-bpf-fs init container renders and the remaining inits are indexed
+  # accordingly: config(0), apply-sysctl-overwrites(1), clean-cilium-state(2),
+  # install-cni-binaries(3).
   - target:
       group: apps
       version: v1
@@ -57,13 +105,10 @@ patches:
         path: /spec/template/spec/initContainers/2/resources
         value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
       - op: add
-        path: /spec/template/spec/initContainers/3/resources
-        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
-      - op: add
-        path: /spec/template/spec/initContainers/4/resources/requests/ephemeral-storage
+        path: /spec/template/spec/initContainers/3/resources/requests/ephemeral-storage
         value: 64Mi
       - op: add
-        path: /spec/template/spec/initContainers/4/resources/limits
+        path: /spec/template/spec/initContainers/3/resources/limits
         value: {"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}
   # --- resource-scoped scanner exceptions
   - target:
@@ -74,11 +119,23 @@ patches:
       namespace: ^cilium$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-probes-identical,pod-networkpolicy,container-security-context-privileged,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1drop-net-raw-capability
+        value: The cilium-agent requires the NET_RAW capability for the kube-proxy replacement datapath's raw packet handling.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Kube-proxy replacement requires hostNetwork, BPF datapath access, bpffs/cgroup host mounts, and the upstream privileged root security context; Talos forbids SYS_MODULE, and the host integration is exempt from gVisor and user namespaces. Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1host-network
+        value: Kube-proxy replacement requires the host network namespace for service load balancing and the BPF datapath; the host integration is documented in docs/pod-security.md.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream agent image and its init containers write runtime state (generated CNI configuration, staged binaries) to their root filesystems.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1privilege-escalation-container
+        value: The cilium-agent's BPF init containers require privileged execution to stage the datapath before the agent container starts; the agent container itself pins allowPrivilegeEscalation false via the securityContext patch in this kustomization.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The upstream agent image and its init containers run with the preserved root context required for BPF and host datapath access.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1sensitive-host-mounts
+        value: The apply-sysctl-overwrites init container mounts host /proc to apply the chart's sysctl overwrites for the datapath.
   - target:
       group: apps
       version: v1
@@ -87,11 +144,23 @@ patches:
       namespace: ^cilium$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-probes-identical,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1host-network
+        value: The standalone Envoy datapath requires the host network namespace for service load balancing.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: The standalone Envoy datapath DaemonSet requires hostNetwork and NET_ADMIN/BPF/PERFMON/NET_BIND_SERVICE capabilities for service load balancing; host integration is exempt from gVisor and user namespaces. Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1liveness-port
+        value: The upstream chart probes the health endpoint on undeclared port 9878; the host-network datapath serves it without a containerPort declaration.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream Envoy image writes to its root filesystem.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1readiness-port
+        value: The upstream chart probes the health endpoint on undeclared port 9878; the host-network datapath serves it without a containerPort declaration.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The upstream Envoy datapath image keeps the chart's preserved root context for host-network service load balancing.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1startup-port
+        value: The upstream chart probes the health endpoint on undeclared port 9878; the host-network datapath serves it without a containerPort declaration.
   - target:
       group: apps
       version: v1
@@ -100,11 +169,14 @@ patches:
       namespace: ^cilium$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-probes-identical,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-strategy,deployment-replicas,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1host-network
+        value: The upstream chart runs the operator with hostNetwork for direct node datapath access.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: The upstream chart runs the operator with hostNetwork true, so hostUsers stays true and gVisor is unavailable; upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream operator image writes to its root filesystem.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The upstream operator image's security context is preserved; overriding its UID would break runtime file access.
   - target:
       group: apps
       version: v1
@@ -113,11 +185,14 @@ patches:
       namespace: ^cilium$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-probes-identical,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-strategy,deployment-replicas,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1liveness-port
+        value: The upstream chart probes the gRPC health endpoint on undeclared port 4222 instead of a declared containerPort.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1readiness-port
+        value: The upstream chart probes the gRPC health endpoint on undeclared port 4222 instead of a declared containerPort.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1startup-port
+        value: The upstream chart probes the gRPC health endpoint on undeclared port 4222 instead of a declared containerPort.
   - target:
       group: apps
       version: v1
@@ -126,8 +201,5 @@ patches:
       namespace: ^cilium$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-probes-identical,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-strategy,deployment-replicas,container-image-pull-policy
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream frontend and backend images write to their root filesystems.
