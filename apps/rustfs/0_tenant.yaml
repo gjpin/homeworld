@@ -75,6 +75,9 @@ spec:
     # the VictoriaMetrics pipeline for this tenant.
     - name: RUSTFS_OBS_METRICS_EXPORT_ENABLED
       value: "true"
+    # The newer-release check defaults to on (upgrade checker).
+    - name: RUSTFS_CHECK_UPDATE
+      value: "false"
   securityContext:
     fsGroup: 10001
     runAsGroup: 10001
