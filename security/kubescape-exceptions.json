@@ -591,6 +591,14 @@
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
+        }
       }
     ],
     "posturePolicies": [
@@ -856,6 +864,13 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^kube-state-metrics$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-csi-secret-bind$"
         }
       }
     ],
@@ -1245,6 +1260,14 @@
         "attributes": {
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
           "namespace": "^longhorn-system$"
         }
       }
@@ -1877,6 +1900,14 @@
           "name": "^kube-state-metrics$",
           "namespace": "^kube-state-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2335,6 +2366,14 @@
           "kind": "^Deployment$",
           "name": "^kube-state-metrics$",
           "namespace": "^kube-state-metrics$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -3262,6 +3301,28 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^kube-state-metrics$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-csi-bind$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-csi-secret-bind$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^longhorn-csi-bind$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -4398,6 +4459,13 @@
           "kind": "^ClusterRoleBinding$",
           "name": "^kube-state-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-csi-secret-bind$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4952,6 +5020,14 @@
           "kind": "^Deployment$",
           "name": "^kube-state-metrics$",
           "namespace": "^kube-state-metrics$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -6039,6 +6115,14 @@
           "name": "^kube-state-metrics$",
           "namespace": "^kube-state-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
+        }
       }
     ],
     "posturePolicies": [
@@ -6396,6 +6480,14 @@
         "attributes": {
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
           "namespace": "^longhorn-system$"
         }
       }
@@ -7074,6 +7166,14 @@
           "name": "^kube-state-metrics$",
           "namespace": "^kube-state-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7385,6 +7485,14 @@
           "name": "^kube-state-metrics$",
           "namespace": "^kube-state-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7648,6 +7756,14 @@
           "name": "^kube-state-metrics$",
           "namespace": "^kube-state-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7738,6 +7854,13 @@
           "kind": "^RoleBinding$",
           "name": "^opentelemetry-operator-leader-election$",
           "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-csi-bind$"
         }
       }
     ],
