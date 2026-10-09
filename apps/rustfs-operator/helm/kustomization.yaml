@@ -38,6 +38,25 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
+  # Delete the chart's generated console Secret from the render: its
+  # randAlphaNum fallback rotates the console JWT key on every offline
+  # render (helm lookup is nil under Argo CD), producing perpetual
+  # OutOfSync churn and invalidating console sessions on each sync. The
+  # wave--1 ExternalSecret (apps/rustfs-operator/-1_secrets.yaml) owns
+  # rustfs-operator-console-secret instead.
+  - target:
+      version: v1
+      kind: Secret
+      name: ^rustfs-operator-console-secret$
+      namespace: ^rustfs-operator$
+    patch: |-
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: rustfs-operator-console-secret
+        namespace: rustfs-operator
+      $patch: delete
+
   - target:
       group: apps
       version: v1

@@ -1,5 +1,12 @@
 # https://gateway-api.sigs.k8s.io/guides/#installing-gateway-api
 # https://github.com/kubernetes-sigs/gateway-api
+#
+# Pruning is deliberately NOT enabled (automated.prune unset), like every
+# other CRD-only Application in this repo: garbage-collecting the Gateway API
+# definitions would cascade-delete every live Gateway, HTTPRoute, and
+# GRPCRoute — the entire ingress plane. The accepted trade-off: when an
+# upstream bundle bump drops a CRD, the stale definition stays until it is
+# removed by hand (one owner, no ServerSideApply fights in the meantime).
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -24,5 +31,5 @@ spec:
       - ServerSideApply=true
   source:
     repoURL: https://github.com/kubernetes-sigs/gateway-api.git
-    targetRevision: v1.6.2
+    targetRevision: v1.6.3
     path: config/crd/experimental

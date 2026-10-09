@@ -8,7 +8,7 @@ metadata:
   annotations:
     security.homeworld/exception-reason: Pinned RustFS Operator does not emit all Restricted pod and container security fields for Tenant pods.
 spec:
-  image: docker.io/rustfs/rustfs:1.0.0
+  image: docker.io/rustfs/rustfs:1.0.1
   imagePullPolicy: IfNotPresent
   credsSecret:
     name: rustfs-admin-credentials
@@ -32,6 +32,9 @@ spec:
       value: https://console.rustfs.${BASE_DOMAIN}/rustfs/admin/v3/oidc/callback/default
     - name: RUSTFS_IDENTITY_OPENID_REDIRECT_URI_DYNAMIC
       value: "off"
+    # No role policy is set, so each groups-claim value names a RustFS
+    # policy: the platform group maps to the platform policy
+    # (0_user_policies.yaml), and other groups match nothing.
     - name: RUSTFS_IDENTITY_OPENID_GROUPS_CLAIM
       value: groups
     - name: RUSTFS_IDENTITY_OPENID_USERNAME_CLAIM
@@ -56,6 +59,14 @@ spec:
     - name: RUSTFS_OBS_TRACES_EXPORT_ENABLED
       value: "false"
     - name: RUSTFS_OBS_LOGS_EXPORT_ENABLED
+      value: "false"
+    # Pin the OTLP metrics export explicitly: traces and logs are pinned
+    # false above, and an upstream default flip here would silently stop
+    # the VictoriaMetrics pipeline for this tenant.
+    - name: RUSTFS_OBS_METRICS_EXPORT_ENABLED
+      value: "true"
+    # The newer-release check defaults to on (upgrade checker).
+    - name: RUSTFS_CHECK_UPDATE
       value: "false"
   securityContext:
     fsGroup: 10001
@@ -96,6 +107,11 @@ spec:
     - name: notesnook-attachments
     - name: opencloud
   policies:
+    - name: platform
+      document:
+        configMapKeyRef:
+          name: rustfs-oidc-policy-platform
+          key: policy.json
     - name: notesnook-readwrite
       document:
         configMapKeyRef:

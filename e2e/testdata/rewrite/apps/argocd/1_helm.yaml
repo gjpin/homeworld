@@ -1,28 +1,31 @@
+# https://artifacthub.io/packages/helm/argo/argo-cd
+# https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-2-ssl-termination-at-ingress-controller
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: argocd
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
   source:
+    # The argo-cd chart version is pinned in helm/kustomization.yaml.
     repoURL: https://github.com/gjpin/homeworld.git
     path: apps/argocd/helm
     targetRevision: HEAD
-  syncPolicy:
-    syncOptions:
-    - Validate=true
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: envoy
-  namespace: argocd
-spec:
-  template:
-    spec:
-      hostUsers: false
-    cnpg.io/podPatch: '[{"op":"add","path":"/spec/hostUsers","value":false}]'
-  listeners:
-    - allowedRoutes:
-        namespaces:
-          from: all

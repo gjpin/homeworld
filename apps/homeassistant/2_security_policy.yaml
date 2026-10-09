@@ -13,6 +13,12 @@ spec:
       name: envoy
   extAuth:
     failOpen: false
+    # Envoy Gateway only forwards request bodies to the ext-auth service when
+    # bodyToExtAuth is set; without it CrowdSec AppSec never sees request
+    # bodies (in-band virtual patching) and the gap is silent — path and
+    # header bans keep working.
+    bodyToExtAuth:
+      maxRequestBytes: 65536
     grpc:
       backendRefs:
         - group: ""
@@ -20,6 +26,7 @@ spec:
           name: crowdsec-envoy-bouncer
           namespace: envoy-gateway
           port: 8080
+          weight: 1
 ---
 # Gateway OIDC for the Zigbee2MQTT web UI. Authelia is the only login:
 # Z2M's optional frontend auth is not configured, and the route requires the

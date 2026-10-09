@@ -84,7 +84,7 @@
     },
     {
       "datasource": "${DS_PROMETHEUS}",
-      "description": "The total number of volumes in the Longhorn storage system",
+      "description": "An example dashboard for Longhorn v1.1.0 Provenance: grafana.com 13032 (Longhorn's example dashboard), vendored by the chart; datasource hardcoded to the in-cluster victoriametrics uid.",
       "fieldConfig": {
         "defaults": {
           "custom": {},

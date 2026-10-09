@@ -182,6 +182,8 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  # One service per rule: Cilium applies toPorts to every toServices
+  # entry, so a combined rule would over-permit cross-port access.
   name: allow-otel-pod-victoria-metrics
   namespace: otel-collector
   annotations:
@@ -197,18 +199,58 @@ spec:
         - k8sService:
             serviceName: victoria-metrics
             namespace: victoria-metrics
+      toPorts:
+        - ports:
+            - port: "8428"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # One service per rule: Cilium applies toPorts to every toServices
+  # entry, so a combined rule would over-permit cross-port access.
+  name: allow-otel-pod-victoria-logs
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toServices:
         - k8sService:
             serviceName: victoria-logs
             namespace: victoria-metrics
+      toPorts:
+        - ports:
+            - port: "9428"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # One service per rule: Cilium applies toPorts to every toServices
+  # entry, so a combined rule would over-permit cross-port access.
+  name: allow-otel-pod-victoria-traces
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toServices:
         - k8sService:
             serviceName: victoria-traces
             namespace: victoria-metrics
       toPorts:
         - ports:
-            - port: "8428"
-              protocol: TCP
-            - port: "9428"
-              protocol: TCP
             - port: "10428"
               protocol: TCP
 ---
@@ -274,6 +316,8 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  # One service per rule: Cilium applies toPorts to every toServices
+  # entry, so a combined rule would over-permit cross-port access.
   name: allow-otel-cluster-victoria-metrics
   namespace: otel-collector
   annotations:
@@ -289,25 +333,65 @@ spec:
         - k8sService:
             serviceName: victoria-metrics
             namespace: victoria-metrics
+      toPorts:
+        - ports:
+            - port: "8428"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # One service per rule: Cilium applies toPorts to every toServices
+  # entry, so a combined rule would over-permit cross-port access.
+  name: allow-otel-cluster-victoria-logs
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: otel-collector-cluster
+      k8s:app.kubernetes.io/name: opentelemetry-collector
+      k8s:component: standalone-collector
+  egress:
+    - toServices:
         - k8sService:
             serviceName: victoria-logs
             namespace: victoria-metrics
+      toPorts:
+        - ports:
+            - port: "9428"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # One service per rule: Cilium applies toPorts to every toServices
+  # entry, so a combined rule would over-permit cross-port access.
+  name: allow-otel-cluster-victoria-traces
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: otel-collector-cluster
+      k8s:app.kubernetes.io/name: opentelemetry-collector
+      k8s:component: standalone-collector
+  egress:
+    - toServices:
         - k8sService:
             serviceName: victoria-traces
             namespace: victoria-metrics
       toPorts:
         - ports:
-            - port: "8428"
-              protocol: TCP
-            - port: "9428"
-              protocol: TCP
             - port: "10428"
               protocol: TCP
----
 # The collector scrapes the endpoints published by every ServiceMonitor and
 # PodMonitor. Scrape egress is granted per target namespace, restricted to
 # the metrics ports those monitors select; every grant has a matching
 # ingress rule in the target component's own network policy.
+---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -317,7 +401,9 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   # Argo CD ServiceMonitors: application-controller, server, repo-server,
-  # applicationset-controller, and notifications-controller metrics.
+  # applicationset-controller, and notifications-controller metrics; the
+  # handwritten PodMonitor also scrapes the Dragonfly operand admin metrics
+  # port (9999).
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -339,6 +425,8 @@ spec:
               protocol: TCP
             - port: "9001"
               protocol: TCP
+            - port: "9999"
+              protocol: TCP
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -348,8 +436,9 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  # Authelia's ServiceMonitor scrapes the app metrics port and its PodMonitor
-  # scrapes the CloudNativePG instance metrics port.
+  # Authelia's ServiceMonitor scrapes the app metrics port, its PodMonitor
+  # scrapes the CloudNativePG instance metrics port, and the handwritten
+  # PodMonitor scrapes the Dragonfly operand admin metrics port (9999).
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -365,6 +454,8 @@ spec:
               protocol: TCP
             - port: "9959"
               protocol: TCP
+            - port: "9999"
+              protocol: TCP
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -374,8 +465,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  # Cilium's agent, operator, and hubble-metrics ServiceMonitors target
-  # host-network agents (scraped through the node identity); only the
+  # Cilium's agent, operator, envoy, and hubble-metrics ServiceMonitors
+  # target host-network agents (scraped through the node identity); only the
   # hubble-relay ServiceMonitor targets regular pods.
   endpointSelector:
     matchLabels:
@@ -390,6 +481,8 @@ spec:
             - port: "9962"
               protocol: TCP
             - port: "9963"
+              protocol: TCP
+            - port: "9964"
               protocol: TCP
             - port: "9965"
               protocol: TCP
@@ -427,6 +520,44 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: allow-otel-pod-scrape-cert-manager
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The chart's ServiceMonitor scrapes the http-metrics endpoint (9402) of
+  # the controller, cainjector, and webhook pods; the matching ingress
+  # policy lives in apps/cert-manager (allow-cert-manager-metrics-ingress).
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchExpressions:
+            - key: k8s:app.kubernetes.io/name
+              operator: In
+              values:
+                - cainjector
+                - cert-manager
+                - webhook
+            - key: k8s:app.kubernetes.io/instance
+              operator: In
+              values:
+                - cert-manager
+            - key: k8s:io.kubernetes.pod.namespace
+              operator: In
+              values:
+                - cert-manager
+      toPorts:
+        - ports:
+            - port: "9402"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-otel-pod-scrape-collabora
   namespace: otel-collector
   annotations:
@@ -454,6 +585,9 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
+  # The chart's ServiceMonitors scrape the LAPI/agent/AppSec metrics port
+  # (6060) and the handwritten PodMonitor scrapes the CloudNativePG instance
+  # metrics port (9187).
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -466,6 +600,8 @@ spec:
       toPorts:
         - ports:
             - port: "6060"
+              protocol: TCP
+            - port: "9187"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -664,6 +800,9 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
+  # The chart's ServiceMonitor scrapes the app metrics port (8123) and the
+  # handwritten PodMonitor scrapes the CloudNativePG instance metrics port
+  # (9187).
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -677,6 +816,8 @@ spec:
         - ports:
             - port: "8123"
               protocol: TCP
+            - port: "9187"
+              protocol: TCP
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -686,7 +827,10 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  # Immich's PodMonitor scrapes the CloudNativePG instance metrics port.
+  # The chart's ServiceMonitor scrapes the server's metrics-api (8081) and
+  # machine-learning metrics-ms (8082) endpoints, and the handwritten
+  # PodMonitors scrape the CloudNativePG instance metrics port (9187) and the
+  # Dragonfly operand admin metrics port (9999).
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -698,7 +842,13 @@ spec:
             k8s:io.kubernetes.pod.namespace: immich
       toPorts:
         - ports:
+            - port: "8081"
+              protocol: TCP
+            - port: "8082"
+              protocol: TCP
             - port: "9187"
+              protocol: TCP
+            - port: "9999"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -721,6 +871,56 @@ spec:
       toPorts:
         - ports:
             - port: "9090"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The snapshot-controller's ServiceMonitor (apps/snapshot-controller/
+  # 1_deployment.yaml) scrapes /metrics on :8080; the app-side ingress rule
+  # already expects the collector.
+  name: allow-otel-pod-scrape-snapshot-controller
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: snapshot-controller
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # kube-state-metrics' ServiceMonitor (apps/kube-state-metrics) scrapes
+  # the http-metrics port on :8080; the app-side ingress rule already
+  # expects the collector.
+  name: allow-otel-pod-scrape-kube-state-metrics
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-state-metrics
+      toPorts:
+        - ports:
+            - port: "8080"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -933,8 +1133,6 @@ spec:
             k8s:io.kubernetes.pod.namespace: woodpecker
       toPorts:
         - ports:
-            - port: "8000"
-              protocol: TCP
             - port: "9001"
               protocol: TCP
             - port: "9187"

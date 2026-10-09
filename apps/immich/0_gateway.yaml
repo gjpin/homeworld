@@ -23,9 +23,10 @@ spec:
       hostname: "photos.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
-          from: all
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
           - name: immich-tls-cert
             kind: Secret
+            group: ""

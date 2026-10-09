@@ -15,7 +15,7 @@ spec:
   # one collector handles this cluster's scrape load.
   mode: statefulset
   replicas: 1
-  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.160.0
+  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.162.0
   hostUsers: false
   nodeSelector:
     node-role.kubernetes.io/homelab: homelab
@@ -75,7 +75,7 @@ spec:
       # The operator annotates generated pods with prometheus.io/scrape by
       # default; ServiceMonitor and PodMonitor discovery through the Target
       # Allocator is the only scrape mechanism in this cluster.
-      DisablePrometheusAnnotations: true
+      disablePrometheusAnnotations: true
   targetAllocator:
     enabled: true
     allocationStrategy: consistent-hashing
@@ -121,7 +121,7 @@ spec:
       podMonitorSelector: {}
       podMonitorNamespaceSelector: {}
       denyFSAccessThroughSMs: true
-  config: |
+  config:
     receivers:
       otlp:
         protocols:
@@ -130,10 +130,16 @@ spec:
           http:
             endpoint: 0.0.0.0:4318
       prometheus:
-        # The operator rewrites this scrape config to fetch targets from the
-        # Target Allocator (http_sd); the self-scrape static target uses the
-        # operator-managed monitoring Service because the Target Allocator
-        # config performs no environment substitution.
+        # The TargetAllocator controller reads these scrape_configs to seed
+        # its own configuration and allocate every target back to the
+        # collector over http_sd — with no scrape_configs the allocator
+        # errors ("no scrape_configs available") and its mTLS client-cert
+        # Secret is never issued, wedging the collector pod on the missing
+        # volume. The collector's rendered config replaces this block with
+        # the http_sd pointer, so the static self-scrape target below is
+        # served to the collector through the allocator, not from here; it
+        # names the operator-generated monitoring Service because the
+        # allocator's config performs no environment substitution.
         config:
           scrape_configs:
             - job_name: otel-collector-pod

@@ -23,81 +23,49 @@ spec:
       hostname: "notes.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
-          from: all
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
           - name: notes-tls-cert
             kind: Secret
+            group: ""
     - name: notes-auth-https
       protocol: HTTPS
       port: 443
       hostname: "auth.notes.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
-          from: all
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
           - name: notes-auth-tls-cert
             kind: Secret
+            group: ""
     - name: notes-sse-https
       protocol: HTTPS
       port: 443
       hostname: "sse.notes.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
-          from: all
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
           - name: notes-sse-tls-cert
             kind: Secret
+            group: ""
     - name: notes-monograph-https
       protocol: HTTPS
       port: 443
       hostname: "monograph.notes.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
-          from: all
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
           - name: notes-monograph-tls-cert
             kind: Secret
-    - name: notes-themes-https
-      protocol: HTTPS
-      port: 443
-      hostname: "themes.notes.${BASE_DOMAIN}"
-      allowedRoutes:
-        namespaces:
-          from: all
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: notes-themes-tls-cert
-            kind: Secret
-    - name: notes-cors-https
-      protocol: HTTPS
-      port: 443
-      hostname: "cors.notes.${BASE_DOMAIN}"
-      allowedRoutes:
-        namespaces:
-          from: all
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: notes-cors-tls-cert
-            kind: Secret
-    - name: notes-inbox-https
-      protocol: HTTPS
-      port: 443
-      hostname: "inbox.notes.${BASE_DOMAIN}"
-      allowedRoutes:
-        namespaces:
-          from: all
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: notes-inbox-tls-cert
-            kind: Secret
+            group: ""

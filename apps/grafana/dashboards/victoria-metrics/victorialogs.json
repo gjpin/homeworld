@@ -110,7 +110,7 @@
       }
     ]
   },
-  "description": "Overview for single-node VictoriaLogs v1.29.0 or higher",
+  "description": "Overview for single-node VictoriaLogs v1.29.0 or higher Provenance: VictoriaLogs official dashboard (VictoriaMetrics/helm-charts logs dashboards); datasource hardcoded to the in-cluster victorialogs uid.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -7872,21 +7872,6 @@
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
-        "type": "datasource"
-      },
-      {
-        "current": {
-          "text": "",
-          "value": "${DS_PROMETHEUS}",
-          "selected": true
-        },
-        "includeAll": false,
-        "label": "Datasource",
-        "name": "DS_PROMETHEUS",
-        "options": [],
-        "query": "victoriametrics-metrics-datasource",
-        "refresh": 1,
-        "regex": "",
         "type": "datasource"
       },
       {

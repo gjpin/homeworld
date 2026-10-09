@@ -14,6 +14,12 @@ spec:
       name: envoy
   extAuth:
     failOpen: false
+    # Envoy Gateway only forwards request bodies to the ext-auth service when
+    # bodyToExtAuth is set; without it CrowdSec AppSec never sees request
+    # bodies (in-band virtual patching) and the gap is silent — path and
+    # header bans keep working.
+    bodyToExtAuth:
+      maxRequestBytes: 65536
     grpc:
       backendRefs:
         - group: ""
@@ -21,11 +27,13 @@ spec:
           name: crowdsec-envoy-bouncer
           namespace: envoy-gateway
           port: 8080
+          weight: 1
 ---
-# Gateway OIDC for the Envoy admin listener. Authelia is the only login
-# for envoy.${BASE_DOMAIN}, and the route requires the platform group
-# (docs/oidc.md). StrategicMerge keeps this policy from overriding the
-# Gateway-level CrowdSec extAuth above.
+# Gateway OIDC for the Envoy Gateway admin console. The envoy-gateway
+# Service's 19000 admin port is published through the gateway itself at
+# envoy.${BASE_DOMAIN} (3_http_route.yaml); the route requires the platform
+# group (docs/oidc.md). StrategicMerge keeps this
+# policy from overriding the Gateway-level CrowdSec extAuth above.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:

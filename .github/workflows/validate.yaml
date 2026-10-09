@@ -24,6 +24,12 @@ jobs:
           find apps -type f -name '*.yaml' -not -path '*/charts/*' -not -path '*/local-charts/*' -print0 |
             xargs -0 -n1 yq eval '.' >/dev/null
 
+      - name: Check for duplicate YAML keys
+        run: scripts/check-yaml-duplicates.sh
+
+      - name: Check Secret key references
+        run: scripts/check-secret-refs.sh
+
       - name: Validate Grafana dashboards
         # jq ships preinstalled on the runner image, so no install step needed.
         run: |
@@ -41,6 +47,9 @@ jobs:
 
       - name: Check Kubernetes version pin consistency
         run: scripts/check-k8s-version.sh
+
+      - name: Check RustFS operator CRDs match the pinned operator tag
+        run: scripts/vendor-rustfs-operator.sh --check
 
   e2e:
     runs-on: ubuntu-latest
@@ -124,7 +133,7 @@ jobs:
 
       - name: Upload scanner reports
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: security-${{ matrix.profile }}
           path: security-reports/${{ matrix.profile }}

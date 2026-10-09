@@ -1,0 +1,171 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: argo-cd
+    repo: https://argoproj.github.io/argo-helm
+    version: 10.9.2
+    releaseName: argocd
+    namespace: argocd
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+    # The chart gates its ServiceMonitors on Capabilities.APIVersions.Has
+    # "monitoring.coreos.com/v1"; offline Kustomize Helm inflation has no
+    # API discovery, so the monitors (and their 60s intervals) only render
+    # when the API version is declared here. Argo CD's own kustomize render
+    # is equally offline, so this is what the live sync sees too.
+    apiVersions:
+      - monitoring.coreos.com/v1
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-applicationset-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-notifications-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-repo-server$
+      namespace: ^argocd$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+      - op: replace
+        path: /spec/template/spec/initContainers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-server$
+      namespace: ^argocd$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: ^argocd-argocd-application-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: ^(Deployment|StatefulSet)$
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 1
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-(applicationset-controller|notifications-controller|repo-server|server)$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: ^argocd-argocd-application-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/updateStrategy
+        value:
+          type: RollingUpdate
+          rollingUpdate:
+            # Surge the replacement controller pod before terminating the
+            # old one (StatefulSet RollingUpdate is delete-then-create by
+            # default, which would take reconciliation down whenever the
+            # replacement cannot start — e.g. its redis-password reference
+            # waits on an ExternalSecret whose ClusterSecretStore is not
+            # ready yet). With maxSurge the old controller keeps working
+            # until the replacement is Ready, so the rollout is
+            # availability-safe under Infisical outages and first-boot
+            # races alike.
+            maxSurge: 1
+            maxUnavailable: 0
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-applicationset-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-notifications-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-repo-server$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+      - op: add
+        path: /spec/template/spec/initContainers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^argocd-argocd-server$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: ^argocd-argocd-application-controller$
+      namespace: ^argocd$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}

@@ -44,6 +44,7 @@
       "version": ""
     }
   ],
+  "description": "Adapted from the qbittorrent-exporter project's bundled dashboard (martabal/qbittorrent-exporter); __inputs converted to a datasource variable; datasource hardcoded to the in-cluster victoriametrics uid.",
   "annotations": {
     "list": [
       {

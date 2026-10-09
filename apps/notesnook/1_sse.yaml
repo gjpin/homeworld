@@ -79,8 +79,11 @@ spec:
               value: "1"
             - name: INSTANCE_NAME
               value: "homeworld"
+            # Closed registration: self-hosted Notesnook has no invite or
+            # admin flow, so signups on the public auth/sync/SSE hostnames
+            # are disabled; flip back temporarily to create accounts.
             - name: DISABLE_SIGNUPS
-              value: "false"
+              value: "true"
             - name: NOTESNOOK_SERVER_HOST
               value: "notesnook-sync"
             - name: NOTESNOOK_SERVER_PORT

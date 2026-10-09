@@ -69,7 +69,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   path in both components' network policies, and ship a `PodMonitor` (60s) per CNPG `Cluster`.
 - Every app with collectible metrics ships a Grafana dashboard in its own Grafana folder:
   `apps/grafana/dashboards/<app>/<dashboard>.json`, one configMapGenerator entry, a `GrafanaFolder` CR
-  (`apps/grafana/0_folders.yaml`), and a `0_dashboards_<app>.yaml` whose `GrafanaDashboard` CRs set
+  (`apps/grafana/0_folders.yaml`), and a `1_dashboards_<app>.yaml` whose wave-`1` `GrafanaDashboard` CRs set
   `spec.folderRef` (see docs/grafana-dashboards.md). Use the project's own upstream dashboard when it
   publishes one — chart-bundled, in its repository, or on its grafana.com org page; never a
   third-party dashboard — adapted only as needed to resolve here (`${DS_*}` prometheus/loki
@@ -92,9 +92,11 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   needs a matching per-service `allow-envoy-backend-<service>` egress CiliumNetworkPolicy
   in `apps/envoy-gateway` (one port per rule — Cilium applies `toPorts` to every
   `toServices` entry) plus an ingress rule on the app side, and a `docs/network-policies.md` row.
-- Under default-deny ingress, kubelet readiness/liveness probes are denied too: every
-  workload with probes needs a CiliumNetworkPolicy allowing `fromEntities: host` to the
-  probe port.
+- Under default-deny ingress, kubelet readiness/liveness probes are covered by
+  Cilium's implicit ALLOW for local-host→local-pod traffic (see
+  docs/network-policies.md): explicit `fromEntities: host` probe rules are
+  optional defense-in-depth, not a requirement. Revisit if the datapath mode or
+  the host firewall configuration changes.
 - Preserve `${VARIABLE}` placeholders in tracked files. They are intended for
   `envsubst` during deployment.
 - Never place real credentials, tokens, passwords, private keys, or substituted
@@ -405,6 +407,16 @@ find apps/grafana/dashboards -type f -name '*.json' -print0 |
 # Fail if any pinned Kubernetes version reference (PSA labels, e2e kind node
 # image, documentation, hook comments) drifts from the rest.
 scripts/check-k8s-version.sh
+
+# Fail on repeated mapping keys: parsers keep the last value, so a missing
+# `---` silently merges two documents and drops the first resource.
+scripts/check-yaml-duplicates.sh
+
+# Fail when a secretKeyRef, Dragonfly passwordFromSecret, or CNPG initdb
+# secret names a key no in-repo ExternalSecret or Secret produces (following
+# External Secrets' template rules: templated targets hold only templated
+# keys unless mergePolicy is Merge).
+scripts/check-secret-refs.sh
 ```
 
 Helm inflation requires an explicit flag in every local render: use

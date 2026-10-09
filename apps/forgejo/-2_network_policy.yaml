@@ -105,7 +105,10 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   # Git SSH passthrough: the envoy dataplane terminates the Gateway TCP
-  # listener (2_tcp_route.yaml -> forgejo-ssh:22).
+  # listener (2_tcp_route.yaml -> forgejo-ssh:22). The rootless chart listens
+  # on container port 2222 (SSH_LISTEN_PORT); Cilium enforces the pod-side
+  # ingress rule after DNAT, so the allowed port is the pod's 2222, not the
+  # Service's 22.
   name: allow-forgejo-ssh-gateway
   namespace: forgejo
   annotations:
@@ -123,7 +126,7 @@ spec:
             k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
       toPorts:
         - ports:
-            - port: "22"
+            - port: "2222"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2

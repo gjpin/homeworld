@@ -16,7 +16,7 @@
             }
         ]
     },
-    "description": "Envoy Gateway monitoring Dashboard with exported metrics.",
+    "description": "Envoy Gateway monitoring Dashboard with exported metrics. Provenance: envoyproxy/gateway repo charts/gateway-addons-helm/dashboards/; panels reference the optional ratelimit deployment, which this cluster does not deploy (kept for chart parity).",
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,

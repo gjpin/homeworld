@@ -5,7 +5,7 @@ commonAnnotations:
 helmCharts:
   - name: longhorn
     repo: https://charts.longhorn.io
-    version: 1.12.1
+    version: 1.13.0
     releaseName: longhorn
     namespace: longhorn-system
     includeCRDs: true
@@ -18,7 +18,7 @@ patches:
       group: apps
       version: v1
       kind: Deployment
-      name: ^(longhorn-driver-deployer|longhorn-ui)$
+      name: ^(longhorn-driver-deployer|longhorn-global-manager|longhorn-ui)$
       namespace: ^longhorn-system$
     patch: |-
       - op: add
@@ -176,6 +176,44 @@ patches:
       # Kubernetes API caller and runs as root only because the chart
       # preserves that context (see the run-as-non-root exception below);
       # it still forbids privilege escalation and drops all capabilities.
+      # The wait-longhorn-manager init container (the chart's only init) is
+      # patched with the same context; it only loops on a local HTTP probe.
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext
+        value:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsNonRoot: false
+          seccompProfile:
+            type: RuntimeDefault
+      - op: add
+        path: /spec/template/spec/initContainers/0/securityContext
+        value:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsNonRoot: false
+          seccompProfile:
+            type: RuntimeDefault
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^longhorn-global-manager$
+      namespace: ^longhorn-system$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+      # Close-to-Restricted hardening: the global manager runs the
+      # longhorn-manager image's leader-elected cluster-wide controllers and
+      # only calls the Kubernetes API (plus a local healthz listener); it
+      # keeps the image's root context like the driver-deployer (see the
+      # run-as-non-root exception below) but forbids privilege escalation
+      # and drops all capabilities.
       - op: add
         path: /spec/template/spec/containers/0/securityContext
         value:
@@ -206,6 +244,16 @@ patches:
         value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
       - op: add
         path: /spec/template/spec/initContainers/0/resources
+        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^longhorn-global-manager$
+      namespace: ^longhorn-system$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources
         value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
   - target:
       group: apps
@@ -282,6 +330,19 @@ patches:
       - op: add
         path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
         value: The upstream driver-deployer image keeps the chart's preserved root context for CSI driver deployment.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^longhorn-global-manager$
+      namespace: ^longhorn-system$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream manager image writes to its root filesystem; overriding it would break runtime file access.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The upstream manager image keeps the chart's preserved root context for the global manager's controllers.
   - target:
       group: null
       version: v1

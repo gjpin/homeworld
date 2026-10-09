@@ -1,2 +1,36 @@
 fullnameOverride: grafana-operator
+namespaceOverride: grafana-operator
+
+annotations:
+  ignore-check.kube-linter.io/liveness-port: The upstream chart probes the health endpoint on undeclared port 8081 instead of a declared containerPort.
+  ignore-check.kube-linter.io/readiness-port: The upstream chart probes the health endpoint on undeclared port 8081 instead of a declared containerPort.
+
+image:
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+    ephemeral-storage: 64Mi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+    ephemeral-storage: 2Gi
+
+crds:
+  immutable: false
+
+serviceMonitor:
+  enabled: true
+  interval: 60s
+
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
 hostUsers: false

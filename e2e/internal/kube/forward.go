@@ -34,22 +34,48 @@ func PortForward(ctx context.Context, cfg *rest.Config, typed kubernetes.Interfa
 	if err != nil {
 		return 0, nil, fmt.Errorf("list pods for service: %w", err)
 	}
-	var podName string
-	for _, p := range pods.Items {
-		if podIsReady(p) {
-			podName = p.Name
+	var pod *corev1.Pod
+	for i := range pods.Items {
+		if podIsReady(pods.Items[i]) {
+			pod = &pods.Items[i]
 			break
 		}
 	}
-	if podName == "" {
+	if pod == nil {
 		return 0, nil, fmt.Errorf("no ready pods for service %s/%s", namespace, service)
+	}
+
+	// The suite passes the Service's port; a pod port-forward must dial the
+	// port the Service actually routes to. Resolve the service port's
+	// targetPort — a number or a container-port name — against the selected
+	// pod, falling back to the service port number when the pod declares no
+	// matching container port.
+	podPort := remotePort
+	for i := range svc.Spec.Ports {
+		if int(svc.Spec.Ports[i].Port) != remotePort {
+			continue
+		}
+		tp := svc.Spec.Ports[i].TargetPort
+		switch {
+		case tp.IntVal > 0:
+			podPort = int(tp.IntVal)
+		case tp.String() != "":
+			for _, c := range pod.Spec.Containers {
+				for _, p := range c.Ports {
+					if p.Name == tp.String() {
+						podPort = int(p.ContainerPort)
+					}
+				}
+			}
+		}
+		break
 	}
 
 	transport, upgrader, err := spdy.RoundTripperFor(cfg)
 	if err != nil {
 		return 0, nil, err
 	}
-	path := fmt.Sprintf("/api/v1/namespaces/%s/pods/%s/portforward", namespace, podName)
+	path := fmt.Sprintf("/api/v1/namespaces/%s/pods/%s/portforward", namespace, pod.Name)
 	hostURL, err := url.Parse(cfg.Host)
 	if err != nil {
 		return 0, nil, err
@@ -62,7 +88,7 @@ func PortForward(ctx context.Context, cfg *rest.Config, typed kubernetes.Interfa
 	errOut := &bytes.Buffer{}
 
 	dialer := spdy.NewDialer(upgrader, &http.Client{Transport: transport}, http.MethodPost, hostURL)
-	fw, err := portforward.New(dialer, []string{fmt.Sprintf("0:%d", remotePort)}, stopCh, readyCh, out, errOut)
+	fw, err := portforward.New(dialer, []string{fmt.Sprintf("0:%d", podPort)}, stopCh, readyCh, out, errOut)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -155,19 +181,37 @@ func ExecInPod(ctx context.Context, cfg *rest.Config, typed kubernetes.Interface
 
 // HTTPGet performs an HTTP GET with timeout.
 func HTTPGet(ctx context.Context, rawURL string, timeout time.Duration) (int, []byte, error) {
-	return HTTPGetWithBasicAuth(ctx, rawURL, timeout, "", "")
+	return HTTPGetWithBasicAuth(ctx, rawURL, timeout, ProbeOptions{})
 }
 
-// HTTPGetWithBasicAuth performs an HTTP GET with timeout, adding an
-// Authorization header when username is non-empty.
-func HTTPGetWithBasicAuth(ctx context.Context, rawURL string, timeout time.Duration, username, password string) (int, []byte, error) {
+// ProbeOptions carries the HTTP options a serviceProbe can set.
+type ProbeOptions struct {
+	// Username/Password add HTTP basic auth to the probe request.
+	Username, Password string
+	// Host overrides the request's Host header: the port-forward bypasses
+	// the Service, so virtual-host-validated endpoints need the public name.
+	Host string
+	// Headers adds arbitrary request headers (Authelia, for example,
+	// derives its endpoint URLs from X-Forwarded-Proto).
+	Headers map[string]string
+}
+
+// HTTPGetWithBasicAuth performs an HTTP GET with timeout and the given
+// probe options.
+func HTTPGetWithBasicAuth(ctx context.Context, rawURL string, timeout time.Duration, opts ProbeOptions) (int, []byte, error) {
 	client := &http.Client{Timeout: timeout}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
 	if err != nil {
 		return 0, nil, err
 	}
-	if username != "" {
-		req.SetBasicAuth(username, password)
+	if opts.Username != "" {
+		req.SetBasicAuth(opts.Username, opts.Password)
+	}
+	if opts.Host != "" {
+		req.Host = opts.Host
+	}
+	for k, v := range opts.Headers {
+		req.Header.Set(k, v)
 	}
 	resp, err := client.Do(req)
 	if err != nil {

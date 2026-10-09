@@ -57,10 +57,6 @@ spec:
               protocol: TCP
             - port: "3000"
               protocol: TCP
-            - port: "9000"
-              protocol: TCP
-            - port: "5181"
-              protocol: TCP
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -104,31 +100,6 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-world-egress
-  namespace: notesnook
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  endpointSelector:
-    matchExpressions:
-      - key: k8s:app.kubernetes.io/name
-        operator: In
-        values:
-          - notesnook-themes
-          - notesnook-cors-proxy
-  egress:
-    - toEntities:
-        - world
-      toPorts:
-        - ports:
-            - port: "80"
-              protocol: TCP
-            - port: "443"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
   name: allow-sse-smtp
   namespace: notesnook
   annotations:
@@ -140,6 +111,29 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: notesnook-sse
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "465"
+              protocol: TCP
+            - port: "587"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The identity service sends the account-verification, 2FA, and
+  # password-reset mail; same FQDN-less SMTP rationale as allow-sse-smtp.
+  name: allow-identity-smtp
+  namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: notesnook-identity
   egress:
     - toEntities:
         - world

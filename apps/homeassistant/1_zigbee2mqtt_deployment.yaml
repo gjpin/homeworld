@@ -22,7 +22,7 @@ spec:
         app.kubernetes.io/name: zigbee2mqtt
         io.kompose.service: homeassistant-zigbee2mqtt
     spec:
-      serviceAccountName: homeassistant
+      serviceAccountName: homeassistant-app
       automountServiceAccountToken: false
       hostUsers: false
       nodeSelector:
@@ -53,7 +53,9 @@ spec:
             - -ec
             - |
               [ -f /app/data/configuration.yaml ] || cat > /app/data/configuration.yaml <<'YAML'
-              homeassistant: false
+              version: 5
+              homeassistant:
+                enabled: false
               mqtt:
                 base_topic: zigbee2mqtt
                 server: mqtt://homeassistant-mosquitto:1883
@@ -65,6 +67,13 @@ spec:
               # z2m cannot start without a serial port.
               serial:
                 port: ""
+              # Upstream's example configuration: without these the network
+              # forms with the well-known default key and PAN IDs, so anyone
+              # in radio range can decrypt or join it.
+              advanced:
+                network_key: GENERATE
+                pan_id: GENERATE
+                ext_pan_id: GENERATE
               YAML
           securityContext:
             allowPrivilegeEscalation: false
@@ -87,7 +96,7 @@ spec:
             - mountPath: /app/data
               name: homeassistant-zigbee2mqtt-claim0
       containers:
-        - image: ghcr.io/koenkk/zigbee2mqtt:2.14.1
+        - image: ghcr.io/koenkk/zigbee2mqtt:2.14.2
           imagePullPolicy: IfNotPresent
           name: homeassistant-zigbee2mqtt
           ports:
@@ -97,6 +106,15 @@ spec:
           env:
             - name: TZ
               value: UTC
+            # Broker credentials override mqtt.user/mqtt.password in the PVC
+            # configuration, so the password never lands on the PVC.
+            - name: ZIGBEE2MQTT_CONFIG_MQTT_USER
+              value: zigbee2mqtt
+            - name: ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mosquitto-credentials
+                  key: zigbee2mqtt
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

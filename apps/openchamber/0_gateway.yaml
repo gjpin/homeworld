@@ -24,9 +24,10 @@ spec:
       hostname: "openchamber.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
-          from: all
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
           - name: openchamber-tls-cert
             kind: Secret
+            group: ""

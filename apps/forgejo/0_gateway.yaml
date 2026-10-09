@@ -23,12 +23,13 @@ spec:
       hostname: "git.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
-          from: all
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
           - name: forgejo-tls-cert
             kind: Secret
+            group: ""
     # Plain TCP passthrough for git SSH (git@ clone/push). ExternalDNS's
     # gateway-tcproute source reads the hostname annotation on the TCPRoute;
     # port 22 must also be forwarded to ${EXTERNAL_IP} on the router.
@@ -37,4 +38,4 @@ spec:
       port: 22
       allowedRoutes:
         namespaces:
-          from: all
+          from: All

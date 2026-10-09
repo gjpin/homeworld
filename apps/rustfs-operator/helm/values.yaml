@@ -5,13 +5,22 @@ commonAnnotations:
 operator:
   image:
     repository: docker.io/rustfs/operator
-    # Renovate tracks this image tag independently of the vendored chart
-    # version: upstream publishes no chart 0.0.6 (chart versions jumped
-    # 0.0.5 -> 0.07), so the binary runs ahead of the vendored chart. The
-    # Tenant CRD the chart ships is the same one the 0.0.6 binary manages
-    # (verified by the working kustomize render); the next chart bump
-    # re-vendors the whole tree via scripts/vendor-rustfs-operator.sh.
-    tag: 0.0.6
+    # Renovate tracks this image tag independently of the vendored chart:
+    # upstream's published charts lag the operator releases, so a chart's
+    # Tenant CRD can predate the status fields the binary writes (e.g. the
+    # status.provisioning.users[].ownership checkpoint). The apiserver
+    # prunes undeclared status fields, which wedges user provisioning in
+    # UserOwnershipCheckpointFailed (the tenant never becomes Ready).
+    # scripts/vendor-rustfs-operator.sh therefore always vendors crds/ from
+    # the operator's git tag matching this image tag; Renovate runs it on
+    # both image and chart bumps, and CI (--check) fails on any drift.
+    tag: 0.0.8
+    # The operator records transient provisioning failures (e.g. the server
+    # API not answering yet behind its first PVC mount) as status
+    # conditions and does not requeue the reconcile, so a Tenant can stay
+    # ProvisioningReady=False until a watched object changes. Recovery:
+    # annotate the Tenant (any spec/label change) to force a reconcile —
+    # see e2e/examples/hooks/kick-rustfs-tenant.sh for the exact nudge.
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -44,4 +53,9 @@ console:
   nodeSelector:
     node-role.kubernetes.io/homelab: homelab
 sts:
-  enabled: true
+  # Disable the operator's STS service (container port 4223): nothing in
+  # this cluster consumes it — no CiliumNetworkPolicy admits it and no docs
+  # row exists — and the tenant's own S3 endpoint (rustfs-io:9000) serves
+  # AssumeRole for in-cluster clients. Re-enable with matching CNP rules and
+  # a docs/network-policies.md row if an STS consumer ever appears.
+  enabled: false

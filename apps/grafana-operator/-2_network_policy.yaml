@@ -85,7 +85,9 @@ kind: CiliumNetworkPolicy
 metadata:
   # The operator reconciles GrafanaDatasource/GrafanaDashboard CRs against
   # the Grafana API (basic auth kept on deliberately — see docs/oidc.md).
-  # Without this egress no datasource or dashboard ever reconciles.
+  # Without this egress no datasource or dashboard ever reconciles. The
+  # operator-created Service is named "{Grafana.metadata.name}-service":
+  # grafana-service for the grafana CR.
   name: allow-grafana-operator-grafana-api
   namespace: grafana-operator
   annotations:
@@ -99,7 +101,7 @@ spec:
   egress:
     - toServices:
         - k8sService:
-            serviceName: grafana
+            serviceName: grafana-service
             namespace: grafana
       toPorts:
         - ports:

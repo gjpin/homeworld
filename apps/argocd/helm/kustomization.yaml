@@ -5,12 +5,19 @@ commonAnnotations:
 helmCharts:
   - name: argo-cd
     repo: https://argoproj.github.io/argo-helm
-    version: 10.9.2
+    version: 10.10.1
     releaseName: argocd
     namespace: argocd
     includeCRDs: true
     skipTests: true
     valuesFile: values.yaml
+    # The chart gates its ServiceMonitors on Capabilities.APIVersions.Has
+    # "monitoring.coreos.com/v1"; offline Kustomize Helm inflation has no
+    # API discovery, so the monitors (and their 60s intervals) only render
+    # when the API version is declared here. Argo CD's own kustomize render
+    # is equally offline, so this is what the live sync sees too.
+    apiVersions:
+      - monitoring.coreos.com/v1
 patches:
   - target:
       group: apps
@@ -27,16 +34,6 @@ patches:
       version: v1
       kind: Deployment
       name: ^argocd-argocd-notifications-controller$
-      namespace: ^argocd$
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/imagePullPolicy
-        value: IfNotPresent
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: ^argocd-argocd-redis$
       namespace: ^argocd$
     patch: |-
       - op: replace
@@ -76,16 +73,6 @@ patches:
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
   - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^argocd-redis-secret-init$
-      namespace: ^argocd$
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/imagePullPolicy
-        value: IfNotPresent
-  - target:
       group: apps
       version: v1
       kind: ^(Deployment|StatefulSet)$
@@ -97,15 +84,12 @@ patches:
       group: apps
       version: v1
       kind: Deployment
-      name: ^argocd-argocd-(applicationset-controller|notifications-controller|redis|repo-server|server)$
+      name: ^argocd-argocd-(applicationset-controller|notifications-controller|repo-server|server)$
       namespace: ^argocd$
     patch: |-
       - op: add
         path: /spec/template/spec/hostUsers
         value: false
-      - op: add
-        path: /spec/template/spec/runtimeClassName
-        value: gvisor
   - target:
       group: apps
       version: v1
@@ -114,24 +98,24 @@ patches:
       namespace: ^argocd$
     patch: |-
       - op: add
+        path: /spec/updateStrategy
+        value:
+          type: RollingUpdate
+          rollingUpdate:
+            # Surge the replacement controller pod before terminating the
+            # old one (StatefulSet RollingUpdate is delete-then-create by
+            # default, which would take reconciliation down whenever the
+            # replacement cannot start — e.g. its redis-password reference
+            # waits on an ExternalSecret whose ClusterSecretStore is not
+            # ready yet). With maxSurge the old controller keeps working
+            # until the replacement is Ready, so the rollout is
+            # availability-safe under Infisical outages and first-boot
+            # races alike.
+            maxSurge: 1
+            maxUnavailable: 0
+      - op: add
         path: /spec/template/spec/hostUsers
         value: false
-      - op: add
-        path: /spec/template/spec/runtimeClassName
-        value: gvisor
-  - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^argocd-redis-secret-init$
-      namespace: ^argocd$
-    patch: |-
-      - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
-      - op: add
-        path: /spec/template/spec/runtimeClassName
-        value: gvisor
   - target:
       group: apps
       version: v1
@@ -147,16 +131,6 @@ patches:
       version: v1
       kind: Deployment
       name: ^argocd-argocd-notifications-controller$
-      namespace: ^argocd$
-    patch: |-
-      - op: add
-        path: /spec/template/spec/containers/0/resources
-        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: ^argocd-argocd-redis$
       namespace: ^argocd$
     patch: |-
       - op: add
@@ -190,16 +164,6 @@ patches:
       version: v1
       kind: StatefulSet
       name: ^argocd-argocd-application-controller$
-      namespace: ^argocd$
-    patch: |-
-      - op: add
-        path: /spec/template/spec/containers/0/resources
-        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
-  - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^argocd-redis-secret-init$
       namespace: ^argocd$
     patch: |-
       - op: add

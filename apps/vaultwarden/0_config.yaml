@@ -32,9 +32,22 @@ data:
   SSO_ENABLED: "true"
   SSO_AUTHORITY: "https://auth.${BASE_DOMAIN}"
   SSO_CLIENT_ID: "vaultwarden"
-  SSO_SCOPES: "email profile offline_access vaultwarden"
+  # Upstream vaultwarden always requests `openid` implicitly (SSO.md:
+  # default "profile email", openid is implicit) and extends sessions with
+  # the offline_access scope's refresh tokens. The `vaultwarden` scope with
+  # role mapping exists only in the OIDCWarden fork; requesting it from
+  # Authelia fails the authorization request with invalid_scope.
+  SSO_SCOPES: "email profile offline_access"
   SSO_SIGNUPS_ALLOWED: "false"
   SSO_SIGNUPS_MATCH_EMAIL: "true"
+  # Pin PKCE explicitly: SSO_PKCE currently defaults to true upstream, but
+  # an upstream default flip would break SSO sign-in against Authelia
+  # (which requires PKCE S256 for this client) with no visible config
+  # change in this repo.
+  SSO_PKCE: "true"
+  # ORG_CREATION_USERS is left at its default ("all"): every member can
+  # create organizations. Intended for this single-operator instance;
+  # restrict to the admin's username here if more members join.
   # No SSO role mapping: the pinned upstream image has no sso_roles_*
   # settings (those env vars are silently ignored), so vaultwarden-admin
   # membership does not grant the admin role. Every SSO user gets the

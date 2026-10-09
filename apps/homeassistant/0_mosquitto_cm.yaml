@@ -7,9 +7,12 @@ metadata:
   labels:
     app.kubernetes.io/name: mosquitto
 data:
+  # Every client authenticates. The password file is generated from the
+  # mosquitto-credentials secret by the deployment's init container.
   mosquitto.conf: |
     listener 1883 0.0.0.0
-    allow_anonymous true
+    allow_anonymous false
+    password_file /mosquitto/auth/passwd
     persistence true
     persistence_location /mosquitto/data/
     log_dest stdout

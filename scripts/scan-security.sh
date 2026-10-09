@@ -68,7 +68,7 @@ kube-linter lint "$render_dir" \
   >"$report_root/$profile/kube-linter.json"
 
 kubescape scan framework AllControls "$render_dir" \
-  --controls-version v2.0.31 \
+  --controls-version v2.0.38 \
   --exceptions="$repo_root/security/kubescape-exceptions.json" \
   --fail-on-degraded-config \
   --format json \

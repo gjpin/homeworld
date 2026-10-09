@@ -22,21 +22,23 @@ spec:
       hostname: "s3.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
-          from: all
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
           - name: rustfs-s3-tls-cert
             kind: Secret
+            group: ""
     - name: rustfs-console-https
       protocol: HTTPS
       port: 443
       hostname: "console.rustfs.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
-          from: all
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
           - name: rustfs-console-tls-cert
             kind: Secret
+            group: ""

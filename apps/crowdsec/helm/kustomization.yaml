@@ -31,15 +31,6 @@ patches:
         path: /metadata/namespace
         value: crowdsec
   - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^crowdsec-(capi-register|lapi-cscli-register)-job$
-    patch: |-
-      - op: add
-        path: /metadata/namespace
-        value: crowdsec
-  - target:
       group: apps
       version: v1
       kind: Deployment
@@ -103,17 +94,69 @@ patches:
         path: /spec/endpoints/0/interval
         value: 60s
   - target:
+      version: v1
+      kind: ^(ServiceAccount|Role|RoleBinding)$
+      name: ^crowdsec-configmap-updater-(sa|role|binding)$
+    patch: |-
+      # The chart ships this RBAC as a Helm pre-install/pre-upgrade hook,
+      # consumed only by the register Jobs below. Convert it to the Argo
+      # equivalent (PreSync, weight -1) so the Jobs' ServiceAccount exists
+      # when they run, ahead of every main-sync resource.
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1hook
+        value: PreSync
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1hook-weight
+        value: "-1"
+      - op: remove
+        path: /metadata/annotations/helm.sh~1hook
+      - op: remove
+        path: /metadata/annotations/helm.sh~1hook-delete-policy
+      - op: remove
+        path: /metadata/annotations/helm.sh~1hook-weight
+      - op: add
+        path: /metadata/namespace
+        value: crowdsec
+  - target:
       group: batch
       version: v1
       kind: Job
       name: ^crowdsec-(capi-register|lapi-cscli-register)-job$
     patch: |-
+      # The chart ships these as plain one-shot Jobs; under Argo a completed
+      # Job breaks every chart bump (spec.template is immutable, so the
+      # completed Job from the first sync rejects the new image tag and the
+      # sync fails). The registration work is genuinely wanted, and it must
+      # run as a PreSync hook: with store*CredentialsInSecret enabled the
+      # LAPI Deployment mounts the very secrets these Jobs create, so a
+      # later phase would deadlock the sync — Argo waits for the
+      # Deployment's health before ever reaching PostSync. Both Jobs are
+      # PreSync-safe and idempotent: they have no LAPI dependency (the
+      # cscli job fabricates its credential locally; the capi job talks to
+      # the Central API) and exit 0 when their credential secret already
+      # exists. The RBAC above (weight -1) is their ServiceAccount.
+      # The chart templates put no namespace on these Jobs, and the
+      # kustomization namespace field does not reach helm-chart output, so
+      # set it with an explicit patch like the other chart objects: the
+      # register Jobs must land in crowdsec, where the ServiceAccount
+      # above lives.
+      - op: add
+        path: /metadata/namespace
+        value: crowdsec
+      # hook-delete-policy removes a completed Job so it is re-created —
+      # never updated — with the fresh image on every sync.
       - op: add
         path: /spec/template/spec/hostUsers
         value: false
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
+      # One-shot hook Jobs, but they are still workloads: schedule them on
+      # homelab nodes like every other pod in the repo.
+      - op: add
+        path: /spec/template/spec/nodeSelector
+        value:
+          node-role.kubernetes.io/homelab: homelab
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -168,6 +211,17 @@ patches:
       - op: add
         path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
         value: The pinned CrowdSec image has no non-root USER and the registration hook runs with the preserved root context to write its generated credentials; seccomp, dropped capabilities, and no privilege escalation remain enabled.
+      # Argo CD PreSync hook conversion (see the comment at the top of this
+      # patch): these adds must come after the annotations map reset above.
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1hook
+        value: PreSync
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1hook-weight
+        value: "0"
+      - op: add
+        path: /metadata/annotations/argocd.argoproj.io~1hook-delete-policy
+        value: HookSucceeded
   - target:
       group: apps
       version: v1

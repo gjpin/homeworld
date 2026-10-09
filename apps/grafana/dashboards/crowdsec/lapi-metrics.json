@@ -19,6 +19,7 @@
       "version": "1.0.0"
     }
   ],
+  "description": "Adapted from the official CrowdSec dashboards (crowdsecurity/grafana-dashboards, dashboards_v5 LAPI metrics); __inputs converted to a datasource variable; datasource hardcoded to the in-cluster victoriametrics uid.",
   "annotations": {
     "list": [
       {

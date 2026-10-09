@@ -11,6 +11,9 @@ image:
 
 hostUsers: false
 
+# Prefer the chart-native key over a kustomize patch (AGENTS.md).
+runtimeClassName: gvisor
+
 resources:
   requests:
     cpu: 10m
@@ -28,6 +31,7 @@ serviceMonitor:
 
 webhook:
   hostUsers: false
+  runtimeClassName: gvisor
   image:
     pullPolicy: IfNotPresent
   resources:
@@ -42,6 +46,7 @@ webhook:
 
 certController:
   hostUsers: false
+  runtimeClassName: gvisor
   image:
     pullPolicy: IfNotPresent
   resources:

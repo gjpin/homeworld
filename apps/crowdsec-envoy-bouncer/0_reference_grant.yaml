@@ -1,3 +1,7 @@
+# The Gateway API ReferenceGrant schema caps spec.from at 16 items, and the
+# SecurityPolicies in every protected namespace reference the bouncer Service
+# in this namespace, so the grants split across two objects: this file carries
+# the first sixteen namespaces, and 0_reference_grant_2.yaml the remainder.
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
@@ -50,22 +54,10 @@ spec:
       namespace: qbittorrent
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
-      namespace: victoria-metrics
-    - group: gateway.envoyproxy.io
-      kind: SecurityPolicy
-      namespace: rustfs-operator
-    - group: gateway.envoyproxy.io
-      kind: SecurityPolicy
       namespace: rustfs
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
-      namespace: velero-ui
-    - group: gateway.envoyproxy.io
-      kind: SecurityPolicy
-      namespace: vaultwarden
-    - group: gateway.envoyproxy.io
-      kind: SecurityPolicy
-      namespace: woodpecker
+      namespace: rustfs-operator
   to:
     - group: ""
       kind: Service

@@ -31,6 +31,7 @@
       "version": ""
     }
   ],
+  "description": "Adapted from the official CrowdSec dashboards (crowdsecurity/grafana-dashboards, dashboards_v5 overview); __inputs converted to a datasource variable; datasource hardcoded to the in-cluster victoriametrics uid.",
   "annotations": {
     "list": [
       {

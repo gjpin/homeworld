@@ -116,6 +116,10 @@ configMapGenerator:
   - name: grafana-dashboard-metrics-server
     files:
       - json=dashboards/metrics-server/metrics-server.json
+  # kube-state-metrics
+  - name: grafana-dashboard-kube-state-metrics
+    files:
+      - json=dashboards/kube-state-metrics/kube-state-metrics.json
   # notesnook
   - name: grafana-dashboard-notesnook
     files:
@@ -136,6 +140,10 @@ configMapGenerator:
   - name: grafana-dashboard-rustfs
     files:
       - json=dashboards/rustfs/rustfs.json
+  # snapshot-controller
+  - name: grafana-dashboard-snapshot-controller
+    files:
+      - json=dashboards/snapshot-controller/snapshot-controller.json
   # rustfs-operator
   - name: grafana-dashboard-rustfs-operator
     files:
@@ -164,36 +172,38 @@ resources:
   - 0_gateway.yaml
   - 0_grafana.yaml
   - 0_service_monitor.yaml
-  - 0_dashboards_argocd.yaml
-  - 0_dashboards_authelia.yaml
-  - 0_dashboards_cert-manager.yaml
-  - 0_dashboards_cilium.yaml
-  - 0_dashboards_cloudnative-pg.yaml
-  - 0_dashboards_collabora.yaml
-  - 0_dashboards_crowdsec.yaml
-  - 0_dashboards_crowdsec-envoy-bouncer.yaml
-  - 0_dashboards_dragonfly-operator.yaml
-  - 0_dashboards_envoy-gateway.yaml
-  - 0_dashboards_external-dns.yaml
-  - 0_dashboards_external-secrets.yaml
-  - 0_dashboards_forgejo.yaml
-  - 0_dashboards_generic-device-plugin.yaml
-  - 0_dashboards_grafana.yaml
-  - 0_dashboards_grafana-operator.yaml
-  - 0_dashboards_homeassistant.yaml
-  - 0_dashboards_immich.yaml
-  - 0_dashboards_kubelet-serving-cert-approver.yaml
-  - 0_dashboards_longhorn.yaml
-  - 0_dashboards_metrics-server.yaml
-  - 0_dashboards_notesnook.yaml
-  - 0_dashboards_opencloud.yaml
-  - 0_dashboards_otel-collector.yaml
-  - 0_dashboards_qbittorrent.yaml
-  - 0_dashboards_rustfs.yaml
-  - 0_dashboards_rustfs-operator.yaml
-  - 0_dashboards_velero.yaml
-  - 0_dashboards_victoria-metrics.yaml
-  - 0_dashboards_woodpecker.yaml
+  - 1_dashboards_argocd.yaml
+  - 1_dashboards_authelia.yaml
+  - 1_dashboards_cert-manager.yaml
+  - 1_dashboards_cilium.yaml
+  - 1_dashboards_cloudnative-pg.yaml
+  - 1_dashboards_collabora.yaml
+  - 1_dashboards_crowdsec.yaml
+  - 1_dashboards_crowdsec-envoy-bouncer.yaml
+  - 1_dashboards_dragonfly-operator.yaml
+  - 1_dashboards_envoy-gateway.yaml
+  - 1_dashboards_external-dns.yaml
+  - 1_dashboards_external-secrets.yaml
+  - 1_dashboards_forgejo.yaml
+  - 1_dashboards_generic-device-plugin.yaml
+  - 1_dashboards_grafana.yaml
+  - 1_dashboards_grafana-operator.yaml
+  - 1_dashboards_homeassistant.yaml
+  - 1_dashboards_immich.yaml
+  - 1_dashboards_kube-state-metrics.yaml
+  - 1_dashboards_kubelet-serving-cert-approver.yaml
+  - 1_dashboards_longhorn.yaml
+  - 1_dashboards_metrics-server.yaml
+  - 1_dashboards_notesnook.yaml
+  - 1_dashboards_opencloud.yaml
+  - 1_dashboards_otel-collector.yaml
+  - 1_dashboards_qbittorrent.yaml
+  - 1_dashboards_rustfs.yaml
+  - 1_dashboards_rustfs-operator.yaml
+  - 1_dashboards_snapshot-controller.yaml
+  - 1_dashboards_velero.yaml
+  - 1_dashboards_victoria-metrics.yaml
+  - 1_dashboards_woodpecker.yaml
   - 0_folders.yaml
   - 0_victoriametrics_datasource.yaml
   - 0_prometheus_datasource.yaml

@@ -40,8 +40,10 @@ patches:
   # components. The agent/envoy/operator run as root with eBPF/datapath
   # capabilities (documented privileged exceptions — see docs/pod-security.md),
   # but the chart templates do not expose allowPrivilegeEscalation or
-  # runAsNonRoot for them, so pin both explicitly: no privilege escalation
-  # even for the root user, and an explicit (not implicit) root declaration.
+  # runAsNonRoot for them, so pin both explicitly under securityContext: no
+  # privilege escalation even for the root user, and an explicit (not
+  # implicit) root declaration. The operator's chart-provided securityContext
+  # already forbids privilege escalation; only the root declaration is added.
   - target:
       group: apps
       version: v1
@@ -50,10 +52,10 @@ patches:
       namespace: ^cilium$
     patch: |-
       - op: add
-        path: /spec/template/spec/containers/0/allowPrivilegeEscalation
+        path: /spec/template/spec/containers/0/securityContext/allowPrivilegeEscalation
         value: false
       - op: add
-        path: /spec/template/spec/containers/0/runAsNonRoot
+        path: /spec/template/spec/containers/0/securityContext/runAsNonRoot
         value: false
   - target:
       group: apps
@@ -63,10 +65,10 @@ patches:
       namespace: ^cilium$
     patch: |-
       - op: add
-        path: /spec/template/spec/containers/0/allowPrivilegeEscalation
+        path: /spec/template/spec/containers/0/securityContext/allowPrivilegeEscalation
         value: false
       - op: add
-        path: /spec/template/spec/containers/0/runAsNonRoot
+        path: /spec/template/spec/containers/0/securityContext/runAsNonRoot
         value: false
   - target:
       group: apps
@@ -76,15 +78,16 @@ patches:
       namespace: ^cilium$
     patch: |-
       - op: add
-        path: /spec/template/spec/containers/0/allowPrivilegeEscalation
-        value: false
-      - op: add
-        path: /spec/template/spec/containers/0/runAsNonRoot
+        path: /spec/template/spec/containers/0/securityContext/runAsNonRoot
         value: false
   # --- requests/limits for the cilium-agent init containers that ship
   # without them (install-cni-binaries already declares upstream cpu/memory
   # requests; only limits and the ephemeral-storage request are added so the
-  # higher upstream values are preserved).
+  # higher upstream values are preserved). Talos pre-mounts bpffs
+  # (bpf.autoMount.enabled: false in values.yaml), so no privileged
+  # mount-bpf-fs init container renders and the remaining inits are indexed
+  # accordingly: config(0), apply-sysctl-overwrites(1), clean-cilium-state(2),
+  # install-cni-binaries(3).
   - target:
       group: apps
       version: v1
@@ -102,13 +105,10 @@ patches:
         path: /spec/template/spec/initContainers/2/resources
         value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
       - op: add
-        path: /spec/template/spec/initContainers/3/resources
-        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
-      - op: add
-        path: /spec/template/spec/initContainers/4/resources/requests/ephemeral-storage
+        path: /spec/template/spec/initContainers/3/resources/requests/ephemeral-storage
         value: 64Mi
       - op: add
-        path: /spec/template/spec/initContainers/4/resources/limits
+        path: /spec/template/spec/initContainers/3/resources/limits
         value: {"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}
   # --- resource-scoped scanner exceptions
   - target:
@@ -128,11 +128,8 @@ patches:
         path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
         value: The pinned upstream agent image and its init containers write runtime state (generated CNI configuration, staged binaries) to their root filesystems.
       - op: add
-        path: /metadata/annotations/ignore-check.kube-linter.io~1privileged-container
-        value: The mount-bpf-fs init container mounts the bpffs pseudo-filesystem and requires the privileged context for the kube-proxy replacement datapath.
-      - op: add
         path: /metadata/annotations/ignore-check.kube-linter.io~1privilege-escalation-container
-        value: The cilium-agent and its BPF init containers require SYS_ADMIN (and the privileged mount-bpf-fs context) for the kube-proxy replacement datapath.
+        value: The cilium-agent's BPF init containers require privileged execution to stage the datapath before the agent container starts; the agent container itself pins allowPrivilegeEscalation false via the securityContext patch in this kustomization.
       - op: add
         path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
         value: The upstream agent image and its init containers run with the preserved root context required for BPF and host datapath access.

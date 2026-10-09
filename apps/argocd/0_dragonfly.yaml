@@ -1,0 +1,79 @@
+# https://www.dragonflydb.io/docs/managing-dragonfly/operator/dragonfly-configuration
+# Replaces the argo-cd chart's bundled Redis (redis.enabled: false): the
+# controllers cache against this in-namespace Dragonfly instance through the
+# chart's externalRedis block (redis.server: dragonfly.argocd.svc:6379).
+---
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  labels:
+    app.kubernetes.io/part-of: dragonfly-operator
+    app.kubernetes.io/created-by: dragonfly-operator
+  name: dragonfly
+  namespace: argocd
+spec:
+  replicas: 1
+  # The operator's generated Kubernetes NetworkPolicy (CRD default) restricts
+  # the admin metrics port to operator and peer pods, which would block the
+  # OpenTelemetry collector's scrape; CiliumNetworkPolicies govern this
+  # workload instead (allow-argocd-dragonfly-ingress).
+  networkPolicyEnabled: false
+  # Pin the operand image so it cannot drift with the operator's built-in
+  # default; kept in sync with apps/authelia/0_dragonfly.yaml.
+  image: docker.dragonflydb.io/dragonflydb/dragonfly:v2.0.2
+  imagePullPolicy: IfNotPresent
+  # Dragonfly's daily release check (--version_check) defaults to on and
+  # polls dragonflydb.io; disabled per the AGENTS.md upgrade-checker rule.
+  args:
+    - --version_check=false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 50Mi
+    limits:
+      cpu: 500m
+      memory: 2Gi
+  authentication:
+    passwordFromSecret:
+      name: dragonfly-credentials
+      key: password
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+  podSecurityContext:
+    runAsNonRoot: true
+    # The pinned image declares no USER and only drops to the dfly user via
+    # setpriv when started as root; run the container as the image's dfly
+    # user directly so runAsNonRoot holds under Restricted admission.
+    runAsUser: 999
+    runAsGroup: 999
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    runAsNonRoot: true
+    runAsUser: 999
+    runAsGroup: 999
+    seccompProfile:
+      type: RuntimeDefault
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: dragonfly
+  namespace: argocd
+spec:
+  # The operator-generated pods expose the admin metrics endpoint on the
+  # named "admin" port (upstream dragonfly-operator monitoring/podMonitor
+  # pattern); the scrape path is opened by the namespace's
+  # allow-argocd-dragonfly-ingress policy and the
+  # allow-otel-pod-scrape-argocd egress.
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: dragonfly
+      app.kubernetes.io/instance: dragonfly
+  podMetricsEndpoints:
+    - port: admin
+      interval: 60s
