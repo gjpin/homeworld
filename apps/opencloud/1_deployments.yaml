@@ -124,7 +124,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: unzip
-          image: docker.io/opencloudeu/web-extensions:unzip-2.2.0
+          image: docker.io/opencloudeu/web-extensions:unzip-2.2.1
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
