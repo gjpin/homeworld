@@ -1,0 +1,26 @@
+# https://woodpecker-ci.org/docs/next/administration/backends/kubernetes
+# https://kubernetes.io/docs/concepts/policy/limit-ranges/
+#
+# Pipeline step pods created by the Kubernetes backend get no default
+# resources, and the upstream docs recommend a LimitRange in the
+# namespace. The defaults keep unresourced steps off the node's memory
+# entirely while staying generous enough for typical build steps; steps
+# that need more set their own requests/limits in the pipeline YAML
+# (upstream supports per-step resources).
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: pipeline-step-defaults
+  namespace: woodpecker
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "1"
+        memory: 1Gi
+      defaultRequest:
+        cpu: 50m
+        memory: 128Mi

@@ -9,7 +9,7 @@ The cluster runs Cilium as its CNI in kube-proxy-replacement mode. This page rec
 | Machine config: CNI set to `none` (Helm/Cilium CLI methods) | `KubeFlannelCNIConfig` deleted in `/tmp/cilium-talos-prereqs.yaml`, applied via `--config-patch-control-plane` at `gen config` time ([docs/talos.md](talos.md)) |
 | Machine config (kube-proxy-free): kube-proxy disabled | `KubeProxyConfig` with `enabled: false` in the same patch |
 | IPAM mode must be `kubernetes` | `ipam.mode: kubernetes` in `apps/cilium/helm/values.yaml` |
-| Talos already mounts cgroupv2 and bpffs; do not let Cilium remount them | `cgroup.autoMount.enabled: false` and `cgroup.hostRoot: /sys/fs/cgroup` in values |
+| Talos already mounts cgroupv2 and bpffs; do not let Cilium remount them | `cgroup.autoMount.enabled: false` with `cgroup.hostRoot: /sys/fs/cgroup`, and `bpf.autoMount.enabled: false`, in values (the latter also drops the privileged `mount-bpf-fs` init container from the agent DaemonSet) |
 | `SYS_MODULE` dropped from the capability set (Talos forbids workloads loading kernel modules) | `securityContext.capabilities` override in values (`ciliumAgent` and `cleanCiliumState` without `SYS_MODULE`/`SYSLOG`) |
 | KubePrism enabled and configured on port 7445 | enabled on port 7445 by default (no `KubePrismConfig` patch needed); the chart targets `k8sServiceHost: localhost` / `k8sServicePort: "7445"` |
 
@@ -21,5 +21,6 @@ The cluster runs Cilium as its CNI in kube-proxy-replacement mode. This page rec
 
 ## Operational notes
 
+- **Host firewall disabled:** the Cilium host firewall stays off. The host-network `cilium-agent`/`cilium-envoy`/`cilium-operator` pods are outside Cilium's policy scope either way, so node-level policy for them is accepted as absent (also recorded in [docs/network-policies.md](network-policies.md)); enabling the host firewall would require host-scoped policies for all node traffic without adding enforcement for these pods.
 - Rebuilding a node requires re-running the bootstrap ([docs/talos.md](talos.md)); the machine configuration alone does not restore the CNI. This is the accepted trade-off of the manifest-apply bootstrap in exchange for a single owner (Argo CD) and no machine-config embedded render to keep fresh.
 - Upgrades are git-driven from the first Argo CD sync on: Renovate opens one version-aligned PR bumping both the Helm chart and the CRD tag, and the `cilium` Argo CD application rolls them out.

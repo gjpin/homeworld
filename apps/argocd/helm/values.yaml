@@ -4,6 +4,9 @@ namespaceOverride: argocd
 global:
   nodeSelector:
     node-role.kubernetes.io/homelab: homelab
+  # Prefer the chart-native key over a kustomize patch (AGENTS.md): every
+  # Argo CD component pod runs under the gVisor runtime.
+  runtimeClassName: gvisor
   networkPolicy:
     create: false
 crds:
@@ -34,21 +37,10 @@ configs:
         - email
         - groups
       enablePKCEAuthentication: true
-    resource.customizations.health.argoproj.io_Application: |
-      hs = {}
-      hs.status = "Progressing"
-      hs.message = ""
-      if obj.status ~= nil then
-        if obj.status.health ~= nil then
-          hs.status = obj.status.health.status
-          if obj.status.health.message ~= nil then
-            hs.message = obj.status.health.message
-          end
-        end
-      end
-      return hs
   rbac:
-    policy.default: role:readonly
+    # No access unless granted: Authelia admits any two-factor user to the
+    # argocd client, so only argocd-admin and the homepage account are mapped.
+    policy.default: ""
     policy.csv: |
       g, argocd-admin, role:admin
       g, homepage, role:readonly
@@ -84,12 +76,20 @@ dex:
   enabled: false
   name: argocd-dex-server
 # redis
+# The repo provisions every Redis-compatible datastore with the Dragonfly
+# operator; the chart's bundled Redis stays disabled and the controllers use
+# a Dragonfly instance in this namespace (apps/argocd/0_dragonfly.yaml).
 redis:
-  name: argocd-redis
-  metrics:
-    enabled: false
-    serviceMonitor:
-      enabled: false
+  enabled: false
+# Point every Redis client at the in-namespace Dragonfly instance. The chart
+# reads the existingSecret's `redis-password` key (and optional
+# `redis-username`); the ExternalSecret apps/argocd/-1_secrets.yaml renders
+# both that key and the `password` key the Dragonfly CR's passwordFromSecret
+# references, from the same Infisical value.
+externalRedis:
+  host: dragonfly.argocd.svc.cluster.local
+  port: 6379
+  existingSecret: dragonfly-credentials
 # application set
 applicationSet:
   name: argocd-applicationset-controller
@@ -101,6 +101,10 @@ applicationSet:
 # notifications
 notifications:
   name: argocd-notifications-controller
+  # Context URL used in notification templates; nothing is subscribed today —
+  # set before enabling any subscription, or templates render with the
+  # chart-default https://argocd.example.com.
+  argocdUrl: https://argocd.${BASE_DOMAIN}
   metrics:
     enabled: true
     serviceMonitor:

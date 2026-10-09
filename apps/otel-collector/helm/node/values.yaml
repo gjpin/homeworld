@@ -3,6 +3,9 @@ namespaceOverride: otel-collector-node
 mode: daemonset
 image:
   repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
+# DaemonSet agents run only on homelab worker nodes.
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab
 podSecurityContext:
   runAsNonRoot: true
   seccompProfile:
@@ -59,7 +62,7 @@ presets:
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kubeletstatsreceiver
   kubeletMetrics:
     enabled: true
-  # k8sattributes processor
+  # k8s_attributes processor
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/k8sattributesprocessor
   kubernetesAttributes:
     enabled: true
@@ -91,15 +94,15 @@ config:
       spike_limit_percentage: 25
   exporters:
     debug: null
-    otlphttp/victoriametrics:
+    otlp_http/victoriametrics:
       compression: gzip
       encoding: proto
       metrics_endpoint: http://victoria-metrics.victoria-metrics.svc.cluster.local:8428/opentelemetry/v1/metrics
-    otlphttp/victorialogs:
+    otlp_http/victorialogs:
       compression: gzip
       encoding: proto
       logs_endpoint: http://victoria-logs.victoria-metrics.svc.cluster.local:9428/insert/opentelemetry/v1/logs
-    otlphttp/victoriatraces:
+    otlp_http/victoriatraces:
       compression: gzip
       encoding: proto
       traces_endpoint: http://victoria-traces.victoria-metrics.svc.cluster.local:10428/insert/opentelemetry/v1/traces
@@ -123,26 +126,26 @@ config:
           - otlp
         processors:
           - memory_limiter
-          - k8sattributes
+          - k8s_attributes
           - batch
         exporters:
-          - otlphttp/victorialogs
+          - otlp_http/victorialogs
       metrics:
         receivers:
           - otlp
           - prometheus
         processors:
           - memory_limiter
-          - k8sattributes
+          - k8s_attributes
           - batch
         exporters:
-          - otlphttp/victoriametrics
+          - otlp_http/victoriametrics
       traces:
         receivers:
           - otlp
         processors:
           - memory_limiter
-          - k8sattributes
+          - k8s_attributes
           - batch
         exporters:
-          - otlphttp/victoriatraces
+          - otlp_http/victoriatraces

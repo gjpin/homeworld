@@ -256,7 +256,12 @@ func (r *Runner) serviceProbe(ctx context.Context, cfg *config.ServiceProbe) err
 			lastErr = err
 		} else {
 			url := fmt.Sprintf("%s://127.0.0.1:%d%s", scheme, localPort, path)
-			code, body, err := kube.HTTPGetWithBasicAuth(ctx, url, 10*time.Second, cfg.Username, cfg.Password)
+			code, body, err := kube.HTTPGetWithBasicAuth(ctx, url, 10*time.Second, kube.ProbeOptions{
+				Username: cfg.Username,
+				Password: cfg.Password,
+				Host:     cfg.Host,
+				Headers:  cfg.Headers,
+			})
 			stop()
 			if err == nil {
 				if err := matchServiceBody(code, body, cfg.BodyContains); err == nil {

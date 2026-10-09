@@ -89,11 +89,12 @@ done
 echo "node is up"
 
 # Prepare Cilium; no cluster access needed yet
-# Upstream Cilium source: CRDs only (chart ships none)
-git clone --depth 1 --branch v1.20.2 https://github.com/cilium/cilium.git /tmp/cilium-src
+# Upstream Cilium source: CRDs only (chart ships none). The tag always
+# matches the Cilium chart pinned in apps/cilium/helm/kustomization.yaml.
+git clone https://github.com/gjpin/homeworld.git /tmp/homeworld
+git clone --depth 1 --branch "$(yq '.helmCharts[0].version' /tmp/homeworld/apps/cilium/helm/kustomization.yaml)" https://github.com/cilium/cilium.git /tmp/cilium-src
 
 # Render the release Argo CD will adopt
-git clone https://github.com/gjpin/homeworld.git /tmp/homeworld
 kubectl kustomize --enable-helm /tmp/homeworld/apps/cilium/helm > /tmp/cilium.yaml
 
 # Helm renders no release namespace
@@ -181,7 +182,21 @@ kubectl create secret generic universal-auth-credentials \
 ```
 
 ## Configure WireGuard
-1. Follow https://docs.siderolabs.com/talos/v1.14/networking/advanced/wireguard
+Cilium's WireGuard encryption (`encryption.type: wireguard` in
+apps/cilium/helm/values.yaml) expects every node to carry a WireGuard key.
+Key material is node-local secret material and stays out of this git tree:
+
+1. Generate a keypair per node:
+   `wg genkey | tee privatekey | wg pubkey > publickey`.
+2. Distribute the private keys through the Talos machine config following
+   https://docs.siderolabs.com/talos/v1.14/networking/advanced/wireguard
+   (keys are injected per node, never committed here).
+3. Cilium discovers peer public keys from the cluster automatically once
+   each node's key exists (node-to-node encryption; see
+   https://docs.cilium.io/en/stable/security/network/encryption-wireguard/).
+
+Generated keys must never land in this repository or in Infisical project
+secrets: they are per-node machine config values.
 
 ## Longhorn
 ```bash
@@ -214,13 +229,10 @@ for ip in "${CONTROL_PLANE_IPS[@]}"; do
     talosctl patch machineconfig --nodes "$ip" --patch @/tmp/longhorn-user-disks.yaml
 done
 
-# Reboot the nodes
-for ip in "${CONTROL_PLANE_IPS[@]}"; do
-  echo "Rebooting node: $ip"
-  talosctl reboot --nodes "$ip"
-done
-
-# Expose paths to kubelet
+# Expose paths to kubelet: Longhorn manager and engine pods mount the data
+# directories through hostPath, which requires the kubelet extraMounts.
+# The patch must be applied (and the node rebooted) BEFORE the longhorn
+# Argo CD application first syncs.
 cat >/tmp/longhorn-paths.yaml <<'EOF'
 machine:
   kubelet:
@@ -234,7 +246,34 @@ machine:
         source: /var/mnt/longhorn-2
         options: [bind, rshared, rw]
 EOF
+
+# Apply the kubelet extraMounts patch to storage nodes
+for ip in "${CONTROL_PLANE_IPS[@]}"; do
+    echo "Applying kubelet extraMounts patch to node: $ip"
+    talosctl patch machineconfig --nodes "$ip" --patch @/tmp/longhorn-paths.yaml
+done
+
+# Reboot the nodes so both machine config patches take effect
+for ip in "${CONTROL_PLANE_IPS[@]}"; do
+  echo "Rebooting node: $ip"
+  talosctl reboot --nodes "$ip"
+done
 ```
+
+The Longhorn values pin `defaultSettings.defaultDataPath: /var/mnt/longhorn-1`, so
+the first Longhorn disk is wired declaratively. The second disk
+(`/var/mnt/longhorn-2`) is added to the node through the Longhorn node CR once
+the cluster is up — node names are host-specific and cannot live in git — for
+example:
+
+```bash
+kubectl -n longhorn-system patch node.longhorn.io <node-name> --type merge \
+  -p '{"spec":{"disks":{"longhorn-2":{"path":"/var/mnt/longhorn-2","allowScheduling":true,"storageReserved":0,"tags":[],"diskType":"filesystem"}}}}'
+```
+
+The same one-time, host-specific step applies after re-provisioning a node (the
+`nodes.longhorn.io` object is created by longhorn-manager with only the default
+disk).
 
 ## References:
 - [Getting Started](https://docs.siderolabs.com/talos/v1.14/getting-started/getting-started)

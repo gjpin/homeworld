@@ -16,8 +16,12 @@ metadata:
 spec:
   podSecurityContext:
     runAsNonRoot: true
+    runAsUser: 999
+    runAsGroup: 999
   containerSecurityContext:
     runAsNonRoot: true
+    runAsUser: 999
+    runAsGroup: 999
     capabilities:
       drop:
         - ALL
@@ -29,8 +33,6 @@ metadata:
   namespace: sample
 spec:
   replicas: 1
-  strategy:
-    type: Recreate
   template:
     spec:
       containers:
@@ -42,12 +44,9 @@ metadata:
   name: grafana
   namespace: grafana
 spec:
-  persistentVolumeClaim:
-    metadata:
-      name: grafana-pvc
-    spec:
-      accessModes:
-        - ReadWriteOnce
+  config:
+    server:
+      root_url: https://grafana.e2e.local
 ---
 apiVersion: apps/v1
 kind: Deployment

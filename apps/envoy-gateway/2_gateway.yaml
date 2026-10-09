@@ -19,15 +19,18 @@ spec:
     - type: IPAddress
       value: ${EXTERNAL_IP}
   listeners:
+    # No port-80 listener by design: ACME is DNS-01 via Cloudflare, so no
+    # HTTP-01 challenge path is needed; adding HTTP would only be a footgun.
     - name: envoy-https
       protocol: HTTPS
       port: 443
       hostname: "envoy.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
-          from: all
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
           - name: envoy-tls-cert
             kind: Secret
+            group: ""

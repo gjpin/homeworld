@@ -51,8 +51,5 @@ patches:
       namespace: ^authelia$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-user-group-id,pod-networkpolicy,pod-probes-identical,deployment-replicas,container-image-pull-policy
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: The pinned image requires UID/GID 1000, the chart intentionally shares its health endpoint between probes, Cilium enforces the network policy, one replica is intentional with HPA disabled, and the pinned image is pulled IfNotPresent to reuse the node cache.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1env-var-secret
+        value: The _FILE-suffixed environment variables carry paths to mounted Infisical-provided secret files, not inline secret values; the env-var-secret name pattern is a false positive.

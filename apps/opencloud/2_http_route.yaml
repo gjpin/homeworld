@@ -12,9 +12,14 @@ spec:
     - name: envoy
       namespace: opencloud
       sectionName: cloud-https
+      group: gateway.networking.k8s.io
+      kind: Gateway
   hostnames:
     - "cloud.${BASE_DOMAIN}"
   rules:
     - backendRefs:
         - name: opencloud
           port: 9200
+          group: ""
+          kind: Service
+          weight: 1

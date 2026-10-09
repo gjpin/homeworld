@@ -5,8 +5,9 @@ additionalLabels:
   app: dragonfly-operator
 
 deploymentAnnotations:
-  kube-score/ignore: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-replicas,container-image-pull-policy
-  security.homeworld/exception-reason: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+  ignore-check.kube-linter.io/liveness-port: The upstream chart probes the health endpoint on undeclared port 8081 instead of a declared containerPort.
+  ignore-check.kube-linter.io/no-read-only-root-fs: The pinned upstream operator image writes to its root filesystem; overriding it would break runtime file access.
+  ignore-check.kube-linter.io/readiness-port: The upstream chart probes the health endpoint on undeclared port 8081 instead of a declared containerPort.
 
 podSecurityContext:
   runAsNonRoot: true
@@ -27,6 +28,16 @@ manager:
       ephemeral-storage: 2Gi
 
 rbacProxy:
+  # Single rbacProxy block: a duplicate key here would silently drop the
+  # resources below when the proxy is ever re-enabled (YAML last-wins).
+  # With the kube-rbac-proxy sidecar disabled, the manager binds its
+  # metrics listener to :8080 directly (the binary's default) and the
+  # ServiceMonitor scrapes the plain `metrics` endpoint; Cilium restricts
+  # the port to the OpenTelemetry collector, matching every other operator
+  # in this cluster. (With the proxy enabled the chart's monitor would
+  # instead use a bearerTokenFile endpoint, which the Target Allocator's
+  # denyFSAccessThroughSMs hardening rejects.)
+  enabled: false
   resources:
     requests:
       cpu: 10m
@@ -36,7 +47,6 @@ rbacProxy:
       cpu: 500m
       memory: 128Mi
       ephemeral-storage: 2Gi
-
 serviceMonitor:
   enabled: true
   interval: 60s

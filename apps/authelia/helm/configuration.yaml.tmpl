@@ -79,8 +79,6 @@ definitions:
   user_attributes:
     immich_role:
       expression: '"immich-admin" in groups ? "admin" : "user"'
-    vaultwarden_roles:
-      expression: '"vaultwarden-admin" in groups ? ["admin"] : "vaultwarden-user" in groups ? ["user"] : [""]'
 identity_providers:
   oidc:
     lifespans:
@@ -125,11 +123,6 @@ identity_providers:
           - email
           - name
           - groups
-      vaultwarden:
-        id_token:
-          - vaultwarden_roles
-        custom_claims:
-          vaultwarden_roles: {}
     authorization_policies:
       opencloud:
         default_policy: deny
@@ -140,6 +133,24 @@ identity_providers:
               - group:opencloud-spaceadmin
               - group:opencloud-user
               - group:opencloud-user-light
+      # Platform gates the Envoy Gateway OIDC routes (the browser UIs without
+      # usable app-native auth). "platform" deliberately breaks the
+      # <app>-admin/<app>-user naming: it is a cross-app group, not tied to a
+      # single application (docs/oidc.md).
+      platform:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject:
+              - group:platform
+      # Argo CD grants non-admins no access (policy.default is empty), so
+      # sign-in is limited to the group that maps to role:admin.
+      argocd:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject:
+              - group:argocd-admin
     jwks:
       - key_id: opencloud-rs256
         algorithm: RS256
@@ -149,9 +160,6 @@ identity_providers:
       immich:
         claims:
           - immich_role
-      vaultwarden:
-        claims:
-          - vaultwarden_roles
     cors:
       endpoints:
         - authorization
@@ -170,6 +178,23 @@ identity_providers:
         - https://vault.${BASE_DOMAIN}
         - https://home.${BASE_DOMAIN}
     clients:
+      # OpenCloud clients deviate from the official Authelia guide
+      # (https://www.authelia.com/integration/openid-connect/clients/opencloud/)
+      # in three deliberate ways; all three are internally consistent with
+      # apps/opencloud/1_deployments.yaml and docs/oidc.md:
+      #   1. Client IDs are `web` / `OpenCloudDesktop` / `OpenCloudAndroid` /
+      #      `OpenCloudIOS` instead of the guide's opencloud/opencloud-desktop/
+      #      opencloud-android/opencloud-ios — matching OC_OIDC_CLIENT_ID and
+      #      the WEBFINGER_* URLs the OpenCloud web config uses.
+      #   2. authorization_policy is the `opencloud` group gate (deny by
+      #      default; only the opencloud-admin/spaceadmin/user/user-light
+      #      groups may sign in) instead of the guide's two_factor — a
+      #      least-privilege restriction, not a relaxation.
+      #   3. claims_policy `opencloud` restores group claims in the ACCESS
+      #      token: OpenCloud verifies the access token as a JWT
+      #      (PROXY_OIDC_ACCESS_TOKEN_VERIFY_METHOD=jwt) and maps
+      #      PROXY_ROLE_ASSIGNMENT_* from the oidc/groups claim, so it needs
+      #      them embedded there rather than hydrated from UserInfo.
       - client_id: web
         client_name: OpenCloud Web
         public: true
@@ -181,6 +206,7 @@ identity_providers:
         consent_mode: pre-configured
         pre_configured_consent_duration: 1 week
         access_token_signed_response_alg: RS256
+        userinfo_signed_response_alg: 'none'
         redirect_uris:
           - https://cloud.${BASE_DOMAIN}/
           - https://cloud.${BASE_DOMAIN}/oidc-callback.html
@@ -207,6 +233,7 @@ identity_providers:
         consent_mode: pre-configured
         pre_configured_consent_duration: 1 week
         access_token_signed_response_alg: RS256
+        userinfo_signed_response_alg: 'none'
         redirect_uris:
           - http://127.0.0.1
           - http://localhost
@@ -224,6 +251,7 @@ identity_providers:
         consent_mode: pre-configured
         pre_configured_consent_duration: 1 week
         access_token_signed_response_alg: RS256
+        userinfo_signed_response_alg: 'none'
         redirect_uris:
           - oc://android.opencloud.eu
         scopes: *opencloud_scopes
@@ -240,11 +268,17 @@ identity_providers:
         consent_mode: pre-configured
         pre_configured_consent_duration: 1 week
         access_token_signed_response_alg: RS256
+        userinfo_signed_response_alg: 'none'
         redirect_uris:
           - oc://ios.opencloud.eu
+          - oc.ios://ios.opencloud.eu
         scopes: *opencloud_scopes
         grant_types: *opencloud_grants
         response_types: *opencloud_responses
+      # Deviates from the official grafana guide (RS256 access tokens
+      # instead of `none`): Grafana consumes the access token as a UserInfo
+      # bearer JWT, which RS256 satisfies; the repo-wide RS256 rule keeps
+      # every confidential client's tokens verifiable.
       - client_id: grafana
         client_name: Grafana
         client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_grafana" | msquote }}
@@ -268,6 +302,9 @@ identity_providers:
           - authorization_code
         response_types: &app_responses
           - code
+      # Deviates from the official forgejo guide (RS256 access tokens
+      # instead of `none`): Forgejo's OIDC library validates signed access
+      # tokens at the UserInfo endpoint, which RS256 satisfies.
       - client_id: forgejo
         client_name: Forgejo
         client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_forgejo" | msquote }}
@@ -285,11 +322,17 @@ identity_providers:
         scopes: *app_scopes
         grant_types: *app_grants
         response_types: *app_responses
+      # Deviates from the official argocd guide (require_pkce: true +
+      # RS256 + the profile scope instead of the guide's no-PKCE /
+      # access_token: none): Argo CD supports PKCE S256
+      # (enablePKCEAuthentication), the shared `apps` claims policy embeds
+      # groups in the ID token for the no-UserInfo role mapping, and RS256
+      # access tokens validate as UserInfo bearers.
       - client_id: argocd
         client_name: Argo CD
         client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_argocd" | msquote }}
         public: false
-        authorization_policy: two_factor
+        authorization_policy: argocd
         claims_policy: apps
         require_pkce: true
         pkce_challenge_method: S256
@@ -306,7 +349,7 @@ identity_providers:
         client_name: Argo CD (CLI)
         public: true
         token_endpoint_auth_method: none
-        authorization_policy: two_factor
+        authorization_policy: argocd
         claims_policy: apps
         require_pkce: true
         pkce_challenge_method: S256
@@ -315,8 +358,14 @@ identity_providers:
         access_token_signed_response_alg: RS256
         redirect_uris:
           - http://localhost:8085/auth/callback
+        # `profile` must be granted here even though the browser client's
+        # guide omits it: Argo CD's oidc.config requests the same
+        # requestedScopes for the browser and CLI flows (one config block,
+        # cliClientID), so Authelia would reject `argocd login --sso` with
+        # invalid_scope while browser login kept working.
         scopes:
           - openid
+          - profile
           - offline_access
           - groups
           - email
@@ -325,7 +374,8 @@ identity_providers:
           - refresh_token
         response_types:
           - code
-        token_endpoint_auth_method: none
+      # Deviates from the official immich guide (RS256 access tokens instead of
+      # none, plus groups/immich scopes with the immich claims policy mapping groups to the immich_role admin/user claim).
       - client_id: immich
         client_name: Immich
         client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_immich" | msquote }}
@@ -354,10 +404,13 @@ identity_providers:
         client_name: Velero UI
         client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_velero_ui" | msquote }}
         public: false
-        authorization_policy: two_factor
+        # velero-ui has no roles: every session can restore and delete any
+        # backup, so sign-in is gated to the platform group.
+        authorization_policy: platform
         claims_policy: apps
-        require_pkce: true
-        pkce_challenge_method: S256
+        # velero-ui's passport-oauth2 flow sends no PKCE, so it cannot be
+        # required for this client.
+        require_pkce: false
         consent_mode: pre-configured
         pre_configured_consent_duration: 1 week
         # velero-ui's passport-oauth2/oauth library only supports sending
@@ -373,7 +426,10 @@ identity_providers:
         client_name: RustFS
         client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_rustfs" | msquote }}
         public: false
-        authorization_policy: two_factor
+        # The platform group maps to RustFS's full-admin platform policy
+        # (apps/rustfs/0_user_policies.yaml), so sign-in is gated to that
+        # group rather than any two-factor user.
+        authorization_policy: platform
         claims_policy: apps
         require_pkce: true
         pkce_challenge_method: S256
@@ -389,12 +445,16 @@ identity_providers:
         scopes: *app_scopes
         grant_types: *app_grants
         response_types: *app_responses
+      # Deviates from the official vaultwarden guide (RS256 access tokens
+      # instead of `none`): upstream vaultwarden consumes the access token
+      # as a UserInfo bearer, which RS256 satisfies. PKCE stays required
+      # per the repo-wide rule.
       - client_id: vaultwarden
         client_name: Vaultwarden
         client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_vaultwarden" | msquote }}
         public: false
         authorization_policy: two_factor
-        claims_policy: vaultwarden
+        # No claims_policy: upstream vaultwarden has no SSO role mapping; admins are assigned in the admin panel.
         require_pkce: true
         pkce_challenge_method: S256
         consent_mode: pre-configured
@@ -410,11 +470,13 @@ identity_providers:
           - profile
           - email
           - offline_access
-          - vaultwarden
         grant_types:
           - authorization_code
           - refresh_token
         response_types: *app_responses
+      # Deviates from the official home-assistant guide (RS256 access
+      # tokens instead of `none`): the hass-oidc-auth plugin consumes the
+      # access token as a UserInfo bearer, which RS256 satisfies.
       - client_id: home-assistant
         client_name: Home Assistant
         client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_homeassistant" | msquote }}
@@ -435,5 +497,48 @@ identity_providers:
           - groups
         grant_types:
           - authorization_code
+        response_types:
+          - code
+      # Envoy Gateway itself is the OIDC client for the browser UIs that
+      # have no usable app-native auth: victoria-metrics, victoria-logs,
+      # victoria-traces, longhorn, homepage, the Envoy Gateway admin console
+      # (envoy.${BASE_DOMAIN} backs onto the controller's 19000 admin port),
+      # and zigbee2mqtt. Each host gets its own
+      # HTTPRoute-scoped SecurityPolicy with a per-host redirect URL and
+      # cookie domain (docs/oidc.md).
+      # Reference: https://www.authelia.com/integration/openid-connect/clients/envoy-gateway/
+      - client_id: envoy
+        client_name: Envoy Gateway
+        client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_envoy" | msquote }}
+        public: false
+        authorization_policy: platform
+        # Envoy's oauth2 filter does not send PKCE, so it cannot be required
+        # for this client.
+        require_pkce: false
+        consent_mode: pre-configured
+        pre_configured_consent_duration: 1 week
+        token_endpoint_auth_method: client_secret_basic
+        # The access token never leaves Envoy's encrypted session cookie
+        # (every SecurityPolicy sets forwardAccessToken: false) and is never
+        # validated as a JWT, so it stays opaque.
+        access_token_signed_response_alg: none
+        # No claims_policy: Envoy only validates the ID token's issuer,
+        # audience, and expiry; no claims are read or forwarded.
+        redirect_uris:
+          - https://victoria-metrics.${BASE_DOMAIN}/oauth2/callback
+          - https://victoria-logs.${BASE_DOMAIN}/oauth2/callback
+          - https://victoria-traces.${BASE_DOMAIN}/oauth2/callback
+          - https://longhorn.${BASE_DOMAIN}/oauth2/callback
+          - https://homepage.${BASE_DOMAIN}/oauth2/callback
+          - https://envoy.${BASE_DOMAIN}/oauth2/callback
+          - https://z2m.${BASE_DOMAIN}/oauth2/callback
+        # offline_access backs the SecurityPolicies' refreshToken: true,
+        # which renews gateway sessions without a new authorization flow.
+        scopes:
+          - openid
+          - offline_access
+        grant_types:
+          - authorization_code
+          - refresh_token
         response_types:
           - code

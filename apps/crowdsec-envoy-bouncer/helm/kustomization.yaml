@@ -8,7 +8,7 @@ commonAnnotations:
 helmCharts:
   - name: envoy-proxy-bouncer
     repo: oci://ghcr.io/kdwils/charts
-    version: 0.8.1
+    version: 0.8.2
     releaseName: crowdsec-envoy-bouncer
     namespace: envoy-gateway
     skipTests: true
@@ -46,18 +46,3 @@ patches:
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: ^crowdsec-envoy-bouncer$
-    patch: |-
-      - op: add
-        path: /metadata/annotations
-        value: {}
-      - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-user-group-id,pod-networkpolicy,deployment-replicas,container-image-pull-policy
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: The pinned community bouncer image documents UID 65532; the bouncer remains non-root with a RuntimeDefault seccomp profile, Cilium supplies the network policy, and the pinned image is pulled IfNotPresent to reuse the node cache.

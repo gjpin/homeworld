@@ -1,7 +1,7 @@
 fullnameOverride: collabora
 image:
   repository: docker.io/collabora/code
-  tag: 26.04.4.2.1
+  tag: 26.04.5.1.1
   pullPolicy: IfNotPresent
 replicaCount: 1
 # Keep one replica until WOPISrc-based routing is added for document affinity.
@@ -9,7 +9,10 @@ autoscaling:
   enabled: false
 resources:
   requests:
-    cpu: 10m
+    # coolwsd forks a kit process per open document; 10m starves the office
+    # engine at startup and slows first render. 100m keeps the idle cost
+    # negligible (single idle coolwsd) while letting the scheduler place it sanely.
+    cpu: 100m
     memory: 64Mi
     ephemeral-storage: 64Mi
   limits:
@@ -18,7 +21,11 @@ resources:
     ephemeral-storage: 2Gi
 collabora:
   aliasgroups:
-    - host: https://cloud.${BASE_DOMAIN}
+    # Upstream chart examples write the WOPI allow-list host as
+    # "<protocol>://<host-name>:<port>"; the explicit :443 matches the
+    # rendered coolwsd allowlist entries to the HTTPS origin OpenCloud
+    # uses for WOPI callbacks.
+    - host: https://cloud.${BASE_DOMAIN}:443
   server_name: office.${BASE_DOMAIN}:443
   extra_params: >-
     --o:ssl.enable=false
@@ -46,6 +53,12 @@ nodeSelector:
 podLabels:
   app: collabora
 podSecurityContext:
+  # Hardened over the chart's deliberately-empty defaults (podSecurityContext
+  # and securityContext both ship as {}): UID/GID 1000, RuntimeDefault seccomp,
+  # drop ALL, no privilege escalation, plus gvisor/hostUsers via the
+  # kustomization patches. coolwsd runs its own internal forkit sandboxing, so
+  # smoke-test document editing live after deploy; if kit-namespace failures
+  # occur, scope a documented exception instead of weakening the namespace.
   runAsNonRoot: true
   runAsUser: 1000
   runAsGroup: 1000
@@ -71,8 +84,7 @@ deployment:
   labels:
     app: collabora
   annotations:
-    kube-score/ignore: pod-probes-identical,container-security-context-readonlyrootfilesystem,pod-networkpolicy,container-security-context-user-group-id,deployment-replicas,container-image-pull-policy
-    security.homeworld/exception-reason: The upstream chart uses one HTTP health endpoint for both probes; its pinned image requires a writable root filesystem and has an image UID/GID below kube-score's threshold; Cilium provides the network policy, one replica is intentional until WOPISrc session routing is added, and the pinned image is pulled IfNotPresent to reuse the node cache.
+    ignore-check.kube-linter.io/no-read-only-root-fs: The pinned Collabora image requires a writable root filesystem for its rendering and font caches; overriding it would break the documented function.
 
 probes:
   liveness:

@@ -19,7 +19,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - `apps/<component>/`: manifests for one component. Filenames are prefixed with
   their exact Argo CD sync wave (e.g. `-2_network_policy.yaml`, `-1_secrets.yaml`,
   `0_gateway.yaml`, `1_helm.yaml`, `2_http_route.yaml`).
-- `apps/grafana/dashboards/`: imported Grafana dashboard JSON.
+- `apps/grafana/dashboards/<app>/`: dashboard JSON for the app's Grafana folder.
 - `README.md`: required environment variables, bootstrap notes, and sync-wave documentation.
 
 ## Manifest conventions
@@ -63,6 +63,22 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `node-role.kubernetes.io/homelab: homelab` where the chart or manifest supports
   a node selector.
 - Enable metrics and a `ServiceMonitor` when the component supports them; always set the ServiceMonitor interval to `60s`.
+  The monitor only works if the application actually serves the scraped endpoint: enable it in application
+  config (e.g. Home Assistant's `prometheus:` block with `requires_auth: false`, Woodpecker's
+  `server.metrics.enabled`), confirm the scraped port really renders, allow the otel-collector scrape
+  path in both components' network policies, and ship a `PodMonitor` (60s) per CNPG `Cluster`.
+- Every app with collectible metrics ships a Grafana dashboard in its own Grafana folder:
+  `apps/grafana/dashboards/<app>/<dashboard>.json`, one configMapGenerator entry, a `GrafanaFolder` CR
+  (`apps/grafana/0_folders.yaml`), and a `1_dashboards_<app>.yaml` whose wave-`1` `GrafanaDashboard` CRs set
+  `spec.folderRef` (see docs/grafana-dashboards.md). Use the project's own upstream dashboard when it
+  publishes one — chart-bundled, in its repository, or on its grafana.com org page; never a
+  third-party dashboard — adapted only as needed to resolve here (`${DS_*}` prometheus/loki
+  datasource variables resolve to the compatibility datasources; label matchers scope to the
+  guaranteed `namespace` label). Otherwise author a custom dashboard referencing only metric
+  families verified against the app's upstream source or docs for the deployed version, cite that
+  provenance in the dashboard `description`, and hardcode the `victoriametrics` datasource uid on
+  every panel. `scripts/check-dashboards.sh` must pass; apps without collectible metrics get no
+  folder.
 - Application telemetry, anonymous usage statistics, upgrade checkers, and
   external phone-home mechanisms must be completely disabled across all
   manifests and Helm values unless explicitly requested and documented.
@@ -72,12 +88,34 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   ask the user.
 - Public HTTP/gRPC endpoints use Gateway API resources plus the
   `external-dns.alpha.kubernetes.io/hostname` annotation. Keep Gateway listeners,
-  route hostnames, TLS hostnames, and backend ports aligned.
+  route hostnames, TLS hostnames, and backend ports aligned. Every route backend also
+  needs a matching per-service `allow-envoy-backend-<service>` egress CiliumNetworkPolicy
+  in `apps/envoy-gateway` (one port per rule — Cilium applies `toPorts` to every
+  `toServices` entry) plus an ingress rule on the app side, and a `docs/network-policies.md` row.
+- Under default-deny ingress, kubelet readiness/liveness probes are covered by
+  Cilium's implicit ALLOW for local-host→local-pod traffic (see
+  docs/network-policies.md): explicit `fromEntities: host` probe rules are
+  optional defense-in-depth, not a requirement. Revisit if the datapath mode or
+  the host firewall configuration changes.
 - Preserve `${VARIABLE}` placeholders in tracked files. They are intended for
   `envsubst` during deployment.
 - Never place real credentials, tokens, passwords, private keys, or substituted
   secret values in the repository. Prefer the existing External Secrets /
-  Infisical pattern for new secret material.
+  Infisical pattern for new secret material. Every container env `secretKeyRef`
+  must have a matching `data` entry in the component's wave-`-1` ExternalSecret
+  and a `docs/secrets.md` row — a missing key fails the pod with
+  `CreateContainerConfigError`.
+- Charts rendered through `kustomize` keep their `helm.sh/hook` Jobs in the Argo
+  sync path, where hook annotations are inert and the immutable Job spec breaks
+  every chart bump (the completed Job from the first sync rejects the new image
+  tag). Disable such jobs via chart values or patch-delete them from the render
+  (Longhorn's `preUpgradeChecker`/uninstall jobs are the canonical example). A
+  hook job whose work is genuinely wanted (Longhorn's post-upgrade cleanup) is
+  instead converted to an Argo CD sync hook: patch its annotations to
+  `argocd.argoproj.io/hook: PostSync` (or `PreSync`) plus
+  `argocd.argoproj.io/hook-delete-policy: HookSucceeded` so it runs at the right
+  phase with the fresh image and self-deletes instead of blocking upgrades.
+  Never let an upgrade-checker or uninstall job run from a synced manifest.
 - Every PostgreSQL database must be provisioned as a CloudNativePG `Cluster`
   instance; do not deploy application-bundled PostgreSQL.
 - Every Redis or Redis-compatible datastore (including Valkey) must be provisioned
@@ -146,7 +184,14 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   velero-ui) and comment the reason inline.
 - Every client sets `require_pkce: true` with `pkce_challenge_method: S256`,
   `consent_mode: pre-configured` with `pre_configured_consent_duration: 1 week`,
-  and `access_token_signed_response_alg: RS256`.
+  and `access_token_signed_response_alg: RS256`. Exception: the shared Envoy
+  Gateway client (`envoy`) sets `require_pkce: false` and
+  `access_token_signed_response_alg: none` — Envoy Gateway's OIDC filter sends
+  no PKCE, and its access token never leaves Envoy's encrypted session cookie
+  (`forwardAccessToken: false`), so no claims can be read from it (official
+  Envoy Gateway client guide). The `velero-ui` client also sets
+  `require_pkce: false`: velero-ui's passport-oauth2 flow sends no PKCE
+  (no official Authelia client guide exists for it).
 - CLI or localhost-redirect flows get their own public client
   (`token_endpoint_auth_method: none`, `offline_access` scope,
   `refresh_token` grant); never merge the localhost redirect into the
@@ -159,10 +204,11 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   them — see the `apps` policy in `apps/authelia/helm/configuration.yaml.tmpl`
   and docs/oidc.md). Role mapping follows the custom-claim pattern:
   `definitions.user_attributes` expression + a `claims_policies` entry with
-  `custom_claims` + a matching custom scope (see `immich_role`,
-  `vaultwarden_roles`).
+  `custom_claims` + a matching custom scope (see `immich_role`).
 - Authelia group names are singular and app-prefixed (`<app>-admin`,
-  `<app>-user`) and must exist in the Infisical users database.
+  `<app>-user`) and must exist in the Infisical users database. Exception: the
+  cross-app `platform` group gates the gateway-OIDC routes and deliberately
+  carries no app prefix.
 - Client secrets are stored in Infisical as `/authelia/OIDC_CLIENT_SECRET_<APP>`,
   pulled into the `authelia-files` ExternalSecret as
   `oidc_client_secret_<app>`, and delivered to the app through its own
@@ -173,6 +219,22 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - Apps doing server-side token exchange get an `allow-<app>-authelia`
   CiliumNetworkPolicy egress (`toFQDNs: auth.${BASE_DOMAIN}:443`) and a
   matching `docs/network-policies.md` egress entry.
+- Public browser-UI routes for workloads with no usable app-native OIDC or
+  login must be authenticated by Envoy Gateway itself as the shared `envoy`
+  client: one HTTPRoute-scoped `SecurityPolicy` per hostname with
+  `mergeType: StrategicMerge` (a route-level policy silently overrides the
+  Gateway-level CrowdSec extAuth without it), a
+  `https://<host>/oauth2/callback` redirect URI with a matching
+  `cookieDomain`, and the `platform` authorization policy; the client secret
+  is delivered to each protected app's namespace as the
+  `envoy-oidc-client-secret` ExternalSecret (key `client-secret`). Never
+  apply this pattern to routes used by non-browser clients
+  (CalDAV/CardDAV, WOPI, device pairing, API or CLI endpoints): the OIDC
+  redirect cannot complete without a browser. Remove headless consumers of a
+  protected route (e.g. Homepage siteMonitors) instead of exempting them.
+  Apps that cannot delegate their login at all (Collabora's WOPI route, the
+  RustFS operator console, OpenChamber pairing, the Notesnook stack) keep
+  app-native access control, with the reason documented in `docs/oidc.md`.
 - Apps without native OIDC support may use a pinned community integration
   delivered by a sha256-verified init container (hass-oidc-auth pattern,
   Renovate-tracked). PVC-resident bootstrap configuration (e.g.
@@ -260,7 +322,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 
 - Opt every compatible Pod into gVisor runtime sandboxing with `spec.runtimeClassName: gvisor`.
 - For Helm workloads, use the chart's exact value key or a Kustomize patch if not exposed. For handwritten manifests, declare `runtimeClassName: gvisor` directly in the Pod template spec. For operator-generated Pods, use a supported operator pod-template or patch mechanism.
-- A Pod with `runtimeClassName: gvisor` must not use `hostNetwork`, host block devices, or direct node filesystem integration. Preserve standard runtimes only for documented exceptions (`cilium-agent`, `cilium-envoy`, `cilium-operator`, `longhorn-manager`, `otel-collector-node`, `velero-node-agent`, `zigbee2mqtt`).
+- A Pod with `runtimeClassName: gvisor` must not use `hostNetwork`, host block devices, or direct node filesystem integration. Preserve standard runtimes only for the documented exceptions (`cilium-agent`, `cilium-envoy`, `cilium-operator`, `crowdsec-agent`, `generic-device-plugin`, `longhorn-manager`, `otel-collector-node`, `velero-node-agent`, the gluetun-based qBittorrent pod, `zigbee2mqtt`, and operator-generated operands whose pod templates the CRD cannot set — CNPG, Dragonfly, DocumentDB, and RustFS Tenant operands). Keep the gVisor table in `docs/pod-security.md` as the source of truth for the exact list. Operator-spawned pods that accept a runtime class per-instance (e.g. Woodpecker pipeline pods) opt in through the operator's allow-from-step flag plus per-pipeline backend options, never a repo-level manifest.
 
 ## New component checklist
 
@@ -269,6 +331,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - `nodeSelector`
 - Gateway listener and `HTTPRoute` (if applicable)
 - `ServiceMonitor`
+- Grafana dashboard in the app's Grafana folder (Grafana dashboard conventions above; docs/grafana-dashboards.md)
 - `ServerSideApply=true` in `spec.syncPolicy.syncOptions` for all `Application` resources
 - Standard intra-component sync waves (-2 network policy, -1 secrets, 0 datastore/gateway, 1 workload, 2 routes)
   with manifest filenames strictly matching `<wave>_<descriptor>.yaml`.
@@ -277,7 +340,9 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - Document Pod Security Standards compliance and User Namespaces status in `docs/pod-security.md`.
 - Document Authelia OIDC integration status or sign-in behavior in `docs/oidc.md`.
 - Authelia OIDC client per the Authelia OIDC client conventions (if the app has user login).
-- Add the destination namespace to the world-egress policy selector, or explicitly justify an egress exception.
+- Scope the component's internet egress with dedicated, per-app CiliumNetworkPolicies
+  (FQDN- or port-scoped — there is no shared world-egress selector) and add a matching
+  `docs/network-policies.md` row.
 - Set requests and limits on all regular, init, and sidecar containers. Preserve
   higher upstream values; use the documented profile fallbacks when absent.
 - Application telemetry, anonymous usage metrics, and upgrade checkers disabled
@@ -304,7 +369,9 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `README.md` accurate.
 - Check whether the component's pinned chart, image, or remote revision is
   covered by `renovate.json`; update Renovate configuration when its existing
-  managers and matchers do not support the new dependency field.
+  managers and matchers do not support the new dependency field. This includes
+  e2e hooks, compose files, `go.mod`, and any other version-bearing field: add
+  a custom regex manager when no built-in manager can see it.
 - Apply the new-component checklist as applicable.
 - Keep `docs/pod-security.md` updated with any changes or additions to Pod Security
   Standards compliance and User Namespaces status.
@@ -313,6 +380,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   reference for OpenID Connect client configuration.
 - Keep `docs/oidc.md` updated with any changes or additions to Authelia OIDC
   integration status or sign-in behavior when onboarding or modifying an app.
+- Keep `docs/grafana-dashboards.md`'s inventory updated when adding or removing a
+  dashboard or folder.
 - Treat CRDs and operators as dependencies: they must be installed in an earlier
   sync wave than resources that use them. Newly added apps with CRDs must follow
   this rule both on initial deployment and during upgrades (ensuring CRDs precede
@@ -338,6 +407,16 @@ find apps/grafana/dashboards -type f -name '*.json' -print0 |
 # Fail if any pinned Kubernetes version reference (PSA labels, e2e kind node
 # image, documentation, hook comments) drifts from the rest.
 scripts/check-k8s-version.sh
+
+# Fail on repeated mapping keys: parsers keep the last value, so a missing
+# `---` silently merges two documents and drops the first resource.
+scripts/check-yaml-duplicates.sh
+
+# Fail when a secretKeyRef, Dragonfly passwordFromSecret, or CNPG initdb
+# secret names a key no in-repo ExternalSecret or Secret produces (following
+# External Secrets' template rules: templated targets hold only templated
+# keys unless mergePolicy is Merge).
+scripts/check-secret-refs.sh
 ```
 
 Helm inflation requires an explicit flag in every local render: use

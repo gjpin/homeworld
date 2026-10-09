@@ -1,0 +1,33 @@
+fullnameOverride: opentelemetry-operator
+namespaceOverride: opentelemetry-operator
+replicaCount: 1
+manager:
+  image:
+    # The tag follows the chart appVersion, which is pinned by the
+    # kustomization's chart version (Renovate-tracked).
+    repository: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator
+  # The Target Allocator image is not pinned here on purpose: the operator
+  # deploys its bundled Target Allocator, released in lockstep with the
+  # operator appVersion.
+  deploymentAnnotations:
+    ignore-check.kube-linter.io/liveness-port: The upstream chart probes the manager's health endpoint on undeclared port 8081 instead of a declared containerPort.
+    ignore-check.kube-linter.io/no-read-only-root-fs: The pinned upstream operator image writes to its root filesystem; overriding it would break runtime file access.
+    ignore-check.kube-linter.io/readiness-port: The upstream chart probes the manager's health endpoint on undeclared port 8081 instead of a declared containerPort.
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+      ephemeral-storage: 64Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+      ephemeral-storage: 2Gi
+  # The manager's ServiceMonitor stays disabled: its metrics endpoint is
+  # served with authentication (manager.metrics.secure) and the Target
+  # Allocator denies file-based credentials (bearerTokenFile) on the
+  # monitors it consumes.
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab
+hostUsers: false
+# admissionWebhooks.certManager.enabled defaults to true; the cert-manager
+# application (app-of-apps wave 3) provisions the webhook certificates.

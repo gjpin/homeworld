@@ -5,7 +5,7 @@ commonAnnotations:
 helmCharts:
   - name: opentelemetry-collector
     repo: https://open-telemetry.github.io/opentelemetry-helm-charts
-    version: 0.173.1
+    version: 0.175.1
     releaseName: otel-collector-cluster
     namespace: otel-collector
     includeCRDs: true
@@ -22,9 +22,6 @@ patches:
       - op: add
         path: /spec/template/spec/hostUsers
         value: false
-      - op: add
-        path: /spec/template/spec/runtimeClassName
-        value: gvisor
   - target:
       group: apps
       version: v1
@@ -33,8 +30,11 @@ patches:
       namespace: ^otel-collector$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-probes-identical,pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-replicas,container-image-pull-policy
+        path: /metadata/annotations/ignore-check.kube-linter.io~1liveness-port
+        value: The upstream chart probes the collector health endpoint on undeclared port 13133 instead of a declared containerPort.
       - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream collector image writes to its root filesystem; overriding it would break runtime file access.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1readiness-port
+        value: The upstream chart probes the collector health endpoint on undeclared port 13133 instead of a declared containerPort.

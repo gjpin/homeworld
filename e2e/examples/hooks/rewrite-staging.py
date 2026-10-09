@@ -22,9 +22,15 @@ OMIT_APPS = {
     # datapath cannot start on kind; the suite installs its own CRD-only
     # Cilium in kube-system.
     "cilium-app",
+    # Kind's local-path provisioner has no CSI driver, so there is nothing
+    # for the snapshot controller to act on; keep the suite lean.
+    "snapshot-controller-app",
     # Image ghcr.io/gjpin/openchamber is private; kind cannot pull it
     # without credentials (401 Unauthorized).
     "openchamber-app",
+    # Gluetun needs /dev/net/tun and real VPN credentials, neither of which
+    # exists on kind; the qBittorrent pod can never become Ready.
+    "qbittorrent-app",
 }
 
 GIT_REPO_URL = "git://host.docker.internal:9418/homeworld.git"
@@ -113,6 +119,14 @@ E2E_IGNORE_ITEMS = (
     "        - .spec.rules[].backendRefs[].kind\n"
     "        - .spec.rules[].backendRefs[].weight\n"
     "        - .spec.rules[].matches\n",
+    "    - group: gateway.networking.k8s.io\n"
+    "      kind: TCPRoute\n"
+    "      jqPathExpressions:\n"
+    "        - .spec.parentRefs[].group\n"
+    "        - .spec.parentRefs[].kind\n"
+    "        - .spec.rules[].backendRefs[].group\n"
+    "        - .spec.rules[].backendRefs[].kind\n"
+    "        - .spec.rules[].backendRefs[].weight\n",
     "    - group: gateway.networking.k8s.io\n"
     "      kind: GRPCRoute\n"
     "      jqPathExpressions:\n"
@@ -346,6 +360,9 @@ def rewrite_kind_runtime_class(root: pathlib.Path) -> None:
         except (OSError, UnicodeDecodeError):
             continue
         new = re.sub(r"(?m)^\s*runtimeClassName:\s*gvisor\s*\n", "", text)
+        # MutatingAdmissionPolicy CEL mutations inject the runtime class at
+        # admission; strip it from the object literal the same way.
+        new = new.replace("runtimeClassName: 'gvisor', hostUsers", "hostUsers")
         if new != text:
             path.write_text(new)
             count += 1
@@ -359,6 +376,26 @@ def rewrite_kind_runtime_class(root: pathlib.Path) -> None:
             "",
             ktext,
         )
+        # The kind bootstrap Argo CD compares client-side, whose frozen
+        # OpenAPI v2 schema predates StatefulSet maxSurge ("field not
+        # declared in schema" on the argocd child app). Production Argo CD
+        # diffs server-side, where the apiserver accepts the surge — keep
+        # the patch in git, drop it from the kind staging tree. The patch
+        # block carries explanatory comments, so match through to the end
+        # of its ops.
+        # Split into "  - target:" blocks and drop the StatefulSet
+        # updateStrategy block (its patch body carries comments).
+        if "updateStrategy" in knew:
+            blocks = re.split(r"(?m)^(?=  - target:)", knew)
+            kept = [
+                b for b in blocks
+                if not (
+                    "kind: StatefulSet" in b
+                    and "argocd-argocd-application-controller" in b
+                    and "updateStrategy" in b
+                )
+            ]
+            knew = "".join(kept)
         # Dropping the only op in a patch leaves `patch: |-` with an empty
         # body, which kustomize rejects. Remove such emptied patch entries.
         knew = re.sub(
@@ -370,18 +407,6 @@ def rewrite_kind_runtime_class(root: pathlib.Path) -> None:
             kpath.write_text(knew)
             count += 1
     print(f"[rewrite-staging] runtimeClassName gvisor removed in {count} files")
-
-
-def rewrite_gateway_from_all(root: pathlib.Path) -> None:
-    """Gateway API v1 enum is All/Selector/Same; homelab YAML uses lowercase all."""
-    count = 0
-    for path in root.rglob("*.yaml"):
-        text = path.read_text()
-        new = re.sub(r"(?m)^(\s+from:) all\s*$", r"\1 All", text)
-        if new != text:
-            path.write_text(new)
-            count += 1
-    print(f"[rewrite-staging] Gateway from: all -> All in {count} files")
 
 
 def rewrite_eso_decoding_none(root: pathlib.Path) -> None:
@@ -398,70 +423,6 @@ def rewrite_eso_decoding_none(root: pathlib.Path) -> None:
         path.write_text(text.replace("decodingStrategy: Auto", "decodingStrategy: None"))
         count += 1
     print(f"[rewrite-staging] decodingStrategy Auto->None in {count} files")
-
-
-def rewrite_dragonfly_nonroot(root: pathlib.Path) -> None:
-    """Run Dragonfly as the image's dfly user (UID/GID 999).
-
-    The image has no USER (root by default) and the entrypoint only calls
-    setpriv when started as root. Running as 999 skips setpriv, keeps
-    runAsNonRoot, and stays within Restricted Pod Security (the previous
-    root + SETUID rewrite is rejected by PSA enforcement).
-    """
-    count = 0
-    for path in root.rglob("*.yaml"):
-        text = path.read_text()
-        if "kind: Dragonfly" not in text:
-            continue
-        new = text
-        if "runAsUser:" not in new:
-            new = re.sub(
-                r"(?m)^(\s*)runAsNonRoot: true\s*$",
-                r"\1runAsNonRoot: true\n\1runAsUser: 999\n\1runAsGroup: 999",
-                new,
-            )
-        if new != text:
-            path.write_text(new)
-            count += 1
-    print(f"[rewrite-staging] Dragonfly dfly user 999 in {count} files")
-
-
-def rewrite_statefulset_strategy(root: pathlib.Path) -> None:
-    """StatefulSet has updateStrategy, not strategy; SSA rejects the unknown field."""
-    count = 0
-    for path in root.rglob("*.yaml"):
-        text = path.read_text()
-        if "kind: StatefulSet" not in text:
-            continue
-        new = re.sub(r"(?m)^  strategy:\n    type: Recreate\n", "", text)
-        if new != text:
-            path.write_text(new)
-            count += 1
-    print(f"[rewrite-staging] removed StatefulSet spec.strategy in {count} files")
-
-
-def rewrite_grafana_pvc_name(root: pathlib.Path) -> None:
-    """Drop Grafana persistentVolumeClaim on kind.
-
-    The CRD ObjectMeta subset rejects metadata.name (SSA). Without a name the
-    operator still creates grafana-pvc but does not mount it, so the claim
-    stays Pending under WaitForFirstConsumer and the Application is Degraded.
-    emptyDir is enough for e2e.
-    """
-    count = 0
-    for path in root.rglob("*.yaml"):
-        text = path.read_text()
-        if "kind: Grafana" not in text or "persistentVolumeClaim:" not in text:
-            continue
-        new = re.sub(
-            r"(?m)^  persistentVolumeClaim:\n(?:    .*\n)+",
-            "",
-            text,
-        )
-        if new != text:
-            path.write_text(new)
-            count += 1
-    print(f"[rewrite-staging] Grafana persistentVolumeClaim removed in {count} files")
 
 
 def rewrite_opencloud_collaboration_insecure(root: pathlib.Path) -> None:
@@ -521,23 +482,6 @@ def rewrite_crowdsec_credential_secrets(root: pathlib.Path) -> None:
             path.write_text(new)
             count += 1
     print(f"[rewrite-staging] crowdsec store*CredentialsInSecret false in {count} files")
-
-
-def rewrite_crowdsec_postgres_template(root: pathlib.Path) -> None:
-    """CrowdSec ES template.data lists only username, so ESO drops the password key."""
-    path = root / "apps" / "crowdsec" / "-1_secrets.yaml"
-    if not path.exists():
-        return
-    text = path.read_text()
-    new = text.replace(
-        "        username: crowdsec\n",
-        '        username: crowdsec\n        password: "{{ .password }}"\n',
-    )
-    if new != text:
-        path.write_text(new)
-        print("[rewrite-staging] crowdsec postgres-credentials template includes password")
-    else:
-        print("[rewrite-staging] crowdsec postgres-credentials template unchanged")
 
 
 def rewrite_crowdsec_skip_hooks(root: pathlib.Path) -> None:
@@ -643,33 +587,6 @@ def rewrite_forgejo_oidc_http(root: pathlib.Path) -> None:
         text += "\n"
     path.write_text(text + entry)
     print("[rewrite-staging] forgejo OIDC discovery trusts kind Gateway CA")
-
-
-def rewrite_crowdsec_registration_token(root: pathlib.Path) -> None:
-    """CrowdSec 1.7 rejects auto_registration tokens shorter than 32 characters."""
-    short = 'token: "e2e-crowdsec-registration-token"'
-    long = 'token: "e2e-crowdsec-registration-token-x"'
-    count = 0
-    for path in root.rglob("*.yaml"):
-        text = path.read_text()
-        if short not in text:
-            continue
-        path.write_text(text.replace(short, long))
-        count += 1
-    print(f"[rewrite-staging] crowdsec registration token padded in {count} files")
-
-
-def rewrite_rustfs_duplicate_tenant_crd(root: pathlib.Path) -> None:
-    """Chart 0.0.5 ships identical tenants.rustfs.com CRDs; kustomize --enable-helm rejects the dup."""
-    count = 0
-    for path in root.rglob("tenant.yaml"):
-        if path.parent.name != "crds" or "rustfs" not in path.as_posix():
-            continue
-        if not (path.parent / "tenant-crd.yaml").exists():
-            continue
-        path.unlink()
-        count += 1
-    print(f"[rewrite-staging] removed {count} duplicate rustfs tenant.yaml CRDs")
 
 
 def rewrite_argocd_disable_extras(root: pathlib.Path) -> None:
@@ -894,77 +811,6 @@ def rewrite_collabora_kind_jail(root: pathlib.Path) -> None:
         print("[rewrite-staging] collabora jail rewrite unchanged")
 
 
-
-
-def rewrite_immich_vchord(root: pathlib.Path) -> None:
-    """VectorChord must be preloaded; Immich CREATE EXTENSION needs a superuser.
-
-    Tracked Cluster image is cloudnative-vectorchord but does not set
-    shared_preload_libraries. Without it, CREATE EXTENSION vchord fails with
-    "vchord must be loaded via shared_preload_libraries". Immich then runs
-    CREATE EXTENSION as the app role (not a superuser) and CrashLoops even
-    after the Database CR has applied the extension.
-    """
-    path = root / "apps" / "immich" / "0_postgres.yaml"
-    if not path.exists():
-        print("[rewrite-staging] immich postgres missing; skipping vchord rewrite")
-        return
-    docs = split_docs(path.read_text())
-    out = []
-    changed = False
-    image_line = "  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:18.1-1.0.0\n"
-    preload = (
-        image_line
-        + "  postgresql:\n"
-        + "    shared_preload_libraries:\n"
-        + "      - vchord\n"
-        + "  managed:\n"
-        + "    roles:\n"
-        + "      - name: immich\n"
-        + "        ensure: present\n"
-        + "        login: true\n"
-        + "        superuser: true\n"
-    )
-    secret_line = "        name: postgres-credentials\n"
-    postinit = (
-        secret_line
-        + "      postInitSQL:\n"
-        + "        - CREATE EXTENSION IF NOT EXISTS vchord CASCADE\n"
-        + "        - CREATE EXTENSION IF NOT EXISTS cube\n"
-        + "        - CREATE EXTENSION IF NOT EXISTS earthdistance\n"
-    )
-    extra_ext = (
-        "    - name: vchord\n"
-        "      ensure: present\n"
-        "    - name: vector\n"
-        "      ensure: present\n"
-        "    - name: cube\n"
-        "      ensure: present\n"
-        "    - name: earthdistance\n"
-        "      ensure: present\n"
-    )
-    for doc in docs:
-        if re.search(r"(?m)^kind: Cluster\s*$", doc) and "vectorchord" in doc:
-            if "shared_preload_libraries" not in doc and image_line in doc:
-                doc = doc.replace(image_line, preload, 1)
-                changed = True
-            if "postInitSQL:" not in doc and secret_line in doc:
-                doc = doc.replace(secret_line, postinit, 1)
-                changed = True
-        if re.search(r"(?m)^kind: Database\s*$", doc):
-            if "name: cube" not in doc and "name: vchord" in doc:
-                doc = doc.replace(
-                    "    - name: vchord\n      ensure: present\n",
-                    extra_ext,
-                    1,
-                )
-                changed = True
-        out.append(doc)
-    if changed:
-        path.write_text(join_docs(out))
-        print("[rewrite-staging] immich VectorChord preload + superuser + extensions")
-    else:
-        print("[rewrite-staging] immich vchord rewrite unchanged")
 
 
 def rewrite_immich_kind_storage(root: pathlib.Path) -> None:
@@ -1343,32 +1189,25 @@ def rewrite_documentdb_kind(root: pathlib.Path) -> None:
     print(f"[rewrite-staging] documentdb webhook Ignore + probe timeouts in {count} files")
 
 
-def rewrite_openchamber_kind(root: pathlib.Path) -> None:
-    """Single-node kind cannot afford 100Gi hostPath or 2CPU/4Gi requests."""
-    pvc = root / "apps" / "openchamber" / "0_pvc.yaml"
-    if pvc.exists():
-        text = pvc.read_text()
-        new = text.replace("storage: 100Gi", "storage: 10Gi")
-        if new != text:
-            pvc.write_text(new)
-            print("[rewrite-staging] openchamber PVC 100Gi->10Gi")
-        else:
-            print("[rewrite-staging] openchamber PVC unchanged")
-    dep = root / "apps" / "openchamber" / "1_deployment.yaml"
-    if dep.exists():
-        text = dep.read_text()
-        new = text.replace(
-            "            requests:\n              cpu: \"2\"\n              memory: 4Gi",
-            "            requests:\n              cpu: \"500m\"\n              memory: 1Gi",
-        ).replace(
-            "            limits:\n              cpu: \"8\"\n              memory: 16Gi",
-            "            limits:\n              cpu: \"2\"\n              memory: 4Gi",
-        )
-        if new != text:
-            dep.write_text(new)
-            print("[rewrite-staging] openchamber resources relaxed for kind")
-        else:
-            print("[rewrite-staging] openchamber resources unchanged")
+def rewrite_metrics_server_kind_kubelet_tls(root: pathlib.Path) -> None:
+    """Kind kubelet serving certs carry no IP SANs for the docker-network node
+    address, so verified-TLS scrapes fail with x509 errors and the pod never
+    passes its metric-storage-ready probe. Production (Talos) rotates serving
+    certs with node IPs in the SANs and keeps verified TLS."""
+    path = root / "apps" / "metrics-server" / "helm" / "values.yaml"
+    if not path.exists():
+        print("[rewrite-staging] metrics-server values missing; skipping kubelet TLS rewrite")
+        return
+    text = path.read_text()
+    # Guard on the exact appended block: the repo values mention
+    # --kubelet-insecure-tls in a comment, so a substring check on the
+    # whole file would always pass and skip the rewrite.
+    if "\nargs:\n  - --kubelet-insecure-tls\n" in text:
+        print("[rewrite-staging] metrics-server kubelet TLS rewrite unchanged")
+        return
+    new = text + "\n# kind only: kubelet serving certs carry no IP SANs.\nargs:\n  - --kubelet-insecure-tls\n"
+    path.write_text(new)
+    print("[rewrite-staging] metrics-server --kubelet-insecure-tls for kind")
 
 
 def rewrite_nested_sync_options(root: pathlib.Path) -> None:
@@ -1425,27 +1264,20 @@ def main() -> int:
     rewrite_homeworld_repo_urls(root)
     rewrite_app_of_apps(root / "apps" / "app-of-apps.yaml")
     rewrite_nested_sync_options(root)
+    rewrite_metrics_server_kind_kubelet_tls(root)
     rewrite_kind_userns(root)
     rewrite_kind_runtime_class(root)
-    rewrite_gateway_from_all(root)
     rewrite_eso_decoding_none(root)
-    rewrite_dragonfly_nonroot(root)
-    rewrite_statefulset_strategy(root)
-    rewrite_grafana_pvc_name(root)
     rewrite_opencloud_web_extensions(root)
     rewrite_opencloud_collaboration_insecure(root)
     rewrite_crowdsec_credential_secrets(root)
-    rewrite_crowdsec_postgres_template(root)
     rewrite_forgejo_oidc_http(root)
-    rewrite_crowdsec_registration_token(root)
     rewrite_crowdsec_disable_enroll(root)
     rewrite_crowdsec_skip_hooks(root)
-    rewrite_rustfs_duplicate_tenant_crd(root)
     rewrite_argocd_disable_extras(root)
     # Controller memory patch lives in rewrite_argocd_disable_extras.
     rewrite_collabora_kind_jail(root)
     rewrite_immich_kind_storage(root)
-    rewrite_immich_vchord(root)
     rewrite_rustfs_map_hostusers(root)
     rewrite_route_sync_wave(root)
     rewrite_crowdsec_disable_agent(root)
@@ -1454,7 +1286,6 @@ def main() -> int:
     rewrite_authelia_rolling_update(root)
     rewrite_operator_probes(root)
     rewrite_documentdb_kind(root)
-    rewrite_openchamber_kind(root)
     patch_infisical_cnp(root / "apps" / "external-secrets" / "-2_network_policy.yaml")
     patch_argocd_repo_cnp(root / "apps" / "argocd" / "-2_network_policy.yaml")
     return 0

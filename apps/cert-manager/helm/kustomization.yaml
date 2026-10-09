@@ -43,16 +43,6 @@ patches:
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
   - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^cert-manager-startupapicheck$
-      namespace: ^cert-manager$
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/imagePullPolicy
-        value: IfNotPresent
-  - target:
       group: apps
       version: v1
       kind: ^(Deployment|StatefulSet)$
@@ -100,68 +90,3 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/resources
         value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
-  - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^cert-manager-startupapicheck$
-      namespace: ^cert-manager$
-    patch: |-
-      - op: add
-        path: /spec/template/spec/runtimeClassName
-        value: gvisor
-      - op: add
-        path: /spec/template/spec/containers/0/resources
-        value: {"requests":{"cpu":"10m","memory":"64Mi","ephemeral-storage":"64Mi"},"limits":{"cpu":"1","memory":"2Gi","ephemeral-storage":"2Gi"}}
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: ^cert-manager$
-      namespace: ^cert-manager$
-    patch: |-
-      - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-networkpolicy,container-security-context-user-group-id,pod-probes,deployment-replicas,container-image-pull-policy
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: ^cert-manager-cainjector$
-      namespace: ^cert-manager$
-    patch: |-
-      - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-user-group-id,pod-probes,pod-networkpolicy,deployment-replicas,container-image-pull-policy
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: ^cert-manager-webhook$
-      namespace: ^cert-manager$
-    patch: |-
-      - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-networkpolicy,container-security-context-user-group-id,deployment-replicas,container-image-pull-policy
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
-  - target:
-      group: batch
-      version: v1
-      kind: Job
-      name: ^cert-manager-startupapicheck$
-      namespace: ^cert-manager$
-    patch: |-
-      - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: container-security-context-user-group-id,pod-networkpolicy,container-image-pull-policy
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.

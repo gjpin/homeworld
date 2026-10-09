@@ -10,10 +10,16 @@ SRC_NS="${SRC_NS:-authelia}"
 SRC_SECRET="${SRC_SECRET:-authelia-tls-cert}"
 DST_NS="${DST_NS:-forgejo}"
 DST_SECRET="${DST_SECRET:-gateway-ca}"
+WAIT_SECS="${WAIT_SECS:-1200}"
 
 log() { printf '[copy-gateway-ca] %s\n' "$*"; }
 
-deadline=$((SECONDS + 300))
+# The CA comes from a cert-manager Certificate created by the authelia
+# application, which sits at the end of the root sync-wave chain (the
+# argocd Redis cutover, the envoy Gateway, cert-manager, and then the
+# authelia app itself must all reconcile first); 900s covers the chain
+# on a cold kind node.
+deadline=$((SECONDS + WAIT_SECS))
 while (( SECONDS < deadline )); do
   if kubectl -n "${SRC_NS}" get secret "${SRC_SECRET}" >/dev/null 2>&1; then
     break

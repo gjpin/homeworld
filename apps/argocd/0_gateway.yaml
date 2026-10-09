@@ -23,21 +23,10 @@ spec:
       hostname: "argocd.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
-          from: all
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
           - name: argocd-tls-cert
             kind: Secret
-    - name: argocd-grpc
-      protocol: HTTPS
-      port: 443
-      hostname: "grpc.argocd.${BASE_DOMAIN}"
-      allowedRoutes:
-        namespaces:
-          from: all
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: argocd-grpc-tls-cert
-            kind: Secret
+            group: ""

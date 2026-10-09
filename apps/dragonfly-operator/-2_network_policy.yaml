@@ -73,3 +73,29 @@ spec:
         - ports:
             - port: "8443"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dragonfly-operator-metrics-ingress
+  namespace: dragonfly-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The chart's ServiceMonitor scrapes the manager metrics port; the
+  # kube-rbac-proxy sidecar is disabled and Cilium is the port boundary.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: dragonfly-operator
+      k8s:control-plane: controller-manager
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP

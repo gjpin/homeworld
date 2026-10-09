@@ -1,0 +1,16 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kubelet-serving-cert-approver
+  namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  folderRef: folder-kubelet-serving-cert-approver
+  configMapRef:
+    name: grafana-dashboard-kubelet-serving-cert-approver
+    key: json

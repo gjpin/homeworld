@@ -649,6 +649,26 @@
       "scanner": "kubescape",
       "owner": "platform",
       "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0299",
+      "control": "Dangling NetworkPolicy",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The upstream Longhorn chart ships these internal-traffic NetworkPolicies for pods that longhorn-manager creates at runtime (instance, backing-image, and recovery-backend managers, the admission webhook), so no selected pod exists in the offline render."
+    },
+    {
+      "check": "C-0305",
+      "control": "No rolling update strategy",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The upstream chart keeps Recreate for a single-replica workload that must never run two copies at once: a controller without leader election (duplicate notifications, DNS record ownership, backups, LAPI) or a pod holding an RWO volume."
     }
   ]
 }

@@ -71,14 +71,16 @@ spec:
           INFISICAL_HOST_LOCAL: http://127.0.0.1:8080
           INFISICAL_PROJECT_SLUG: homeworld
           INFISICAL_ENVIRONMENT_SLUG: prod
+      # CRDs before credentials: apply-eso-credentials also applies the
+      # ClusterSecretStore, which needs the ClusterSecretStore CRD to exist.
+      - name: apply-eso-crds
+        command: ["./e2e/examples/hooks/apply-eso-crds.sh"]
+        timeout: 2m
       - name: apply-eso-credentials
         command: ["./e2e/examples/hooks/apply-eso-credentials.sh"]
         timeout: 5m
         env:
           INFISICAL_HOST: http://host.docker.internal:8080
-      - name: apply-eso-crds
-        command: ["./e2e/examples/hooks/apply-eso-crds.sh"]
-        timeout: 2m
       - name: apply-operator-crds
         command: ["./e2e/examples/hooks/apply-operator-crds.sh"]
         timeout: 5m
@@ -116,7 +118,9 @@ spec:
           releaseName: argocd
           chart: argo-cd
           repoURL: https://argoproj.github.io/argo-helm
-          version: "9.5.9"
+          # Matches the pinned chart in apps/argocd/helm/kustomization.yaml;
+          # Renovate bumps this together with the app pin.
+          version: "10.10.1"
           namespace: argocd
           createNamespace: true
           wait: true
@@ -136,14 +140,15 @@ spec:
         hook:
           name: copy-gateway-ca
           command: ["./e2e/examples/hooks/copy-gateway-ca.sh"]
-          timeout: 5m
+          timeout: 21m
       - name: patch-coredns
         hook:
           name: patch-coredns-e2e-domain
           command: ["./e2e/examples/hooks/patch-coredns-e2e-domain.sh"]
-          timeout: 5m
+          timeout: 16m
           env:
             BASE_DOMAIN: e2e.local
+
       - name: wait-argo
         wait:
           group: argoproj.io
@@ -158,16 +163,42 @@ spec:
               value: Healthy
           timeout: 90m
           interval: 15s
+          # Rescue for apps that burned Argo's five sync retries on a
+          # first-boot transient (after a failed sync, self-heal never
+          # re-fires): re-trigger the sync on stuck OutOfSync apps.
+          resyncInterval: 3m
+      # The rustfs-operator records provisioning failures (a transient
+      # request to the still-booting server) as status conditions and never
+      # requeues its own reconcile, so the Tenant can wedge on first boot.
+      # Nudge it once convergence is otherwise complete.
+      - name: kick-rustfs-tenant
+        hook:
+          name: kick-rustfs-tenant
+          command: ["./e2e/examples/hooks/kick-rustfs-tenant.sh"]
+          timeout: 3m
+
 
   assert:
+    # Documented blind spots of this assert phase:
+    #   * Cilium runs CRD-only on kind (no datapath), so CiliumNetworkPolicy
+    #     enforcement is not exercisable here — the harness's networkProbe
+    #     can only assert connections that SUCCEED, so a default-deny probe
+    #     is not expressible; production policies are instead covered by the
+    #     CI render pass and the security scans.
+    #   * The CrowdSec log agent is staging-disabled on kind (the LAPI and
+    #     AppSec health is probed below; log acquisition itself stays
+    #     untested).
+    #   * No browser/OIDC login flows or git-SSH (see e2e/README.md).
     timeout: 20m
     checks:
       - name: pods
         podsReady:
           excludeNamespaces:
             - kube-system
-            # Still-omitted apps (Longhorn/Velero/HA/external-dns/openchamber)
-            # can linger Terminating on --keep-cluster. The otel collectors
+            # Still-omitted apps can linger Terminating on --keep-cluster;
+            # this list mirrors the OMIT_APPS set in rewrite-staging.py
+            # (Longhorn, Velero, HA, external-dns, openchamber, qbittorrent,
+            # cilium, snapshot-controller, velero-ui). The otel collectors
             # are deployed but excluded here: hostPath/kubelet integration on
             # kind can flap independently of the victoria data probes below,
             # which assert the collectors actually export metrics and logs.
@@ -178,6 +209,10 @@ spec:
             - otel-collector
             - otel-collector-node
             - openchamber
+            - qbittorrent
+            - cilium
+            - snapshot-controller
+            - velero-ui
           ignoreCompletedJobs: true
       - name: workloads
         workloadsReady:
@@ -205,6 +240,18 @@ spec:
             - notesnook
             - woodpecker
             - vaultwarden
+            - homepage
+            - opentelemetry-operator
+            # metrics-server and the kubelet-serving-cert approver run in
+            # their own dedicated namespaces (apps/app-of-apps.yaml
+            # destinations), not kube-system.
+            - metrics-server
+            - kubelet-serving-cert-approver
+            # kube-state-metrics (apps/kube-state-metrics) joined the suite.
+            - kube-state-metrics
+            # kube-system hosts the generic-device-plugin alongside kind's
+            # own infra (kube-proxy/coredns/kindnet), all workload-backed.
+            - kube-system
       - name: eso-store
         resourceCondition:
           apiVersion: external-secrets.io/v1
@@ -258,6 +305,19 @@ spec:
             - path: status.phase
               value: Ready
           timeout: 10m
+      # Argo CD's own cache backend must be Ready too — the controllers block
+      # on it (mirrors the authelia/immich asserts; the seed provisions
+      # /argocd/DRAGONFLY_PASSWORD).
+      - name: dragonfly-argocd
+        resourceCondition:
+          apiVersion: dragonflydb.io/v1alpha1
+          kind: Dragonfly
+          name: dragonfly
+          namespace: argocd
+          fields:
+            - path: status.phase
+              value: Ready
+          timeout: 10m
       - name: cnpg-forgejo
         resourceCondition:
           apiVersion: postgresql.cnpg.io/v1
@@ -303,12 +363,233 @@ spec:
           condition: Ready
           status: "True"
           timeout: 10m
+      # The DocumentDB CR itself must be ready (the operator layers the
+      # documentdb-gateway sidecar on the CNPG cluster asserted above). The
+      # operator reports readiness through status.status ("Cluster in healthy
+      # state") and status.tls.ready — it publishes no metav1 conditions,
+      # so assert on those fields instead of a Ready condition.
+      - name: documentdb-notesnook-cr
+        resourceCondition:
+          apiVersion: documentdb.io/preview
+          kind: DocumentDB
+          name: notesnook
+          namespace: notesnook
+          fields:
+            - path: status.status
+              value: Cluster in healthy state
+            - path: status.tls.ready
+              value: "true"
+          timeout: 10m
+      # The shared RustFS Tenant store must be reconciled and serving.
+      - name: rustfs-tenant
+        resourceCondition:
+          apiVersion: rustfs.com/v1alpha1
+          kind: Tenant
+          name: rustfs
+          namespace: rustfs
+          condition: Ready
+          status: "True"
+          timeout: 10m
       - name: gateway-envoy
         gatewayReady:
           name: envoy
           namespace: envoy-gateway
           timeout: 10m
+      # Per-component gateways: the Argo health rewrite forces Gateway CRDs
+      # to Healthy for wait-argo, so assert the real conditions explicitly
+      # for the gateways whose routes the probes below depend on.
+      - name: gateway-grafana
+        gatewayReady:
+          name: envoy
+          namespace: grafana
+          timeout: 10m
+      - name: gateway-forgejo
+        gatewayReady:
+          name: envoy
+          namespace: forgejo
+          timeout: 10m
+      # The grafana HTTPRoute must actually attach and resolve its backend:
+      # the operator-created Service is grafana-service (grafana-operator
+      # v5 names it {Grafana.metadata.name}-service), and a dangling
+      # backendRef would leave ResolvedRefs=False with the forced-Healthy
+      # Argo health hiding it.
+      - name: grafana-route-accepted
+        resourceCondition:
+          apiVersion: gateway.networking.k8s.io/v1
+          kind: HTTPRoute
+          name: grafana
+          namespace: grafana
+          condition: Accepted
+          status: "True"
+          timeout: 10m
+      - name: grafana-route-resolved-refs
+        resourceCondition:
+          apiVersion: gateway.networking.k8s.io/v1
+          kind: HTTPRoute
+          name: grafana
+          namespace: grafana
+          condition: ResolvedRefs
+          status: "True"
+          timeout: 10m
+      - name: forgejo-route-accepted
+        resourceCondition:
+          apiVersion: gateway.networking.k8s.io/v1
+          kind: HTTPRoute
+          name: forgejo
+          namespace: forgejo
+          condition: Accepted
+          status: "True"
+          timeout: 10m
+      # Application HTTP health: each probe drives the real ClusterIP
+      # service + port from the component's HTTPRoute backend.
+      - name: forgejo-health
+        serviceProbe:
+          namespace: forgejo
+          service: forgejo-http
+          port: 3000
+          path: "/api/healthz"
+          bodyContains: pass
+          timeout: 10m
+      - name: immich-health
+        serviceProbe:
+          namespace: immich
+          service: immich-server
+          port: 80
+          path: "/api/server/ping"
+          bodyContains: pong
+          timeout: 10m
+      - name: authelia-health
+        serviceProbe:
+          namespace: authelia
+          service: authelia
+          port: 80
+          path: "/api/health"
+          timeout: 10m
+      - name: vaultwarden-health
+        serviceProbe:
+          namespace: vaultwarden
+          service: vaultwarden
+          port: 8080
+          path: "/alive"
+          timeout: 10m
+      # Collabora's WOPI discovery endpoint must serve its XML.
+      - name: collabora-wopi-discovery
+        serviceProbe:
+          namespace: collabora
+          service: collabora
+          port: 9980
+          path: "/hosting/discovery"
+          bodyContains: wopi-discovery
+          timeout: 10m
+      - name: opencloud-status
+        serviceProbe:
+          namespace: opencloud
+          service: opencloud
+          port: 9200
+          path: "/status.php"
+          bodyContains: '"installed": true'
+          timeout: 10m
+      - name: woodpecker-health
+        serviceProbe:
+          namespace: woodpecker
+          service: woodpecker-server
+          port: 80
+          path: "/healthz"
+          timeout: 10m
+      - name: homepage-health
+        serviceProbe:
+          namespace: homepage
+          service: homepage
+          port: 3000
+          path: "/api/healthcheck"
+          host: homepage.e2e.local
+          timeout: 10m
+      # The notesnook-sync service's own health endpoint.
+      - name: notesnook-sync-health
+        serviceProbe:
+          namespace: notesnook
+          service: notesnook-sync
+          port: 5264
+          path: "/health"
+          timeout: 10m
+      # The identity service drives account verification, 2FA, and
+      # password-reset mail; its health endpoint mirrors the manifest's
+      # liveness probe.
+      - name: notesnook-identity-health
+        serviceProbe:
+          namespace: notesnook
+          service: notesnook-identity
+          port: 8264
+          path: "/health"
+          timeout: 10m
+      # The SSE service streams live updates to the clients.
+      - name: notesnook-sse-health
+        serviceProbe:
+          namespace: notesnook
+          service: notesnook-sse
+          port: 7264
+          path: "/health"
+          timeout: 10m
+      # CrowdSec's LAPI is the brain of the acquisition/AppSec chain; the
+      # agent is kind-disabled, but the LAPI API itself must serve.
+      - name: crowdsec-lapi-health
+        serviceProbe:
+          namespace: crowdsec
+          service: crowdsec-service
+          port: 8080
+          path: "/health"
+          timeout: 10m
+      # Argo CD's own API server must serve (the suite drives it via Argo,
+      # so an unhealthy server would also stall syncs).
+      - name: argocd-server-health
+        serviceProbe:
+          namespace: argocd
+          service: argocd-argocd-server
+          port: 80
+          path: "/healthz"
+          timeout: 10m
+      # The RustFS operator console serves the management UI behind its
+      # route (the rustfs-operator row in docs/network-policies.md).
+      - name: rustfs-operator-console-health
+        serviceProbe:
+          namespace: rustfs-operator
+          service: rustfs-operator-console
+          port: 9090
+          path: "/"
+          timeout: 10m
+      # Intentionally probed only for TCP-style readiness elsewhere: the
+      # radicale service answers 401 without the OpenCloud-proxy auth
+      # header, so an HTTP serviceProbe (which requires 2xx/3xx) cannot
+      # assert it — a documented gap, like the Cilium datapath below.
+      # The Authelia OIDC discovery document must be served and name its
+      # issuer; every browser OIDC flow starts here.
+      - name: authelia-oidc-discovery
+        serviceProbe:
+          namespace: authelia
+          service: authelia
+          port: 80
+          path: "/.well-known/openid-configuration"
+          host: auth.e2e.local
+          headers:
+            X-Forwarded-Proto: https
+          bodyContains: '"issuer"'
+          timeout: 10m
+      # The shared RustFS Tenant must serve its S3 readiness endpoint
+      # (docs.rustfs.com: /health/ready returns 200 only when storage, IAM,
+      # and peers are ready).
+      - name: rustfs-s3-ready
+        serviceProbe:
+          namespace: rustfs
+          service: rustfs-io
+          port: 9000
+          path: "/health/ready"
+          timeout: 10m
       # VictoriaMetrics must actually hold OTel-exported series, not just run.
+      # The name is the collector's raw exposition name (verified live): the
+      # OTel telemetry renders its counters without the Prometheus _total
+      # suffix, and VictoriaMetrics stores the OTLP-exported samples
+      # verbatim once -opentelemetry.usePrometheusNaming is off — that flag
+      # renames the series (appends _total) to names nothing queries.
       - name: victoria-metrics-data
         serviceProbe:
           namespace: victoria-metrics
@@ -333,6 +614,7 @@ spec:
           service: victoria-traces
           port: 10428
           path: "/select/jaeger/api/services"
+          bodyContains: "data"
           timeout: 10m
       # Grafana must serve its provisioned VictoriaMetrics datasource end to end.
       - name: grafana-victoria-metrics

@@ -5,7 +5,7 @@ commonAnnotations:
 helmCharts:
   - name: forgejo
     repo: oci://code.forgejo.org/forgejo-helm
-    version: 17.1.7
+    version: 17.2.0
     releaseName: forgejo
     namespace: forgejo
     includeCRDs: true
@@ -63,11 +63,8 @@ patches:
       namespace: ^forgejo$
     patch: |-
       - op: add
-        path: /metadata/annotations/kube-score~1ignore
-        value: pod-networkpolicy,container-security-context-user-group-id,container-security-context-readonlyrootfilesystem,deployment-strategy,deployment-replicas,container-image-pull-policy
-      - op: add
-        path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Upstream UID, filesystem, probe, availability, Cilium policy, and cached-image pull constraints are accepted for this exact resource.
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream image and its app.ini staging init containers write to their root filesystems; overriding them would break runtime file access.
   - target:
       group: monitoring.coreos.com
       version: v1

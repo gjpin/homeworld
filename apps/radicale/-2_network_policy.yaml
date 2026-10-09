@@ -52,3 +52,25 @@ spec:
         - ports:
             - port: "5232"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Kubelet readiness/liveness probes originate from the node itself and are
+  # denied under default-deny ingress without an explicit host allowance
+  # (same pattern as the other components' probe policies).
+  name: allow-radicale-probes
+  namespace: radicale
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: radicale
+  ingress:
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "5232"
+              protocol: TCP

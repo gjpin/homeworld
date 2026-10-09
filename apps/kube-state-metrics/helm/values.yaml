@@ -1,0 +1,48 @@
+# https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-state-metrics
+# https://github.com/kubernetes/kube-state-metrics
+#
+# Deployed to make the standard kube_* series available to the
+# OpenTelemetry→VictoriaMetrics pipeline (and the CloudNativePG Grafana
+# dashboard's kube_* panels). The upstream chart moved from the deprecated
+# self-hosted kubernetes.github.io/kube-state-metrics repository (frozen
+# 2021) to prometheus-community; this pins the prometheus-community chart.
+fullnameOverride: kube-state-metrics
+namespaceOverride: kube-state-metrics
+
+image:
+  registry: registry.k8s.io
+  repository: kube-state-metrics/kube-state-metrics
+  # Pinned instead of floating on the chart's appVersion (AGENTS.md).
+  tag: "v2.20.0"
+  pullPolicy: IfNotPresent
+
+# Single replica; automated sharding stays off (autoscaling is intentionally
+# disabled across the repo).
+replicas: 1
+
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+    ephemeral-storage: 64Mi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+    ephemeral-storage: 2Gi
+
+# The chart's defaults already satisfy Restricted PSS (non-root 65534,
+# RuntimeDefault seccomp, dropped ALL capabilities, read-only rootfs); the
+# user-namespace and gVisor opt-ins are pinned by the kustomization patch
+# above.
+
+prometheus:
+  monitor:
+    enabled: true
+    # AGENTS.md: namespaced resources declare metadata.namespace explicitly
+    # (the chart omits the field when this is empty).
+    namespace: kube-state-metrics
+    http:
+      interval: 60s

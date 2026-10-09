@@ -57,10 +57,6 @@ spec:
               protocol: TCP
             - port: "3000"
               protocol: TCP
-            - port: "9000"
-              protocol: TCP
-            - port: "5181"
-              protocol: TCP
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -104,26 +100,48 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-world-egress
+  name: allow-sse-smtp
   namespace: notesnook
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
+  # The SMTP relay host comes from the notesnook-secrets ExternalSecret so it
+  # cannot be pinned by FQDN; allow submission ports to world (vaultwarden
+  # SMTP egress precedent).
   endpointSelector:
-    matchExpressions:
-      - key: k8s:app.kubernetes.io/name
-        operator: In
-        values:
-          - notesnook-themes
-          - notesnook-cors-proxy
+    matchLabels:
+      k8s:app.kubernetes.io/name: notesnook-sse
   egress:
     - toEntities:
         - world
       toPorts:
         - ports:
-            - port: "80"
+            - port: "465"
               protocol: TCP
-            - port: "443"
+            - port: "587"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The identity service sends the account-verification, 2FA, and
+  # password-reset mail; same FQDN-less SMTP rationale as allow-sse-smtp.
+  name: allow-identity-smtp
+  namespace: notesnook
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: notesnook-identity
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "465"
+              protocol: TCP
+            - port: "587"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -134,6 +152,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
+  # The ServiceMonitor scrapes the sync server's OpenTelemetry Prometheus
+  # exporter on the dedicated metrics port.
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: notesnook-sync
@@ -141,11 +161,12 @@ spec:
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
       toPorts:
         - ports:
             - port: "5067"
-              protocol: TCP
-            - port: "5264"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -156,6 +177,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
+  # The notesnook-documentdb PodMonitor scrapes the DocumentDB instance metrics
+  # exporter (port 9188).
   endpointSelector:
     matchLabels:
       k8s:cnpg.io/cluster: notesnook
@@ -163,6 +186,9 @@ spec:
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
       toPorts:
         - ports:
             - port: "9188"

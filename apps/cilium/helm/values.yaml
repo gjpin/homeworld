@@ -20,6 +20,11 @@ namespaceOverride: cilium
 kubeProxyReplacement: "true"
 k8sServiceHost: localhost
 k8sServicePort: "7445"
+# Explicit (and deliberate): the hostNetwork agent would otherwise default to
+# ClusterFirstWithHostNet, which sends agent DNS through the host resolver
+# before the cluster. ClusterFirst keeps the agent's API discovery consistent
+# with the Cilium DNS proxy on kube-dns (see the SideroLabs Talos guide this
+# values file follows).
 dnsPolicy: ClusterFirst
 
 # --- IPAM: Kubernetes mode (Talos requirement) ---
@@ -30,8 +35,18 @@ ipam:
 bpf:
   # BPF masquerading; see the forwardKubeDNSToHost note above.
   masquerade: true
+  # Talos pre-mounts bpffs at /sys/fs/bpf just like cgroup2 below; the agent
+  # must not remount it. Disabling the auto-mount also drops the privileged
+  # mount-bpf-fs init container from the agent DaemonSet, and shifts the
+  # remaining init containers down by one index (resource patches in
+  # kustomization.yaml are indexed accordingly).
+  autoMount:
+    enabled: false
 l7Proxy: true
-localRedirectPolicy: true
+localRedirectPolicies:
+  # Renamed from the deprecated localRedirectPolicy key (still honored by
+  # the pinned chart but flagged upstream).
+  enabled: true
 rollOutCiliumPods: true
 
 # --- agent security context ---
@@ -39,6 +54,9 @@ cgroup:
   autoMount:
     enabled: false
   hostRoot: /sys/fs/cgroup
+# The Cilium host firewall stays disabled: the host-network agent/envoy/
+# operator pods are outside Cilium policy scope either way, so node-level
+# policy for them is accepted as absent (recorded in docs/network-policies.md).
 securityContext:
   capabilities:
     ciliumAgent:
@@ -183,7 +201,9 @@ envoy:
   securityContext:
     capabilities:
       # Modern BPF/PERFMON capabilities instead of SYS_ADMIN; NET_BIND_SERVICE
-      # is required for the Envoy process to bind privileged ports.
+      # is required for the Envoy process to bind privileged ports. The
+      # kernel (>= 5.8) and containerd (>= 1.5) floors for BPF/PERFMON are
+      # satisfied by the Talos release in use.
       keepCapNetBindService: true
       envoy:
         - NET_ADMIN

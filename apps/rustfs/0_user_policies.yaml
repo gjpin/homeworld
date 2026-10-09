@@ -7,6 +7,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  # The rustfs.tenant label makes the operator re-reconcile the Tenant when
+  # this ConfigMap changes (upstream provisioning-tenant example pattern);
+  # unlabeled policy ConfigMaps are only read at initial provisioning.
+  labels:
+    rustfs.tenant: rustfs
   name: rustfs-user-policy-notesnook
   namespace: rustfs
 data:
@@ -28,6 +33,11 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  # The rustfs.tenant label makes the operator re-reconcile the Tenant when
+  # this ConfigMap changes (upstream provisioning-tenant example pattern);
+  # unlabeled policy ConfigMaps are only read at initial provisioning.
+  labels:
+    rustfs.tenant: rustfs
   name: rustfs-user-policy-opencloud
   namespace: rustfs
 data:
@@ -42,6 +52,38 @@ data:
             "arn:aws:s3:::opencloud",
             "arn:aws:s3:::opencloud/*"
           ]
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # Console SSO policy. RustFS turns each value of the OIDC groups claim into
+  # a policy name and skips names with no matching policy, so only members
+  # of the Authelia platform group get these permissions (the built-in
+  # consoleAdmin document: every admin, KMS and S3 action).
+  labels:
+    rustfs.tenant: rustfs
+  name: rustfs-oidc-policy-platform
+  namespace: rustfs
+data:
+  policy.json: |
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "admin:*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": "kms:*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": "s3:*",
+          "Resource": "arn:aws:s3:::*"
         }
       ]
     }

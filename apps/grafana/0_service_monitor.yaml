@@ -9,6 +9,9 @@ spec:
     matchLabels:
       app.kubernetes.io/name: grafana
   endpoints:
-    - port: grafana-http
+    # The grafana-operator names the generated Service port "grafana"
+    # (targetPort grafana-http); ServiceMonitors resolve the Service port
+    # name, not the container port name.
+    - port: grafana
       path: /metrics
       interval: 60s

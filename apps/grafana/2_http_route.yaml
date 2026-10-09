@@ -1,8 +1,9 @@
 ---
 # Extracted from the Grafana CR's spec.httpRoute block (unset in
 # 0_grafana.yaml) so the public endpoint follows the component's standard
-# wave-2 HTTPRoute file. The backend is the operator-created Service named
-# after the Grafana resource, exposing grafana's HTTP port 3000.
+# wave-2 HTTPRoute file. grafana-operator v5 names the Service it creates
+# "{Grafana.metadata.name}-service" — grafana-service for the grafana CR —
+# and it exposes grafana's HTTP port 3000.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -16,6 +17,8 @@ spec:
     - name: envoy
       namespace: grafana
       sectionName: grafana-https
+      group: gateway.networking.k8s.io
+      kind: Gateway
   hostnames:
     - "grafana.${BASE_DOMAIN}"
   rules:
@@ -24,5 +27,8 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: grafana
+        - name: grafana-service
           port: 3000
+          group: ""
+          kind: Service
+          weight: 1
