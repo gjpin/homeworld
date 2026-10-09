@@ -102,9 +102,10 @@
       }
     },
     {
-      "description": "Re-vendor the patched RustFS operator chart on version bumps so the PR contains the complete tree",
+      "description": "Re-vendor the patched RustFS operator chart on chart and operator image bumps so the PR contains the complete tree, with crds/ taken from the operator tag matching the pinned image",
       "matchPackageNames": [
-        "rustfs-operator"
+        "rustfs-operator",
+        "rustfs/operator"
       ],
       "postUpgradeTasks": {
         "commands": [
