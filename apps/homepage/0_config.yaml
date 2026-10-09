@@ -136,8 +136,8 @@ data:
             description: Distributed block storage
         - RustFS:
             icon: rustfs
-            href: https://s3.${BASE_DOMAIN}
-            description: S3 object storage
+            href: https://console.rustfs.${BASE_DOMAIN}
+            description: S3 object storage console
             siteMonitor: https://s3.${BASE_DOMAIN}
         - RustFS Operator:
             icon: rustfs
