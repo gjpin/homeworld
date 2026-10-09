@@ -76,7 +76,7 @@ agent:
   image:
     registry: docker.io
     repository: woodpeckerci/woodpecker-agent
-    tag: v3.18.0
+    tag: v3.19.0
     pullPolicy: IfNotPresent
 
   env:
