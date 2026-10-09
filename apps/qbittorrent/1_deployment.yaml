@@ -195,7 +195,7 @@ spec:
           # rootless (nobody:nogroup) and contains no update-check or
           # phone-home mechanism (the update check only exists in the
           # Windows and macOS builds).
-          image: ghcr.io/home-operations/qbittorrent:5.2.3
+          image: ghcr.io/home-operations/qbittorrent:5.2.4
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
