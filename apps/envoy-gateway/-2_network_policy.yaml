@@ -96,7 +96,35 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-envoy-gateway-xds
+  # Each Envoy data-plane pod is an xDS *client*: it opens the gRPC stream to
+  # the controller's xDS service (envoy-gateway.envoy-gateway.svc:18000) on
+  # startup and keeps it alive. The dataplane therefore needs egress to the
+  # control-plane Service on 18000, and the control-plane needs the matching
+  # ingress below (allow-envoy-gateway-xds-ingress).
+  name: allow-envoy-xds
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:io.kubernetes.pod.namespace: envoy-gateway
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: envoy-gateway
+            namespace: envoy-gateway
+      toPorts:
+        - ports:
+            - port: "18000"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-gateway-xds-ingress
   namespace: envoy-gateway
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -106,8 +134,8 @@ spec:
       k8s:app.kubernetes.io/instance: envoy-gateway
       k8s:app.kubernetes.io/name: gateway-helm
       k8s:control-plane: envoy-gateway
-  egress:
-    - toEndpoints:
+  ingress:
+    - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: envoy-gateway
             k8s:app.kubernetes.io/name: envoy
@@ -159,17 +187,6 @@ spec:
               protocol: TCP
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: envoy-gateway
-            k8s:app.kubernetes.io/instance: envoy-gateway
-            k8s:app.kubernetes.io/name: gateway-helm
-            k8s:control-plane: envoy-gateway
-      toPorts:
-        - ports:
-            - port: "18000"
-              protocol: TCP
-    # The envoy-data-plane PodMonitor scrapes /stats/prometheus.
-    - fromEndpoints:
-        - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
             k8s:app.kubernetes.io/managed-by: opentelemetry-operator
             k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
@@ -187,6 +204,10 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
+  # The chart's ServiceMonitor scrapes the controller's metrics port; only
+  # the OpenTelemetry collector connects to it (the Envoy data plane exposes
+  # its own stats on its own 19001, scraped by the envoy-data-plane
+  # PodMonitor above).
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/instance: envoy-gateway
@@ -194,10 +215,6 @@ spec:
       k8s:control-plane: envoy-gateway
   ingress:
     - fromEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: envoy-gateway
-            k8s:app.kubernetes.io/name: envoy
-            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
             k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -211,14 +228,15 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-envoy-gateway-metrics-backend
+  name: allow-envoy-backend-envoy-gateway-admin
   namespace: envoy-gateway
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
+  # The admin console route (envoy.${BASE_DOMAIN}, 3_http_route.yaml) backs
+  # onto the controller's 19000 admin port.
   endpointSelector:
     matchLabels:
-      k8s:io.kubernetes.pod.namespace: envoy-gateway
       k8s:app.kubernetes.io/name: envoy
       k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
@@ -228,7 +246,31 @@ spec:
             namespace: envoy-gateway
       toPorts:
         - ports:
-            - port: "19001"
+            - port: "19000"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-gateway-admin-ingress
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: envoy-gateway
+      k8s:app.kubernetes.io/name: gateway-helm
+      k8s:control-plane: envoy-gateway
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+      toPorts:
+        - ports:
+            - port: "19000"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -491,9 +533,12 @@ spec:
       k8s:app.kubernetes.io/name: envoy
       k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
+    # The operator-created Service is named after the Grafana resource plus
+    # the "-service" suffix (grafana-service); the route and this policy must
+    # agree with it.
     - toServices:
         - k8sService:
-            serviceName: grafana
+            serviceName: grafana-service
             namespace: grafana
       toPorts:
         - ports:
@@ -828,72 +873,6 @@ spec:
       toPorts:
         - ports:
             - port: "3000"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: allow-envoy-backend-notesnook-themes
-  namespace: envoy-gateway
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
-  egress:
-    - toServices:
-        - k8sService:
-            serviceName: notesnook-themes
-            namespace: notesnook
-      toPorts:
-        - ports:
-            - port: "9000"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: allow-envoy-backend-notesnook-cors-proxy
-  namespace: envoy-gateway
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
-  egress:
-    - toServices:
-        - k8sService:
-            serviceName: notesnook-cors-proxy
-            namespace: notesnook
-      toPorts:
-        - ports:
-            - port: "3000"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: allow-envoy-backend-notesnook-inbox
-  namespace: envoy-gateway
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
-  egress:
-    - toServices:
-        - k8sService:
-            serviceName: notesnook-inbox
-            namespace: notesnook
-      toPorts:
-        - ports:
-            - port: "5181"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2

@@ -257,33 +257,6 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-metrics-scraping
-  namespace: woodpecker
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  # The ServiceMonitor scrapes the server's authenticated Prometheus
-  # endpoint; the Target Allocator resolves the bearer token secret over
-  # mTLS.
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/name: server
-      k8s:app.kubernetes.io/instance: woodpecker
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: otel-collector
-            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
-            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
-            k8s:app.kubernetes.io/component: opentelemetry-collector
-      toPorts:
-        - ports:
-            - port: "8000"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
   name: allow-woodpecker-postgres-metrics-ingress
   namespace: woodpecker
   annotations:

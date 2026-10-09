@@ -29,6 +29,7 @@ server:
     size: 20Gi
   serviceMonitor:
     enabled: true
+    namespace: victoria-metrics
     interval: 60s
   resources:
     requests:

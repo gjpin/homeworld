@@ -3,7 +3,7 @@
     {
       "name": "DS_PROMETHEUS",
       "label": "Prometheus",
-      "description": "",
+      "description": "Adapted from the official CloudNativePG dashboard (cloudnative-pg/grafana-dashboards repo) for the homeworld OpenTelemetry->VictoriaMetrics pipeline. kube_* panels are served by kube-state-metrics (apps/kube-state-metrics), matched by the Target Allocator job label (<namespace>/<monitor-name>). Container CPU/memory and volume-usage panels read the OpenTelemetry kubeletstats families exported by the node collector (container.cpu.usage, container.memory.working_set, k8s.volume.available/capacity/inodes[.used/.free]); VictoriaMetrics promotes OTLP resource attributes to labels verbatim (no -opentelemetry.usePrometheusNaming), so those series are selected by k8s.namespace.name / k8s.pod.name / k8s.persistentvolumeclaim.name, with label_replace shims only where an on(namespace, persistentvolumeclaim) join against kube-state-metrics series is required. There is no cAdvisor/kubelet Prometheus scrape in this pipeline: the upstream container_cpu_usage_seconds_total / kubelet_volume_stats_* families and the node_namespace_pod_container:... recording rule are not produced. Datasource hardcoded to the in-cluster victoriametrics uid.",
       "type": "datasource",
       "pluginId": "prometheus",
       "pluginName": "Prometheus"
@@ -84,6 +84,7 @@
       "version": ""
     }
   ],
+  "description": "Adapted from the official CloudNativePG dashboard (cloudnative-pg/grafana-dashboards repo). kube_* panels are served by kube-state-metrics (apps/kube-state-metrics); datasource hardcoded to the in-cluster victoriametrics uid.",
   "annotations": {
     "list": [
       {
@@ -618,7 +619,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max((max(max by(persistentvolumeclaim) (1 - kubelet_volume_stats_available_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\"$instances\"} / kubelet_volume_stats_capacity_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\"$instances\"}))) OR (max by(persistentvolumeclaim) (kubelet_volume_stats_inodes_used{namespace=\"$namespace\", persistentvolumeclaim=~\"$instances\"} / kubelet_volume_stats_inodes{namespace=\"$namespace\", persistentvolumeclaim=~\"$instances\"})))",
+          "expr": "max((max(max by(k8s.persistentvolumeclaim.name) (1 - k8s.volume.available{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"$instances\"} / k8s.volume.capacity{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"$instances\"}))) OR (max by(k8s.persistentvolumeclaim.name) (k8s.volume.inodes.used{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"$instances\"} / k8s.volume.inodes{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"$instances\"})))",
           "hide": false,
           "legendFormat": "Storage",
           "range": true,
@@ -847,7 +848,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\", pod=~\"$instances\"}) / sum(kube_pod_container_resource_requests{job=\"kube-state-metrics\",  namespace=\"$namespace\", resource=\"cpu\", pod=~\"$instances\"})",
+          "expr": "sum(container.cpu.usage{k8s.namespace.name=\"$namespace\", k8s.pod.name=~\"$instances\"}) / sum(kube_pod_container_resource_requests{job=~\".*kube-state-metrics.*\",  namespace=\"$namespace\", resource=\"cpu\", pod=~\"$instances\"})",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 2,
@@ -937,7 +938,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(container_memory_working_set_bytes{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\",container!=\"\", image!=\"\", pod=~\"$instances\"}) / sum(max by(pod) (kube_pod_container_resource_requests{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"memory\", pod=~\"$instances\"}))",
+          "expr": "sum(container.memory.working_set{k8s.namespace.name=\"$namespace\", k8s.container.name!=\"\", k8s.pod.name=~\"$instances\"}) / sum(max by(pod) (kube_pod_container_resource_requests{job=~\".*kube-state-metrics.*\", namespace=\"$namespace\", resource=\"memory\", pod=~\"$instances\"}))",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 2,
@@ -1171,7 +1172,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "max(max by(persistentvolumeclaim) (1 - kubelet_volume_stats_available_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\"$instances\"} / kubelet_volume_stats_capacity_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\"$instances\"}))",
+          "expr": "max(max by(k8s.persistentvolumeclaim.name) (1 - k8s.volume.available{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"$instances\"} / k8s.volume.capacity{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"$instances\"}))",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -1186,7 +1187,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "max(max by(persistentvolumeclaim) (1 - kubelet_volume_stats_available_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\"(${instances})-wal\"} / kubelet_volume_stats_capacity_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\"(${instances})-wal\"}))",
+          "expr": "max(max by(k8s.persistentvolumeclaim.name) (1 - k8s.volume.available{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"(${instances})-wal\"} / k8s.volume.capacity{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"(${instances})-wal\"}))",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -1201,7 +1202,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "max(\n    sum by (namespace,persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\"(${instances})-tbs.*\"}) \n    /\n    sum by (namespace,persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\"(${instances})-tbs.*\"}) \n    *\n    on(namespace, persistentvolumeclaim) group_left(volume)\n    kube_pod_spec_volumes_persistentvolumeclaims_info{pod=~\"$instances\"}\n)",
+          "expr": "max(\nlabel_replace(label_replace(\n    (sum by (k8s.namespace.name, k8s.persistentvolumeclaim.name) (k8s.volume.capacity{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"(${instances})-tbs.*\"} - k8s.volume.available{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"(${instances})-tbs.*\"}))\n    /\n    (sum by (k8s.namespace.name, k8s.persistentvolumeclaim.name) (k8s.volume.capacity{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"(${instances})-tbs.*\"})),\n    \"namespace\", \"$1\", \"k8s.namespace.name\", \"(.*)\"),\n    \"persistentvolumeclaim\", \"$1\", \"k8s.persistentvolumeclaim.name\", \"(.*)\")\n*\non(namespace, persistentvolumeclaim) group_left(volume,pod)\nkube_pod_spec_volumes_persistentvolumeclaims_info{pod=~\"$instances\"}\n)",
           "hide": false,
           "instant": true,
           "legendFormat": "Tablespaces (max)",
@@ -1437,7 +1438,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "(sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{ namespace=\"$namespace\", pod=~\"$instances\"}) / sum(kube_pod_container_resource_requests{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"cpu\", pod=~\"$instances\"}))",
+          "expr": "(sum(container.cpu.usage{k8s.namespace.name=\"$namespace\", k8s.pod.name=~\"$instances\"}) / sum(kube_pod_container_resource_requests{job=~\".*kube-state-metrics.*\", namespace=\"$namespace\", resource=\"cpu\", pod=~\"$instances\"}))",
           "hide": false,
           "legendFormat": "CPU",
           "range": true,
@@ -1449,7 +1450,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "(sum(container_memory_working_set_bytes{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", namespace=\"$namespace\",container!=\"\", image!=\"\", pod=~\"$instances\"}) / sum(max by(pod) (kube_pod_container_resource_requests{job=\"kube-state-metrics\", namespace=\"$namespace\", resource=\"memory\", pod=~\"$instances\"})))",
+          "expr": "(sum(container.memory.working_set{k8s.namespace.name=\"$namespace\", k8s.container.name!=\"\", k8s.pod.name=~\"$instances\"}) / sum(max by(pod) (kube_pod_container_resource_requests{job=~\".*kube-state-metrics.*\", namespace=\"$namespace\", resource=\"memory\", pod=~\"$instances\"})))",
           "hide": false,
           "instant": false,
           "legendFormat": "Memory",
@@ -2496,7 +2497,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\", pod=~\"$instances\"})",
+          "expr": "sum(container.cpu.usage{k8s.namespace.name=\"$namespace\", k8s.pod.name=~\"$instances\"})",
           "hide": false,
           "interval": "",
           "legendFormat": "Total",
@@ -2573,7 +2574,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(container_memory_working_set_bytes{pod=~\"$instances\", namespace=\"$namespace\", container!=\"\", image!=\"\"})",
+          "expr": "sum(container.memory.working_set{k8s.pod.name=~\"$instances\", k8s.namespace.name=\"$namespace\", k8s.container.name!=\"\"})",
           "hide": false,
           "interval": "",
           "legendFormat": "Total",
@@ -5026,7 +5027,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{pod=~\"$instances\", namespace=~\"$namespace\"}) by (pod)",
+          "expr": "sum(label_replace(container.cpu.usage{k8s.pod.name=~\"$instances\", k8s.namespace.name=~\"$namespace\"}, \"pod\", \"$1\", \"k8s.pod.name\", \"(.*)\")) by (pod)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -5209,7 +5210,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "sum(container_memory_working_set_bytes{pod=~\"$instances\", namespace=\"$namespace\", container!=\"\", image!=\"\"}) by (pod)",
+          "expr": "sum(label_replace(container.memory.working_set{k8s.pod.name=~\"$instances\", k8s.namespace.name=\"$namespace\", k8s.container.name!=\"\"}, \"pod\", \"$1\", \"k8s.pod.name\", \"(.*)\")) by (pod)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -5799,7 +5800,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "editorMode": "code",
-              "expr": "max by(persistentvolumeclaim) (1 - kubelet_volume_stats_available_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\"$instances\"} / kubelet_volume_stats_capacity_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\"$instances\"})",
+              "expr": "max by(k8s.persistentvolumeclaim.name) (1 - k8s.volume.available{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"$instances\"} / k8s.volume.capacity{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"$instances\"})",
               "format": "time_series",
               "interval": "",
               "legendFormat": "{{persistentvolumeclaim}}",
@@ -5812,7 +5813,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "editorMode": "code",
-              "expr": "max by(persistentvolumeclaim) (1 - kubelet_volume_stats_available_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\"(${instances})-wal\"} / kubelet_volume_stats_capacity_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\"(${instances})-wal\"})",
+              "expr": "max by(k8s.persistentvolumeclaim.name) (1 - k8s.volume.available{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"(${instances})-wal\"} / k8s.volume.capacity{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"(${instances})-wal\"})",
               "format": "time_series",
               "interval": "",
               "legendFormat": "{{persistentvolumeclaim}}",
@@ -5889,7 +5890,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "editorMode": "code",
-              "expr": "max by(persistentvolumeclaim) (kubelet_volume_stats_inodes_used{namespace=\"$namespace\", persistentvolumeclaim=~\"$instances\"} / kubelet_volume_stats_inodes{namespace=\"$namespace\", persistentvolumeclaim=~\"$instances\"})",
+              "expr": "max by(k8s.persistentvolumeclaim.name) (k8s.volume.inodes.used{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"$instances\"} / k8s.volume.inodes{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"$instances\"})",
               "format": "time_series",
               "interval": "",
               "legendFormat": "{{persistentvolumeclaim}}",
@@ -5902,7 +5903,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "editorMode": "code",
-              "expr": "max by(persistentvolumeclaim) (kubelet_volume_stats_inodes_used{namespace=\"$namespace\", persistentvolumeclaim=~\"(${instances})-wal\"} / kubelet_volume_stats_inodes{namespace=\"$namespace\", persistentvolumeclaim=~\"(${instances})-wal\"})",
+              "expr": "max by(k8s.persistentvolumeclaim.name) (k8s.volume.inodes.used{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"(${instances})-wal\"} / k8s.volume.inodes{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"(${instances})-wal\"})",
               "format": "time_series",
               "interval": "",
               "legendFormat": "{{persistentvolumeclaim}}",
@@ -5979,7 +5980,7 @@
                 "uid": "${DS_PROMETHEUS}"
               },
               "editorMode": "code",
-              "expr": "sum by (namespace,persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\"(${instances})-tbs.*\"}) \n/\nsum by (namespace,persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\"(${instances})-tbs.*\"}) \n*\non(namespace, persistentvolumeclaim) group_left(volume,pod)\nkube_pod_spec_volumes_persistentvolumeclaims_info{pod=~\"$instances\"}",
+              "expr": "label_replace(label_replace(\n    (sum by (k8s.namespace.name, k8s.persistentvolumeclaim.name) (k8s.volume.capacity{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"(${instances})-tbs.*\"} - k8s.volume.available{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"(${instances})-tbs.*\"}))\n    /\n    (sum by (k8s.namespace.name, k8s.persistentvolumeclaim.name) (k8s.volume.capacity{k8s.namespace.name=\"$namespace\", k8s.persistentvolumeclaim.name=~\"(${instances})-tbs.*\"})),\n    \"namespace\", \"$1\", \"k8s.namespace.name\", \"(.*)\"),\n    \"persistentvolumeclaim\", \"$1\", \"k8s.persistentvolumeclaim.name\", \"(.*)\")\n*\non(namespace, persistentvolumeclaim) group_left(volume,pod)\nkube_pod_spec_volumes_persistentvolumeclaims_info{pod=~\"$instances\"}",
               "format": "time_series",
               "interval": "",
               "legendFormat": "{{volume}}-{{pod}}",

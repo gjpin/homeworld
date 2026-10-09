@@ -24,14 +24,13 @@ failures=0
 grafana_dir="apps/grafana"
 
 # Datasource uids provisioned by apps/grafana/0_*_datasource.yaml, plus the
-# Grafana-internal uids imported dashboards legitimately reference.
-allowed_uids=(
-  victoriametrics
-  prometheus
-  loki
-  victorialogs
-  victoriatraces-jaeger
-  victoriatraces-tempo
+# Grafana-internal uids imported dashboards legitimately reference. Derived
+# from the GrafanaDatasource CRs so a new datasource only has to land once.
+mapfile -t allowed_uids < <(
+  yq ea 'select(.kind == "GrafanaDatasource") | .spec.uid' \
+    "$grafana_dir"/0_*datasource*.yaml 2>/dev/null | grep -v '^---$' | grep -v '^$' | sort -u
+)
+allowed_uids+=(
   grafana
   '-- Grafana --'
   '-- Mixed --'
@@ -79,6 +78,65 @@ while IFS= read -r uid; do
   fi
 done <<<"$bad_uids"
 
+# String-form datasource references: variables bound to a datasource name
+# (e.g. current.value on a datasource-type template variable) must also be
+# a provisioned uid.
+bad_string_uids="$(
+  find "$grafana_dir/dashboards" -type f -name '*.json' -print0 |
+    xargs -0 jq -r '
+      [.templating.list[] | select(.type == "datasource") | .current.value? // empty] | .[]
+    ' | sort -u
+)"
+while IFS= read -r uid; do
+  case "$uid" in
+    '$'*|'')
+      continue
+      ;;
+  esac
+  known=0
+  for allowed in "${allowed_uids[@]}"; do
+    if [[ "$uid" == "$allowed" ]]; then
+      known=1
+      break
+    fi
+  done
+  if [[ "$known" -ne 1 ]]; then
+    echo "check-dashboards: datasource variable defaults to unknown uid: $uid" >&2
+    failures=$((failures + 1))
+  fi
+done <<<"$bad_string_uids"
+
+# --- 2b. Template-variable sanity ------------------------------------------
+
+# Duplicate template variable names break variable resolution; empty
+# top-level descriptions drop the provenance AGENTS.md requires.
+bad_vars="$(find "$grafana_dir/dashboards" -type f -name '*.json' -print0 |
+  xargs -0 jq -r '
+    . as $d |
+    ([.templating.list[].name] | group_by(.) | map(select(length > 1) | .[0]))[]?,
+    (if (($d.description // "") | length) == 0 then "«missing-description»" else empty end)
+  ' | sort -u
+)"
+for entry in $bad_vars; do
+  if [[ "$entry" == "«missing-description»" ]]; then
+    echo "check-dashboards: dashboard has no top-level provenance description: (see list above)" >&2
+    failures=$((failures + 1))
+  else
+    echo "check-dashboards: duplicate template variable name: $entry" >&2
+    failures=$((failures + 1))
+  fi
+done
+
+# Per-file missing-description reporting (the aggregate report above gives
+# no filename).
+find "$grafana_dir/dashboards" -type f -name '*.json' -print0 |
+  xargs -0 -n1 sh -c 'jq -e '"'"'(.description // "") | length > 0'"'"' "$1" >/dev/null 2>&1 || echo "check-dashboards: dashboard has no top-level provenance description: $1" >&2' _
+if [[ -n "$(find "$grafana_dir/dashboards" -type f -name '*.json' -print0 |
+  xargs -0 -n1 sh -c 'jq -e '"'"'(.description // "") | length > 0'"'"' "$1" >/dev/null 2>&1 || echo x' _)" ]]; then
+  failures=$((failures + 1))
+fi
+
+
 # --- 3./4. GrafanaDashboard CRs <-> configMapGenerator <-> JSON files ------
 
 # yq eval-all separates documents with --- lines; drop them from all
@@ -87,7 +145,7 @@ strip_sep() { grep -v '^---$' || true; }
 
 dash_cm_refs="$(
   yq ea 'select(.kind == "GrafanaDashboard") | .spec.configMapRef.name' \
-    "$grafana_dir"/0_dashboards_*.yaml | strip_sep | sort
+    "$grafana_dir"/1_dashboards_*.yaml | strip_sep | sort
 )"
 cm_names="$(
   yq '.configMapGenerator[].name' "$grafana_dir/kustomization.yaml" | sort
@@ -126,7 +184,7 @@ done
 
 dash_folder_refs="$(
   yq ea 'select(.kind == "GrafanaDashboard") | .spec.folderRef' \
-    "$grafana_dir"/0_dashboards_*.yaml | strip_sep | sort -u
+    "$grafana_dir"/1_dashboards_*.yaml | strip_sep | sort -u
 )"
 folder_names="$(
   yq ea 'select(.kind == "GrafanaFolder") | .metadata.name' "$grafana_dir"/0_folders.yaml |

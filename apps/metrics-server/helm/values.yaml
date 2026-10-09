@@ -22,6 +22,15 @@ serviceMonitor:
   enabled: true
   interval: 60s
 
+# apiService.insecureSkipTLSVerify stays at the chart default (true): the
+# metrics-server serves a self-signed certificate, and the chart provisions
+# the APIService caBundle through helm lookup — which returns nil under
+# Argo CD's offline render, so a verified APIService would end up
+# unprovisioned and `kubectl top` would break. Accepted residual: the
+# apiserver->metrics-server connection is cluster-internal, and the
+# kubelet-side scrape itself is verified (see the header comment above —
+# no --kubelet-insecure-tls).
+
 podSecurityContext:
   runAsNonRoot: true
   seccompProfile:

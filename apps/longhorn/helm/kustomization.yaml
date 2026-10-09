@@ -176,8 +176,20 @@ patches:
       # Kubernetes API caller and runs as root only because the chart
       # preserves that context (see the run-as-non-root exception below);
       # it still forbids privilege escalation and drops all capabilities.
+      # The wait-longhorn-manager init container (the chart's only init) is
+      # patched with the same context; it only loops on a local HTTP probe.
       - op: add
         path: /spec/template/spec/containers/0/securityContext
+        value:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsNonRoot: false
+          seccompProfile:
+            type: RuntimeDefault
+      - op: add
+        path: /spec/template/spec/initContainers/0/securityContext
         value:
           allowPrivilegeEscalation: false
           capabilities:

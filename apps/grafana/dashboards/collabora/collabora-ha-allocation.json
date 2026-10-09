@@ -27,6 +27,7 @@
       "version": ""
     }
   ],
+  "description": "Chart-bundled dashboard from the official Collabora Online helm chart (kubernetes/helm/collabora-online grafana_dashboards/); upstream target-level datasource uids normalized; datasource hardcoded to the in-cluster victoriametrics uid.",
   "annotations": {
     "list": [
       {
@@ -2848,8 +2849,8 @@
       {
         "current": {
           "selected": false,
-          "text": "Prometheus",
-          "value": "Prometheus"
+          "text": "VictoriaMetrics",
+          "value": "victoriametrics"
         },
         "hide": 0,
         "includeAll": false,
@@ -2865,7 +2866,7 @@
         "type": "datasource"
       },
       {
-        "current": {},
+        "current": {"selected": false, "text": "VictoriaMetrics", "value": "victoriametrics"},
         "datasource": {
           "type": "prometheus",
           "uid": "${DS_PROMETHEUS}"

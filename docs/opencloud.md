@@ -35,6 +35,15 @@ If manual intervention or maintenance is required:
 * **Restore previous configuration backup:**
   Timestamped backups are stored under `/etc/opencloud/opencloud.yaml.<timestamp>.bak`.
 
+## Identity & integrations
+
+* **OIDC sign-in:** OpenCloud authenticates through Authelia as the four clients `web`, `OpenCloudDesktop`, `OpenCloudAndroid`, `OpenCloudIOS`; access requires membership in one of the `opencloud-admin`, `opencloud-spaceadmin`, `opencloud-user`, or `opencloud-user-light` groups (the `opencloud` authorization policy; see [oidc.md](oidc.md) and the inline deviation notes in `apps/authelia/helm/configuration.yaml.tmpl`).
+* **WOPI office editing:** Collabora (office.`${BASE_DOMAIN}`) serves document editing through OpenCloud's WOPI callbacks; the Collabora WOPI allow-list is the `aliasgroups` host `https://cloud.${BASE_DOMAIN}:443`.
+* **CalDAV/CardDAV:** OpenCloud's authenticated DAV proxy forwards calendar and contact requests to the internal Radicale server (`radicale:5232`) — clients never reach Radicale directly.
+* **Full-text search:** the `opencloud-tika` sidecar (Apache Tika on `:9998`) extracts text from documents for search indexing.
+* **Collaborative editing (yjs):** the `yjs` sidecar (WebSocket relay on `127.0.0.1:1234`) serves the `/yjs` route through the internal proxy, scoped to the pod.
+* **Web extensions:** the web-extension init containers fetch and install OpenCloud's web assets (`apps/opencloud/1_deployments.yaml` web-extensions path) into the served tree at startup.
+
 ## Not configured
 
 - **Outbound email:** no SMTP environment is set, so share-invitation emails are not sent — invitations surface in-app instead. Add SMTP settings to the OpenCloud deployment if email delivery is ever needed.

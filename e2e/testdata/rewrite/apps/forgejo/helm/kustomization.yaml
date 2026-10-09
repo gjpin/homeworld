@@ -1,7 +1,77 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
 helmCharts:
   - name: forgejo
+    repo: oci://code.forgejo.org/forgejo-helm
     version: 17.1.7
+    releaseName: forgejo
+    namespace: forgejo
+    includeCRDs: true
+    skipTests: true
     valuesFile: values.yaml
-patches: []
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^forgejo$
+      namespace: ^forgejo$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+      - op: replace
+        path: /spec/template/spec/initContainers/0/imagePullPolicy
+        value: IfNotPresent
+      - op: replace
+        path: /spec/template/spec/initContainers/1/imagePullPolicy
+        value: IfNotPresent
+      - op: replace
+        path: /spec/template/spec/initContainers/2/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      group: apps
+      version: v1
+      kind: ^(Deployment|StatefulSet)$
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 1
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^forgejo$
+      namespace: ^forgejo$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+      - op: add
+        path: /spec/template/spec/automountServiceAccountToken
+        value: false
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^forgejo$
+      namespace: ^forgejo$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream image and its app.ini staging init containers write to their root filesystems; overriding them would break runtime file access.
+  - target:
+      group: monitoring.coreos.com
+      version: v1
+      kind: ServiceMonitor
+      name: ^forgejo$
+      namespace: ^forgejo$
+    patch: |-
+      - op: add
+        path: /spec/endpoints/0/interval
+        value: 60s

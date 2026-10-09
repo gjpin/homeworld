@@ -1,0 +1,32 @@
+# https://velero.io/docs/v1.18/csi/
+# https://longhorn.io/docs/1.12.1/snapshots-and-backups/
+#
+# Velero's CSI plugin creates a VolumeSnapshot per backed-up PVC using the
+# VolumeSnapshotClass labeled velero.io/csi-volumesnapshot-class: "true";
+# the snapshot-controller (apps/snapshot-controller) then drives the
+# Longhorn CSI driver, and the node-agent uploads the snapshot contents to
+# the BackupStorageLocation (CSI snapshot data movement) before the snapshot
+# is deleted. deletionPolicy: Delete lets those transient snapshots clean
+# up after each upload; Velero manages retention through the backup.
+#
+# parameters.type: snap is load-bearing: the Longhorn CSI driver treats an
+# empty type as "bak" for backward compatibility, which creates a Longhorn
+# *backup* instead of an in-cluster snapshot — that path requires a backup
+# target (this cluster has none; backups are delegated to Velero) and fails
+# outright. "snap" creates the in-cluster snapshot the data-movement flow
+# above expects.
+---
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  # Cluster-scoped: no namespace.
+  name: longhorn
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    velero.io/csi-volumesnapshot-class: "true"
+spec:
+  driver: driver.longhorn.io
+  deletionPolicy: Delete
+  parameters:
+    type: snap

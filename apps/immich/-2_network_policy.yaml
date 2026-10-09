@@ -128,6 +128,36 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  # The chart's ServiceMonitor scrapes the server's metrics-api (8081) and
+  # metrics-ms (8082) endpoints; both named ports belong to the
+  # immich-server Service, so only server pods receive scrapes.
+  name: allow-immich-metrics-ingress
+  namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/controller: main
+      k8s:app.kubernetes.io/instance: immich
+      k8s:app.kubernetes.io/name: server
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+            - port: "8082"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-immich-postgres-ingress
   namespace: immich
   annotations:
@@ -170,6 +200,17 @@ spec:
       toPorts:
         - ports:
             - port: "6379"
+              protocol: TCP
+    # Operand admin/metrics endpoint (port 9999) scraped by the PodMonitor.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9999"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2

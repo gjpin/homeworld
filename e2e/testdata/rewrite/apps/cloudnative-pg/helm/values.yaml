@@ -1,1 +1,18 @@
 fullnameOverride: cloudnative-pg
+namespaceOverride: cloudnative-pg
+replicaCount: 1
+image:
+  pullPolicy: IfNotPresent
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+    ephemeral-storage: 64Mi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+    ephemeral-storage: 2Gi
+monitoring:
+  podMonitorEnabled: true
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab

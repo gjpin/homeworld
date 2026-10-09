@@ -54,7 +54,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-argocd-server-redis
+  name: allow-argocd-server-dragonfly
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -66,7 +66,7 @@ spec:
   egress:
     - toServices:
         - k8sService:
-            serviceName: argocd-argocd-redis
+            serviceName: dragonfly
             namespace: argocd
       toPorts:
         - ports:
@@ -98,7 +98,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-argocd-controller-redis
+  name: allow-argocd-controller-dragonfly
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -110,7 +110,7 @@ spec:
   egress:
     - toServices:
         - k8sService:
-            serviceName: argocd-argocd-redis
+            serviceName: dragonfly
             namespace: argocd
       toPorts:
         - ports:
@@ -186,29 +186,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-argocd-redis-hook
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/component: redis-secret-init
-      k8s:app.kubernetes.io/instance: argocd
-  egress:
-    - toServices:
-        - k8sService:
-            serviceName: argocd-argocd-redis
-            namespace: argocd
-      toPorts:
-        - ports:
-            - port: "6379"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: allow-argocd-repo-server-redis
+  name: allow-argocd-repo-server-dragonfly
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -220,7 +198,7 @@ spec:
   egress:
     - toServices:
         - k8sService:
-            serviceName: argocd-argocd-redis
+            serviceName: dragonfly
             namespace: argocd
       toPorts:
         - ports:
@@ -265,15 +243,17 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-argocd-redis-ingress
+  name: allow-argocd-dragonfly-ingress
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
+  # The Dragonfly operator's generated StatefulSet pods (apps/argocd/
+  # 0_dragonfly.yaml) cache the controllers' git and manifest data.
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/component: argocd-redis
-      k8s:app.kubernetes.io/instance: argocd
+      k8s:app.kubernetes.io/name: dragonfly
+      k8s:app.kubernetes.io/instance: dragonfly
   ingress:
     - fromEndpoints:
         - matchLabels:
@@ -288,13 +268,20 @@ spec:
             k8s:io.kubernetes.pod.namespace: argocd
             k8s:app.kubernetes.io/component: argocd-repo-server
             k8s:app.kubernetes.io/instance: argocd
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: argocd
-            k8s:app.kubernetes.io/component: redis-secret-init
-            k8s:app.kubernetes.io/instance: argocd
       toPorts:
         - ports:
             - port: "6379"
+              protocol: TCP
+    # Operand admin/metrics endpoint (port 9999) scraped by the PodMonitor.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9999"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -343,6 +330,7 @@ spec:
         - matchName: cloudnative-pg.github.io
         - matchName: collaboraonline.github.io
         - matchName: code.forgejo.org
+        - matchName: crowdsecurity.github.io
         - matchName: charts.external-secrets.io
         - matchName: charts.longhorn.io
         - matchName: victoriametrics.github.io
@@ -351,6 +339,8 @@ spec:
         - matchName: helm.otwld.com
         - matchName: vmware-tanzu.github.io
         - matchName: kubernetes-sigs.github.io
+        - matchName: helm.cilium.io
+        - matchName: woodpecker-ci.org
         - matchName: ghcr.io
         - matchName: docker.io
         - matchName: registry-1.docker.io

@@ -21,7 +21,11 @@ resources:
     ephemeral-storage: 2Gi
 collabora:
   aliasgroups:
-    - host: https://cloud.${BASE_DOMAIN}
+    # Upstream chart examples write the WOPI allow-list host as
+    # "<protocol>://<host-name>:<port>"; the explicit :443 matches the
+    # rendered coolwsd allowlist entries to the HTTPS origin OpenCloud
+    # uses for WOPI callbacks.
+    - host: https://cloud.${BASE_DOMAIN}:443
   server_name: office.${BASE_DOMAIN}:443
   extra_params: >-
     --o:ssl.enable=false

@@ -1,4 +1,5 @@
 {
+  "description": "Adapted from grafana/grafana repo grafana-mixin dashboards (grafana-overview.json); datasource hardcoded to the in-cluster victoriametrics uid.",
   "annotations": {
     "list": [
       {

@@ -331,3 +331,25 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: folder-snapshot-controller
+  namespace: grafana
+spec:
+  title: Snapshot Controller
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: folder-kube-state-metrics
+  namespace: grafana
+spec:
+  title: Kube State Metrics
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana

@@ -1,6 +1,6 @@
 {
    "_original_url": "https://github.com/envoyproxy/gateway/tree/main/charts/gateway-addons-helm/dashboards",
-   "description": "Memory and CPU Usage Monitor for Envoy Gateway and Envoy Proxy.\n",
+   "description": "Memory and CPU Usage Monitor for Envoy Gateway and Envoy Proxy.\n CPU/memory panels read the OpenTelemetry kubeletstats families (container.cpu.usage, container.memory.working_set) exported by the node collector \u2014 this pipeline runs no cAdvisor scrape, so the upstream cadvisor families are unavailable.",
    "graphTooltip": 1,
    "panels": [
       {
@@ -58,7 +58,7 @@
                   "type": "prometheus",
                   "uid": "$datasource"
                },
-               "expr": "sum by (namespace) (\n    rate(\n        container_cpu_usage_seconds_total{\n            container=\"envoy-gateway\"\n        }\n    [$__rate_interval])\n)\n",
+               "expr": "sum by (namespace) (\n    rate(\n        container.cpu.usage{\n            container=\"envoy-gateway\"\n        }\n    [$__rate_interval])\n)\n",
                "intervalFactor": 2,
                "legendFormat": "{{namespace}}\n"
             }
@@ -108,7 +108,7 @@
                   "type": "prometheus",
                   "uid": "$datasource"
                },
-               "expr": "sum by (namespace) (\n  container_memory_working_set_bytes{container=\"envoy-gateway\"}\n)\n",
+               "expr": "sum by (namespace) (\n  container.memory.working_set{container=\"envoy-gateway\"}\n)\n",
                "intervalFactor": 2,
                "legendFormat": "{{namespace}}\n"
             }
@@ -171,7 +171,7 @@
                   "type": "prometheus",
                   "uid": "$datasource"
                },
-               "expr": "sum by (pod) (\n    rate(\n        container_cpu_usage_seconds_total{\n            container=\"envoy\"\n        }\n    [$__rate_interval])\n)\n",
+               "expr": "sum by (pod) (\n    rate(\n        container.cpu.usage{\n            container=\"envoy\"\n        }\n    [$__rate_interval])\n)\n",
                "intervalFactor": 2,
                "legendFormat": "{{pod}}\n"
             }
@@ -221,7 +221,7 @@
                   "type": "prometheus",
                   "uid": "$datasource"
                },
-               "expr": "sum by (pod) (\n  container_memory_working_set_bytes{container=\"envoy\"}\n)\n",
+               "expr": "sum by (pod) (\n  container.memory.working_set{container=\"envoy\"}\n)\n",
                "intervalFactor": 2,
                "legendFormat": "{{pod}}\n"
             }

@@ -1,20 +1,30 @@
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: crowdsec
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
+  project: default
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/crowdsec/helm
     targetRevision: HEAD
+    path: apps/crowdsec/helm
   destination:
     server: https://kubernetes.default.svc
     namespace: crowdsec
   syncPolicy:
     automated:
+      allowEmpty: true
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - PruneLast=true
+      - PrunePropagationPolicy=foreground
+      - Validate=true
       - ServerSideApply=true

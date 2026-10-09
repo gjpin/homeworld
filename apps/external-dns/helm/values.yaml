@@ -22,6 +22,14 @@ sources:
 
 # "sync" policy has issues:
 # https://github.com/kubernetes-sigs/external-dns/issues/4059
+# Trade-off of upsert-only: removed HTTPRoute/TCPRoute hostnames are never
+# pruned — the DNS record (and its TXT registry entry) outlives the route
+# and keeps resolving. Orphan GC runbook: with the txt registry prefix and
+# owner id below, `external-dns list`-style tooling or a manual pass can
+# diff live TXT records against current routes; delete orphans with
+# `dig`+Cloudflare API or by flipping policy to sync for one reconciliation
+# with the same txtOwnerId (see the linked issue). Do NOT flip to sync
+# permanently without digesting the issue thread.
 policy: upsert-only
 
 # Scope this instance to its own zone; the txt registry only adopts records

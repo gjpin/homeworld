@@ -16,3 +16,9 @@ spec:
   extensions:
     - name: vchord
       ensure: present
+    - name: vector
+      ensure: present
+    - name: cube
+      ensure: present
+    - name: earthdistance
+      ensure: present

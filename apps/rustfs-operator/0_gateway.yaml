@@ -22,9 +22,10 @@ spec:
       hostname: "rustfs.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
-          from: all
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
           - name: rustfs-tls-cert
             kind: Secret
+            group: ""

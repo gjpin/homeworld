@@ -2,6 +2,14 @@
 
 All cluster secrets are synchronized from [Infisical](https://infisical.com) by the External Secrets Operator through the `infisical` ClusterSecretStore (hourly refresh). No credentials are stored in this repository. Every key below must exist in Infisical at the listed path before the consuming component can start; missing keys leave the generated `Secret` incomplete and the pod fails with `CreateContainerConfigError`.
 
+Every `ExternalSecret` key in this repository pins `decodingStrategy: None`: values
+are delivered exactly as stored in Infisical. Store secrets **raw** — a hex string
+like `openssl rand -hex 32` output, a chosen username like `authelia`, a
+`wg genkey` key — never base64-encoded. (`decodingStrategy: Auto` base64-decodes
+any value that happens to parse as base64, which silently corrupts hex secrets,
+8-character usernames, and WireGuard keys; `None` guarantees the raw passthrough
+the RFC 3986-unreserved guidance below and the CNPG bootstrap both assume.)
+
 ## Bootstrap exceptions
 
 Two categories of values are not synchronized from Infisical:
@@ -13,6 +21,7 @@ Two categories of values are not synchronized from Infisical:
 
 | Component | Infisical path | Description | Generation |
 | :--- | :--- | :--- | :--- |
+| **Argo CD** | `/argocd/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for the controllers' cache; rendered into both the `password` key (Dragonfly CR) and the chart's `redis-password` key. | `openssl rand -hex 32` |
 | **Authelia** | `/authelia/SESSION_SECRET` | Session cookie encryption secret. | `openssl rand -hex 32` |
 | | `/authelia/STORAGE_ENCRYPTION_KEY` | At-rest encryption key for the SQL configuration storage. | `openssl rand -hex 32` |
 | | `/authelia/USERS_DATABASE` | Full `users_database.yml` content (the authentication backend). | Handwritten YAML; per-user Argon2id digest: `docker run --rm -it ghcr.io/authelia/authelia authelia crypto hash generate argon2` |
@@ -24,7 +33,7 @@ Two categories of values are not synchronized from Infisical:
 | | `/authelia/OIDC_JWK_RS256` | RSA private key (JWK) for signing OIDC tokens. | `openssl genrsa 2048` (private-key PEM, including the BEGIN/END lines; Authelia derives the public key) |
 | | `/authelia/RESET_PASSWORD_JWT_SECRET` | JWT secret for the password-reset flow. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_ARGOCD` | Argo CD OIDC client secret. | `openssl rand -hex 32` |
-| | `/authelia/OIDC_CLIENT_SECRET_ENVOY` | Envoy Gateway OIDC client secret (shared by every gateway-OIDC route; delivered to each protected app's namespace as `envoy-oidc-client-secret`). | `openssl rand -hex 32` |
+| | `/authelia/OIDC_CLIENT_SECRET_ENVOY` | Envoy Gateway OIDC client secret (shared by every gateway-OIDC route; delivered to each protected app's namespace — envoy-gateway, homepage, longhorn-system, victoria-metrics, and homeassistant — as `envoy-oidc-client-secret`). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_FORGEJO` | Forgejo OIDC client secret. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_GRAFANA` | Grafana OIDC client secret. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_HOMEASSISTANT` | Home Assistant OIDC client secret. | `openssl rand -hex 32` |
@@ -34,13 +43,14 @@ Two categories of values are not synchronized from Infisical:
 | | `/authelia/OIDC_CLIENT_SECRET_VAULTWARDEN` | Vaultwarden OIDC client secret. | `openssl rand -hex 32` |
 | **Collabora** | `/opencloud/COLLABORA_ADMIN_USER` | Collabora admin console username. | Chosen username |
 | | `/opencloud/COLLABORA_ADMIN_PASSWORD` | Collabora admin console password. | `openssl rand -hex 32` |
-| | `/opencloud/COLLABORA_PROOF_KEY` | WOPI proof private key for OpenCloud ↔ Collabora requests. | `openssl genrsa -out proof_key 2048` |
+| | `/opencloud/COLLABORA_PROOF_KEY` | WOPI proof private key for OpenCloud ↔ Collabora requests. | `openssl genrsa -out proof_key 4096` (matching the chart's 4096-bit requirement; existing 2048-bit keys still verify) |
 | | `/opencloud/COLLABORA_PROOF_KEY_PUB` | WOPI proof public key counterpart. | `openssl rsa -in proof_key -pubout -out proof_key.pub` |
 | **CrowdSec** | `/crowdsec/DB_PASSWORD` | LAPI PostgreSQL password. | `openssl rand -hex 32` |
 | | `/crowdsec/ENROLL_KEY` | CrowdSec Central API enrollment key. | From the CrowdSec console (app.crowdsec.net) |
 | | `/crowdsec/BOUNCER_KEY_envoy` | Envoy Gateway bouncer API key. | `openssl rand -hex 32` (the LAPI entrypoint registers it from the `BOUNCER_KEY_envoy` env var) |
 | **Forgejo** | `/forgejo/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `forgejo` (the CNPG `owner` user) |
 | | `/forgejo/POSTGRES_PASSWORD` | CloudNativePG application password. | `openssl rand -hex 32` |
+| **Home Assistant** | `/homeassistant/POSTGRES_PASSWORD` | CloudNativePG application password for the recorder database; rendered into both the `postgres-credentials` secret (CNPG bootstrap) and the `RECORDER_DB_URL` connection string. | `openssl rand -hex 32` (RFC 3986 unreserved characters only — it is embedded unescaped in the URL) |
 | **Grafana** | `/grafana/GF_SECURITY_ADMIN_USER` | Admin username (required for startup; login is via Authelia OIDC). | Chosen username |
 | | `/grafana/GF_SECURITY_ADMIN_PASSWORD` | Admin password (required for startup; login is via Authelia OIDC). | Chosen strong password |
 | **Homepage** | `/homepage/ARGOCD_TOKEN` | Read-only Argo CD account API token for the Argo CD widget. | Manual — README §6 |
@@ -60,7 +70,7 @@ Two categories of values are not synchronized from Infisical:
 | | `/notesnook/DOCUMENTDB_PASSWORD` | DocumentDB gateway password. | `openssl rand -hex 32` |
 | | `/notesnook/RUSTFS_ACCESS_KEY` | RustFS S3 access key for note attachments. | Chosen access key ID (≥8 characters, no whitespace, `=` or `,`) |
 | | `/notesnook/RUSTFS_SECRET_KEY` | RustFS S3 secret key for note attachments. | `openssl rand -hex 16` |
-| **Cloudflare** | `/cloudflare/API_TOKEN` | Cloudflare DNS API token (Zone → DNS → Edit) shared by the cert-manager ClusterIssuers and external-dns. | From the Cloudflare dashboard (My Profile → API Tokens) |
+| **Cloudflare** | `/cloudflare/API_TOKEN` | Cloudflare DNS API token (Zone → DNS → Edit **plus** Zone → Zone → Read, so external-dns and cert-manager can resolve the zone ID for each record) shared by the cert-manager ClusterIssuers and external-dns. | From the Cloudflare dashboard (My Profile → API Tokens) |
 | **OpenChamber** | `/openchamber/OPENCHAMBER_UI_PASSWORD` | Password protecting the OpenChamber web UI. | Chosen strong password |
 | | `/openchamber/OPENAI_API_KEY` | OpenAI API key for Codex CLI and OpenCode. | From OpenAI |
 | | `/openchamber/GITHUB_TOKEN` | GitHub token for agent git operations. | From GitHub (needs the Copilot Requests permission — README §7) |
@@ -81,11 +91,11 @@ Two categories of values are not synchronized from Infisical:
 | | `/qbittorrent/GLUETUN_CONTROL_ROLE` | gluetun control-server role JSON (`{"auth":"apikey","apikey":"..."}`); the port-forward sync job parses the key back out. | `printf '{"auth":"apikey","apikey":"%s"}' "$(openssl rand -hex 16)"` |
 | **RustFS** | `/rustfs/RUSTFS_ACCESS_KEY` | Root S3 access key for the storage Tenant. | Chosen access key ID (≥8 characters, no whitespace, `=` or `,`) |
 | | `/rustfs/RUSTFS_SECRET_KEY` | Root S3 secret key for the storage Tenant. | `openssl rand -hex 16` |
+| **RustFS Operator** | `/rustfs-operator/JWT_SECRET` | Console session-cookie JWT secret (Secret `rustfs-operator-console-secret`, key `jwt-secret`); the chart's generated Secret is patch-deleted from the render because its `randAlphaNum` fallback rotates on every offline render. | `openssl rand -hex 32` |
 | **Velero** | `/velero/B2_APPLICATION_KEY_ID` | Backblaze B2 key ID for backup storage. | From the Backblaze B2 console (App Keys) |
 | | `/velero/B2_APPLICATION_KEY` | Backblaze B2 application key for backup storage. | From the Backblaze B2 console (App Keys) |
 | | `/velero/KOPIA_REPOSITORY_PASSWORD` | Kopia repository encryption password. | `openssl rand -hex 32` (must stay unchanged for the lifetime of the repository) |
 | **Velero UI** | `/velero-ui/AUTH_SECRET_PASSPHRASE` | Session/cookie signing passphrase. | `openssl rand -hex 32` |
-| | `/authelia/OIDC_CLIENT_SECRET_VELERO_UI` | Velero UI OIDC client secret (basic auth is disabled; sign-in is via Authelia OIDC). | `openssl rand -hex 32` |
 | **Vaultwarden** | `/vaultwarden/ADMIN_TOKEN` | Admin panel token, preferably an Argon2 PHC string. | `docker run --rm -it docker.io/vaultwarden/server /vaultwarden hash` |
 | | `/vaultwarden/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `vaultwarden` (the CNPG `owner` user) |
 | | `/vaultwarden/POSTGRES_PASSWORD` | CloudNativePG application password. Must contain only RFC 3986 unreserved characters; it is embedded unescaped in the PostgreSQL connection URL. | `openssl rand -hex 32` (hex output is RFC 3986 unreserved) |

@@ -507,30 +507,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^StatefulSet$",
           "name": "^argocd-argocd-application-controller$",
           "namespace": "^argocd$"
@@ -841,14 +817,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^RoleBinding$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
           "name": "^crowdsec-configmap-updater-binding$",
           "namespace": "^crowdsec$"
         }
@@ -881,6 +849,13 @@
           "kind": "^RoleBinding$",
           "name": "^opentelemetry-operator-leader-election$",
           "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^kube-state-metrics$"
         }
       }
     ],
@@ -983,14 +958,6 @@
         "attributes": {
           "kind": "^Deployment$",
           "name": "^velero$",
-          "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
       },
@@ -1150,14 +1117,6 @@
         "attributes": {
           "kind": "^Deployment$",
           "name": "^velero$",
-          "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
           "namespace": "^velero$"
         }
       },
@@ -1404,32 +1363,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -1747,32 +1682,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -1957,6 +1868,14 @@
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],
@@ -2270,32 +2189,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -2432,6 +2327,14 @@
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],
@@ -3055,13 +2958,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^ClusterRoleBinding$",
-          "name": "^velero-upgrade-crds$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^RoleBinding$",
           "name": "^external-dns-viewer$"
         }
@@ -3252,14 +3148,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^RoleBinding$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
           "name": "^crowdsec-configmap-updater-binding$",
           "namespace": "^crowdsec$"
         }
@@ -3367,6 +3255,13 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^external-dns-viewer$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^kube-state-metrics$"
         }
       }
     ],
@@ -3513,14 +3408,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^DaemonSet$",
           "name": "^cilium-envoy$",
           "namespace": "^cilium$"
@@ -3657,32 +3544,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -4051,24 +3914,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -4198,6 +4045,14 @@
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4220,14 +4075,6 @@
           "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -4511,14 +4358,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^RoleBinding$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
           "name": "^crowdsec-configmap-updater-binding$",
           "namespace": "^crowdsec$"
         }
@@ -4551,6 +4390,13 @@
           "kind": "^RoleBinding$",
           "name": "^opentelemetry-operator-leader-election$",
           "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^kube-state-metrics$"
         }
       }
     ],
@@ -4960,32 +4806,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -5122,6 +4944,14 @@
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],
@@ -5726,14 +5556,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^DaemonSet$",
           "name": "^cilium$",
           "namespace": "^cilium$"
@@ -6022,32 +5844,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -6232,6 +6030,14 @@
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],
@@ -6421,24 +6227,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -7089,32 +6879,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -7299,6 +7065,14 @@
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],
@@ -7504,24 +7278,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^cert-manager-startupapicheck$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^envoy-gateway-gateway-helm-certgen$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^velero-upgrade-crds$",
-          "namespace": "^velero$"
         }
       },
       {
@@ -7538,14 +7296,6 @@
           "kind": "^Deployment$",
           "name": "^documentdb-operator$",
           "namespace": "^documentdb-operator$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
         }
       },
       {
@@ -7626,6 +7376,14 @@
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],
@@ -7823,14 +7581,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Job$",
-          "name": "^argocd-redis-secret-init$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
           "name": "^crowdsec-capi-register-job$",
           "namespace": "^crowdsec$"
         }
@@ -7889,6 +7639,14 @@
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kube-state-metrics$",
+          "namespace": "^kube-state-metrics$"
         }
       }
     ],

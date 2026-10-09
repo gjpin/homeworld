@@ -12,6 +12,8 @@ spec:
     - name: envoy
       namespace: homepage
       sectionName: homepage-https
+      group: gateway.networking.k8s.io
+      kind: Gateway
   hostnames:
     - "homepage.${BASE_DOMAIN}"
   rules:
@@ -20,3 +22,5 @@ spec:
         namespace: homepage
         kind: Service
         port: 3000
+        group: ""
+        weight: 1

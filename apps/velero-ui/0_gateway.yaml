@@ -22,9 +22,10 @@ spec:
       hostname: "velero.${BASE_DOMAIN}"
       allowedRoutes:
         namespaces:
-          from: all
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
           - name: velero-ui-tls-cert
             kind: Secret
+            group: ""

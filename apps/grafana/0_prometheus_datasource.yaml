@@ -21,4 +21,6 @@ spec:
     url: http://victoria-metrics.victoria-metrics.svc.cluster.local:8428
     jsonData:
       httpMethod: POST
-      timeInterval: 10s
+      # Minimum query step: every ServiceMonitor/PodMonitor in this repo
+      # scrapes at 60s, so sub-60s steps would return empty windows.
+      timeInterval: 60s

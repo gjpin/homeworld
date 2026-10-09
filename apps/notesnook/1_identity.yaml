@@ -105,8 +105,11 @@ spec:
               value: "1"
             - name: INSTANCE_NAME
               value: "homeworld"
+            # Closed registration: self-hosted Notesnook has no invite or
+            # admin flow, so signups on the public auth/sync/SSE hostnames
+            # are disabled; flip back temporarily to create accounts.
             - name: DISABLE_SIGNUPS
-              value: "false"
+              value: "true"
             - name: NOTESNOOK_SERVER_HOST
               value: "notesnook-sync"
             - name: NOTESNOOK_SERVER_PORT
@@ -142,6 +145,32 @@ spec:
                 secretKeyRef:
                   name: notesnook-secrets
                   key: NOTESNOOK_API_SECRET
+            # The identity service sends the account-verification, 2FA, and
+            # password-reset mail (upstream's compose wires the full SMTP
+            # env into identity-server; without it every email flow fails),
+            # and it embeds AUTH_SERVER_PUBLIC_URL in those emailed links.
+            - name: AUTH_SERVER_PUBLIC_URL
+              value: "https://auth.notes.${BASE_DOMAIN}"
+            - name: SMTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: notesnook-secrets
+                  key: SMTP_USERNAME
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: notesnook-secrets
+                  key: SMTP_PASSWORD
+            - name: SMTP_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: notesnook-secrets
+                  key: SMTP_HOST
+            - name: SMTP_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: notesnook-secrets
+                  key: SMTP_PORT
             # .NET honors OpenSSL's SSL_CERT_FILE for SslStream trust on Linux.
             # The bundle (system CAs + DocumentDB gateway CA) is built by the
             # build-trust-bundle init container.

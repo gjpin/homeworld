@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -137,6 +138,14 @@ type WaitStep struct {
 	// Interval between wait polls. Defaults to 15s. Each poll uses a
 	// short per-attempt timeout so a hung apiserver cannot stall the loop.
 	Interval string `yaml:"interval,omitempty"`
+	// ResyncInterval re-triggers syncs on Applications matching the wait's
+	// selector that sit OutOfSync with no operation running. Argo CD gives
+	// up on an app after five failed sync attempts and self-heal never
+	// re-fires after a failed sync, so a first-boot transient (an operator
+	// reconciling an instance that is still starting) can leave an app
+	// stuck OutOfSync forever even though the underlying condition cleared
+	// minutes later. Empty disables the rescue.
+	ResyncInterval string `yaml:"resyncInterval,omitempty"`
 }
 
 type WaitCondition struct {
@@ -188,6 +197,15 @@ type ServiceProbe struct {
 	// Username/Password add HTTP basic auth to the probe request.
 	Username string `yaml:"username,omitempty"`
 	Password string `yaml:"password,omitempty"`
+	// Host overrides the request's Host header. The port-forward dials the
+	// pod directly, so virtual-host-validated endpoints (Authelia's OIDC
+	// discovery, Homepage's host allowlist, Grafana behind its root_url)
+	// would otherwise reject the probe with 400/401.
+	Host string `yaml:"host,omitempty"`
+	// Headers adds arbitrary request headers: Authelia derives its endpoint
+	// URLs from X-Forwarded-Proto and rejects requests that skip the proxy
+	// chain without it.
+	Headers map[string]string `yaml:"headers,omitempty"`
 	// BodyContains requires the response body to contain the substring.
 	// The probe keeps retrying until the deadline when it is absent,
 	// which proves data actually arrived (not just HTTP 200).
@@ -233,7 +251,11 @@ func Load(path string) (*Suite, error) {
 		return nil, fmt.Errorf("read suite: %w", err)
 	}
 	var suite Suite
-	if err := yaml.Unmarshal(data, &suite); err != nil {
+	// KnownFields: a typo'd field (e.g. `resyncinterval` instead of
+	// `resyncInterval`) must fail loudly instead of being silently ignored.
+	dec := yaml.NewDecoder(bytes.NewReader(data))
+	dec.KnownFields(true)
+	if err := dec.Decode(&suite); err != nil {
 		return nil, fmt.Errorf("parse suite YAML: %w", err)
 	}
 	suite.Path = abs

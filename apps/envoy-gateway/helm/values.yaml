@@ -15,6 +15,35 @@ deployment:
   pod:
     nodeSelector:
       node-role.kubernetes.io/homelab: homelab
+  # The chart defaults plus the admin console (19000), which is published at
+  # envoy.${BASE_DOMAIN} behind gateway OIDC (3_http_route.yaml). Helm
+  # replaces lists, so the default ports are repeated here.
+  ports:
+    - name: grpc
+      port: 18000
+      targetPort: 18000
+    - name: ratelimit
+      port: 18001
+      targetPort: 18001
+    - name: wasm
+      port: 18002
+      targetPort: 18002
+    - name: metrics
+      port: 19001
+      targetPort: 19001
+    - name: admin
+      port: 19000
+      targetPort: 19000
+
+config:
+  envoyGateway:
+    # The admin server binds 127.0.0.1 by default; listen on the pod address
+    # so the gateway can reach the console. Cilium admits only the Envoy data
+    # plane on 19000 (allow-envoy-gateway-admin-ingress). pprof stays off.
+    admin:
+      address:
+        host: 0.0.0.0
+        port: 19000
 
 certgen:
   job:

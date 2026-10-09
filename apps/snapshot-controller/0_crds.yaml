@@ -1,0 +1,40 @@
+# https://github.com/kubernetes-csi/external-snapshotter
+# https://velero.io/docs/v1.18/csi/
+#
+# The upstream project ships no official Helm chart, so the component is
+# installed as handwritten manifests in this repository's conventions
+# (1_deployment.yaml) while the CSI volume snapshot CRDs are applied from
+# the pinned Git tag — the same pattern as prometheus-operator-crd. Velero's
+# CSI snapshot data movement (defaultSnapshotMoveData, EnableCSI) drives
+# volume backups through these CRDs and the snapshot controller; Talos does
+# not ship either.
+#
+# Pruning is deliberately disabled on the CRD application: deleting it (or its
+# finalizer firing) would garbage-collect the snapshot CRDs and with them the
+# VolumeSnapshot objects that reference every existing CSI snapshot.
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: snapshot-controller-crds
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: snapshot-controller
+  syncPolicy:
+    automated:
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=true
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - ServerSideApply=true
+  source:
+    repoURL: https://github.com/kubernetes-csi/external-snapshotter.git
+    targetRevision: v8.6.0
+    path: client/config/crd

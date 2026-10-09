@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Seed a local Infisical instance for homeworld E2E.
-# Pinned to Infisical HTTP API v0.162.12 (see infisical/infisical tag v0.162.12).
+# Pinned to the Infisical HTTP API (see the infisical/infisical tag pinned in e2e/examples/infisical/docker-compose.yml).
 #
 # Bootstrap's machine-identity JWT has no `exp`. After
 # LEGACY_IDENTITY_ACCESS_TOKEN_EXPIRATION_ENFORCED_AT (2026-05-04) Infisical
@@ -324,7 +324,7 @@ seed_secrets() {
   token=$(cat "${OUT_DIR}/token")
   project_id=$(cat "${OUT_DIR}/project_id")
 
-  for folder in grafana homepage authelia immich forgejo rustfs opencloud crowdsec velero-ui velero longhorn notesnook woodpecker openchamber vaultwarden; do
+  for folder in grafana homepage authelia cloudflare immich forgejo rustfs opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker openchamber vaultwarden qbittorrent homeassistant; do
     ensure_folder "${token}" "${project_id}" "${folder}"
   done
 
@@ -346,6 +346,7 @@ seed_secrets() {
     '      - immich-admin' \
     '      - consoleAdmin')
 
+  put_secret "${token}" "${project_id}" "/argocd/DRAGONFLY_PASSWORD" "e2e-argocd-dragonfly"
   put_secret "${token}" "${project_id}" "/grafana/GF_SECURITY_ADMIN_USER" "admin"
   put_secret "${token}" "${project_id}" "/grafana/GF_SECURITY_ADMIN_PASSWORD" "e2e-grafana"
   put_secret "${token}" "${project_id}" "/homepage/ARGOCD_TOKEN" "e2e-homepage-argocd"
@@ -367,6 +368,15 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_VELERO_UI" "e2e-oidc-velero-ui"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_RUSTFS" "e2e-oidc-rustfs"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_VAULTWARDEN" "e2e-oidc-vaultwarden"
+  # Shared gateway-OIDC client: consumed by the authelia, envoy-gateway,
+  # homepage, victoria-metrics, homeassistant, and longhorn ExternalSecrets
+  # (the latter two apps are omitted on kind, but seeding the key keeps the
+  # omit list independent of the secret set).
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_ENVOY" "e2e-oidc-envoy"
+  # The Home Assistant app is omitted on kind, but its ExternalSecret is
+  # part of the tracked manifest set; seeding the key keeps the omit list
+  # independent of the secret set.
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_HOMEASSISTANT" "e2e-oidc-homeassistant"
   put_secret "${token}" "${project_id}" "/authelia/SMTP_PASSWORD" "e2e-authelia-smtp"
   put_secret "${token}" "${project_id}" "/authelia/USERS_DATABASE" "${authelia_users}"
   put_secret "${token}" "${project_id}" "/cloudflare/API_TOKEN" "e2e-cloudflare-token"
@@ -376,10 +386,13 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/forgejo/POSTGRES_USERNAME" "forgejo"
   put_secret "${token}" "${project_id}" "/forgejo/POSTGRES_PASSWORD" "e2e-forgejo-db"
   put_secret "${token}" "${project_id}" "/rustfs/RUSTFS_ACCESS_KEY" "e2eaccesskey"
+  put_secret "${token}" "${project_id}" "/rustfs-operator/JWT_SECRET" "e2e-rustfs-operator-jwt-secret-0123456789"
   put_secret "${token}" "${project_id}" "/rustfs/RUSTFS_SECRET_KEY" "e2esecretkey"
   put_secret "${token}" "${project_id}" "/opencloud/IDM_ADMIN_PASSWORD" "e2e-opencloud-admin"
-  put_secret "${token}" "${project_id}" "/opencloud/RUSTFS_ACCESS_KEY" "e2eaccesskey"
-  put_secret "${token}" "${project_id}" "/opencloud/RUSTFS_SECRET_KEY" "e2esecretkey"
+  # The RustFS operator rejects a Tenant whose provisioning users resolve to
+  # the same access key (UserSecretInvalid), so every user needs its own pair.
+  put_secret "${token}" "${project_id}" "/opencloud/RUSTFS_ACCESS_KEY" "e2eaccesskey-opencloud"
+  put_secret "${token}" "${project_id}" "/opencloud/RUSTFS_SECRET_KEY" "e2esecretkey-opencloud"
   put_secret "${token}" "${project_id}" "/opencloud/COLLABORA_ADMIN_USER" "e2e-collabora"
   put_secret "${token}" "${project_id}" "/opencloud/COLLABORA_ADMIN_PASSWORD" "e2e-collabora-admin"
   put_secret "${token}" "${project_id}" "/opencloud/COLLABORA_PROOF_KEY" "${proof_key}"
@@ -388,8 +401,6 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/crowdsec/ENROLL_KEY" "e2e-crowdsec-enroll"
   put_secret "${token}" "${project_id}" "/crowdsec/BOUNCER_KEY_envoy" "e2e-crowdsec-bouncer"
   put_secret "${token}" "${project_id}" "/velero-ui/AUTH_SECRET_PASSPHRASE" "e2e-velero-ui"
-  put_secret "${token}" "${project_id}" "/velero-ui/BASIC_AUTH_USERNAME" "e2e"
-  put_secret "${token}" "${project_id}" "/velero-ui/BASIC_AUTH_PASSWORD" "e2e-velero"
   put_secret "${token}" "${project_id}" "/velero/B2_APPLICATION_KEY_ID" "e2e-b2-id"
   put_secret "${token}" "${project_id}" "/velero/B2_APPLICATION_KEY" "e2e-b2-key"
   put_secret "${token}" "${project_id}" "/velero/KOPIA_REPOSITORY_PASSWORD" "e2e-kopia"
@@ -397,17 +408,27 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/notesnook/NOTESNOOK_API_SECRET" "e2e-notesnook-api-secret-0123456789abcdef0123456789abcdef"
   put_secret "${token}" "${project_id}" "/notesnook/DOCUMENTDB_USERNAME" "notesnook"
   put_secret "${token}" "${project_id}" "/notesnook/DOCUMENTDB_PASSWORD" "e2e-notesnook-db"
-  put_secret "${token}" "${project_id}" "/notesnook/RUSTFS_ACCESS_KEY" "e2eaccesskey"
-  put_secret "${token}" "${project_id}" "/notesnook/RUSTFS_SECRET_KEY" "e2esecretkey"
+  put_secret "${token}" "${project_id}" "/notesnook/RUSTFS_ACCESS_KEY" "e2eaccesskey-notesnook"
+  put_secret "${token}" "${project_id}" "/notesnook/RUSTFS_SECRET_KEY" "e2esecretkey-notesnook"
+  # The SSE server's mail notifier: unreachable on kind by design (it fails
+  # at send time, never at startup).
+  put_secret "${token}" "${project_id}" "/notesnook/SMTP_USERNAME" "e2e"
+  put_secret "${token}" "${project_id}" "/notesnook/SMTP_PASSWORD" "e2e-notesnook-smtp"
+  put_secret "${token}" "${project_id}" "/notesnook/SMTP_HOST" "smtp.e2e.local"
+  put_secret "${token}" "${project_id}" "/notesnook/SMTP_PORT" "465"
   put_secret "${token}" "${project_id}" "/woodpecker/POSTGRES_USERNAME" "woodpecker"
   put_secret "${token}" "${project_id}" "/woodpecker/POSTGRES_PASSWORD" "e2e-woodpecker-db"
   put_secret "${token}" "${project_id}" "/woodpecker/AGENT_SECRET" "e2e-woodpecker-agent-secret"
   put_secret "${token}" "${project_id}" "/woodpecker/FORGEJO_CLIENT" "e2e-woodpecker-forgejo-client"
   put_secret "${token}" "${project_id}" "/woodpecker/FORGEJO_SECRET" "e2e-woodpecker-forgejo-secret"
   put_secret "${token}" "${project_id}" "/woodpecker/PROMETHEUS_AUTH_TOKEN" "e2e-woodpecker-metrics"
-  put_secret "${token}" "${project_id}" "/openchamber/OPENCHAMBER_UI_PASSWORD" "e2e-openchamber"
-  put_secret "${token}" "${project_id}" "/openchamber/OPENAI_API_KEY" "e2e-openai-key"
-  put_secret "${token}" "${project_id}" "/openchamber/GITHUB_TOKEN" "e2e-github-token"
+  # The qbittorrent app itself is omitted on kind (gluetun needs TUN and real
+  # VPN credentials), but Homepage's service widgets read the WebUI pair, and
+  # qBittorrent enforces a minimum username length of 3 without a colon and
+  # a minimum password length of 6.
+  put_secret "${token}" "${project_id}" "/qbittorrent/WEBUI_USERNAME" "e2e-qbittorrent"
+  put_secret "${token}" "${project_id}" "/qbittorrent/WEBUI_PASSWORD" "e2e-qbittorrent-pass"
+  put_secret "${token}" "${project_id}" "/qbittorrent/WEBUI_API_KEY" "e2e-qbittorrent-api-key"
   # Plain token instead of an Argon2 PHC string: Vaultwarden accepts it for
   # the admin panel (with a startup warning), keeping the seed dependency-free.
   put_secret "${token}" "${project_id}" "/vaultwarden/ADMIN_TOKEN" "e2e-vaultwarden-admin"

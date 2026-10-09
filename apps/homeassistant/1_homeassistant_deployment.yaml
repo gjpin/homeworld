@@ -22,7 +22,7 @@ spec:
         app.kubernetes.io/name: homeassistant
         io.kompose.service: homeassistant
     spec:
-      serviceAccountName: homeassistant
+      serviceAccountName: homeassistant-app
       automountServiceAccountToken: false
       runtimeClassName: gvisor
       hostUsers: false
@@ -54,8 +54,9 @@ spec:
             - sh
             - -ec
             - |
-              # Renovate tracks the plugin version below (github-releases).
-              # When bumping a version, refresh the sha256 from the release assets page.
+              # Renovate tracks the plugin version below (github-releases) and
+              # refreshes the sha256 on bumps via postUpgradeTasks
+              # (scripts/refresh-hass-oidc-auth-sha.sh).
               wget -O /tmp/hass-oidc-auth.zip \
                 https://github.com/christiaangoossens/hass-oidc-auth/releases/download/v1.2.1/hass-oidc-auth.zip
               echo 'e5badaaacaa63cfd6fe733924a05e76d75058836190398598fb24de57cd47ccd  /tmp/hass-oidc-auth.zip' | sha256sum -c -
@@ -101,25 +102,40 @@ spec:
               # Loads default set of integrations. Do not remove.
               # default_config includes the analytics integration (reporting
               # requires an explicit opt-in via the UI) and the update
-              # checker; both are accepted telemetry surface for this
-              # component and left at their defaults.
+              # checker. Recorded telemetry exception: both stay enabled
+              # because default_config is load-bearing for core HA
+              # functionality, reporting is opt-in and never enabled, and
+              # the update checker is unreachable — the namespace's egress
+              # policy has no internet allowlist for it (AGENTS.md
+              # telemetry rule).
               default_config:
 
               # Reverse proxy: Envoy terminates TLS, so trust its forwarded
-              # headers (envoy-gateway pods live in the pod CIDR the Cilium
-              # policies exclude — see -2_network_policy.yaml) and generate
+              # headers (Envoy's pod IP lives in the Talos default pod CIDR;
+              # the Cilium policies exclude the cluster CIDRs — see
+              # -2_network_policy.yaml and docs/talos.md) and generate
               # https callback URLs for the OIDC flow.
               http:
                 use_x_forwarded_for: true
                 trusted_proxies:
-                  - 10.42.0.0/16
+                  - 10.244.0.0/16
 
               # Metrics endpoint for the ServiceMonitor. requires_auth is
               # disabled because the tokenless OTel collector is the only
               # client and its scrape path is Cilium-restricted
-              # (-2_network_policy.yaml: allow-otel-pod-scrape-homeassistant).
+              # (-2_network_policy.yaml: allow-homeassistant-metrics).
               prometheus:
                 requires_auth: false
+
+              # Recorder history lives on the CloudNativePG cluster
+              # (0_postgres.yaml) instead of SQLite on the config PVC, per
+              # the repo's datastore convention. Home Assistant resolves
+              # the URL through its built-in !env_var tag, so the password
+              # (delivered by the homeassistant-secrets ExternalSecret)
+              # never lands on the /config PVC.
+              recorder:
+                db_url: !env_var RECORDER_DB_URL
+                purge_keep_days: 10
 
               # Load frontend themes from the themes folder
               frontend:
@@ -179,6 +195,13 @@ spec:
                 secretKeyRef:
                   name: homeassistant-oidc
                   key: clientSecret
+            # CloudNativePG connection URL consumed by the recorder block in
+            # configuration.yaml through Home Assistant's !env_var tag.
+            - name: RECORDER_DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: homeassistant-secrets
+                  key: RECORDER_DB_URL
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

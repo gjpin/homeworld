@@ -94,6 +94,9 @@ config:
       sslmode: disable
     api:
       server:
+        # Usage metrics are reported to api.crowdsec.net by default; that host
+        # stays allowlisted for CAPI, so the egress policy cannot block them.
+        disable_usage_metrics_export: true
         auto_registration:
           enabled: true
           token: "${REGISTRATION_TOKEN}"
@@ -129,7 +132,7 @@ agent:
     # Fully-qualified override: the chart defaults this to short-form busybox.
     image:
       repository: docker.io/library/busybox
-      tag: "1.28"
+      tag: "1.38.0"
     securityContext:
       allowPrivilegeEscalation: false
       capabilities:
@@ -186,7 +189,7 @@ appsec:
     # Fully-qualified override: the chart defaults this to short-form busybox.
     image:
       repository: docker.io/library/busybox
-      tag: "1.28"
+      tag: "1.38.0"
     securityContext:
       allowPrivilegeEscalation: false
       capabilities:

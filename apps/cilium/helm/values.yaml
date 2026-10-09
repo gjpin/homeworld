@@ -20,6 +20,11 @@ namespaceOverride: cilium
 kubeProxyReplacement: "true"
 k8sServiceHost: localhost
 k8sServicePort: "7445"
+# Explicit (and deliberate): the hostNetwork agent would otherwise default to
+# ClusterFirstWithHostNet, which sends agent DNS through the host resolver
+# before the cluster. ClusterFirst keeps the agent's API discovery consistent
+# with the Cilium DNS proxy on kube-dns (see the SideroLabs Talos guide this
+# values file follows).
 dnsPolicy: ClusterFirst
 
 # --- IPAM: Kubernetes mode (Talos requirement) ---
@@ -30,8 +35,18 @@ ipam:
 bpf:
   # BPF masquerading; see the forwardKubeDNSToHost note above.
   masquerade: true
+  # Talos pre-mounts bpffs at /sys/fs/bpf just like cgroup2 below; the agent
+  # must not remount it. Disabling the auto-mount also drops the privileged
+  # mount-bpf-fs init container from the agent DaemonSet, and shifts the
+  # remaining init containers down by one index (resource patches in
+  # kustomization.yaml are indexed accordingly).
+  autoMount:
+    enabled: false
 l7Proxy: true
-localRedirectPolicy: true
+localRedirectPolicies:
+  # Renamed from the deprecated localRedirectPolicy key (still honored by
+  # the pinned chart but flagged upstream).
+  enabled: true
 rollOutCiliumPods: true
 
 # --- agent security context ---

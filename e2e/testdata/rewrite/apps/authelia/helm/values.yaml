@@ -1,6 +1,119 @@
+nameOverride: authelia
+# versionOverride pins version-gated chart rendering to the deployed image
+# (chart appVersion 4.39.24) so it matches image.tag until the next chart bump.
+versionOverride: '4.39.28'
+image:
+  registry: ghcr.io
+  repository: authelia/authelia
+  tag: 4.39.28
+  pullPolicy: IfNotPresent
 pod:
+  kind: Deployment
+  replicas: 1
+  autoscaling:
+    enabled: false
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+      maxSurge: "1"
+      maxUnavailable: "0"
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+      ephemeral-storage: 64Mi
+    limits:
+      cpu: 1
+      memory: 2Gi
+      ephemeral-storage: 2Gi
+  selectors:
+    nodeSelector:
+      node-role.kubernetes.io/homelab: homelab
+  env:
+    - name: AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE
+      value: /secrets/authelia-files/reset_password_jwt_secret
+    - name: AUTHELIA_SESSION_SECRET_FILE
+      value: /secrets/authelia-files/session_secret
+    - name: AUTHELIA_SESSION_REDIS_PASSWORD_FILE
+      value: /secrets/authelia-files/dragonfly_password
+    - name: AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE
+      value: /secrets/authelia-files/storage_encryption_key
+    - name: AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE
+      value: /secrets/authelia-files/postgres_password
+    - name: AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE
+      value: /secrets/authelia-files/oidc_hmac_secret
+    - name: AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
+      value: /secrets/authelia-files/smtp_password
+  securityContext:
+    pod:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+      seccompProfile:
+        type: RuntimeDefault
+    container:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      seccompProfile:
+        type: RuntimeDefault
+configMap:
+  # Inert placeholder kept for chart compatibility: everything under
+  # existingConfigMap below is superseded by the template rendered into the
+  # `authelia-configuration` ConfigMap (configuration.yaml.tmpl). The chart
+  # only reads these sub-keys when existingConfigMap is unset, which it
+  # never is here — do not treat them as live configuration.
+  existingConfigMap: authelia-configuration
+  authentication_backend:
+    file:
+      enabled: true
+      path: /secrets/authelia-files/users_database.yml
+  session:
+    cookies:
+      - domain: example.com
+    redis:
+      enabled: true
+      deploy: false
+      host: dragonfly.authelia.svc.cluster.local
+      password:
+        disabled: true
+  storage:
+    encryption_key:
+      disabled: true
+    postgres:
+      enabled: true
+      deploy: false
+      address: tcp://authelia-rw.authelia.svc.cluster.local:5432
+      database: authelia
+      username: authelia
+      password:
+        disabled: true
+  notifier:
+    disable_startup_check: true
+    smtp:
+      enabled: true
+      address: submissions://smtp.example.com:465
+      sender: Authelia <authelia@example.com>
+      password:
+        disabled: true
+  telemetry:
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+secret:
+  disabled: true
+  existingSecret: authelia-files
+  additionalSecrets:
+    authelia-files: {}
+ingress:
+  enabled: false
+persistence:
+  enabled: false
