@@ -143,6 +143,14 @@ identity_providers:
           - policy: two_factor
             subject:
               - group:platform
+      # Argo CD grants non-admins no access (policy.default is empty), so
+      # sign-in is limited to the group that maps to role:admin.
+      argocd:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject:
+              - group:argocd-admin
     jwks:
       - key_id: opencloud-rs256
         algorithm: RS256
@@ -324,7 +332,7 @@ identity_providers:
         client_name: Argo CD
         client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_argocd" | msquote }}
         public: false
-        authorization_policy: two_factor
+        authorization_policy: argocd
         claims_policy: apps
         require_pkce: true
         pkce_challenge_method: S256
@@ -341,7 +349,7 @@ identity_providers:
         client_name: Argo CD (CLI)
         public: true
         token_endpoint_auth_method: none
-        authorization_policy: two_factor
+        authorization_policy: argocd
         claims_policy: apps
         require_pkce: true
         pkce_challenge_method: S256
