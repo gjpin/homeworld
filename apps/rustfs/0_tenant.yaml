@@ -32,21 +32,11 @@ spec:
       value: https://console.rustfs.${BASE_DOMAIN}/rustfs/admin/v3/oidc/callback/default
     - name: RUSTFS_IDENTITY_OPENID_REDIRECT_URI_DYNAMIC
       value: "off"
+    # No role policy is set, so each groups-claim value names a RustFS
+    # policy: the platform group maps to the platform policy
+    # (0_user_policies.yaml), and other groups match nothing.
     - name: RUSTFS_IDENTITY_OPENID_GROUPS_CLAIM
       value: groups
-    # Map every authenticated console SSO session to the built-in
-    # consoleAdmin policy. Deviation from the upstream OIDC guidance, which
-    # prefers mapping a `groups` claim value to a policy of the same name:
-    # Authelia's group taxonomy (<app>-admin / platform) has no
-    # consoleAdmin-named group, and creating one requires Infisical user-DB
-    # changes outside this repo. This is the documented expedient
-    # (docs/oidc.md): Authelia admits only `platform` group members to the
-    # rustfs client (two-factor), and bucket access stays scoped through the
-    # notesnook/opencloud users and their readwrite policies.
-    # Least-privilege follow-up: add a consoleAdmin group in Authelia, then
-    # delete this fallback.
-    - name: RUSTFS_IDENTITY_OPENID_ROLE_POLICY
-      value: consoleAdmin
     - name: RUSTFS_IDENTITY_OPENID_USERNAME_CLAIM
       value: preferred_username
     - name: RUSTFS_IDENTITY_OPENID_DISPLAY_NAME
@@ -117,6 +107,11 @@ spec:
     - name: notesnook-attachments
     - name: opencloud
   policies:
+    - name: platform
+      document:
+        configMapKeyRef:
+          name: rustfs-oidc-policy-platform
+          key: policy.json
     - name: notesnook-readwrite
       document:
         configMapKeyRef:

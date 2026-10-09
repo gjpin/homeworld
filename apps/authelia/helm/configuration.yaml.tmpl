@@ -426,8 +426,8 @@ identity_providers:
         client_name: RustFS
         client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_rustfs" | msquote }}
         public: false
-        # Every RustFS console session maps to consoleAdmin
-        # (apps/rustfs/0_tenant.yaml), so sign-in is gated to the platform
+        # The platform group maps to RustFS's full-admin platform policy
+        # (apps/rustfs/0_user_policies.yaml), so sign-in is gated to that
         # group rather than any two-factor user.
         authorization_policy: platform
         claims_policy: apps
