@@ -57,10 +57,6 @@ spec:
               protocol: TCP
             - port: "3000"
               protocol: TCP
-            - port: "9000"
-              protocol: TCP
-            - port: "5181"
-              protocol: TCP
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -70,16 +66,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  # The CORS proxy is deliberately excluded both directions: it only serves
-  # Envoy ingress and fetches external URLs (allow-world-egress), and its
-  # feature must not double as a pivot into the namespace's internal
-  # services.
-  endpointSelector:
-    matchExpressions:
-      - key: k8s:app.kubernetes.io/name
-        operator: NotIn
-        values:
-          - notesnook-cors-proxy
+  endpointSelector: {}
   ingress:
     - fromEndpoints:
         - matchLabels:
@@ -108,31 +95,6 @@ spec:
       toPorts:
         - ports:
             - port: "9000"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: allow-world-egress
-  namespace: notesnook
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  endpointSelector:
-    matchExpressions:
-      - key: k8s:app.kubernetes.io/name
-        operator: In
-        values:
-          - notesnook-themes
-          - notesnook-cors-proxy
-  egress:
-    - toEntities:
-        - world
-      toPorts:
-        - ports:
-            - port: "80"
-              protocol: TCP
-            - port: "443"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2

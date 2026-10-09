@@ -88,11 +88,13 @@ metrics:
     # renders identically in local kustomize builds and live syncs.
     autodetect: false
     enabled: true
+    namespace: velero
   # The PodMonitor covers the node-agent DaemonSet; enabling it also stops
   # the chart from annotating the pods with prometheus.io/scrape.
   nodeAgentPodMonitor:
     autodetect: false
     enabled: true
+    namespace: velero
 schedules:
   daily:
     schedule: CRON_TZ=Europe/Lisbon 0 3 * * *

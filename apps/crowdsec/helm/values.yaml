@@ -94,6 +94,9 @@ config:
       sslmode: disable
     api:
       server:
+        # Usage metrics are reported to api.crowdsec.net by default; that host
+        # stays allowlisted for CAPI, so the egress policy cannot block them.
+        disable_usage_metrics_export: true
         auto_registration:
           enabled: true
           token: "${REGISTRATION_TOKEN}"

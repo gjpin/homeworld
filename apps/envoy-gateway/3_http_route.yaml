@@ -21,6 +21,6 @@ spec:
         - name: envoy-gateway
           namespace: envoy-gateway
           kind: Service
-          port: 19001
+          port: 19000
           group: ""
           weight: 1

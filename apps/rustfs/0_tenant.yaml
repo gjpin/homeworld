@@ -40,9 +40,9 @@ spec:
     # Authelia's group taxonomy (<app>-admin / platform) has no
     # consoleAdmin-named group, and creating one requires Infisical user-DB
     # changes outside this repo. This is the documented expedient
-    # (docs/oidc.md): single-operator homelab, console access already
-    # requires two-factor Authelia sign-in, and bucket access stays scoped
-    # through the notesnook/opencloud users and their readwrite policies.
+    # (docs/oidc.md): Authelia admits only `platform` group members to the
+    # rustfs client (two-factor), and bucket access stays scoped through the
+    # notesnook/opencloud users and their readwrite policies.
     # Least-privilege follow-up: add a consoleAdmin group in Authelia, then
     # delete this fallback.
     - name: RUSTFS_IDENTITY_OPENID_ROLE_POLICY
@@ -75,6 +75,9 @@ spec:
     # the VictoriaMetrics pipeline for this tenant.
     - name: RUSTFS_OBS_METRICS_EXPORT_ENABLED
       value: "true"
+    # The newer-release check defaults to on (upgrade checker).
+    - name: RUSTFS_CHECK_UPDATE
+      value: "false"
   securityContext:
     fsGroup: 10001
     runAsGroup: 10001
