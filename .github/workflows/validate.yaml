@@ -42,6 +42,9 @@ jobs:
       - name: Check Kubernetes version pin consistency
         run: scripts/check-k8s-version.sh
 
+      - name: Check RustFS operator CRDs match the pinned operator tag
+        run: scripts/vendor-rustfs-operator.sh --check
+
   e2e:
     runs-on: ubuntu-latest
     steps:

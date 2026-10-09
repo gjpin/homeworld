@@ -6,18 +6,14 @@ operator:
   image:
     repository: docker.io/rustfs/operator
     # Renovate tracks this image tag independently of the vendored chart:
-    # upstream's published charts lag the operator releases, so the binary
-    # runs ahead of the vendored 0.0.5 chart, whose Tenant CRD predates the
-    # status fields the binary writes (e.g. the
+    # upstream's published charts lag the operator releases, so a chart's
+    # Tenant CRD can predate the status fields the binary writes (e.g. the
     # status.provisioning.users[].ownership checkpoint). The apiserver
     # prunes undeclared status fields, which wedges user provisioning in
     # UserOwnershipCheckpointFailed (the tenant never becomes Ready).
-    # crds/tenant-crd.yaml is therefore vendored from the operator's own
-    # git tag matching this image tag (deploy/rustfs-operator/crds/), and
-    # must be re-vendored from the new tag whenever this tag changes. A
-    # chart bump re-vendors the whole tree via
-    # scripts/vendor-rustfs-operator.sh; confirm the new chart's CRD covers
-    # the pinned binary's schema before relying on it.
+    # scripts/vendor-rustfs-operator.sh therefore always vendors crds/ from
+    # the operator's git tag matching this image tag; Renovate runs it on
+    # both image and chart bumps, and CI (--check) fails on any drift.
     tag: 0.0.8
     # The operator records transient provisioning failures (e.g. the server
     # API not answering yet behind its first PVC mount) as status
