@@ -6,7 +6,7 @@ commonAnnotations:
 helmCharts:
   - name: woodpecker
     repo: https://woodpecker-ci.org/
-    version: 3.7.3
+    version: 3.7.5
     releaseName: woodpecker
     namespace: woodpecker
     includeCRDs: true
