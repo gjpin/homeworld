@@ -124,7 +124,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: unzip
-          image: docker.io/opencloudeu/web-extensions:unzip-2.2.0
+          image: docker.io/opencloudeu/web-extensions:unzip-2.2.1
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -214,7 +214,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: pastebin
-          image: docker.io/opencloudeu/web-extensions:pastebin-2.1.0
+          image: docker.io/opencloudeu/web-extensions:pastebin-2.2.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -244,7 +244,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: bpmn
-          image: docker.io/opencloudeu/web-extensions:bpmn-1.1.0
+          image: docker.io/opencloudeu/web-extensions:bpmn-1.1.1
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -274,7 +274,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: maps
-          image: docker.io/opencloudeu/web-extensions:maps-3.1.0
+          image: docker.io/opencloudeu/web-extensions:maps-3.1.1
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -365,7 +365,7 @@ spec:
               mountPath: /apps
       containers:
         - name: opencloud
-          image: docker.io/opencloudeu/opencloud-rolling:8.0.1
+          image: docker.io/opencloudeu/opencloud-rolling:8.1.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -584,7 +584,7 @@ spec:
             - name: opencloud-apps
               mountPath: /var/lib/opencloud/web/assets/apps
         - name: yjs
-          image: docker.io/opencloudeu/yjs:1.0.0
+          image: docker.io/opencloudeu/yjs:1.1.0
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false

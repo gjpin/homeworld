@@ -9,7 +9,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-    image: docker.io/infisical/infisical:v0.162.12
+    image: docker.io/infisical/infisical:v0.166.3
     env_file: .env.e2e
     ports:
       - "8080:8080"
@@ -19,7 +19,7 @@ services:
       - infisical
 
   redis:
-    image: docker.io/library/redis:7.4.2-alpine
+    image: docker.io/library/redis:8.10.2-alpine
     container_name: e2e-infisical-redis
     env_file: .env.e2e
     restart: unless-stopped
@@ -32,11 +32,11 @@ services:
 
   db:
     container_name: e2e-infisical-db
-    image: docker.io/library/postgres:14.17-alpine
+    image: docker.io/library/postgres:18.6-alpine
     restart: unless-stopped
     env_file: .env.e2e
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - pg_data:/var/lib/postgresql
     networks:
       - infisical
     healthcheck:

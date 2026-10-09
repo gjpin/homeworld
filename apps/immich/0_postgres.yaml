@@ -43,10 +43,14 @@ spec:
     runAsNonRoot: true
     seccompProfile:
       type: RuntimeDefault
+  # Memory requests equal limits so the database is the last pod the
+  # kernel or kubelet reclaims under node memory pressure (CNPG's resource
+  # management guidance). Immich gets more than the other clusters for its
+  # VectorChord smart-search and face indexes.
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 1Gi
       ephemeral-storage: 128Mi
     limits:
       cpu: "1"
