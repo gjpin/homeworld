@@ -29,10 +29,10 @@ spec:
           port: 8080
           weight: 1
 ---
-# Gateway OIDC for the Envoy Gateway control-plane metrics route. The
-# envoy-gateway Service's 19001 metrics port is published through the
-# gateway itself at envoy.${BASE_DOMAIN} (3_http_route.yaml); the route
-# requires the platform group (docs/oidc.md). StrategicMerge keeps this
+# Gateway OIDC for the Envoy Gateway admin console. The envoy-gateway
+# Service's 19000 admin port is published through the gateway itself at
+# envoy.${BASE_DOMAIN} (3_http_route.yaml); the route requires the platform
+# group (docs/oidc.md). StrategicMerge keeps this
 # policy from overriding the Gateway-level CrowdSec extAuth above.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy

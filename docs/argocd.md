@@ -76,7 +76,7 @@
    * forgejo
    * grafana
    * homepage: application dashboard, gateway-OIDC protected (`platform` group)
-   * notesnook: fully featured encrypted notes sync server with DocumentDB (MongoDB-compatible on CloudNativePG), SSE, Monograph, Themes, CORS proxy, and Inbox API
+   * notesnook: fully featured encrypted notes sync server with DocumentDB (MongoDB-compatible on CloudNativePG), SSE, and Monograph
    * radicale: internal CalDAV and CardDAV backend, before OpenCloud's
      authenticated DAV proxy
    * vaultwarden: Bitwarden-compatible password manager (CloudNativePG-backed)

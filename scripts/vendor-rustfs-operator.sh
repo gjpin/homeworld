@@ -11,7 +11,7 @@
 # (see renovate.json), so the PR contains the complete re-vendored tree.
 #
 # Upstream packaging issue worked around here (see docs/argocd.md):
-# - Chart 0.0.5 ships `tenants.rustfs.com` twice under crds/
+# - The vendored chart ships `tenants.rustfs.com` twice under crds/
 #   (`crds/tenant.yaml` is byte-identical to `crds/tenant-crd.yaml`). Helm
 #   tolerates the duplicate, but Kustomize's Helm inflation rejects it
 #   ("may not add resource with an already registered id"), which breaks

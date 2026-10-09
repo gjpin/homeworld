@@ -45,7 +45,7 @@ bpf:
 l7Proxy: true
 localRedirectPolicies:
   # Renamed from the deprecated localRedirectPolicy key (still honored by
-  # chart 1.20.2 but flagged upstream).
+  # the pinned chart but flagged upstream).
   enabled: true
 rollOutCiliumPods: true
 
