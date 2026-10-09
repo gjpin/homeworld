@@ -396,7 +396,9 @@ identity_providers:
         client_name: Velero UI
         client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_velero_ui" | msquote }}
         public: false
-        authorization_policy: two_factor
+        # velero-ui has no roles: every session can restore and delete any
+        # backup, so sign-in is gated to the platform group.
+        authorization_policy: platform
         claims_policy: apps
         # velero-ui's passport-oauth2 flow sends no PKCE, so it cannot be
         # required for this client.
