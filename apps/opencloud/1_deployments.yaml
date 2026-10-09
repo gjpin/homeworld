@@ -274,7 +274,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: maps
-          image: docker.io/opencloudeu/web-extensions:maps-3.1.0
+          image: docker.io/opencloudeu/web-extensions:maps-3.1.1
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
