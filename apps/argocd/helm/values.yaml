@@ -38,7 +38,9 @@ configs:
         - groups
       enablePKCEAuthentication: true
   rbac:
-    policy.default: role:readonly
+    # No access unless granted: Authelia admits any two-factor user to the
+    # argocd client, so only argocd-admin and the homepage account are mapped.
+    policy.default: ""
     policy.csv: |
       g, argocd-admin, role:admin
       g, homepage, role:readonly

@@ -7,6 +7,9 @@ metadata:
   labels:
     app.kubernetes.io/name: mosquitto
 data:
+  # Anonymous access is an accepted exception: allow-mosquitto-ingress limits
+  # 1883 to the Home Assistant and Zigbee2MQTT pods, and broker credentials
+  # would have to be hand-edited into both apps' PVC-resident configuration.
   mosquitto.conf: |
     listener 1883 0.0.0.0
     allow_anonymous true

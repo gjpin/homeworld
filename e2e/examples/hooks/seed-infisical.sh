@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Seed a local Infisical instance for homeworld E2E.
-# Pinned to Infisical HTTP API v0.162.12 (see infisical/infisical tag v0.162.12).
+# Pinned to the Infisical HTTP API (see the infisical/infisical tag pinned in e2e/examples/infisical/docker-compose.yml).
 #
 # Bootstrap's machine-identity JWT has no `exp`. After
 # LEGACY_IDENTITY_ACCESS_TOKEN_EXPIRATION_ENFORCED_AT (2026-05-04) Infisical
