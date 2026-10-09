@@ -3,7 +3,7 @@ module github.com/gjpin/homeworld/e2e
 go 1.26.5
 
 require (
-	github.com/spf13/cobra v1.9.1
+	github.com/spf13/cobra v1.10.2
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.37.1
 	k8s.io/apimachinery v0.37.1
