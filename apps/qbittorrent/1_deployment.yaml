@@ -195,7 +195,7 @@ spec:
           # rootless (nobody:nogroup) and contains no update-check or
           # phone-home mechanism (the update check only exists in the
           # Windows and macOS builds).
-          image: ghcr.io/home-operations/qbittorrent:5.2.3
+          image: ghcr.io/home-operations/qbittorrent:5.2.4
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -345,6 +345,13 @@ spec:
             # and server churn; the vendored list is sufficient.
             - name: UPDATER_PERIOD
               value: "0"
+            # No GitHub new-release check once the tunnel is up (upgrade
+            # checker), and no exit-IP lookup against third-party APIs
+            # (ipinfo, ifconfig.co, ...): nothing reads /v1/publicip.
+            - name: VERSION_INFORMATION
+              value: "off"
+            - name: PUBLICIP_ENABLED
+              value: "off"
           # Clean up leftover WireGuard ip rules from an abruptly terminated
           # container restart inside the same network namespace (gluetun
           # Kubernetes guide).

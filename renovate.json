@@ -102,9 +102,10 @@
       }
     },
     {
-      "description": "Re-vendor the patched RustFS operator chart on version bumps so the PR contains the complete tree",
+      "description": "Re-vendor the patched RustFS operator chart on chart and operator image bumps so the PR contains the complete tree, with crds/ taken from the operator tag matching the pinned image",
       "matchPackageNames": [
-        "rustfs-operator"
+        "rustfs-operator",
+        "rustfs/operator"
       ],
       "postUpgradeTasks": {
         "commands": [
@@ -1070,13 +1071,10 @@
         "/^apps/notesnook/1_sync\\.yaml$/",
         "/^apps/notesnook/1_identity\\.yaml$/",
         "/^apps/notesnook/1_sse\\.yaml$/",
-        "/^apps/notesnook/1_monograph\\.yaml$/",
-        "/^apps/notesnook/1_themes\\.yaml$/",
-        "/^apps/notesnook/1_cors_proxy\\.yaml$/",
-        "/^apps/notesnook/1_inbox_api\\.yaml$/"
+        "/^apps/notesnook/1_monograph\\.yaml$/"
       ],
       "matchStrings": [
-        "(?m)^\\s*image:\\s*(?<depName>docker\\.io/streetwriters/notesnook-sync|docker\\.io/streetwriters/identity|docker\\.io/streetwriters/sse|docker\\.io/streetwriters/monograph|docker\\.io/streetwriters/themes-server|docker\\.io/streetwriters/cors-proxy|docker\\.io/streetwriters/notesnook-inbox|docker\\.io/library/busybox):(?<currentValue>[^\\s#]+)\\s*$"
+        "(?m)^\\s*image:\\s*(?<depName>docker\\.io/streetwriters/notesnook-sync|docker\\.io/streetwriters/identity|docker\\.io/streetwriters/sse|docker\\.io/streetwriters/monograph):(?<currentValue>[^\\s#]+)\\s*$"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",

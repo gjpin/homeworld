@@ -55,3 +55,35 @@ data:
         }
       ]
     }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # Console SSO policy. RustFS turns each value of the OIDC groups claim into
+  # a policy name and skips names with no matching policy, so only members
+  # of the Authelia platform group get these permissions (the built-in
+  # consoleAdmin document: every admin, KMS and S3 action).
+  labels:
+    rustfs.tenant: rustfs
+  name: rustfs-oidc-policy-platform
+  namespace: rustfs
+data:
+  policy.json: |
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "admin:*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": "kms:*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": "s3:*",
+          "Resource": "arn:aws:s3:::*"
+        }
+      ]
+    }

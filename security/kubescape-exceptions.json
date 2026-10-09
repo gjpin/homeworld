@@ -591,6 +591,14 @@
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
+        }
       }
     ],
     "posturePolicies": [
@@ -856,6 +864,13 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^kube-state-metrics$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-csi-secret-bind$"
         }
       }
     ],
@@ -1245,6 +1260,14 @@
         "attributes": {
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
           "namespace": "^longhorn-system$"
         }
       }
@@ -1877,6 +1900,14 @@
           "name": "^kube-state-metrics$",
           "namespace": "^kube-state-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2335,6 +2366,14 @@
           "kind": "^Deployment$",
           "name": "^kube-state-metrics$",
           "namespace": "^kube-state-metrics$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -3262,6 +3301,28 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^kube-state-metrics$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-csi-bind$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-csi-secret-bind$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^longhorn-csi-bind$",
+          "namespace": "^longhorn-system$"
         }
       }
     ],
@@ -4398,6 +4459,13 @@
           "kind": "^ClusterRoleBinding$",
           "name": "^kube-state-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-csi-secret-bind$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4953,6 +5021,14 @@
           "name": "^kube-state-metrics$",
           "namespace": "^kube-state-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
+        }
       }
     ],
     "posturePolicies": [
@@ -5431,6 +5507,46 @@
         "attributes": {
           "kind": "^Deployment$",
           "name": "^crowdsec-lapi$",
+          "namespace": "^crowdsec$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^forgejo$",
+          "namespace": "^forgejo$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^woodpecker-agent$",
+          "namespace": "^woodpecker$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^woodpecker-server$",
+          "namespace": "^woodpecker$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^crowdsec-agent$",
+          "namespace": "^crowdsec$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^crowdsec-appsec$",
           "namespace": "^crowdsec$"
         }
       }
@@ -6039,6 +6155,14 @@
           "name": "^kube-state-metrics$",
           "namespace": "^kube-state-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
+        }
       }
     ],
     "posturePolicies": [
@@ -6396,6 +6520,14 @@
         "attributes": {
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
           "namespace": "^longhorn-system$"
         }
       }
@@ -7074,6 +7206,14 @@
           "name": "^kube-state-metrics$",
           "namespace": "^kube-state-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7385,6 +7525,14 @@
           "name": "^kube-state-metrics$",
           "namespace": "^kube-state-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7648,6 +7796,14 @@
           "name": "^kube-state-metrics$",
           "namespace": "^kube-state-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^longhorn-global-manager$",
+          "namespace": "^longhorn-system$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7738,6 +7894,13 @@
           "kind": "^RoleBinding$",
           "name": "^opentelemetry-operator-leader-election$",
           "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^longhorn-csi-bind$"
         }
       }
     ],
@@ -7953,6 +8116,116 @@
       {
         "frameworkName": "AllControls",
         "controlID": "C-0293"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0299",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^NetworkPolicy$",
+          "name": "^backing-image-data-source$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^NetworkPolicy$",
+          "name": "^backing-image-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^NetworkPolicy$",
+          "name": "^instance-manager$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^NetworkPolicy$",
+          "name": "^longhorn-recovery-backend$",
+          "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^NetworkPolicy$",
+          "name": "^longhorn-webhook$",
+          "namespace": "^longhorn-system$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0299"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0305",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-notifications-controller$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^crowdsec-lapi$",
+          "namespace": "^crowdsec$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-dns$",
+          "namespace": "^external-dns$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^forgejo$",
+          "namespace": "^forgejo$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^velero$",
+          "namespace": "^velero$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0305"
       }
     ]
   }

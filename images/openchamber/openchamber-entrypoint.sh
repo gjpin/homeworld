@@ -24,17 +24,33 @@ refuse_symlink() {
   fi
 }
 
+# Sets a top-level key. A missing key is inserted before the first table
+# header: appended after one (Codex writes [projects."..."] tables) it would
+# silently belong to that table instead.
 set_toml_key() {
   file="$1"
   key="$2"
   value="$3"
   refuse_symlink "$file"
   touch "$file"
-  if grep -Eq "^[[:space:]]*${key}[[:space:]]*=" "$file"; then
-    sed -Ei "s/^[[:space:]]*${key}[[:space:]]*=.*/${key} = ${value}/" "$file"
-  else
-    printf '%s = %s\n' "$key" "$value" >>"$file"
-  fi
+  tmp="$(mktemp)"
+  awk -v key="$key" -v value="$value" '
+    BEGIN { top = 1; done = 0 }
+    /^[[:space:]]*\[/ {
+      if (top && !done) { print key " = " value; done = 1 }
+      top = 0
+      print
+      next
+    }
+    top && $0 ~ "^[[:space:]]*" key "[[:space:]]*=" {
+      if (!done) { print key " = " value; done = 1 }
+      next
+    }
+    { print }
+    END { if (!done) print key " = " value }
+  ' "$file" >"$tmp"
+  cat "$tmp" >"$file"
+  rm -f "$tmp"
 }
 
 set_toml_section_key() {
@@ -99,9 +115,14 @@ mkdir -p \
   "$home_dir/.gemini/antigravity-cli" \
   "$home_dir/.copilot"
 
-# Codex: never ask for approval, full access.
+# Codex: never ask for approval, full access; never check for updates and
+# never send analytics or feedback. Updates come exclusively from image
+# rebuilds via approved PRs.
 set_toml_key "$home_dir/.codex/config.toml" approval_policy '"never"'
 set_toml_key "$home_dir/.codex/config.toml" sandbox_mode '"danger-full-access"'
+set_toml_key "$home_dir/.codex/config.toml" check_for_update_on_startup 'false'
+set_toml_section_key "$home_dir/.codex/config.toml" analytics enabled 'false'
+set_toml_section_key "$home_dir/.codex/config.toml" feedback enabled 'false'
 
 # OpenCode: allow all tool permissions; never self-update and never share
 # conversations. Updates come exclusively from image rebuilds via approved PRs.
@@ -109,10 +130,11 @@ merge_json "$home_dir/.config/opencode/opencode.json" \
   '.permission = "allow" | .autoupdate = false | .share = "disabled"' \
   '{"$schema":"https://opencode.ai/config.json","permission":"allow","autoupdate":false,"share":"disabled"}'
 
-# Pi: always trust projects.
+# Pi: always trust projects; never send install telemetry (the version
+# check is disabled by PI_SKIP_VERSION_CHECK in the image environment).
 merge_json "$home_dir/.pi/agent/settings.json" \
-  '.defaultProjectTrust = "always"' \
-  '{"defaultProjectTrust":"always"}'
+  '.defaultProjectTrust = "always" | .enableInstallTelemetry = false' \
+  '{"defaultProjectTrust":"always","enableInstallTelemetry":false}'
 
 # Grok: never self-update and never send telemetry. Updates come exclusively
 # from image rebuilds via approved PRs. Auth is interactive

@@ -51,6 +51,8 @@ Two categories of values are not synchronized from Infisical:
 | **Forgejo** | `/forgejo/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `forgejo` (the CNPG `owner` user) |
 | | `/forgejo/POSTGRES_PASSWORD` | CloudNativePG application password. | `openssl rand -hex 32` |
 | **Home Assistant** | `/homeassistant/POSTGRES_PASSWORD` | CloudNativePG application password for the recorder database; rendered into both the `postgres-credentials` secret (CNPG bootstrap) and the `RECORDER_DB_URL` connection string. | `openssl rand -hex 32` (RFC 3986 unreserved characters only — it is embedded unescaped in the URL) |
+| | `/homeassistant/MOSQUITTO_PASSWORD_HOMEASSISTANT` | Mosquitto password for the `homeassistant` MQTT user. Also entered in Home Assistant's MQTT integration (Settings → Devices & services → MQTT → Reconfigure), which stores its own copy. | `openssl rand -hex 32` |
+| | `/homeassistant/MOSQUITTO_PASSWORD_ZIGBEE2MQTT` | Mosquitto password for the `zigbee2mqtt` MQTT user; Zigbee2MQTT reads it from `ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD`. | `openssl rand -hex 32` |
 | **Grafana** | `/grafana/GF_SECURITY_ADMIN_USER` | Admin username (required for startup; login is via Authelia OIDC). | Chosen username |
 | | `/grafana/GF_SECURITY_ADMIN_PASSWORD` | Admin password (required for startup; login is via Authelia OIDC). | Chosen strong password |
 | **Homepage** | `/homepage/ARGOCD_TOKEN` | Read-only Argo CD account API token for the Argo CD widget. | Manual — README §6 |

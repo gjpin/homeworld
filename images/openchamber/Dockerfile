@@ -26,20 +26,20 @@ FROM docker.io/library/debian:trixie-slim@sha256:a29215f6a35e51e22adffa17f89e9d2
 ARG APT_REFRESH=2026-10-08
 
 # Pinned tool versions, each tracked by its own Renovate custom manager.
-ARG NODE_VERSION=26.10.0
-ARG PNPM_VERSION=12.10.1
-ARG UV_VERSION=0.12.23
-ARG OPENCHAMBER_VERSION=2.1.1
+ARG NODE_VERSION=26.11.1
+ARG PNPM_VERSION=12.11.0
+ARG UV_VERSION=0.12.24
+ARG OPENCHAMBER_VERSION=2.2.0
 ARG OPENCODE_VERSION=1.18.35
-ARG CODEX_VERSION=0.160.1
-ARG PI_AGENT_VERSION=1.0.4
-ARG PLAYWRIGHT_TEST_VERSION=1.63.0
+ARG CODEX_VERSION=0.162.0
+ARG PI_AGENT_VERSION=1.1.0
+ARG PLAYWRIGHT_TEST_VERSION=1.64.0
 ARG PLAYWRIGHT_CLI_VERSION=0.1.22
 ARG CHROME_DEVTOOLS_MCP_VERSION=1.10.1
 ARG SKILLS_VERSION=1.7.1
-ARG GROK_VERSION=1.0.46
-ARG ANTIGRAVITY_VERSION=1.3.1
-ARG COPILOT_VERSION=1.0.92
+ARG GROK_VERSION=1.0.50
+ARG ANTIGRAVITY_VERSION=1.3.2
+ARG COPILOT_VERSION=1.0.94
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
@@ -297,10 +297,17 @@ RUN set -eux; \
     command -v copilot; \
     command -v google-chrome-stable
 
+# PI_SKIP_VERSION_CHECK disables the Pi agent's startup release check.
+# OPENCHAMBER_UPDATE_API_URL points the OpenChamber update check (which can
+# also report an install ID) at an unreachable local port: the server has
+# no switch to disable it, and enterprise mode would also block provider
+# connections. Updates come exclusively from image rebuilds.
 ENV HOME=/home/agent \
     PATH=/home/agent/.local/bin:/home/agent/.local/share/pnpm/bin:/home/agent/.opencode/bin:/usr/local/pnpm/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin \
     PNPM_HOME=/home/agent/.local/share/pnpm \
-    NPM_CONFIG_PREFIX=/home/agent/.local
+    NPM_CONFIG_PREFIX=/home/agent/.local \
+    PI_SKIP_VERSION_CHECK=1 \
+    OPENCHAMBER_UPDATE_API_URL=http://127.0.0.1:9/
 
 USER agent
 WORKDIR /home/agent

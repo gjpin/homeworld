@@ -94,6 +94,9 @@ config:
       sslmode: disable
     api:
       server:
+        # Usage metrics are reported to api.crowdsec.net by default; that host
+        # stays allowlisted for CAPI, so the egress policy cannot block them.
+        disable_usage_metrics_export: true
         auto_registration:
           enabled: true
           token: "${REGISTRATION_TOKEN}"
@@ -162,6 +165,11 @@ agent:
 appsec:
   enabled: true
   replicas: 1
+  # The AppSec WAF is stateless (each pod self-registers with the LAPI), so a
+  # surge rollout keeps the fail-closed bouncer's WAF backend available while
+  # the chart's default Recreate would drop it for every restart.
+  strategy:
+    type: RollingUpdate
   nodeSelector:
     node-role.kubernetes.io/homelab: homelab
   podSecurityContext:

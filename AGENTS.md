@@ -407,6 +407,16 @@ find apps/grafana/dashboards -type f -name '*.json' -print0 |
 # Fail if any pinned Kubernetes version reference (PSA labels, e2e kind node
 # image, documentation, hook comments) drifts from the rest.
 scripts/check-k8s-version.sh
+
+# Fail on repeated mapping keys: parsers keep the last value, so a missing
+# `---` silently merges two documents and drops the first resource.
+scripts/check-yaml-duplicates.sh
+
+# Fail when a secretKeyRef, Dragonfly passwordFromSecret, or CNPG initdb
+# secret names a key no in-repo ExternalSecret or Secret produces (following
+# External Secrets' template rules: templated targets hold only templated
+# keys unless mergePolicy is Merge).
+scripts/check-secret-refs.sh
 ```
 
 Helm inflation requires an explicit flag in every local render: use
