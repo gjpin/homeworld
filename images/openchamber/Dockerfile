@@ -297,10 +297,17 @@ RUN set -eux; \
     command -v copilot; \
     command -v google-chrome-stable
 
+# PI_SKIP_VERSION_CHECK disables the Pi agent's startup release check.
+# OPENCHAMBER_UPDATE_API_URL points the OpenChamber update check (which can
+# also report an install ID) at an unreachable local port: the server has
+# no switch to disable it, and enterprise mode would also block provider
+# connections. Updates come exclusively from image rebuilds.
 ENV HOME=/home/agent \
     PATH=/home/agent/.local/bin:/home/agent/.local/share/pnpm/bin:/home/agent/.opencode/bin:/usr/local/pnpm/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin \
     PNPM_HOME=/home/agent/.local/share/pnpm \
-    NPM_CONFIG_PREFIX=/home/agent/.local
+    NPM_CONFIG_PREFIX=/home/agent/.local \
+    PI_SKIP_VERSION_CHECK=1 \
+    OPENCHAMBER_UPDATE_API_URL=http://127.0.0.1:9/
 
 USER agent
 WORKDIR /home/agent

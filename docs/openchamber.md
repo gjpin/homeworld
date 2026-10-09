@@ -53,6 +53,6 @@ Provider credentials come from two places:
 
 ## Telemetry and self-update policy
 
-Self-update is disabled for every agent (OpenCode `autoupdate: false`, Copilot `autoUpdate: false`, Grok `cli.auto_update = false`) and inert by design (`/usr/local` is not writable by the agent user; updates only ever come from image rebuilds). Telemetry is disabled where the vendor supports it (Grok `features.telemetry = false` + `telemetry.trace_upload = false`, Antigravity `enableTelemetry = false`).
+Self-update and update checks are disabled for every agent (OpenCode `autoupdate: false`, Copilot `autoUpdate: false`, Grok `cli.auto_update = false`, Codex `check_for_update_on_startup = false`, Pi `PI_SKIP_VERSION_CHECK=1`) and inert by design (`/usr/local` is not writable by the agent user; updates only ever come from image rebuilds). The OpenChamber server has no switch for its own update check, which can also report an install ID, so the image points `OPENCHAMBER_UPDATE_API_URL` at an unreachable local port and the UI's update check fails quietly. Telemetry is disabled where the vendor supports it (Grok `features.telemetry = false` + `telemetry.trace_upload = false`, Antigravity `enableTelemetry = false`, Codex `analytics.enabled = false` + `feedback.enabled = false`, Pi `enableInstallTelemetry = false`).
 
 Exception: Copilot CLI has no documented telemetry off-switch short of `COPILOT_OFFLINE=true`, which also disables GitHub auth and GitHub-hosted features and is therefore not used. Its GitHub-side telemetry is an accepted upstream limitation.
