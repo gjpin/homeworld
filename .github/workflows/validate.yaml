@@ -24,6 +24,12 @@ jobs:
           find apps -type f -name '*.yaml' -not -path '*/charts/*' -not -path '*/local-charts/*' -print0 |
             xargs -0 -n1 yq eval '.' >/dev/null
 
+      - name: Check for duplicate YAML keys
+        run: scripts/check-yaml-duplicates.sh
+
+      - name: Check Secret key references
+        run: scripts/check-secret-refs.sh
+
       - name: Validate Grafana dashboards
         # jq ships preinstalled on the runner image, so no install step needed.
         run: |
