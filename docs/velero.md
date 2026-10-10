@@ -38,6 +38,18 @@ volume-snapshot backups have no built-in retention: prune old `Backup` CRs
 and the Longhorn snapshot contents — are garbage-collected with them
 (`snapshotOwnerReference: backup` on each Cluster).
 
+The MariaDB instance (Supernote) mirrors this with the MariaDB Operator's
+`PhysicalBackup`: a **daily 01:00 UTC volume snapshot**
+(`apps/supernote/1_physical_backup.yaml`) against the dedicated
+`mariadb-longhorn` VolumeSnapshotClass (`apps/mariadb-operator/0_snapshot_class.yaml`,
+`deletionPolicy: Delete`, `parameters.type: snap`), consistent because the
+operator holds `FLUSH TABLES WITH READ LOCK` while the snapshot is cut, plus a
+pre-upgrade snapshot taken by a PreSync hook before every sync of the
+application (see [upgrades.md](upgrades.md#8-mariadb-engine-upgrades-mariadb-operator)).
+Unlike CNPG, retention is automatic: `maxRetention: 720h` makes the operator
+delete each schedule's snapshots older than 30 days after every successful
+one. The same single-replica caveat applies.
+
 Before syncing Velero, create a dedicated Backblaze B2 application key limited
 to the backup bucket with list, read, write, and delete permissions. Enable
 bucket-default SSE-B2, and configure the bucket lifecycle to permanently delete

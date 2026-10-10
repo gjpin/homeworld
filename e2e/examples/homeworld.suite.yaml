@@ -198,7 +198,7 @@ spec:
             # Still-omitted apps can linger Terminating on --keep-cluster;
             # this list mirrors the OMIT_APPS set in rewrite-staging.py
             # (Longhorn, Velero, HA, external-dns, openchamber, qbittorrent,
-            # cilium, snapshot-controller, velero-ui). The otel collectors
+            # cilium, snapshot-controller, velero-ui, supernote). The otel collectors
             # are deployed but excluded here: hostPath/kubelet integration on
             # kind can flap independently of the victoria data probes below,
             # which assert the collectors actually export metrics and logs.
@@ -213,6 +213,7 @@ spec:
             - cilium
             - snapshot-controller
             - velero-ui
+            - supernote
           ignoreCompletedJobs: true
       - name: workloads
         workloadsReady:
@@ -224,6 +225,7 @@ spec:
             - envoy-gateway
             - cloudnative-pg
             - dragonfly-operator
+            - mariadb-operator
             - rustfs-operator
             - rustfs
             - authelia

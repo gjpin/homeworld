@@ -84,6 +84,17 @@
       ]
     },
     {
+      "description": "MariaDB operand upgrades: separate PRs per major, release-notes reminder",
+      "matchPackageNames": [
+        "docker.io/library/mariadb"
+      ],
+      "separateMajorMinor": true,
+      "separateMultipleMajor": true,
+      "prBodyNotes": [
+        "ℹ️ **MariaDB Upgrade**: Merging is the whole procedure (docs/upgrades.md §8): the Supernote sync first takes a pre-upgrade volume snapshot (PreSync `PhysicalBackup` hook, which fails the sync if the snapshot fails), the instance shuts down cleanly, and the entrypoint runs `mariadb-upgrade` (`mariadbAutoUpgradeEnabled`). Review the [MariaDB release notes](https://mariadb.com/docs/release-notes) for removed or changed options first; MariaDB cannot be downgraded in place."
+      ]
+    },
+    {
       "description": "Re-vendor the patched DocumentDB operator chart on version bumps so the PR contains the complete tree",
       "matchPackageNames": [
         "ghcr.io/documentdb/documentdb-operator"
@@ -506,11 +517,12 @@
     },
     {
       "customType": "regex",
-      "description": "Update the Dragonfly operand images (argocd, authelia, immich)",
+      "description": "Update the Dragonfly operand images (argocd, authelia, immich, supernote)",
       "managerFilePatterns": [
         "/^apps/argocd/0_dragonfly\\.yaml$/",
         "/^apps/authelia/0_dragonfly\\.yaml$/",
-        "/^apps/immich/0_dragonfly\\.yaml$/"
+        "/^apps/immich/0_dragonfly\\.yaml$/",
+        "/^apps/supernote/0_dragonfly\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^\\s*image:\\s*(?<depName>docker\\.dragonflydb\\.io/dragonflydb/dragonfly):(?<currentValue>[^\\s#]+)\\s*$"
@@ -672,6 +684,72 @@
       ],
       "matchStrings": [
         "(?m)^\\s*image:\\s*(?<depName>docker\\.io/vaultwarden/server):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Supernote service image (main and nginx-config init containers)",
+      "managerFilePatterns": [
+        "/^apps/supernote/1_supernote_service\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>docker\\.io/supernote/supernote-service):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Supernote notelib image",
+      "managerFilePatterns": [
+        "/^apps/supernote/1_notelib\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>docker\\.io/supernote/notelib):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the MariaDB operand image (MariaDB CR and the Supernote wait-for-database init container)",
+      "managerFilePatterns": [
+        "/^apps/supernote/0_mariadb\\.yaml$/",
+        "/^apps/supernote/1_supernote_service\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>docker\\.io/library/mariadb):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the mysqld-exporter image pinned on MariaDB CRs",
+      "managerFilePatterns": [
+        "/^apps/supernote/0_mariadb\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>docker\\.io/prom/mysqld-exporter):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the MariaDB operator's default operand images (config.*Image repository/tag pairs)",
+      "managerFilePatterns": [
+        "/^apps/mariadb-operator/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s+repository:\\s*(?<depName>docker\\.io/[^\\s#]+)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)\\s*$"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",

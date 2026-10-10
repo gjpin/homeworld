@@ -1,0 +1,41 @@
+# One claim per directory supernote-service persists (matching upstream's
+# compose volumes): synced files, the recycle bin, and converted exports.
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: supernote-data
+  namespace: supernote
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-crypto
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: supernote-recycle
+  namespace: supernote
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-crypto
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: supernote-convert
+  namespace: supernote
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-crypto
+  resources:
+    requests:
+      storage: 10Gi

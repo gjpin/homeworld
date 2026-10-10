@@ -143,3 +143,61 @@ the new images roll, finalize the schema explicitly:
 is tracked by the CloudNativePG package rule: minor bumps roll with zero
 downtime, major bumps trigger CNPG's automated offline `pg_upgrade`. The image
 must stay trixie-based to match the extension's GLIBC requirements.
+
+---
+
+## 8. MariaDB Engine Upgrades (MariaDB Operator)
+
+Supernote's database runs on the MariaDB Operator
+(`apps/supernote/0_mariadb.yaml`), the cluster's only MariaDB consumer. The
+operand image is pinned twice: `spec.image` on the `MariaDB` CR and the
+operator's `config.mariadbImage` default in
+`apps/mariadb-operator/helm/values.yaml`. Renovate tracks both; merge them in
+the same change. Any MariaDB version can be upgraded to any later one in a
+single step, so no sequential stepping is required.
+
+### Automated Upgrade Steps
+
+MariaDB's upgrade guides (minor and major) and the operator's update
+documentation recommend the steps below; each is automated, so merging the
+Renovate PR is the whole procedure:
+
+| Recommended step | Automation |
+| :--- | :--- |
+| Back up the database before upgrading | Argo CD PreSync hook `apps/supernote/0_pre_sync_backup.yaml`: a one-shot `PhysicalBackup` cuts a consistent volume snapshot (the operator holds `FLUSH TABLES WITH READ LOCK` while it is taken) before every sync of the application, and the sync waits for it (Argo CD health check `k8s.mariadb.com_PhysicalBackup` in `apps/argocd/helm/values.yaml`). A failed snapshot fails the sync, so the image never rolls without its backup. |
+| Back up the `mysql` system database | The official image's entrypoint dumps it into the data directory (`system_mysql_backup_<old version>.sql.zst`) before upgrading. |
+| Clean shutdown with `innodb_fast_shutdown` not `2` | `innodb_fast_shutdown=1` is pinned in `myCnf`, and `terminationGracePeriodSeconds: 120` leaves room to flush before the kubelet's `SIGKILL`. |
+| Run `mariadb-upgrade` | `updateStrategy.mariadbAutoUpgradeEnabled` makes the operator set `MARIADB_AUTO_UPGRADE`; the entrypoint runs `mariadb-upgrade` whenever the major or minor version changes and is a no-op otherwise. |
+
+Reviewing the release notes stays a human step; the Renovate PR for
+`docker.io/library/mariadb` carries a reminder. Operator chart bumps can
+change the generated StatefulSet or pod template and roll the instance the
+same way, behind the same pre-sync snapshot.
+
+### Rolling Back
+
+MariaDB cannot be downgraded in place. To return to the previous version,
+restore the pre-upgrade snapshot (the newest `mariadb-pre-sync-*`
+`VolumeSnapshot` in the `supernote` namespace) into a fresh instance: revert
+the image change, then delete the `MariaDB` CR and its `storage-mariadb-0`
+PVC and recreate the CR with `spec.bootstrapFrom.volumeSnapshotRef.name` set
+to that snapshot (remove the field once the instance is running).
+
+### Supernote Database Script
+
+Upstream's installer re-runs its `supernotedb.sql` on every update as both
+seed and migration. Here it is embedded in the `supernotedb-seed` SqlJob
+(`apps/supernote/1_sql_job.yaml`), which the operator runs once and never
+re-runs. When a Supernote image bump ships a new script
+(`https://supernote-private-cloud.supernote.com/cloud/supernotedb.sql`):
+
+1. Replace the SQL in the SqlJob with the new script, keeping the header's
+   source checksum current.
+2. After the change syncs, delete the SqlJob together with its completed Job
+   (`kubectl -n supernote delete sqljob supernotedb-seed --cascade=foreground`;
+   the Job shares the SqlJob's name, and a leftover one would be reused
+   instead of re-run). Argo CD recreates the SqlJob and the operator runs the
+   new Job.
+
+The script's schema statements are idempotent, but like upstream's installer
+it also empties the recycle-bin and file-conversion tables on every run.

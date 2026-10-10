@@ -31,6 +31,9 @@ OMIT_APPS = {
     # Gluetun needs /dev/net/tun and real VPN credentials, neither of which
     # exists on kind; the qBittorrent pod can never become Ready.
     "qbittorrent-app",
+    # Supernote publishes amd64-only images, and the kind node follows the
+    # host architecture (arm64 on Apple-silicon Lima / Docker Desktop).
+    "supernote-app",
 }
 
 GIT_REPO_URL = "git://host.docker.internal:9418/homeworld.git"

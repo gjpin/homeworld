@@ -16,6 +16,7 @@
 - [Operator-managed PostgreSQL clusters via CloudNativePG](docs/upgrades.md#1-automated-major-database-upgrades-cloudnativepg)
 - [MongoDB-compatible document storage via DocumentDB Operator](docs/upgrades.md#7-documentdb-engine-upgrades)
 - Redis-compatible in-memory caching via Dragonfly Operator
+- Operator-managed MariaDB via MariaDB Operator
 - S3-compatible object storage via RustFS Operator
 - Distributed block storage with Longhorn
 - Automated encrypted [Velero backups](docs/velero.md) to Backblaze B2
@@ -52,6 +53,7 @@
 | Kube State Metrics | — | Cluster-state `kube_*` metrics for the OpenTelemetry pipeline and the CloudNativePG dashboard. |
 | Longhorn | `longhorn.${BASE_DOMAIN}` | Distributed block-storage management. |
 | Snapshot Controller | — | CSI volume-snapshot controller driving the Longhorn CSI driver for Velero data movement and CNPG volume-snapshot backups. |
+| MariaDB Operator | — | MariaDB operator; provisions MariaDB instances, their databases and users, and SQL seed jobs. |
 | Metrics Server | — | Resource metrics for `kubectl top` and HPA, scraped from kubelets over verified TLS. |
 | Notesnook | `notes.${BASE_DOMAIN}`<br>`auth.notes.${BASE_DOMAIN}`<br>`sse.notes.${BASE_DOMAIN}`<br>`monograph.notes.${BASE_DOMAIN}` | End-to-end encrypted note-taking sync server with auth, SSE, and Monograph. |
 | OpenChamber | `openchamber.${BASE_DOMAIN}` | Persistent AI agent workspace: OpenChamber web server, OpenCode, Codex CLI, the Pi agent, Grok Build, the Antigravity CLI, and the Copilot CLI on Debian 13 with a PVC-backed HOME. |
@@ -66,6 +68,7 @@
 | Radicale | — | Internal CalDAV and CardDAV backend authenticated by OpenCloud. |
 | RustFS | `s3.${BASE_DOMAIN}`<br>`console.rustfs.${BASE_DOMAIN}` | Shared S3-compatible object storage and Tenant console. |
 | RustFS Operator | `rustfs.${BASE_DOMAIN}` | RustFS storage operator and management console. |
+| Supernote | `supernote.${BASE_DOMAIN}` | Supernote Private Cloud: device sync, web file manager, and note conversion (amd64 nodes only). |
 | Velero | — | Whole-cluster backups to Backblaze B2. |
 | Velero UI | `velero.${BASE_DOMAIN}` | Web interface for managing Velero. |
 | Vaultwarden | `vault.${BASE_DOMAIN}` | Bitwarden-compatible password manager with optional Authelia SSO sign-in. |

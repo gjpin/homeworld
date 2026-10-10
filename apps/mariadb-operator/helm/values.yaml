@@ -1,0 +1,131 @@
+fullnameOverride: mariadb-operator
+
+# The CRDs ship as a chart dependency gated on this flag (rendered templates,
+# not a crds/ directory), so they install and upgrade with the operator
+# through Server-Side Apply.
+crds:
+  enabled: true
+
+image:
+  pullPolicy: IfNotPresent
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 60s
+
+# The image is distroless/static with USER 65532:65532 (upstream Dockerfile).
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+    ephemeral-storage: 64Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+    ephemeral-storage: 1Gi
+nodeSelector:
+  node-role.kubernetes.io/homelab: homelab
+
+webhook:
+  image:
+    pullPolicy: IfNotPresent
+  # Serving certificates are issued by the chart's cert-controller (below),
+  # which also injects the CA into the ValidatingWebhookConfiguration.
+  serviceMonitor:
+    enabled: true
+    interval: 60s
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+      ephemeral-storage: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+      ephemeral-storage: 1Gi
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+
+certController:
+  image:
+    pullPolicy: IfNotPresent
+  serviceMonitor:
+    enabled: true
+    interval: 60s
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+      ephemeral-storage: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+      ephemeral-storage: 1Gi
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+
+# Operand defaults handed to the operator (RELATED_IMAGE_* environment). The
+# chart's defaults are Docker Hub short names; AGENTS.md requires fully
+# qualified references. MariaDB CRs in this repository still pin spec.image
+# and spec.metrics.exporter.image explicitly.
+config:
+  mariadbImage:
+    repository: docker.io/library/mariadb
+    tag: 12.3.3
+  mariadbImageName: docker.io/library/mariadb
+  maxscaleImage:
+    repository: docker.io/mariadb/maxscale
+    tag: 23.08.13-2
+  exporterImage:
+    repository: docker.io/prom/mysqld-exporter
+    tag: v0.15.1
+  exporterMaxscaleImage:
+    repository: docker.io/mariadb/maxscale-prometheus-exporter-ubi
+    tag: v0.0.1

@@ -94,6 +94,9 @@ Two categories of values are not synchronized from Infisical:
 | **RustFS** | `/rustfs/RUSTFS_ACCESS_KEY` | Root S3 access key for the storage Tenant. | Chosen access key ID (≥8 characters, no whitespace, `=` or `,`) |
 | | `/rustfs/RUSTFS_SECRET_KEY` | Root S3 secret key for the storage Tenant. | `openssl rand -hex 16` |
 | **RustFS Operator** | `/rustfs-operator/JWT_SECRET` | Console session-cookie JWT secret (Secret `rustfs-operator-console-secret`, key `jwt-secret`); the chart's generated Secret is patch-deleted from the render because its `randAlphaNum` fallback rotates on every offline render. | `openssl rand -hex 32` |
+| **Supernote** | `/supernote/MARIADB_ROOT_PASSWORD` | MariaDB root password (MariaDB Operator `rootPasswordSecretKeyRef`). | `openssl rand -hex 32` |
+| | `/supernote/MARIADB_PASSWORD` | MariaDB password for the `supernote` application user, also used by the schema seed SqlJob. | `openssl rand -hex 32` |
+| | `/supernote/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for the backend's cache. | `openssl rand -hex 32` |
 | **Velero** | `/velero/B2_APPLICATION_KEY_ID` | Backblaze B2 key ID for backup storage. | From the Backblaze B2 console (App Keys) |
 | | `/velero/B2_APPLICATION_KEY` | Backblaze B2 application key for backup storage. | From the Backblaze B2 console (App Keys) |
 | | `/velero/KOPIA_REPOSITORY_PASSWORD` | Kopia repository encryption password. | `openssl rand -hex 32` (must stay unchanged for the lifetime of the repository) |

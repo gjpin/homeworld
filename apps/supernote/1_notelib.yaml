@@ -1,0 +1,107 @@
+# Native note-conversion library server used by supernote-service to render
+# and export .note files.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notelib
+  namespace: supernote
+  labels:
+    app.kubernetes.io/name: supernote
+    app.kubernetes.io/component: notelib
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: supernote
+      app.kubernetes.io/component: notelib
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: supernote
+        app.kubernetes.io/component: notelib
+    spec:
+      serviceAccountName: supernote-app
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
+      hostUsers: false
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab
+        # Upstream publishes amd64-only images.
+        kubernetes.io/arch: amd64
+      securityContext:
+        # The image runs as root by default; run as the Ubuntu base image's
+        # `ubuntu` user instead. The server's scratch directories are volumes.
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        # The image's own command is kept: upstream backgrounds the server
+        # and keeps the container alive with `tail -f /dev/null`, so the TCP
+        # probes below are what restart a dead server.
+        - name: notelib
+          image: docker.io/supernote/notelib:6.9.3
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+          ports:
+            - name: notelib
+              containerPort: 6000
+              protocol: TCP
+          startupProbe:
+            tcpSocket:
+              port: notelib
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket:
+              port: notelib
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: notelib
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+              ephemeral-storage: 4Gi
+          volumeMounts:
+            - name: upload
+              mountPath: /data/noteServer/UPLOAD
+            - name: download
+              mountPath: /data/noteServer/DOWNLOAD
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: upload
+          emptyDir:
+            sizeLimit: 1Gi
+        - name: download
+          emptyDir:
+            sizeLimit: 1Gi
+        - name: tmp
+          emptyDir:
+            sizeLimit: 1Gi

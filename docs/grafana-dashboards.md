@@ -87,6 +87,7 @@ dashboard's JSON `description` cites its provenance.
 | Kubelet Serving Cert Approver | Kubelet Serving Cert Approver | custom (alex1989hu/kubelet-serving-cert-approver metrics table; no official dashboard) |
 | Kube State Metrics | Kube State Metrics | custom (kube-state-metrics standard `kube_*` families from its own docs; the project ships no dashboard); panels match the scrape job because `kube_*` series carry the target's namespace, not the exporter's |
 | Longhorn | Longhorn Example v1.1.0 | official: grafana.com 13032, the dashboard referenced by the longhorn.io monitoring docs; `__inputs` converted to a datasource variable |
+| MariaDB Operator | MySQL | official: prometheus/mysqld_exporter repo `mysqld-mixin/dashboards/mysql-overview.json` at the exporter version MariaDB CRs pin (the mariadb-operator project publishes no dashboard); unmodified, its prometheus-type datasource variable resolves to the compatibility datasource |
 | metrics-server | Metrics Server | custom (metrics-server `metrics_server_manager_tick_duration_seconds` plus component-base apiserver metrics; no official dashboard) |
 | Notesnook | Notesnook | custom (notesnook sync `SyncEventCounterSource` meter; DocumentDB `documentdb_postgres_up` per the operator monitoring contract) |
 | OpenCloud | OpenCloud | custom (docs.opencloud.eu proxy metrics, `opencloud_proxy_*`; no official dashboard) |
@@ -107,6 +108,10 @@ disabled upstream with no chart toggle. Apps whose only metrics are the
 shared CloudNativePG instance metrics (`vaultwarden`, `homeassistant` and the
 other CNPG-backed apps) are covered by the CloudNativePG folder's dashboards
 and the per-cluster 60s PodMonitors rather than a folder of their own.
+`supernote` exposes no application metrics either: its MariaDB instance
+(operator-generated mysqld-exporter ServiceMonitor) and Dragonfly cache
+(60s PodMonitor) are covered by the MariaDB Operator and Dragonfly Operator
+folders.
 
 ## Adding a dashboard
 

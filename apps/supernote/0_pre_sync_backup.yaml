@@ -1,0 +1,36 @@
+# Pre-upgrade backup, automated. MariaDB's upgrade guides (minor and major)
+# recommend a backup before every server upgrade, and the server cannot be
+# downgraded in place, so this snapshot is the rollback point for a MariaDB
+# image bump (restore: docs/upgrades.md).
+#
+# As an Argo CD PreSync hook it runs before every sync of this application,
+# i.e. before any change to the MariaDB CR rolls the instance, and the sync
+# waits until the snapshot is ready (health check:
+# resource.customizations.health.k8s.mariadb.com_PhysicalBackup in
+# apps/argocd/helm/values.yaml). A failed snapshot fails the sync, so the
+# upgrade does not proceed without its backup. When there is nothing to back
+# up — the first sync, before the instance exists, or an instance that is
+# not running (so a fix can still sync) — the check reports Healthy and the
+# sync continues.
+#
+# The hook object is recreated on each sync; its VolumeSnapshots carry no
+# owner reference and are pruned by maxRetention instead.
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: PhysicalBackup
+metadata:
+  name: mariadb-pre-sync
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  mariaDbRef:
+    name: mariadb
+  # No schedule: a single snapshot per hook object.
+  target: PreferReplica
+  maxRetention: 720h
+  timeout: 30m
+  storage:
+    volumeSnapshot:
+      volumeSnapshotClassName: mariadb-longhorn

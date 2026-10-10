@@ -1,0 +1,118 @@
+# https://github.com/mariadb-operator/mariadb-operator/blob/main/docs/standalone.md
+# https://github.com/mariadb-operator/mariadb-operator/blob/main/docs/metrics.md
+# https://github.com/mariadb-operator/mariadb-operator/blob/main/docs/updates.md
+#
+# Supernote Private Cloud only speaks MariaDB/MySQL (its JDBC URL is
+# hardcoded to jdbc:mariadb://). The operator provisions the initial
+# database, user, and grants from spec.database/username; the schema seed
+# runs as a SqlJob (1_sql_job.yaml).
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: MariaDB
+metadata:
+  name: mariadb
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  image: docker.io/library/mariadb:12.3.3
+  imagePullPolicy: IfNotPresent
+  rootPasswordSecretKeyRef:
+    name: mariadb
+    key: root-password
+    generate: false
+  username: supernote
+  passwordSecretKeyRef:
+    name: mariadb
+    key: password
+    generate: false
+  database: supernotedb
+  port: 3306
+  storage:
+    size: 5Gi
+    storageClassName: longhorn-crypto
+  # skip-name-resolve matches upstream's compose deployment: every
+  # operator-managed user is defined for host '%', so reverse DNS lookups
+  # only add connection latency.
+  #
+  # innodb_fast_shutdown=1 (the server default, pinned) is what MariaDB's
+  # upgrade guides require before swapping binaries: InnoDB flushes every
+  # dirty page and closes cleanly, while 2 (crash-like shutdown) would leave
+  # redo logs a newer server may not be able to recover.
+  myCnf: |
+    [mariadb]
+    bind-address=*
+    skip-name-resolve
+    innodb_fast_shutdown=1
+  # Room for that clean shutdown before the kubelet's SIGKILL when an image
+  # bump rolls the pod (the Kubernetes default is 30s).
+  terminationGracePeriodSeconds: 120
+  updateStrategy:
+    # Runs mariadb-upgrade on start (MARIADB_AUTO_UPGRADE) so major image
+    # bumps migrate the system schema; a no-op when nothing changed.
+    mariadbAutoUpgradeEnabled: true
+  nodeSelector:
+    node-role.kubernetes.io/homelab: homelab
+  podSecurityContext:
+    runAsNonRoot: true
+    # The official image's mysql user.
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    runAsNonRoot: true
+    runAsUser: 999
+    runAsGroup: 999
+  # Memory requests equal limits so the database is the last pod the
+  # kernel or kubelet reclaims under node memory pressure.
+  resources:
+    requests:
+      cpu: 100m
+      memory: 1Gi
+      ephemeral-storage: 128Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+      ephemeral-storage: 2Gi
+  metrics:
+    enabled: true
+    exporter:
+      image: docker.io/prom/mysqld-exporter:v0.15.1
+      imagePullPolicy: IfNotPresent
+      nodeSelector:
+        node-role.kubernetes.io/homelab: homelab
+      podSecurityContext:
+        runAsNonRoot: true
+        # The image's nobody user.
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+          ephemeral-storage: 16Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+          ephemeral-storage: 256Mi
+    serviceMonitor:
+      interval: 60s
+      scrapeTimeout: 25s

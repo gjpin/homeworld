@@ -112,6 +112,10 @@ configMapGenerator:
   - name: grafana-dashboard-longhorn
     files:
       - json=dashboards/longhorn/longhorn.json
+  # mariadb-operator
+  - name: grafana-dashboard-mariadb-operator-mysql-overview
+    files:
+      - json=dashboards/mariadb-operator/mysql-overview.json
   # metrics-server
   - name: grafana-dashboard-metrics-server
     files:
@@ -193,6 +197,7 @@ resources:
   - 1_dashboards_kube-state-metrics.yaml
   - 1_dashboards_kubelet-serving-cert-approver.yaml
   - 1_dashboards_longhorn.yaml
+  - 1_dashboards_mariadb-operator.yaml
   - 1_dashboards_metrics-server.yaml
   - 1_dashboards_notesnook.yaml
   - 1_dashboards_opencloud.yaml

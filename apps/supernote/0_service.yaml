@@ -1,0 +1,47 @@
+# Both Service names mirror upstream's compose container names, which the
+# images address by hostname: the backend reaches notelib at NOTELIB_HOST
+# (default `notelib`) on the fixed port 6000, and notelib transfers note
+# files over download/upload URLs the backend hands it, so it keeps the
+# same path to supernote-service it had on upstream's shared network.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: supernote-service
+  namespace: supernote
+  labels:
+    app.kubernetes.io/name: supernote
+    app.kubernetes.io/component: service
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: http
+    - name: backend
+      port: 19071
+      protocol: TCP
+      targetPort: backend
+  selector:
+    app.kubernetes.io/name: supernote
+    app.kubernetes.io/component: service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notelib
+  namespace: supernote
+  labels:
+    app.kubernetes.io/name: supernote
+    app.kubernetes.io/component: notelib
+spec:
+  type: ClusterIP
+  ports:
+    - name: notelib
+      port: 6000
+      protocol: TCP
+      targetPort: notelib
+  selector:
+    app.kubernetes.io/name: supernote
+    app.kubernetes.io/component: notelib

@@ -1,0 +1,297 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # nginx (8080) fronts the web client, the backend API, and the device
+  # auto-sync socket.io endpoint; Envoy reaches nothing else.
+  name: allow-supernote-gateway
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: supernote
+      k8s:app.kubernetes.io/component: service
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-supernote-service-mariadb
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The backend and its wait-for-database init container.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: supernote
+      k8s:app.kubernetes.io/component: service
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: mariadb
+            k8s:app.kubernetes.io/instance: mariadb
+      toPorts:
+        - ports:
+            - port: "3306"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-supernote-service-dragonfly
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: supernote
+      k8s:app.kubernetes.io/component: service
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: dragonfly
+            k8s:app.kubernetes.io/instance: dragonfly
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-supernote-service-notelib
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: supernote
+      k8s:app.kubernetes.io/component: service
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: supernote
+            k8s:app.kubernetes.io/component: notelib
+      toPorts:
+        - ports:
+            - port: "6000"
+              protocol: TCP
+  ingress:
+    # notelib fetches source notes and returns rendered output over URLs the
+    # backend hands it (nginx front or the backend API directly).
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: supernote
+            k8s:app.kubernetes.io/component: notelib
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "19071"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-notelib
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: supernote
+      k8s:app.kubernetes.io/component: notelib
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: supernote
+            k8s:app.kubernetes.io/component: service
+      toPorts:
+        - ports:
+            - port: "6000"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: supernote
+            k8s:app.kubernetes.io/component: service
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "19071"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-supernote-seed-mariadb
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The schema seed SqlJob's pods (podMetadata labels in 1_sql_job.yaml).
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: supernote
+      k8s:app.kubernetes.io/component: seed
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: mariadb
+            k8s:app.kubernetes.io/instance: mariadb
+      toPorts:
+        - ports:
+            - port: "3306"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The operator-generated mysqld-exporter Deployment.
+  name: allow-supernote-mariadb-exporter
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: exporter
+      k8s:app.kubernetes.io/instance: mariadb-metrics
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: mariadb
+            k8s:app.kubernetes.io/instance: mariadb
+      toPorts:
+        - ports:
+            - port: "3306"
+              protocol: TCP
+  ingress:
+    # The operator-generated ServiceMonitor scrapes the exporter.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9104"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-supernote-mariadb-ingress
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: mariadb
+      k8s:app.kubernetes.io/instance: mariadb
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: supernote
+            k8s:app.kubernetes.io/component: service
+        - matchLabels:
+            k8s:app.kubernetes.io/name: supernote
+            k8s:app.kubernetes.io/component: seed
+        - matchLabels:
+            k8s:app.kubernetes.io/name: exporter
+            k8s:app.kubernetes.io/instance: mariadb-metrics
+        # SQL-level reconciliation of the initial database, user, grants,
+        # and the exporter's user (allow-mariadb-operator-supernote-mariadb).
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: mariadb-operator
+            k8s:app.kubernetes.io/instance: mariadb-operator
+            k8s:app.kubernetes.io/name: mariadb-operator
+      toPorts:
+        - ports:
+            - port: "3306"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-supernote-dragonfly-ingress
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: dragonfly
+      k8s:app.kubernetes.io/instance: dragonfly
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: supernote
+            k8s:app.kubernetes.io/name: supernote
+            k8s:app.kubernetes.io/component: service
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    # Operand admin/metrics endpoint (port 9999) scraped by the PodMonitor.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9999"
+              protocol: TCP
