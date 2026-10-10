@@ -77,10 +77,32 @@
         "ghcr.io/cloudnative-pg/postgresql",
         "ghcr.io/tensorchord/cloudnative-vectorchord"
       ],
+      "matchDepNames": [
+        "!cloudnative-pg-debian-release"
+      ],
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
       "prBodyNotes": [
-        "ℹ️ **CloudNativePG Major Upgrade**: Minor versions roll with zero downtime. Major PostgreSQL version upgrades trigger CloudNativePG's automated in-place `pg_upgrade` process upon syncing, which shuts down the cluster while data is upgraded. Ensure a recent Velero backup exists before merging."
+        "ℹ️ **CloudNativePG Upgrade**: Minor versions roll the instance pod. A major PostgreSQL version triggers CloudNativePG's offline in-place `pg_upgrade` Job on sync, with the whole cluster down until it finishes. Before merging a major: take an on-demand CNPG `volumeSnapshot` `Backup` and confirm the extensions and the target image's Debian release match the current one. If the upgrade Job fails, revert this PR. After it succeeds, refresh statistics and take a new backup. See [docs/upgrades.md](docs/upgrades.md#1-automated-major-database-upgrades-cloudnativepg)."
+      ]
+    },
+    {
+      "description": "cloudnative-vectorchord tags are <pg major>.<pg minor>-<VectorChord semver>; docker versioning would treat the VectorChord version as a fixed compatibility suffix and never propose an update",
+      "matchPackageNames": [
+        "ghcr.io/tensorchord/cloudnative-vectorchord"
+      ],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)-(?<patch>\\d+)\\.(?<build>\\d+)\\.(?<revision>\\d+)$",
+      "prBodyNotes": [
+        "⚠️ **cloudnative-vectorchord**: Renovate labels VectorChord version changes as patch updates; check the Immich release notes for the supported VectorChord range. The tags do not name the Debian release. On a PostgreSQL major upgrade, compare the `org.opencontainers.image.base.name` label of the new image with the current one: `pg_upgrade` does not support a Debian release change. On a minor update, a Debian release change is safe (see [docs/upgrades.md](docs/upgrades.md#debian-release-moves))."
+      ]
+    },
+    {
+      "description": "Debian release moves of CloudNativePG operand images keep the PostgreSQL version and never run pg_upgrade",
+      "matchDepNames": [
+        "cloudnative-pg-debian-release"
+      ],
+      "prBodyNotes": [
+        "ℹ️ **CloudNativePG Debian Release Move**: Only the image's Debian release changes; the PostgreSQL version stays the same, so the operator rolls each instance pod and no `pg_upgrade` runs. Every cluster uses CNPG's default `C` collation, which does not depend on glibc, so no reindex is needed. See [docs/upgrades.md](docs/upgrades.md#debian-release-moves)."
       ]
     },
     {
@@ -338,6 +360,21 @@
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Move CloudNativePG Cluster images to the newest Debian stable release CNPG publishes for the pinned PostgreSQL version (the docker manager above treats the -system-<debian> suffix as fixed)",
+      "managerFilePatterns": [
+        "/^apps/(?:authelia|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker)/0_postgres\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*imageName:\\s*(?<packageName>ghcr\\.io/cloudnative-pg/postgresql):(?<pgVersion>\\d+\\.\\d+)-system-(?<currentValue>[a-z]+)\\s*$"
+      ],
+      "depNameTemplate": "cloudnative-pg-debian-release",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "debian",
+      "extractVersionTemplate": "^{{{pgVersion}}}-system-(?<version>[a-z]+)$",
       "registryUrlTemplate": "https://ghcr.io"
     },
     {

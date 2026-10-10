@@ -6,25 +6,141 @@ This document details upgrade automation, database migration procedures, and ver
 
 ## 1. Automated Major Database Upgrades (CloudNativePG)
 
-All PostgreSQL databases (`authelia`, `crowdsec`, `forgejo`, `immich`) run on **CloudNativePG** (CNPG).
+All PostgreSQL databases (`authelia`, `crowdsec`, `forgejo`, `homeassistant`,
+`immich`, `vaultwarden`, `woodpecker`) run on **CloudNativePG** (CNPG). Each
+`apps/<app>/0_postgres.yaml` pins `spec.imageName`, which Renovate tracks:
+
+* `ghcr.io/cloudnative-pg/postgresql:<major>.<minor>-system-<debian>` (every
+  cluster except Immich). Two Renovate managers read this one line. The
+  docker manager treats `-system-<debian>` as a fixed compatibility suffix
+  and proposes PostgreSQL updates on the same Debian release. A second
+  manager (`cloudnative-pg-debian-release`) proposes Debian release moves
+  (see [Debian Release Moves](#debian-release-moves)). A PR never changes both
+  at once.
+* `ghcr.io/tensorchord/cloudnative-vectorchord:<major>.<minor>-<vectorchord>`
+  (Immich). A dedicated `regex:` versioning rule in `renovate.json` parses
+  the VectorChord suffix as part of the version. The tags do not name the
+  Debian release, so upstream's Debian moves arrive inside ordinary updates.
 
 ### Minor Version Updates (e.g. 18.1 → 18.2)
 * **Execution:** Rolling update.
-* **Process:** The CNPG operator restarts instance pods sequentially with zero application downtime.
+* **Process:** The CNPG operator restarts the instance pod on the new image. With `instances: 1`, the database is briefly unavailable while the pod restarts.
 
 ### Major Version Upgrades (e.g. 18 → 19)
 * **Execution:** Declarative offline in-place `pg_upgrade` managed entirely by the CNPG operator.
 * **Automation Workflow:**
-  1. Renovate opens a dedicated major version PR for `imageName` in `0_postgres.yaml`.
+  1. Renovate opens a dedicated major version PR for `imageName` in `0_postgres.yaml` (`separateMultipleMajor` keeps each major in its own PR; the PR is never automerged).
   2. Merging the PR commits the new major version tag into Git, which Argo CD syncs to the cluster.
-  3. The CNPG operator detects the major PostgreSQL version difference between the running `PGDATA` volume and the new image.
-  4. The operator automatically stops the database pod to guarantee data consistency.
-  5. The operator launches an automated upgrade Kubernetes Job that runs PostgreSQL's native `pg_upgrade` against the existing `PGDATA` volume.
-  6. Upon completion, the operator restarts the pod running the new major PostgreSQL version. Replicas (if configured) are automatically re-created from the upgraded primary.
-* **Safety & Prerequisites:**
-  * **Downtime:** The upgrade is *offline*; the affected application will experience temporary database unavailability while `pg_upgrade` executes (typically 1–3 minutes).
-  * **Extensions (Immich / VectorChord):** For Immich, ensure the target `cloudnative-vectorchord` image includes VectorChord compiled for the new PostgreSQL major version before merging.
-  * **Backups:** Ensure a recent [Velero backup](velero.md) exists before merging major database upgrades.
+  3. The CNPG operator compares the new image with the major version recorded in `.status.pgDataImageInfo` and shuts down every instance pod.
+  4. The operator runs a `<cluster>-major-upgrade` Job that executes `pg_upgrade --link` against the existing `PGDATA` volume.
+  5. Upon success, the operator restarts the cluster on the new major version. Replicas (if configured) are re-cloned from the upgraded primary.
+* **Downtime:** The upgrade is *offline*: the whole cluster is unavailable to the application until the Job finishes.
+
+### Before Merging a Major Upgrade
+
+1. **Take an on-demand backup.** CNPG recommends a full backup immediately
+   before the upgrade. The daily `ScheduledBackup` may be up to a day old, and
+   a Velero copy of a running database volume is only crash-consistent.
+   Create a CNPG volume-snapshot `Backup` and wait for it to complete:
+
+   ```bash
+   kubectl apply -f - <<YAML
+   apiVersion: postgresql.cnpg.io/v1
+   kind: Backup
+   metadata:
+     name: <cluster>-pre-major-upgrade
+     namespace: <namespace>
+   spec:
+     cluster:
+       name: <cluster>
+     method: volumeSnapshot
+   YAML
+   kubectl -n <namespace> wait backup/<cluster>-pre-major-upgrade \
+     --for=jsonpath='{.status.phase}'=completed --timeout=15m
+   ```
+
+   Point-in-time recovery does not cross major versions. This backup is the
+   only way back once the upgrade Job has succeeded.
+2. **Check the Debian release.** CNPG only supports major upgrades between
+   images on the same operating system release (e.g. no `bookworm` →
+   `trixie` during `pg_upgrade`). The `-system-<debian>` suffix guarantees this
+   for the `cloudnative-pg/postgresql` images. For Immich, compare the
+   `org.opencontainers.image.base.name` label of the current and target
+   `cloudnative-vectorchord` images. If they differ, do not merge:
+   `pg_upgrade` would fail. Wait until Immich is on a current-major tag built
+   on the target's Debian release.
+3. **Check extensions.** CNPG is not responsible for extensions: each one
+   must be available in the target image for the new major version. For
+   Immich, the target `cloudnative-vectorchord` image must ship VectorChord
+   in a version within Immich's supported range.
+
+### If the Upgrade Job Fails
+
+No data is modified until `pg_upgrade` succeeds. Revert the Renovate PR's
+commit: Argo CD syncs the previous `imageName`, and the operator deletes the
+failed Job and restarts the cluster on the original version. Inspect the
+Job's logs (`kubectl -n <namespace> logs job/<cluster>-major-upgrade`)
+before retrying.
+
+### After a Successful Major Upgrade
+
+1. **Refresh optimizer statistics.** `pg_upgrade` carries over most planner
+   statistics from PostgreSQL 18 onward, but not extended statistics. Fill in
+   the gaps:
+
+   ```bash
+   kubectl -n <namespace> exec -c postgres \
+     "$(kubectl -n <namespace> get pod -o name \
+       -l cnpg.io/cluster=<cluster>,cnpg.io/instanceRole=primary)" -- \
+     vacuumdb --all --analyze-in-stages --missing-stats-only
+   ```
+
+2. **Update extensions.** `pg_upgrade` keeps each extension at its installed
+   version. List lagging extensions with
+   `SELECT name, installed_version, default_version FROM pg_available_extensions WHERE installed_version <> default_version;`
+   and run `ALTER EXTENSION <name> UPDATE;` in the affected database.
+3. **Take a new backup.** Create another on-demand `Backup` (as above, with a
+   `-post-major-upgrade` name) so a restore point exists on the new major
+   version, then prune the pre-upgrade `Backup` once the application is
+   healthy.
+
+### Debian Release Moves
+
+Debian release moves are automated for the `cloudnative-pg/postgresql`
+images. The `cloudnative-pg-debian-release` custom manager in `renovate.json`
+reads the `-system-<debian>` suffix with Renovate's `debian` versioning and
+looks up tags for the *pinned* PostgreSQL version only
+(`<major>.<minor>-system-<debian>`). When CNPG publishes that version on a
+newer Debian stable release, Renovate opens one PR moving every matching
+cluster to it. Debian testing is never proposed: Renovate only considers a
+release stable once Debian has released it.
+
+* **No `pg_upgrade`.** The PostgreSQL version is unchanged, so the operator
+  rolls each instance pod onto the new image. Because the lookup is pinned to
+  the current version, a Debian move can never be combined with a major
+  upgrade. If CNPG stops building a new major for the old Debian release, the
+  major PR only appears after the Debian move is merged.
+* **No reindex.** A new Debian release can ship a glibc whose collation
+  ordering differs, which corrupts text indexes built with glibc collations.
+  Every cluster here is initialized with CNPG's default `C` locale, and no
+  database or `Database` resource overrides it. `C` compares bytes without
+  calling glibc, so the move does not affect indexes. If a cluster ever adopts
+  a glibc locale, check after each move:
+
+  ```sql
+  SELECT datname, datcollversion,
+         pg_database_collation_actual_version(oid) AS actual
+  FROM pg_database WHERE datcollversion IS DISTINCT FROM
+         pg_database_collation_actual_version(oid);
+  ```
+
+  For each listed database, run `REINDEX DATABASE <db>;` and then
+  `ALTER DATABASE <db> REFRESH COLLATION VERSION;`.
+
+Immich's `cloudnative-vectorchord` tags carry no Debian marker, so upstream's
+Debian moves arrive inside ordinary Renovate updates. On a minor update this
+is safe for the same reasons. On a major upgrade it is not (see
+[Before Merging a Major Upgrade](#before-merging-a-major-upgrade)).
 
 ---
 
