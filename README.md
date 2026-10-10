@@ -73,8 +73,8 @@
 
 ## Manual Setup
 
-### 1. Bootstrap the Talos Cluster (Single Node)
-Before deploying any application, bring up the Talos control plane: ISO installation, machine configuration generation, etcd bootstrap, creating the gVisor RuntimeClass, enabling workloads on the control plane, WireGuard, and Longhorn disk provisioning. Follow [docs/talos.md](docs/talos.md).
+### 1. Bootstrap the Talos Cluster (Three Control Planes)
+Before deploying any application, bring up the Talos control plane: ISO installation, machine configuration generation, etcd bootstrap, creating the gVisor RuntimeClass, enabling workloads on the control plane nodes, WireGuard, and Longhorn disk provisioning. Follow [docs/talos.md](docs/talos.md).
 
 ### 2. Zigbee Coordinator
 Label the node with the physical Zigbee USB adapter attached:

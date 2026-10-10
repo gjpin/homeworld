@@ -1,37 +1,74 @@
-# Bootstrap cluster (single node)
+# Bootstrap cluster (three control planes)
+
+> [!NOTE]
+> This guide uses a Layer 2 VIP as the Kubernetes API endpoint. To use a DNS
+> name with one A record per control plane instead, ask an AI agent to adapt
+> this guide first. The change touches the `gen config` endpoint, removes the
+> `Layer2VIPConfig` per-node patch and the VIP router reservation, and must be
+> decided before bootstrap: the endpoint is baked into every machine config
+> and kubeconfig.
+
+The cluster runs three control plane nodes that also schedule workloads (no
+dedicated workers). Three etcd members keep quorum through the loss of any one
+node. The Kubernetes API endpoint is a Talos-managed Layer 2 virtual IP shared
+by the control planes; in-cluster clients (including Cilium) reach the API
+servers through KubePrism (`localhost:7445`), which load-balances across all
+three and keeps working when the VIP is moving.
 
 ## Bootstrap
-Workstation requirements: `talosctl`, `kubectl`, `helm`, and `git`.
-1. Download ISO from [factory](https://factory.talos.dev/) and boot node.
+Workstation requirements: `talosctl`, `kubectl`, `helm`, `yq`, and `git`.
+1. Create a schematic in the [factory](https://factory.talos.dev/), download
+   the ISO, and boot all three nodes from it. Note the schematic ID: the
+   installer image must come from the same schematic, or the extensions are
+   missing after installation.
    - Extensions:
       - siderolabs/gvisor
       - siderolabs/netbird
       - siderolabs/iscsi-tools
       - siderolabs/util-linux-tools
-2. Set static DHCP for node in router
-3. Unplug Talos USB drive (it's running in RAM)
-4. In workstation:
+2. In the router, set a static DHCP lease for each node and reserve one
+   additional unused address in the same subnet for the Kubernetes API VIP.
+   The VIP must not be assignable by the DHCP server.
+3. Unplug the Talos USB drives (Talos is running in RAM)
+4. In workstation, from a `bash` shell (the loops use bash array indexing;
+   keep the same shell for the WireGuard and Longhorn steps below):
 ```bash
-# Set control plane IP
-export CONTROL_PLANE_IPS=<control-plane-ip>
+# Control plane nodes, in the same order in every array below.
+# The first node is the etcd bootstrap node.
+CONTROL_PLANE_IPS=(<cp-1-ip> <cp-2-ip> <cp-3-ip>)
+CONTROL_PLANE_NAMES=(cp-1 cp-2 cp-3)
 
-# View available disks
-talosctl get disks --insecure --nodes $CONTROL_PLANE_IPS
+# Shared Kubernetes API VIP and the node subnet (CIDR) it lives in
+export CONTROL_PLANE_VIP=<vip>
+export NODE_SUBNET=<node-subnet-cidr>
 
-# Set cluster and disk env vars
+# View the install disks and network links of every node (maintenance mode)
+for ip in "${CONTROL_PLANE_IPS[@]}"; do
+  echo "== $ip"
+  talosctl get disks --insecure --nodes "$ip"
+  talosctl get links --insecure --nodes "$ip"
+done
+
+# Per-node install disk serial and VIP link name, same order as above.
+# Prefer stable disk properties (serial/wwid) over /dev/sd* or /dev/nvme* names.
+DISK_SERIALS=(<cp-1-disk-serial> <cp-2-disk-serial> <cp-3-disk-serial>)
+LINKS=(<cp-1-link> <cp-2-link> <cp-3-link>)
+
+# Set cluster env vars
 export CLUSTER_NAME=<cluster_name>
-export DISK_NAME=<control_plane_disk_name>
+export TALOS_VERSION=<talos-version>
+export SCHEMATIC_ID=<factory-schematic-id>
 
 # Generate secrets bundle
 # Backup the generate file: secrets.yaml
 talosctl gen secrets -o secrets.yaml
 
-# Create Talos config patch
-cat >/tmp/cilium-talos-prereqs.yaml <<'EOF'
+# Create Talos config patch shared by all control planes
+cat >/tmp/cilium-talos-prereqs.yaml <<EOF
 # No Flannel; Cilium is applied as a manifest
 apiVersion: v1alpha1
 kind: KubeFlannelCNIConfig
-$patch: delete
+\$patch: delete
 ---
 # No kube-proxy; Cilium replaces it
 apiVersion: v1alpha1
@@ -51,23 +88,70 @@ kind: KubeletConfig
 extraArgs:
   rotate-server-certificates: true
 ---
-# Enable workloads on the control plane node
+# Enable workloads on the control plane nodes, and pin the kubelet node IP
+# to the node subnet (the NetBird and WireGuard interfaces carry other
+# addresses)
 apiVersion: v1alpha1
 kind: KubeNodeConfig
+nodeIP:
+  validSubnets:
+    - ${NODE_SUBNET}
 taints:
   node-role.kubernetes.io/control-plane:
-    $patch: delete
+    \$patch: delete
 labels:
   node.kubernetes.io/exclude-from-external-load-balancers:
-    $patch: delete
+    \$patch: delete
+---
+# etcd peers advertise only node subnet addresses
+cluster:
+  etcd:
+    advertisedSubnets:
+      - ${NODE_SUBNET}
 EOF
 
-# Generate configuration file
-# Backup the generated files: controlplane.yaml, worker.yaml, talosconfig
-talosctl gen config --with-secrets secrets.yaml $CLUSTER_NAME https://$CONTROL_PLANE_IPS:6443 --install-disk /dev/$DISK_NAME --config-patch-control-plane @/tmp/cilium-talos-prereqs.yaml
+# Create the per-node patches: hostname, install disk, and the shared VIP
+# announced on the node's LAN link
+for i in "${!CONTROL_PLANE_IPS[@]}"; do
+cat >"/tmp/${CONTROL_PLANE_NAMES[$i]}.yaml" <<EOF
+apiVersion: v1alpha1
+kind: HostnameConfig
+hostname: ${CONTROL_PLANE_NAMES[$i]}
+auto:
+  \$patch: delete
+---
+apiVersion: v1alpha1
+kind: UnattendedInstallConfig
+provisioning:
+  diskSelector:
+    match: disk.serial == "${DISK_SERIALS[$i]}"
+---
+apiVersion: v1alpha1
+kind: Layer2VIPConfig
+name: ${CONTROL_PLANE_VIP}
+link: ${LINKS[$i]}
+EOF
+done
 
-# Apply the control plane configuration
-talosctl apply-config --insecure --nodes $CONTROL_PLANE_IPS --file controlplane.yaml
+# Generate configuration file
+# Backup the generated files: controlplane.yaml, talosconfig, and the
+# per-node patches (/tmp/cp-*.yaml)
+talosctl gen config --with-secrets secrets.yaml $CLUSTER_NAME https://$CONTROL_PLANE_VIP:6443 \
+  --install-image factory.talos.dev/metal-installer/$SCHEMATIC_ID:$TALOS_VERSION \
+  --config-patch-control-plane @/tmp/cilium-talos-prereqs.yaml \
+  --output-types controlplane,talosconfig
+
+# Validate the rendered per-node configurations
+for name in "${CONTROL_PLANE_NAMES[@]}"; do
+  talosctl machineconfig patch controlplane.yaml --patch "@/tmp/$name.yaml" |
+    talosctl validate --mode metal --strict --config /dev/stdin
+done
+
+# Apply the control plane configuration to every node
+for i in "${!CONTROL_PLANE_IPS[@]}"; do
+  talosctl apply-config --insecure --nodes "${CONTROL_PLANE_IPS[$i]}" \
+    --file controlplane.yaml --config-patch "@/tmp/${CONTROL_PLANE_NAMES[$i]}.yaml"
+done
 
 # Merge talosconfig into the default configuration
 talosctl config merge ./talosconfig
@@ -75,18 +159,23 @@ talosctl config merge ./talosconfig
 # Set correct context
 talosctl config context "$CLUSTER_NAME"
 
-# Set endpoints
-talosctl config endpoints $CONTROL_PLANE_IPS
+# Set endpoints to every control plane node, never the VIP: the VIP depends
+# on etcd and kube-apiserver health, and the Talos API must stay reachable
+# for recovery when they are down
+talosctl config endpoints "${CONTROL_PLANE_IPS[@]}"
 
-# Set default node
-talosctl config nodes "$CONTROL_PLANE_IPS"
+# Set default node to the bootstrap node
+export BOOTSTRAP_NODE="${CONTROL_PLANE_IPS[0]}"
+talosctl config nodes "$BOOTSTRAP_NODE"
 
-# Wait till node comes up
-until talosctl version >/dev/null 2>&1; do
-  echo "waiting for $CONTROL_PLANE_IPS ..."
-  sleep 5
+# Wait till every node comes up
+for ip in "${CONTROL_PLANE_IPS[@]}"; do
+  until talosctl version --nodes "$ip" >/dev/null 2>&1; do
+    echo "waiting for $ip ..."
+    sleep 5
+  done
+  echo "$ip is up"
 done
-echo "node is up"
 
 # Prepare Cilium; no cluster access needed yet
 # Upstream Cilium source: CRDs only (chart ships none). The tag always
@@ -114,13 +203,15 @@ metadata:
     security.homeworld/exception-reason: Cilium kube-proxy replacement requires privileged agents with BPF, bpffs, hostPath, and host network integration; PSS baseline forbids these host integrations.
 EOF
 
-# Bootstrap etcd cluster
+# Bootstrap etcd cluster: run ONCE, on the bootstrap node only. The other
+# control planes join etcd on their own.
 # Pauses at 18/19 until Cilium runs; keep backgrounded
-talosctl bootstrap &
+talosctl bootstrap --nodes "$BOOTSTRAP_NODE" &
 BOOTSTRAP_PID=$!
 
-# Download kubeconfig once the API server is up
-until talosctl kubeconfig 2>/dev/null; do
+# Download kubeconfig once the API server is up; it targets the VIP, which
+# comes up after etcd is bootstrapped
+until talosctl kubeconfig --nodes "$BOOTSTRAP_NODE" 2>/dev/null; do
   echo "waiting for the API server ..."
   sleep 5
 done
@@ -137,7 +228,7 @@ EOF
 # Install Cilium CRDs server-side; annotations too large
 kubectl apply --server-side --force-conflicts -f /tmp/cilium-src/pkg/k8s/apis/cilium.io/client/crds/v2/
 
-# Install Cilium; the node turns Ready
+# Install Cilium; the nodes turn Ready
 kubectl apply -f /tmp/cilium-namespace.yaml
 kubectl apply -f /tmp/cilium.yaml
 kubectl -n cilium rollout status daemonset/cilium
@@ -145,11 +236,13 @@ kubectl -n cilium rollout status daemonset/cilium
 # Wait for the paused bootstrap to finish
 wait $BOOTSTRAP_PID
 
-# Check if node is healthy
-talosctl health
+# Check if the cluster is healthy (all three nodes, etcd members, and
+# control plane components)
+talosctl health --nodes "$BOOTSTRAP_NODE"
 
-# Verify node registration
-kubectl get nodes
+# Verify etcd membership and node registration
+talosctl etcd members --nodes "$BOOTSTRAP_NODE"
+kubectl get nodes -o wide
 ```
 
 ## Seed External Secrets Infisical credentials
@@ -253,17 +346,21 @@ for ip in "${CONTROL_PLANE_IPS[@]}"; do
     talosctl patch machineconfig --nodes "$ip" --patch @/tmp/longhorn-paths.yaml
 done
 
-# Reboot the nodes so both machine config patches take effect
+# Reboot the nodes one at a time so both machine config patches take effect.
+# talosctl reboot waits for the node to come back, and the health check gates
+# the next reboot, so etcd keeps quorum (two of three members) throughout.
 for ip in "${CONTROL_PLANE_IPS[@]}"; do
   echo "Rebooting node: $ip"
   talosctl reboot --nodes "$ip"
+  talosctl health --nodes "$ip"
 done
 ```
 
 The Longhorn values pin `defaultSettings.defaultDataPath: /var/mnt/longhorn-1`, so
 the first Longhorn disk is wired declaratively. The second disk
 (`/var/mnt/longhorn-2`) is added to the node through the Longhorn node CR once
-the cluster is up — node names are host-specific and cannot live in git — for
+the cluster is up — node names are host-specific and cannot live in git — on
+every node (the Longhorn node name is the Talos hostname, e.g. `cp-1`), for
 example:
 
 ```bash
@@ -278,6 +375,11 @@ disk).
 ## References:
 - [Getting Started](https://docs.siderolabs.com/talos/v1.14/getting-started/getting-started)
 - [Production Clusters](https://docs.siderolabs.com/talos/v1.14/getting-started/prodnotes)
+- [Virtual (shared) IP](https://docs.siderolabs.com/talos/v1.14/networking/advanced/vip)
+- [Layer2VIPConfig](https://docs.siderolabs.com/talos/v1.14/reference/configuration/network/layer2vipconfig)
+- [KubePrism](https://docs.siderolabs.com/talos/v1.14/configure-your-talos-cluster/system-configuration/kubeprism)
+- [Multihoming](https://docs.siderolabs.com/talos/v1.14/networking/multihoming)
+- [Unattended install](https://docs.siderolabs.com/talos/v1.14/configure-your-talos-cluster/lifecycle-management/unattended-install)
 - [Deploy Cilium on Talos](https://docs.siderolabs.com/kubernetes-guides/cni/deploying-cilium)
 - [Enable workloads on your control plane nodes](https://docs.siderolabs.com/talos/v1.14/deploy-and-manage-workloads/workloads-on-controlplane)
 - [Deploy the Metrics Server](https://docs.siderolabs.com/kubernetes-guides/monitoring-and-observability/deploy-metrics-server)
