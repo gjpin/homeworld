@@ -7,7 +7,7 @@
 # (see renovate.json), so the PR carries both the new version and its
 # matching sha256 without a manual release-assets lookup. The version is
 # read from the already-updated manifest (same pattern as
-# scripts/vendor-rustfs-operator.sh).
+# scripts/vendor-documentdb-operator.sh).
 #
 # This script also runs inside the slim Renovate image, so it must not depend
 # on tools beyond bash, grep/sed, and a downloader (curl or wget). sha256sum is

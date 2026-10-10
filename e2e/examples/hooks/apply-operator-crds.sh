@@ -79,11 +79,8 @@ apply_helm_crds opentelemetry-operator \
   "$(chart_dir "${ROOT}/apps/opentelemetry-operator/helm/charts/opentelemetry-operator-*/opentelemetry-operator")" \
   --set crds.create=true
 
-RUSTFS_CRDS="${ROOT}/apps/rustfs-operator/helm/local-charts/rustfs-operator/crds"
-# The vendored chart ships identical tenants.rustfs.com CRDs; skip tenant.yaml.
-kubectl apply --server-side --force-conflicts \
-  -f "${RUSTFS_CRDS}/tenant-crd.yaml" \
-  -f "${RUSTFS_CRDS}/policybinding-crd.yaml"
+RUSTFS_CRDS="$(chart_dir "${ROOT}/apps/rustfs-operator/helm/charts/rustfs-operator-*/rustfs-operator")/crds"
+kubectl apply --server-side --force-conflicts -f "${RUSTFS_CRDS}"
 echo "[apply-operator-crds] rustfs-operator CRDs applied"
 
 DOCUMENTDB_CRDS="${ROOT}/apps/documentdb-operator/helm/local-charts/documentdb-operator/crds"
