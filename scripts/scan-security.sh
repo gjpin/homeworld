@@ -76,6 +76,10 @@ kubescape scan framework AllControls "$render_dir" \
   --keep-local \
   --output "$report_root/$profile/kubescape.json"
 
+# Excepted controls report status "failed" with subStatus "w/exceptions";
+# only failures without a matching exception break the gate.
 jq -e '
-  [.results[].controls[] | select(.status.status == "failed")] | length == 0
+  [.results[].controls[]
+    | select(.status.status == "failed" and .status.subStatus != "w/exceptions")]
+  | length == 0
 ' "$report_root/$profile/kubescape.json" >/dev/null
