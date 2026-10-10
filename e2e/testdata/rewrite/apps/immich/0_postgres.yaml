@@ -28,9 +28,6 @@ spec:
         ensure: present
         login: true
         superuser: true
-  affinity:
-    nodeSelector:
-      node-role.kubernetes.io/homelab: homelab
   podSecurityContext:
     runAsNonRoot: true
     seccompProfile:

@@ -60,8 +60,6 @@ spec:
       waitTimeout: 5m
 
   prepare:
-    nodeLabels:
-      - node-role.kubernetes.io/homelab=homelab
     hooks:
       - name: seed-infisical
         command: ["./e2e/examples/hooks/seed-infisical.sh"]

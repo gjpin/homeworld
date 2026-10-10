@@ -26,9 +26,6 @@ pod:
       cpu: 1
       memory: 2Gi
       ephemeral-storage: 2Gi
-  selectors:
-    nodeSelector:
-      node-role.kubernetes.io/homelab: homelab
   env:
     - name: AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE
       value: /secrets/authelia-files/reset_password_jwt_secret

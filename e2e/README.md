@@ -81,8 +81,6 @@ spec:
         ipam.mode: kubernetes
       waitTimeout: 10m
   prepare:
-    nodeLabels:
-      - node-role.kubernetes.io/homelab=homelab
     hooks:
       - name: seed
         command: ["./hooks/seed.sh"]

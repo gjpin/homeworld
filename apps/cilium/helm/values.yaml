@@ -80,8 +80,6 @@ securityContext:
 operator:
   replicas: 1
   rollOutPods: true
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
   resources:
     requests:
       cpu: 50m
@@ -144,8 +142,6 @@ hubble:
   relay:
     enabled: true
     rollOutPods: true
-    nodeSelector:
-      node-role.kubernetes.io/homelab: homelab
     resources:
       requests:
         cpu: 10m
@@ -163,8 +159,6 @@ hubble:
   ui:
     enabled: true
     rollOutPods: true
-    nodeSelector:
-      node-role.kubernetes.io/homelab: homelab
     frontend:
       resources:
         requests:

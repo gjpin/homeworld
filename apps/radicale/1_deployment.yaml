@@ -26,8 +26,6 @@ spec:
       automountServiceAccountToken: false
       runtimeClassName: gvisor
       hostUsers: false
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
       securityContext:
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch

@@ -4,9 +4,6 @@
 # enables them.
 fullnameOverride: argocd
 namespaceOverride: argocd
-global:
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
 crds:
   install: true
   keep: true

@@ -37,8 +37,6 @@ spec:
       serviceAccountName: generic-device-plugin
       automountServiceAccountToken: false
       priorityClassName: system-node-critical
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
       tolerations:
         - operator: "Exists"
           effect: "NoExecute"

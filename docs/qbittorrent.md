@@ -12,7 +12,7 @@ Torrent client whose traffic is routed through a [gluetun](https://github.com/qd
 | Dependencies | `apps/generic-device-plugin` (the `/dev/net/tun` device), External Secrets, Envoy Gateway, CrowdSec bouncer, OpenTelemetry operator |
 | Secrets | `/qbittorrent/*` Infisical keys (see [secrets.md](secrets.md)) |
 
-A single Deployment runs one pod with a shared network namespace containing three containers — qBittorrent, gluetun, and the Prometheus exporter — plus a rootless `qbittorrent-config-bootstrap` init container that seeds `qBittorrent.conf` on the first start of an empty PVC (see [Configuration seeding](#configuration-seeding)). The pod runs in an unprivileged user namespace (`hostUsers: false`) on the standard runtime (gVisor does not implement the TUN device gluetun requires), is restricted to homelab nodes, and uses the `Recreate` strategy so two pods never own the same tunnel routing state on a node.
+A single Deployment runs one pod with a shared network namespace containing three containers — qBittorrent, gluetun, and the Prometheus exporter — plus a rootless `qbittorrent-config-bootstrap` init container that seeds `qBittorrent.conf` on the first start of an empty PVC (see [Configuration seeding](#configuration-seeding)). The pod runs in an unprivileged user namespace (`hostUsers: false`) on the standard runtime (gVisor does not implement the TUN device gluetun requires) and uses the `Recreate` strategy so two pods never own the same tunnel routing state on a node.
 
 ## The kill switch
 
@@ -99,7 +99,7 @@ The exporter serves Prometheus metrics on `:17871`, scraped by the OpenTelemetry
 
 Items that can only be confirmed on the live cluster:
 
-1. **TUN device and volumes** — the pod schedules (the `devic.es/tun` resource exists on homelab nodes) and gluetun opens `/dev/net/tun` without an SELinux denial on Talos; both PVCs mount read-write under the unprivileged user namespace (Longhorn's xfs must support idmap mounts per the Kubernetes user-namespaces requirements); check gluetun's logs and the init container on first boot.
+1. **TUN device and volumes** — the pod schedules (the `devic.es/tun` resource exists on every node) and gluetun opens `/dev/net/tun` without an SELinux denial on Talos; both PVCs mount read-write under the unprivileged user namespace (Longhorn's xfs must support idmap mounts per the Kubernetes user-namespaces requirements); check gluetun's logs and the init container on first boot.
 2. **Seeded credentials** — the exporter logs in with the API key and the sync job's first run authenticates (proves the conf-seeded `WebUI\APIKey` was accepted).
 3. **Tunnel bootstrap** — the tunnel establishes with the pod's DNS pointed at `127.0.0.1` (gluetun's DoT resolver chain working end to end).
 4. **Egress scope** — gluetun traffic goes only to the VPN tunnel endpoint and the DoT bootstrap (hubble flows or gluetun's firewall debug).

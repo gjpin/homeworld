@@ -48,8 +48,6 @@ prometheus:
 # HTTPRoute file); the chart's own route generation is disabled.
 route:
   enabled: false
-nodeSelector:
-  node-role.kubernetes.io/homelab: homelab
 podLabels:
   app: collabora
 podSecurityContext:

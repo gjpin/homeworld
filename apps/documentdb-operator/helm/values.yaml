@@ -23,8 +23,6 @@ operator:
       cpu: 500m
       memory: 256Mi
       ephemeral-storage: 2Gi
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
 sidecarInjector:
   resources:
     requests:
@@ -35,5 +33,3 @@ sidecarInjector:
       cpu: 200m
       memory: 128Mi
       ephemeral-storage: 2Gi
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab

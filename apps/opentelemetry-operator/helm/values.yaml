@@ -26,8 +26,6 @@ manager:
   # served with authentication (manager.metrics.secure) and the Target
   # Allocator denies file-based credentials (bearerTokenFile) on the
   # monitors it consumes.
-nodeSelector:
-  node-role.kubernetes.io/homelab: homelab
 hostUsers: false
 # admissionWebhooks.certManager.enabled defaults to true; the cert-manager
 # application (app-of-apps wave 3) provisions the webhook certificates.

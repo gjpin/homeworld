@@ -20,9 +20,6 @@ spec:
         image.pullPolicy: IfNotPresent
         ipam.mode: kubernetes
       waitTimeout: 10m
-  prepare:
-    nodeLabels:
-      - node-role.kubernetes.io/homelab=homelab
   deploy:
     timeout: 5m
     steps:

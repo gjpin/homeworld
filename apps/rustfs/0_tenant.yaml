@@ -96,8 +96,6 @@ spec:
           resources:
             requests:
               storage: 50Gi
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
   # Operator-managed provisioning (runs after the Tenant workload is Ready):
   # buckets from spec.buckets, canned policies from spec.policies, and users
   # from spec.users. Each user's credentials are read from a Secret named

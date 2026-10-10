@@ -5,7 +5,7 @@
 # context, and serve no metrics endpoint. This deployment keeps the upstream
 # RBAC verbatim (namespaced subjects rewritten to snapshot-controller) and
 # adds the repo conventions: single replica, non-root distroless execution,
-# gVisor, user namespaces, node selector, resources, metrics, and probes.
+# gVisor, user namespaces, resources, metrics, and probes.
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -153,8 +153,6 @@ spec:
       serviceAccountName: snapshot-controller
       runtimeClassName: gvisor
       hostUsers: false
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
       securityContext:
         runAsNonRoot: true
         # Distroless static image with no USER directive; run as the

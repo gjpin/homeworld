@@ -47,8 +47,6 @@ env:
     value: https://velero.${BASE_DOMAIN}/login
   - name: DEFAULT_TIMEZONE
     value: Europe/Lisbon
-nodeSelector:
-  node-role.kubernetes.io/homelab: homelab
 podSecurityContext:
   runAsNonRoot: true
   seccompProfile:

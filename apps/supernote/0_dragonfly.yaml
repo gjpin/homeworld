@@ -35,8 +35,6 @@ spec:
     passwordFromSecret:
       name: dragonfly
       key: password
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
   podSecurityContext:
     runAsNonRoot: true
     # The pinned image declares no USER and only drops to the dfly user via

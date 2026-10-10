@@ -22,8 +22,6 @@ image:
 
 lapi:
   replicas: 1
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
   podSecurityContext:
     seccompProfile:
       type: RuntimeDefault
@@ -108,8 +106,6 @@ config:
 
 agent:
   enabled: true
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
   podSecurityContext:
     seccompProfile:
       type: RuntimeDefault
@@ -170,8 +166,6 @@ appsec:
   # the chart's default Recreate would drop it for every restart.
   strategy:
     type: RollingUpdate
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
   podSecurityContext:
     seccompProfile:
       type: RuntimeDefault

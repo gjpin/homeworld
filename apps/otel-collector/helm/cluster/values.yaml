@@ -5,8 +5,6 @@ image:
   repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
 # Do not scale, otherwise there will be duplicated data
 replicaCount: 1
-nodeSelector:
-  node-role.kubernetes.io/homelab: homelab
 # Prefer the chart-native key over a kustomize patch (chart 0.173.1).
 runtimeClassName: gvisor
 podSecurityContext:

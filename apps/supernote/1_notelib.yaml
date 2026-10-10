@@ -30,7 +30,6 @@ spec:
       runtimeClassName: gvisor
       hostUsers: false
       nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
         # Upstream publishes amd64-only images.
         kubernetes.io/arch: amd64
       securityContext:

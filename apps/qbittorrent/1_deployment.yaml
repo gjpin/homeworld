@@ -60,8 +60,6 @@ spec:
       serviceAccountName: qbittorrent
       automountServiceAccountToken: false
       hostUsers: false
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
       securityContext:
         # The qBittorrent image runs as nobody:nogroup (65534); Longhorn's
         # kubelet-side fsGroup handling chowns the PVCs to this group on the

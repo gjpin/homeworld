@@ -117,8 +117,6 @@ gitea:
     serviceMonitor:
       enabled: true
 
-nodeSelector:
-  node-role.kubernetes.io/homelab: homelab
 
 podSecurityContext:
   fsGroup: 1000

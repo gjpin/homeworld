@@ -14,5 +14,3 @@ resources:
     ephemeral-storage: 2Gi
 monitoring:
   podMonitorEnabled: true
-nodeSelector:
-  node-role.kubernetes.io/homelab: homelab

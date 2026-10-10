@@ -29,8 +29,6 @@ operator:
       cpu: "1"
       memory: 2Gi
       ephemeral-storage: 2Gi
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
   serviceMonitor:
     enabled: true
     interval: 60s
@@ -48,8 +46,6 @@ console:
       cpu: "1"
       memory: 2Gi
       ephemeral-storage: 2Gi
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
 sts:
   # Disable the operator's STS service (container port 4223): nothing in
   # this cluster consumes it — no CiliumNetworkPolicy admits it and no docs

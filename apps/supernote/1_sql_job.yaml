@@ -32,8 +32,6 @@ spec:
     labels:
       app.kubernetes.io/name: supernote
       app.kubernetes.io/component: seed
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
   podSecurityContext:
     runAsNonRoot: true
     # The SqlJob runs the MariaDB instance's image; its mysql user.

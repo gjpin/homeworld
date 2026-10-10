@@ -95,6 +95,3 @@ autoscaling:
 referenceGrant:
   create: false
   fromNamespaces: []
-
-nodeSelector:
-  node-role.kubernetes.io/homelab: homelab

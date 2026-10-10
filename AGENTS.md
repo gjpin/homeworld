@@ -49,8 +49,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   actual generated manifests rather than relying on input values alone.
   Confirm that all required resources and configurations are actually emitted,
   including `ServiceMonitor` definitions (with the standard `60s` interval),
-  Pod Security Standards contexts, user namespaces (`hostUsers: false`), node
-  selectors, container requests and limits, services, and port mappings.
+  Pod Security Standards contexts, user namespaces (`hostUsers: false`),
+  container requests and limits, services, and port mappings.
 - Helm installations must use official upstream charts. When no official
   chart exists, do not adopt an unofficial or community chart: review how
   several unofficial charts package the application (deployment structure,
@@ -59,9 +59,6 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   pin or deploy an unofficial chart directly.
 - Keep service names, selectors, labels, PVC references, route backends, and
   namespaces consistent across all resources in a component.
-- Workloads should target homelab nodes using
-  `node-role.kubernetes.io/homelab: homelab` where the chart or manifest supports
-  a node selector.
 - Enable metrics and a `ServiceMonitor` when the component supports them; always set the ServiceMonitor interval to `60s`.
   The monitor only works if the application actually serves the scraped endpoint: enable it in application
   config (e.g. Home Assistant's `prometheus:` block with `requires_auth: false`, Woodpecker's
@@ -336,7 +333,6 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 
 - `fullnameOverride`
 - `runtimeClassName: gvisor` (where supported)
-- `nodeSelector`
 - Gateway listener and `HTTPRoute` (if applicable)
 - `ServiceMonitor`
 - Grafana dashboard in the app's Grafana folder (Grafana dashboard conventions above; docs/grafana-dashboards.md)
@@ -368,8 +364,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   that render rather than assumptions from defaults or documentation alone.
   Specifically inspect the rendered output to confirm all required resources
   and fields are actually emitted (e.g. `ServiceMonitor` with `60s` interval,
-  Pod Security Standards contexts, `hostUsers: false`, node selectors, and
-  container resource requests/limits).
+  Pod Security Standards contexts, `hostUsers: false`, and container
+  resource requests/limits).
 - For a new component, create `apps/<component>/` and prefix every manifest with
   its exact Argo CD sync wave number (`<wave>_<descriptor>.yaml`).
 - Add the component to `apps/app-of-apps.yaml` with the correct destination

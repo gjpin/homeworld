@@ -63,11 +63,7 @@ credentials:
 # under Argo and block chart bumps with its immutable spec.
 upgradeCRDs: false
 deployNodeAgent: true
-nodeSelector:
-  node-role.kubernetes.io/homelab: homelab
 nodeAgent:
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
   # Close-to-Restricted hardening for the node-agent container; the pod stays
   # root (runAsUser 0 upstream default) for the kubelet hostPath mounts.
   containerSecurityContext:

@@ -27,8 +27,6 @@ spec:
       priorityClassName: system-cluster-critical
       runtimeClassName: gvisor
       hostUsers: false
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
       # Upstream tolerations preserved: the approver must run even while
       # control-plane taints are still present.
       tolerations:

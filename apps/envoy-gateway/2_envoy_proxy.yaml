@@ -60,8 +60,6 @@ spec:
                 spec:
                   hostUsers: false
                   runtimeClassName: gvisor
-                  nodeSelector:
-                    node-role.kubernetes.io/homelab: homelab
                   containers:
                     - name: envoy
                       resources:

@@ -20,8 +20,6 @@ image:
 # disabled across the repo).
 replicas: 1
 
-nodeSelector:
-  node-role.kubernetes.io/homelab: homelab
 
 resources:
   requests:

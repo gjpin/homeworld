@@ -40,8 +40,6 @@ resources:
     cpu: "1"
     memory: 512Mi
     ephemeral-storage: 1Gi
-nodeSelector:
-  node-role.kubernetes.io/homelab: homelab
 
 webhook:
   image:
@@ -75,8 +73,6 @@ webhook:
       cpu: 500m
       memory: 256Mi
       ephemeral-storage: 1Gi
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
 
 certController:
   image:
@@ -108,8 +104,6 @@ certController:
       cpu: 500m
       memory: 256Mi
       ephemeral-storage: 1Gi
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
 
 # Operand defaults handed to the operator (RELATED_IMAGE_* environment). The
 # chart's defaults are Docker Hub short names; AGENTS.md requires fully

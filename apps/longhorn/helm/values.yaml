@@ -15,7 +15,6 @@ defaultSettings:
   # default; disabled per the AGENTS.md telemetry rule (the namespace's
   # egress policy would block it anyway).
   allowCollectingLonghornUsageMetrics: false
-  systemManagedComponentsNodeSelector: "node-role.kubernetes.io/homelab:homelab"
   defaultReplicaCount: 1
   concurrentAutomaticEngineUpgradePerNodeLimit: 2
   # The dedicated Longhorn disks provisioned by the UserVolumeConfig in
@@ -44,6 +43,3 @@ metrics:
   serviceMonitor:
     enabled: true
     interval: 60s
-global:
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab

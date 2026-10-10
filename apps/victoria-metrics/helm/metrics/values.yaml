@@ -10,8 +10,6 @@ server:
     registry: docker.io
   retentionPeriod: "30d"
   runtimeClassName: gvisor
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
   podSecurityContext:
     enabled: true
     runAsNonRoot: true

@@ -51,8 +51,6 @@ spec:
     # Runs mariadb-upgrade on start (MARIADB_AUTO_UPGRADE) so major image
     # bumps migrate the system schema; a no-op when nothing changed.
     mariadbAutoUpgradeEnabled: true
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
   podSecurityContext:
     runAsNonRoot: true
     # The official image's mysql user.
@@ -86,8 +84,6 @@ spec:
     exporter:
       image: docker.io/prom/mysqld-exporter:v0.15.1
       imagePullPolicy: IfNotPresent
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
       podSecurityContext:
         runAsNonRoot: true
         # The image's nobody user.

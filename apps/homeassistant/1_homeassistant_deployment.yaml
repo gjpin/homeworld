@@ -26,8 +26,6 @@ spec:
       automountServiceAccountToken: false
       runtimeClassName: gvisor
       hostUsers: false
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
       securityContext:
         runAsNonRoot: false
         # Grants rootless init containers write access to the /config PVC:

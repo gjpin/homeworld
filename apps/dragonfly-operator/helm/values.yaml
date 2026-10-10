@@ -15,8 +15,6 @@ podSecurityContext:
     type: RuntimeDefault
 
 manager:
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
   resources:
     requests:
       cpu: 10m

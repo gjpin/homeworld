@@ -49,8 +49,6 @@ spec:
       runtimeClassName: gvisor
       hostUsers: false
       automountServiceAccountToken: false
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000

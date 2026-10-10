@@ -23,8 +23,6 @@ spec:
       serviceAccountName: opencloud
       automountServiceAccountToken: false
       runtimeClassName: gvisor
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
       hostUsers: false
       securityContext:
         fsGroup: 1000
@@ -670,8 +668,6 @@ spec:
       serviceAccountName: opencloud
       automountServiceAccountToken: false
       runtimeClassName: gvisor
-      nodeSelector:
-        node-role.kubernetes.io/homelab: homelab
       hostUsers: false
       securityContext:
         runAsNonRoot: true

@@ -2,9 +2,6 @@ nameOverride: "external-secrets"
 fullnameOverride: "external-secrets"
 serviceAccount:
   name: "external-secrets"
-global:
-  nodeSelector:
-    node-role.kubernetes.io/homelab: homelab
 
 image:
   pullPolicy: IfNotPresent
