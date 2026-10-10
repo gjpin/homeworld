@@ -70,6 +70,29 @@ Namespace
 {{- end }}
 
 {{/*
+Name of the namespaced Role used by STS auto TLS.
+*/}}
+{{- define "rustfs-operator.stsTlsRoleName" -}}
+{{- printf "%s-sts-tls" (include "rustfs-operator.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Optional Service ipFamilyPolicy / ipFamilies from values.network.
+*/}}
+{{- define "rustfs-operator.serviceNetwork" -}}
+{{- $network := default dict .Values.network -}}
+{{- if $network.ipFamilyPolicy }}
+ipFamilyPolicy: {{ $network.ipFamilyPolicy }}
+{{- end }}
+{{- if $network.ipFamilies }}
+ipFamilies:
+{{- range $network.ipFamilies }}
+- {{ . }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
 Create the name of the console service account to use
 */}}
 {{- define "rustfs-operator.consoleServiceAccountName" -}}
@@ -77,5 +100,16 @@ Create the name of the console service account to use
 {{- default (printf "%s-console" (include "rustfs-operator.fullname" .)) .Values.console.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.console.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create the name of the COSI driver service account to use
+*/}}
+{{- define "rustfs-operator.cosiDriverServiceAccountName" -}}
+{{- if .Values.cosiDriver.serviceAccount.create }}
+{{- default (printf "%s-cosi-driver" (include "rustfs-operator.fullname" .)) .Values.cosiDriver.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.cosiDriver.serviceAccount.name }}
 {{- end }}
 {{- end }}

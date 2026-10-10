@@ -13,10 +13,20 @@ rules:
   - apiGroups: ["rustfs.com"]
     resources: ["tenants/status"]
     verbs: ["update", "patch"]
+  # Required when deleting dependents whose ownerReference uses
+  # blockOwnerDeletion=true.
+  - apiGroups: ["rustfs.com"]
+    resources: ["tenants/finalizers"]
+    verbs: ["update"]
+
+  # Referenced Secrets and ConfigMaps are watched cluster-wide but never mutated.
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
 
   # Core resources managed by the operator
   - apiGroups: [""]
-    resources: ["configmaps", "secrets", "serviceaccounts", "pods", "services"]
+    resources: ["serviceaccounts", "pods", "services"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: [""]
     resources: ["pods/log"]
@@ -27,7 +37,8 @@ rules:
     resources: ["nodes"]
     verbs: ["get", "list", "watch"]
 
-  # RBAC resources created for tenants
+  # Legacy Tenant workload RBAC watch/cleanup. Write verbs remain during the
+  # security migration so an older binary can coexist during a rolling upgrade.
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["roles", "rolebindings"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
@@ -40,15 +51,15 @@ rules:
     resources: ["tokenreviews"]
     verbs: ["create"]
 
-  # StatefulSets for tenant pools
+  # StatefulSets for tenant pools and owner lookups for pod cleanup
   - apiGroups: ["apps"]
-    resources: ["statefulsets"]
+    resources: ["statefulsets", "replicasets", "deployments"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 
   # cert-manager Certificate orchestration and readiness watches
   - apiGroups: ["cert-manager.io"]
     resources: ["certificates"]
-    verbs: ["get", "list", "watch", "create", "patch", "update"]
+    verbs: ["get", "list", "watch", "create", "patch", "update", "delete"]
   - apiGroups: ["cert-manager.io"]
     resources: ["issuers", "clusterissuers"]
     verbs: ["get", "list", "watch"]

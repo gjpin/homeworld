@@ -21,7 +21,7 @@ To create a Tenant resource:
     name: example-tenant
     namespace: default
   spec:
-    image: rustfs/rustfs:latest
+    image: rustfs/rustfs:1.0.0
     pools:
       - name: pool-0
         servers: 2
@@ -32,4 +32,20 @@ To view Tenant resources:
 
   kubectl get tenants --all-namespaces
 
+{{ if .Values.console.enabled }}
+To log in to the Operator Console, create a short-lived token for the chart-managed Console ServiceAccount:
+
+  kubectl -n {{ include "rustfs-operator.namespace" . }} create token {{ include "rustfs-operator.consoleServiceAccountName" . }} --duration=24h
+
+{{ if .Values.console.frontend.enabled }}
+To open the legacy split Console frontend locally:
+
+  kubectl -n {{ include "rustfs-operator.namespace" . }} port-forward svc/{{ include "rustfs-operator.fullname" . }}-console-frontend 18080:{{ .Values.console.frontend.service.port }}
+{{ else }}
+To open the Operator Console locally:
+
+  kubectl -n {{ include "rustfs-operator.namespace" . }} port-forward svc/{{ include "rustfs-operator.fullname" . }}-console 19090:{{ .Values.console.service.port }}
+{{ end }}
+
+{{ end }}
 For more information, visit: {{ .Chart.Home }}

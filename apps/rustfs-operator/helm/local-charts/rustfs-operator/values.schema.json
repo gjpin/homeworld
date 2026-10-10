@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "clusterDomain": {
+      "type": "string",
+      "minLength": 1,
+      "oneOf": [
+        {
+          "maxLength": 253,
+          "pattern": "^([A-Za-z0-9]([-A-Za-z0-9]{0,61}[A-Za-z0-9])?)(\\.([A-Za-z0-9]([-A-Za-z0-9]{0,61}[A-Za-z0-9])?))*$"
+        },
+        {
+          "maxLength": 254,
+          "pattern": "^([A-Za-z0-9]([-A-Za-z0-9]{0,61}[A-Za-z0-9])?)(\\.([A-Za-z0-9]([-A-Za-z0-9]{0,61}[A-Za-z0-9])?))*\\.$"
+        }
+      ],
+      "description": "Kubernetes cluster DNS domain used for Tenant peer URLs, generated TLS SANs, and operator STS auto TLS."
+    },
+    "openshift": {
+      "type": "object",
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Omit chart-managed Deployment security contexts so OpenShift SCC can assign the runtime identity."
+        }
+      }
+    },
+    "dashboard": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "namespace",
+        "additionalLabels"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Publish the bundled RustFS Grafana dashboards as ConfigMaps."
+        },
+        "namespace": {
+          "type": "string",
+          "maxLength": 63,
+          "pattern": "^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
+          "description": "Namespace for dashboard ConfigMaps; empty uses the operator namespace."
+        },
+        "additionalLabels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Additional labels used by Grafana sidecars to discover dashboard ConfigMaps."
+        }
+      }
+    },
+    "sts": {
+      "type": "object",
+      "properties": {
+        "admission": {
+          "$ref": "#/definitions/admission"
+        }
+      }
+    },
+    "console": {
+      "type": "object",
+      "properties": {
+        "loginAdmission": {
+          "$ref": "#/definitions/admission"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "admission": {
+      "type": "object",
+      "required": [
+        "requestsPerSecond",
+        "burst",
+        "maxInFlight",
+        "bodyLimitBytes",
+        "timeoutSeconds"
+      ],
+      "properties": {
+        "requestsPerSecond": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 1000
+        },
+        "burst": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "maxInFlight": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1024
+        },
+        "bodyLimitBytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 1048576
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 300
+        }
+      }
+    }
+  }
+}

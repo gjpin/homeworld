@@ -1,3 +1,22 @@
+{{- $consoleLoginAdmission := default dict .Values.console.loginAdmission -}}
+{{- $openShift := default dict .Values.openshift -}}
+{{- $openShiftEnabled := default false $openShift.enabled -}}
+{{- $reservedConsoleEnv := dict
+  "CONSOLE_LOGIN_ADMISSION_REQUESTS_PER_SECOND" "console.loginAdmission.requestsPerSecond"
+  "CONSOLE_LOGIN_ADMISSION_BURST" "console.loginAdmission.burst"
+  "CONSOLE_LOGIN_ADMISSION_MAX_IN_FLIGHT" "console.loginAdmission.maxInFlight"
+  "CONSOLE_LOGIN_ADMISSION_BODY_LIMIT_BYTES" "console.loginAdmission.bodyLimitBytes"
+  "CONSOLE_LOGIN_ADMISSION_TIMEOUT_SECONDS" "console.loginAdmission.timeoutSeconds"
+  "CONSOLE_BIND_ADDRESS" "console.bindAddress"
+-}}
+{{- range $env := .Values.console.env }}
+{{- if hasKey $reservedConsoleEnv $env.name -}}
+{{- fail (printf "console.env must not set %s; use %s instead" $env.name (get $reservedConsoleEnv $env.name)) -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.console.enabled (ne (toString .Values.console.replicas) "1") -}}
+{{- fail "console.replicas must be 1 because Console sessions are stored in process" -}}
+{{- end -}}
 {{- if .Values.console.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -12,6 +31,9 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
+  strategy:
+    type: Recreate
+    rollingUpdate: null
   replicas: {{ .Values.console.replicas }}
   selector:
     matchLabels:
@@ -27,17 +49,22 @@ spec:
         checksum/secret: {{ include (print $.Template.BasePath "/console-secret.yaml") . | sha256sum }}
     spec:
       serviceAccountName: {{ include "rustfs-operator.consoleServiceAccountName" . }}
+      {{- if $openShiftEnabled }}
+      hostUsers: false
+      {{- end }}
       {{- with .Values.console.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if not $openShiftEnabled }}
       {{- with .Values.console.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- end }}
       containers:
         - name: console
-          image: "{{ .Values.console.image.repository }}:{{ .Values.console.image.tag | default .Values.operator.image.tag }}"
+          image: "{{ .Values.console.image.repository }}:{{ .Values.console.image.tag | default .Values.operator.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.console.image.pullPolicy }}
           command: ["./operator", "console", "--port", "{{ .Values.console.port }}"]
           env:
@@ -48,6 +75,22 @@ spec:
                 secretKeyRef:
                   name: {{ include "rustfs-operator.fullname" . }}-console-secret
                   key: jwt-secret
+          {{- with .Values.console.bindAddress }}
+            - name: CONSOLE_BIND_ADDRESS
+              value: {{ . | quote }}
+          {{- end }}
+          {{- with $consoleLoginAdmission }}
+            - name: CONSOLE_LOGIN_ADMISSION_REQUESTS_PER_SECOND
+              value: {{ .requestsPerSecond | quote }}
+            - name: CONSOLE_LOGIN_ADMISSION_BURST
+              value: {{ .burst | quote }}
+            - name: CONSOLE_LOGIN_ADMISSION_MAX_IN_FLIGHT
+              value: {{ .maxInFlight | quote }}
+            - name: CONSOLE_LOGIN_ADMISSION_BODY_LIMIT_BYTES
+              value: {{ .bodyLimitBytes | quote }}
+            - name: CONSOLE_LOGIN_ADMISSION_TIMEOUT_SECONDS
+              value: {{ .timeoutSeconds | quote }}
+          {{- end }}
             {{- with .Values.console.env }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -75,9 +118,11 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- if not $openShiftEnabled }}
           {{- with .Values.console.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- end }}
       {{- with .Values.console.nodeSelector }}
       nodeSelector:
