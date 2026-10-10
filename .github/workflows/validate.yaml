@@ -99,10 +99,10 @@ jobs:
           tar -xzf kube-linter-linux.tar.gz kube-linter
           sudo install kube-linter /usr/local/bin/kube-linter
 
-          curl -sSfLO https://get.helm.sh/helm-v4.2.3-linux-amd64.tar.gz
-          curl -sSfL https://get.helm.sh/helm-v4.2.3-linux-amd64.tar.gz.sha256 |
-            awk '{print $1 "  helm-v4.2.3-linux-amd64.tar.gz"}' | sha256sum --check
-          tar -xzf helm-v4.2.3-linux-amd64.tar.gz
+          curl -sSfLO https://get.helm.sh/helm-v4.3.0-linux-amd64.tar.gz
+          curl -sSfL https://get.helm.sh/helm-v4.3.0-linux-amd64.tar.gz.sha256 |
+            awk '{print $1 "  helm-v4.3.0-linux-amd64.tar.gz"}' | sha256sum --check
+          tar -xzf helm-v4.3.0-linux-amd64.tar.gz
           sudo install linux-amd64/helm /usr/local/bin/helm
 
           # kubectl floats to the latest stable release (dl.k8s.io) instead of
@@ -115,15 +115,15 @@ jobs:
             awk '{print $1 "  /usr/local/bin/kubectl"}' | sha256sum --check
           sudo chmod 0755 /usr/local/bin/kubectl
 
-          curl -sSfLO https://github.com/mikefarah/yq/releases/download/v4.47.1/yq_linux_amd64
+          curl -sSfLO https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_linux_amd64
           # yq's checksums asset lists every supported hash algorithm per file
           # in one row; the checksums_hashes_order asset maps each column to
           # its algorithm, so the SHA-256 column is resolved per release.
           yq_sha256_col="$(
-            curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.47.1/checksums_hashes_order |
+            curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.1/checksums_hashes_order |
               grep -n '^SHA-256$' | cut -d: -f1
           )"
-          curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.47.1/checksums |
+          curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.1/checksums |
             awk -v col="$((yq_sha256_col + 1))" '$1 == "yq_linux_amd64" {print $(col) "  yq_linux_amd64"}' |
             sha256sum --check
           sudo install yq_linux_amd64 /usr/local/bin/yq
@@ -149,7 +149,7 @@ jobs:
       - name: Install Trivy
         uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
         with:
-          version: v0.74.0
+          version: v0.75.0
 
       - name: Scan PR-updated container images
         run: scripts/scan-images.sh

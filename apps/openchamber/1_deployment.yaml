@@ -60,7 +60,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: openchamber
-          image: ghcr.io/gjpin/openchamber:main-a68c078
+          image: ghcr.io/gjpin/openchamber:main-00c14f9
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
