@@ -17,9 +17,8 @@ fi
 repo_root="$(git rev-parse --show-toplevel)"
 mkdir -p "$output_dir"
 
-# rustfs-operator is vendored and patched under helm/local-charts (its
-# upstream chart ships tenants.rustfs.com twice under crds/, which Kustomize
-# rejects), so every release renders through the same kustomize path.
+# Every release (including the vendored charts under helm/local-charts)
+# renders through the same kustomize path.
 rendered=0
 while IFS= read -r kustomization; do
   rendered=$((rendered + 1))

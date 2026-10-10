@@ -1,20 +1,18 @@
 fullnameOverride: rustfs-operator
 namespace: rustfs-operator
+# The bundled dashboards are published as Grafana sidecar ConfigMaps; this
+# cluster provisions dashboards through grafana-operator CRs instead.
+dashboard:
+  enabled: false
 commonAnnotations:
   ignore-check.kube-linter.io/no-read-only-root-fs: The pinned upstream operator and console images write to their root filesystems; overriding them would break runtime file access.
 operator:
   image:
     repository: docker.io/rustfs/operator
-    # Renovate tracks this image tag independently of the vendored chart:
-    # upstream's published charts lag the operator releases, so a chart's
-    # Tenant CRD can predate the status fields the binary writes (e.g. the
-    # status.provisioning.users[].ownership checkpoint). The apiserver
-    # prunes undeclared status fields, which wedges user provisioning in
-    # UserOwnershipCheckpointFailed (the tenant never becomes Ready).
-    # scripts/vendor-rustfs-operator.sh therefore always vendors crds/ from
-    # the operator's git tag matching this image tag; Renovate runs it on
-    # both image and chart bumps, and CI (--check) fails on any drift.
-    tag: 0.0.8
+    # The tag defaults to the chart appVersion, so the operator binary
+    # always matches the Tenant CRD the same chart ships under crds/ (the
+    # apiserver prunes undeclared status fields, which wedges Tenant user
+    # provisioning when the binary outpaces its CRD).
     # The operator records transient provisioning failures (e.g. the server
     # API not answering yet behind its first PVC mount) as status
     # conditions and does not requeue the reconcile, so a Tenant can stay
