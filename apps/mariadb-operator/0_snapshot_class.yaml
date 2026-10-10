@@ -1,0 +1,30 @@
+# https://github.com/mariadb-operator/mariadb-operator/blob/main/docs/physical_backup.md#volumesnapshots
+# https://longhorn.io/docs/1.12.1/snapshots-and-backups/
+#
+# VolumeSnapshotClass for MariaDB-native volume-snapshot backups
+# (PhysicalBackup with storage.volumeSnapshot), the MariaDB counterpart of
+# apps/cloudnative-pg/0_snapshot_class.yaml:
+#
+#   * deletionPolicy: Delete — each PhysicalBackup's maxRetention is the
+#     retention unit: the operator deletes VolumeSnapshots older than it
+#     after every successful snapshot, and the Longhorn snapshot contents go
+#     with them.
+#   * parameters.type: snap — Longhorn's CSI driver treats an empty type as
+#     `bak` (a Longhorn backup, which needs a backup target) rather than an
+#     in-cluster snapshot.
+#
+# No velero.io/csi-volumesnapshot-class label: Velero's CSI plugin must not
+# pick this class for its transient snapshots.
+---
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  # Cluster-scoped: no namespace.
+  name: mariadb-longhorn
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  driver: driver.longhorn.io
+  deletionPolicy: Delete
+  parameters:
+    type: snap

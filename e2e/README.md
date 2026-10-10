@@ -198,7 +198,7 @@ Argo CD gives up on an application after five failed sync attempts, and self-hea
 | --- | --- |
 | `hooks/seed-infisical.sh` | Wait for API, bootstrap admin/org/project, UA identity, upsert every Infisical key the suite's installed apps consume (fails the run if login, project, identity, or a secret upsert fails) |
 | `hooks/apply-eso-credentials.sh` | Apply `universal-auth-credentials` Secret for ESO |
-| `hooks/apply-operator-crds.sh` | Apply prometheus-operator, cert-manager, CNPG, Grafana Operator, Dragonfly, RustFS, and OpenTelemetry Operator CRDs (Argo excludes CRDs; the OTel chart ships its CRDs as rendered templates that kustomize includeCRDs never captures) |
+| `hooks/apply-operator-crds.sh` | Apply prometheus-operator, cert-manager, CNPG, Grafana Operator, Dragonfly, MariaDB Operator, RustFS, and OpenTelemetry Operator CRDs (Argo excludes CRDs; the OTel chart ships its CRDs as rendered templates that kustomize includeCRDs never captures) |
 | `hooks/apply-storageclass.sh` | Create `StorageClass/longhorn-crypto` using `rancher.io/local-path` |
 | `hooks/stage-local-repo.sh` | Envsubst tracked placeholders, omit kind-incompatible Applications, patch Infisical/git CNPs, replace ClusterIssuers with self-signed, commit and serve `git://127.0.0.1:9418/homeworld.git` |
 | `hooks/patch-coredns-e2e-domain.sh` | After Envoy exists, stub `*.e2e.local` in CoreDNS to the Gateway ClusterIP and restart CoreDNS |
@@ -217,6 +217,7 @@ Staging copies live under `/tmp/homeworld-e2e-git`. The kubectl-applied Applicat
 | `snapshot-controller-app` | kind's local-path provisioner has no CSI driver, so there is nothing for the snapshot controller to act on |
 | `openchamber-app` | Workspace image `ghcr.io/gjpin/openchamber` is private; kind cannot pull it without credentials |
 | `qbittorrent-app` | The gluetun VPN sidecar needs `/dev/net/tun` and real VPN credentials, neither of which exists on kind |
+| `supernote-app` | Upstream publishes amd64-only images, and the kind node follows the host architecture (arm64 on Apple-silicon hosts) |
 
 `otel-collector-app` is **included** in e2e: the victoria-metrics/…-logs `serviceProbe`
 assertions require OTel-exported series and log lines, which only the pod

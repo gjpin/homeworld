@@ -1,0 +1,58 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: mariadb-operator
+    repo: https://helm.mariadb.com/mariadb-operator
+    version: 26.10.1
+    releaseName: mariadb-operator
+    namespace: mariadb-operator
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^mariadb-operator(-webhook|-cert-controller)?$
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: mariadb-operator
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+  # The chart's templates omit metadata.namespace on every namespaced
+  # resource; AGENTS.md requires it explicitly (and the ServiceMonitors are
+  # resolved namespace-qualified by the Target Allocator).
+  - target:
+      version: v1
+      kind: ^(ServiceAccount|ConfigMap|Service)$
+      name: ^mariadb-operator.*$
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: mariadb-operator
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: ^(Role|RoleBinding)$
+      name: ^mariadb-operator.*$
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: mariadb-operator
+  - target:
+      group: monitoring.coreos.com
+      version: v1
+      kind: ServiceMonitor
+      name: ^mariadb-operator.*$
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: mariadb-operator

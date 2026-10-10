@@ -23,6 +23,54 @@ configs:
     # read-only through the RBAC role mapping below.
     accounts.homepage: apiKey
     kustomize.buildOptions: --enable-helm
+    # Argo CD ships health checks for the MariaDB operator's MariaDB, SqlJob,
+    # and Backup kinds but not PhysicalBackup. Supernote's pre-upgrade
+    # snapshot is a PreSync hook (apps/supernote/0_pre_sync_backup.yaml) whose
+    # sync must wait for the snapshot, so a one-shot PhysicalBackup is
+    # Progressing until its Complete condition is True and Degraded on
+    # failure. "MariaDB not found"/"not ready" (Complete=False, reason
+    # Failed) mean there is nothing to back up yet — the first sync, or an
+    # instance a fix is trying to repair — and report Healthy so the sync is
+    # not wedged. Scheduled backups stay Healthy between runs.
+    resource.customizations.health.k8s.mariadb.com_PhysicalBackup: |
+      local hs = {}
+      local complete = nil
+      if obj.status ~= nil and obj.status.conditions ~= nil then
+        for _, c in ipairs(obj.status.conditions) do
+          if c.type == "Complete" then
+            complete = c
+          end
+        end
+      end
+      if complete == nil then
+        hs.status = "Progressing"
+        hs.message = "Waiting for the operator"
+        return hs
+      end
+      hs.message = complete.message
+      if complete.status == "True" then
+        hs.status = "Healthy"
+        return hs
+      end
+      if complete.reason == "SnapshotFailed" or complete.reason == "JobFailed" or complete.reason == "CronJobFailed" then
+        hs.status = "Degraded"
+        return hs
+      end
+      if complete.reason == "SnapshotSuspended" or complete.reason == "JobSuspended" then
+        hs.status = "Suspended"
+        return hs
+      end
+      if complete.reason == "Failed" and (complete.message == "MariaDB not found" or complete.message == "MariaDB not ready") then
+        hs.status = "Healthy"
+        hs.message = "Skipped: " .. complete.message
+        return hs
+      end
+      if obj.spec ~= nil and obj.spec.schedule ~= nil then
+        hs.status = "Healthy"
+        return hs
+      end
+      hs.status = "Progressing"
+      return hs
     # Argo CD reads $<secret>:<key> from a Secret labeled app.kubernetes.io/part-of: argocd.
     # Keep this dollar reference intact; do not run it through envsubst.
     oidc.config: |

@@ -225,6 +225,13 @@
           "name": "^opentelemetry-operator-leader-election$",
           "namespace": "^opentelemetry-operator$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^mariadb-operator$"
+        }
       }
     ],
     "posturePolicies": [
@@ -872,6 +879,20 @@
           "kind": "^ClusterRoleBinding$",
           "name": "^longhorn-csi-secret-bind$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^mariadb-operator-cert-controller$"
+        }
       }
     ],
     "posturePolicies": [
@@ -1437,6 +1458,14 @@
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator$",
+          "namespace": "^mariadb-operator$"
+        }
       }
     ],
     "posturePolicies": [
@@ -1908,6 +1937,30 @@
           "name": "^longhorn-global-manager$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-cert-controller$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-webhook$",
+          "namespace": "^mariadb-operator$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2375,6 +2428,30 @@
           "name": "^longhorn-global-manager$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-cert-controller$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-webhook$",
+          "namespace": "^mariadb-operator$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2539,6 +2616,21 @@
           "kind": "^RoleBinding$",
           "name": "^opentelemetry-operator-leader-election$",
           "namespace": "^opentelemetry-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^mariadb-operator$",
+          "namespace": "^mariadb-operator$"
         }
       }
     ],
@@ -3324,6 +3416,36 @@
           "name": "^longhorn-csi-bind$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^mariadb-operator-cert-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^mariadb-operator$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^mariadb-operator-cert-controller$",
+          "namespace": "^mariadb-operator$"
+        }
       }
     ],
     "posturePolicies": [
@@ -3663,6 +3785,30 @@
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-cert-controller$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-webhook$",
+          "namespace": "^mariadb-operator$"
         }
       }
     ],
@@ -4114,6 +4260,30 @@
           "name": "^kube-state-metrics$",
           "namespace": "^kube-state-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-cert-controller$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-webhook$",
+          "namespace": "^mariadb-operator$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4465,6 +4635,20 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^longhorn-csi-secret-bind$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^mariadb-operator-cert-controller$"
         }
       }
     ],
@@ -5028,6 +5212,30 @@
           "kind": "^Deployment$",
           "name": "^longhorn-global-manager$",
           "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-cert-controller$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-webhook$",
+          "namespace": "^mariadb-operator$"
         }
       }
     ],
@@ -6163,6 +6371,30 @@
           "name": "^longhorn-global-manager$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-cert-controller$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-webhook$",
+          "namespace": "^mariadb-operator$"
+        }
       }
     ],
     "posturePolicies": [
@@ -6529,6 +6761,30 @@
           "kind": "^Deployment$",
           "name": "^longhorn-global-manager$",
           "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-cert-controller$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-webhook$",
+          "namespace": "^mariadb-operator$"
         }
       }
     ],
@@ -7214,6 +7470,30 @@
           "name": "^longhorn-global-manager$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-cert-controller$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-webhook$",
+          "namespace": "^mariadb-operator$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7533,6 +7813,22 @@
           "name": "^longhorn-global-manager$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-cert-controller$",
+          "namespace": "^mariadb-operator$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7804,6 +8100,22 @@
           "name": "^longhorn-global-manager$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator$",
+          "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^mariadb-operator-cert-controller$",
+          "namespace": "^mariadb-operator$"
+        }
       }
     ],
     "posturePolicies": [
@@ -8033,6 +8345,13 @@
           "kind": "^RoleBinding$",
           "name": "^velero-server$",
           "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^mariadb-operator-cert-controller$"
         }
       }
     ],

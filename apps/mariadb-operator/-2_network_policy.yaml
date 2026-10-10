@@ -1,0 +1,127 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: mariadb-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: mariadb-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Operator, webhook, and cert-controller all reconcile through the API
+  # server (the cert-controller also injects the webhook CA bundle).
+  name: allow-mariadb-operator-kubernetes-api
+  namespace: mariadb-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: mariadb-operator
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-mariadb-operator-webhook-ingress
+  namespace: mariadb-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: mariadb-operator
+      k8s:app.kubernetes.io/name: mariadb-operator-webhook
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "9443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The chart's three ServiceMonitors scrape the operator, webhook, and
+  # cert-controller metrics listeners (all on 8080).
+  name: allow-mariadb-operator-metrics-ingress
+  namespace: mariadb-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: mariadb-operator
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The operator reconciles the SQL-level resources it manages (the initial
+  # database, user, and grants a MariaDB CR declares, plus the metrics
+  # exporter user) over a direct client connection to each instance. One
+  # rule per consuming namespace; the matching ingress lives with the
+  # instance (allow-supernote-mariadb-ingress).
+  name: allow-mariadb-operator-supernote-mariadb
+  namespace: mariadb-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: mariadb-operator
+      k8s:app.kubernetes.io/name: mariadb-operator
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: supernote
+            k8s:app.kubernetes.io/name: mariadb
+            k8s:app.kubernetes.io/instance: mariadb
+      toPorts:
+        - ports:
+            - port: "3306"
+              protocol: TCP

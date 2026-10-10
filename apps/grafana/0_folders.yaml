@@ -225,6 +225,17 @@ spec:
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
 metadata:
+  name: folder-mariadb-operator
+  namespace: grafana
+spec:
+  title: MariaDB Operator
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
   name: folder-metrics-server
   namespace: grafana
 spec:

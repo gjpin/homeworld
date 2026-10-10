@@ -948,6 +948,30 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: allow-otel-pod-scrape-mariadb-operator
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The chart's ServiceMonitors scrape the operator, webhook, and
+  # cert-controller metrics listeners (all on 8080).
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: mariadb-operator
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-otel-pod-scrape-metrics-server
   namespace: otel-collector
   annotations:
@@ -1062,6 +1086,33 @@ spec:
             - port: "8080"
               protocol: TCP
             - port: "9090"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-supernote
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The MariaDB operator's generated ServiceMonitor scrapes the mysqld-exporter
+  # (9104), and the handwritten PodMonitor scrapes the Dragonfly operand
+  # admin metrics port (9999).
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: supernote
+      toPorts:
+        - ports:
+            - port: "9104"
+              protocol: TCP
+            - port: "9999"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
