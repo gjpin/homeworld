@@ -90,7 +90,7 @@ kubectl label node <node-name> environment=zigbee
 ```
 This pins `homeassistant-zigbee2mqtt` to the host hardware where the serial dongle is connected. The first start seeds `/app/data/configuration.yaml` with the broker and frontend pre-wired; fill in `serial.port` with your adapter's path under the mounted `/dev/serial/by-id` (Zigbee2MQTT cannot start without it).
 
-Also note: Forgejo git SSH (`git@${BASE_DOMAIN}`) rides the merged Gateway's TCP listener, so the router must forward port 22 to `${EXTERNAL_IP}` alongside 443.
+Also note: Forgejo git SSH (`git@git.${BASE_DOMAIN}`) rides the merged Gateway's TCP listener, so the router must forward port 22 to `${EXTERNAL_IP}` alongside 443.
 
 ### 4. Provision Infisical Secrets
 Every component synchronizes its secrets from Infisical via the External Secrets Operator. The complete list of required keys, per component, is documented in [docs/secrets.md](docs/secrets.md). Create the keys for a component in Infisical before deploying it; a missing key leaves the generated `Secret` incomplete and the pod fails with `CreateContainerConfigError`.
