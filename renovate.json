@@ -1354,19 +1354,6 @@
     },
     {
       "customType": "regex",
-      "description": "Update the Renovate version used by the workflow",
-      "managerFilePatterns": [
-        "/^\\.github/workflows/renovate\\.ya?ml$/"
-      ],
-      "matchStrings": [
-        "(?m)^\\s+renovate-version:\\s*(?<currentValue>[\\d.]+)\\s*$"
-      ],
-      "depNameTemplate": "renovatebot/renovate",
-      "datasourceTemplate": "github-releases",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
       "description": "Update the Envoy bouncer image default in the e2e load hook",
       "managerFilePatterns": [
         "/^e2e/examples/hooks/load-bouncer-image\\.sh$/"
