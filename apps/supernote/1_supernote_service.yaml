@@ -57,7 +57,7 @@ spec:
         # certificate; Envoy terminates TLS, and dropping that listener lets
         # nginx run unprivileged.
         - name: nginx-config
-          image: docker.io/supernote/supernote-service:26.06.04
+          image: docker.io/supernote/supernote-service:26.10.09
           imagePullPolicy: IfNotPresent
           command:
             - sh
@@ -124,7 +124,7 @@ spec:
               ephemeral-storage: 64Mi
       containers:
         - name: supernote-service
-          image: docker.io/supernote/supernote-service:26.06.04
+          image: docker.io/supernote/supernote-service:26.10.09
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
