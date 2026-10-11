@@ -304,11 +304,14 @@ to that snapshot (remove the field once the instance is running).
 Upstream's installer re-runs its `supernotedb.sql` on every update as both
 seed and migration. Here it is embedded in the `supernotedb-seed` SqlJob
 (`apps/supernote/1_sql_job.yaml`), which the operator runs once and never
-re-runs. When a Supernote image bump ships a new script
-(`https://supernote-private-cloud.supernote.com/cloud/supernotedb.sql`):
+re-runs. The `check-supernotedb-sql` workflow fetches the script
+(`https://supernote-private-cloud.supernote.com/cloud/supernotedb.sql`) daily
+and, when it changes, opens a PR that re-vendors it into the SqlJob with
+`scripts/refresh-supernotedb-sql.sh` (also runnable locally); the PR is never
+automerged. To apply it:
 
-1. Replace the SQL in the SqlJob with the new script, keeping the header's
-   source checksum current.
+1. Merge the PR, alongside the Supernote image bump that needs it when one is
+   open.
 2. After the change syncs, delete the SqlJob together with its completed Job
    (`kubectl -n supernote delete sqljob supernotedb-seed --cascade=foreground`;
    the Job shares the SqlJob's name, and a leftover one would be reused

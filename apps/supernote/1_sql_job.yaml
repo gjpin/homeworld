@@ -7,8 +7,9 @@
 # script is upstream's update migration as well as its seed: the schema
 # statements are idempotent (CREATE TABLE IF NOT EXISTS, INSERT IGNORE), but
 # its tail also empties the recycle bin and conversion tables, exactly as
-# upstream's installer does on every update. To apply a newer upstream
-# script, replace the SQL below and delete the SqlJob with
+# upstream's installer does on every update. scripts/refresh-supernotedb-sql.sh
+# re-vendors a newer upstream script (the check-supernotedb-sql workflow opens
+# a PR for it daily); after it syncs, delete the SqlJob with
 # --cascade=foreground (Argo CD recreates it and the operator runs a fresh
 # Job; see docs/upgrades.md).
 ---

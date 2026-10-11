@@ -1,0 +1,112 @@
+name: Check Supernote database script updates
+
+# Daily check for a new upstream supernotedb.sql. Supernote's installer
+# re-runs that script on every update as both seed and migration, and it
+# lives at a fixed, unversioned URL that Renovate cannot track. This workflow
+# re-vendors it with scripts/refresh-supernotedb-sql.sh and, when the
+# supernotedb-seed SqlJob changes, opens a PR as the renovate-homeworld app
+# (so the PR-side checks trigger, like Renovate's own PRs). One branch per
+# upstream checksum: an open, merged, or closed PR for the same checksum is
+# never reopened. The PR is not automerged: the SqlJob must be re-run by hand
+# after merging (docs/upgrades.md, Supernote Database Script).
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: check-supernotedb-sql
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  sql-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The PR branch push authenticates as the renovate-homeworld app; a
+          # persisted GITHUB_TOKEN Authorization header would shadow the app
+          # token embedded in the remote URL and fail the push with 403.
+          persist-credentials: false
+
+      - name: Re-vendor the upstream script
+        id: refresh
+        run: |
+          set -euo pipefail
+          scripts/refresh-supernotedb-sql.sh
+          if git diff --quiet -- apps/supernote/1_sql_job.yaml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            sum="$(grep -oE '^# sha256 [0-9a-f]{64}' apps/supernote/1_sql_job.yaml | cut -d' ' -f3)"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "sha256=${sum}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub App installation token
+        if: steps.refresh.outputs.changed == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+
+      - name: Open a database script PR
+        if: steps.refresh.outputs.changed == 'true'
+        env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          # Reads use the workflow token; only the push and PR creation run
+          # as the app.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA256: ${{ steps.refresh.outputs.sha256 }}
+        run: |
+          set -euo pipefail
+          short="${SHA256:0:12}"
+          branch="supernotedb-sql-${short}"
+
+          existing="$(gh pr list -R "${GITHUB_REPOSITORY}" --state all --head "$branch" \
+            --json number,state --jq '.[0] | select(.) | "#\(.number) (\(.state))"')"
+          if [ -n "$existing" ]; then
+            echo "PR ${existing} already covers upstream sha256 ${SHA256}; nothing to do"
+            exit 0
+          fi
+
+          git remote set-url origin "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+            echo "branch ${branch} already exists; nothing to do"
+            exit 0
+          fi
+
+          # Author commits as the app bot, like Renovate's own commits.
+          git config user.name "renovate-homeworld[bot]"
+          git config user.email "309082045+renovate-homeworld[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add apps/supernote/1_sql_job.yaml
+          git commit -q -m "chore(supernote): update vendored supernotedb.sql (${short})"
+          git push origin "$branch"
+
+          body_file="$(mktemp)"
+          {
+            echo "Upstream published a new Supernote database script (\`https://supernote-private-cloud.supernote.com/cloud/supernotedb.sql\`, sha256 \`${SHA256}\`). This PR re-vendors it into the \`supernotedb-seed\` SqlJob (\`apps/supernote/1_sql_job.yaml\`)."
+            echo
+            echo "⚠️ **Manual step after merging**: the operator never re-runs a completed SqlJob. Once Argo CD has synced the change, re-run it (docs/upgrades.md, Supernote Database Script):"
+            echo
+            echo '```sh'
+            echo 'kubectl -n supernote delete sqljob supernotedb-seed --cascade=foreground'
+            echo '```'
+            echo
+            echo "Like upstream's installer, the script empties the recycle-bin and file-conversion tables on every run. Review the diff for schema changes, and merge alongside the Supernote image bump that needs them when one is open."
+          } > "$body_file"
+
+          GH_TOKEN="$APP_TOKEN" gh pr create -R "${GITHUB_REPOSITORY}" \
+            --title "chore(supernote): update vendored supernotedb.sql (${short})" \
+            --body-file "$body_file" \
+            --base main \
+            --head "$branch"
