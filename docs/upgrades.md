@@ -308,7 +308,11 @@ re-runs. The `check-supernotedb-sql` workflow fetches the script
 (`https://supernote-private-cloud.supernote.com/cloud/supernotedb.sql`) daily
 and, when it changes, opens a PR that re-vendors it into the SqlJob with
 `scripts/refresh-supernotedb-sql.sh` (also runnable locally); the PR is never
-automerged. To apply it:
+automerged. The script refuses a download that no longer creates every table
+the vendored script does (a truncated file or an error page), and a failed
+run (including the script moving or disappearing upstream) opens a
+"Supernote database script check is failing" issue that the next successful
+run closes. To apply it:
 
 1. Merge the PR, alongside the Supernote image bump that needs it when one is
    open.

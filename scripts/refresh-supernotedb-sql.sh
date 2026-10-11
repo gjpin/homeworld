@@ -26,8 +26,26 @@ out="$(mktemp)"
 trap 'rm -f "${sql}" "${out}"' EXIT
 
 curl -fsSL --retry 3 -o "${sql}" "${url}"
-if ! grep -q 'CREATE TABLE' "${sql}"; then
-  echo "refresh-supernotedb-sql: ${url} did not return a SQL script" >&2
+
+# Table names created by a script, in any of upstream's spellings
+# (`supernotedb.`name``, `name`, bare name; with or without IF NOT EXISTS).
+tables() {
+  { grep -ioE 'create[[:space:]]+table[[:space:]]+(if[[:space:]]+not[[:space:]]+exists[[:space:]]+)?[`a-z0-9_.]+' || true; } |
+    sed -E 's/.*[[:space:]]//; s/`//g; s/.*\.//' | tr '[:upper:]' '[:lower:]' | sort -u
+}
+
+# Upstream's script only ever adds tables, so a download that drops one is
+# truncated or not the real script (an error page served with HTTP 200, a
+# placeholder after a move): refuse it instead of vendoring it.
+new_tables="$(tables <"${sql}")"
+if [[ -z "${new_tables}" ]]; then
+  echo "refresh-supernotedb-sql: ${url} did not return a SQL script (no CREATE TABLE statements)" >&2
+  exit 1
+fi
+missing="$(comm -23 <(sed -n '/^  sql: |$/,$p' "${manifest}" | tables) <(printf '%s\n' "${new_tables}"))"
+if [[ -n "${missing}" ]]; then
+  echo "refresh-supernotedb-sql: ${url} no longer creates tables the vendored script does; refusing to vendor it:" >&2
+  while read -r table; do echo "  ${table}"; done <<<"${missing}" >&2
   exit 1
 fi
 

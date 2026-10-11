@@ -9,6 +9,11 @@ name: Check Supernote database script updates
 # upstream checksum: an open, merged, or closed PR for the same checksum is
 # never reopened. The PR is not automerged: the SqlJob must be re-run by hand
 # after merging (docs/upgrades.md, Supernote Database Script).
+#
+# A failed run (the script moved or was deleted upstream, or the download
+# no longer creates every vendored table) opens a tracking issue, or comments
+# on the open one, instead of failing silently every day; the next green run
+# closes it.
 
 on:
   schedule:
@@ -22,6 +27,7 @@ concurrency:
 permissions:
   contents: read
   pull-requests: read
+  issues: write
 
 jobs:
   sql-check:
@@ -39,7 +45,8 @@ jobs:
         id: refresh
         run: |
           set -euo pipefail
-          scripts/refresh-supernotedb-sql.sh
+          # The log feeds the failure issue below.
+          scripts/refresh-supernotedb-sql.sh 2>&1 | tee "${RUNNER_TEMP}/refresh.log"
           if git diff --quiet -- apps/supernote/1_sql_job.yaml; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
@@ -110,3 +117,44 @@ jobs:
             --body-file "$body_file" \
             --base main \
             --head "$branch"
+
+      - name: Report the failure in a tracking issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          title="Supernote database script check is failing"
+          body_file="$(mktemp)"
+          {
+            echo "The [check-supernotedb-sql run](${RUN_URL}) failed. If upstream moved or deleted \`https://supernote-private-cloud.supernote.com/cloud/supernotedb.sql\`, find its new location in the Supernote Private Cloud installer and update \`url\` in \`scripts/refresh-supernotedb-sql.sh\`. This issue closes itself on the next successful run."
+            if [ -s "${RUNNER_TEMP}/refresh.log" ]; then
+              echo
+              echo '```'
+              tail -n 20 "${RUNNER_TEMP}/refresh.log"
+              echo '```'
+            fi
+          } > "$body_file"
+
+          number="$(gh issue list -R "${GITHUB_REPOSITORY}" --state open --search "\"${title}\" in:title" \
+            --json number,title | jq -r --arg t "$title" '.[] | select(.title == $t) | .number' | head -1)"
+          if [ -n "$number" ]; then
+            gh issue comment -R "${GITHUB_REPOSITORY}" "$number" --body-file "$body_file"
+          else
+            gh issue create -R "${GITHUB_REPOSITORY}" --title "$title" --body-file "$body_file"
+          fi
+
+      - name: Close the tracking issue
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          title="Supernote database script check is failing"
+          gh issue list -R "${GITHUB_REPOSITORY}" --state open --search "\"${title}\" in:title" \
+            --json number,title | jq -r --arg t "$title" '.[] | select(.title == $t) | .number' |
+            while read -r number; do
+              gh issue close -R "${GITHUB_REPOSITORY}" "$number" --comment "Resolved: [this run](${RUN_URL}) succeeded."
+            done
