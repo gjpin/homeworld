@@ -76,10 +76,13 @@
 
 ## Manual Setup
 
-### 1. Bootstrap the Talos Cluster (Three Control Planes)
+### 1. Configure the Router
+Set up the OpenWrt router before anything else. Follow [docs/openwrt.md](docs/openwrt.md).
+
+### 2. Bootstrap the Talos Cluster (Three Control Planes)
 Before deploying any application, bring up the Talos control plane: ISO installation, machine configuration generation, etcd bootstrap, creating the gVisor RuntimeClass, enabling workloads on the control plane nodes, WireGuard, and Longhorn disk provisioning. Follow [docs/talos.md](docs/talos.md).
 
-### 2. Zigbee Coordinator
+### 3. Zigbee Coordinator
 Label the node with the physical Zigbee USB adapter attached:
 ```bash
 kubectl label node <node-name> environment=zigbee
@@ -88,7 +91,7 @@ This pins `homeassistant-zigbee2mqtt` to the host hardware where the serial dong
 
 Also note: Forgejo git SSH (`git@${BASE_DOMAIN}`) rides the merged Gateway's TCP listener, so the router must forward port 22 to `${EXTERNAL_IP}` alongside 443.
 
-### 3. Provision Infisical Secrets
+### 4. Provision Infisical Secrets
 Every component synchronizes its secrets from Infisical via the External Secrets Operator. The complete list of required keys, per component, is documented in [docs/secrets.md](docs/secrets.md). Create the keys for a component in Infisical before deploying it; a missing key leaves the generated `Secret` incomplete and the pod fails with `CreateContainerConfigError`.
 
 Two bootstrap exceptions exist (detailed in [docs/secrets.md](docs/secrets.md)): the External Secrets Operator's own Infisical Universal Auth credentials are seeded manually during [cluster bootstrap](docs/talos.md) (the operator cannot fetch the credentials that grant it access to Infisical), and non-secret deployment variables (domain, IP, ACME email, Infisical endpoint) are rendered by envsubst rather than stored as secrets.
@@ -108,7 +111,7 @@ Deployment rendering (`envsubst`) substitutes these non-secret variables; every 
 | `INFISICAL_HOST` / `INFISICAL_HOSTNAME` | Infisical endpoint (in-cluster and external forms). |
 | `INFISICAL_PROJECT_SLUG` / `INFISICAL_ENVIRONMENT_SLUG` | Infisical scoping for the ClusterSecretStore. |
 
-### 4. Create the Authelia Users Database
+### 5. Create the Authelia Users Database
 Every OIDC sign-in resolves against Authelia's file-backed user database, stored in Infisical as `/authelia/USERS_DATABASE` (the full `users_database.yml` content). Generate an Argon2id digest per user, then list their groups — group memberships drive each application's role mapping:
 ```bash
 # Prints: Digest: $argon2id$...
@@ -137,7 +140,7 @@ users:
 
 After editing the Infisical value, the change reaches the cluster on the ExternalSecret's hourly refresh (or immediately with `kubectl -n authelia delete secret authelia-files`, which External Secrets recreates at once). Authelia reads the database only at startup (`watch: false`), so finish with `kubectl -n authelia rollout restart deploy/authelia`.
 
-### 5. Create the Forgejo OAuth Application for Woodpecker CI
+### 6. Create the Forgejo OAuth Application for Woodpecker CI
 Woodpecker CI authenticates users and receives repository webhooks via Forgejo OAuth2:
 1. In Forgejo, navigate to **Site Administration** -> **Applications** -> **Create OAuth2 Application**.
    - **Application Name**: `Woodpecker CI`
@@ -146,7 +149,7 @@ Woodpecker CI authenticates users and receives repository webhooks via Forgejo O
    - `/woodpecker/FORGEJO_CLIENT`: `<Client ID>`
    - `/woodpecker/FORGEJO_SECRET`: `<Client Secret>`
 
-### 6. Create API Tokens for Homepage Widgets
+### 7. Create API Tokens for Homepage Widgets
 The Homepage dashboard's live widgets authenticate to four services with dedicated read-only tokens, stored in Infisical under `/homepage/*` (see [docs/secrets.md](docs/secrets.md)):
 1. **Argo CD**: sign in as an `argocd-admin` user, then open **Settings → Accounts → `homepage` → Tokens → Generate New**. Save the token to `/homepage/ARGOCD_TOKEN`. The API-key-only `homepage` account and its read-only RBAC mapping are declared in `apps/argocd/helm/values.yaml`.
 2. **Grafana**: open **Administration → Users → Service accounts**, add the service account `homepage`, then **Add service account token**. Save it to `/homepage/GRAFANA_TOKEN`.
@@ -155,7 +158,7 @@ The Homepage dashboard's live widgets authenticate to four services with dedicat
 
 Homepage reads its dashboard configuration (`apps/homepage/0_config.yaml`) at startup; after changing it, restart the pod with `kubectl -n homepage rollout restart deploy/homepage`.
 
-### 7. Access OpenChamber and Log In to the Coding Agents
+### 8. Access OpenChamber and Log In to the Coding Agents
 After the `openchamber` workspace deploys (see [docs/openchamber.md](docs/openchamber.md) for the architecture, bootstrap, and PR-gated update flow):
 
 - **OpenChamber remote access**: reachable only over WireGuard at `https://openchamber.${BASE_DOMAIN}`; sign in with the `/openchamber/OPENCHAMBER_UI_PASSWORD` Infisical secret. Desktop and mobile apps connect to the same URL directly via QR-code pairing (*Settings → Remote Instances*); no relay or tunnel is needed.
