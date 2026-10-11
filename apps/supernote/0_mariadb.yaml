@@ -15,7 +15,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
-  image: docker.io/library/mariadb:12.3.3
+  image: docker.io/library/mariadb:13.0.2
   imagePullPolicy: IfNotPresent
   rootPasswordSecretKeyRef:
     name: mariadb
