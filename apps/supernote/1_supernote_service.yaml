@@ -88,7 +88,7 @@ spec:
         # it on the MariaDB healthcheck); hold it until the seed SqlJob has
         # created the schema's last table.
         - name: wait-for-database
-          image: docker.io/library/mariadb:12.3.3
+          image: docker.io/library/mariadb:13.0.2
           imagePullPolicy: IfNotPresent
           command:
             - sh

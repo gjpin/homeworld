@@ -112,7 +112,7 @@ certController:
 config:
   mariadbImage:
     repository: docker.io/library/mariadb
-    tag: 12.3.3
+    tag: 13.0.2
   mariadbImageName: docker.io/library/mariadb
   maxscaleImage:
     repository: docker.io/mariadb/maxscale
