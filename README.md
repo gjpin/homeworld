@@ -50,6 +50,7 @@
 | Homepage | `homepage.${BASE_DOMAIN}` | Application dashboard aggregating links, status, and live service widgets. |
 | Immich | `photos.${BASE_DOMAIN}` | Photo and video management. |
 | Kubelet Serving Cert Approver | — | Approves kubelet serving certificate CSRs so metrics-server scrapes kubelets over verified TLS. |
+| Kube Control Plane | — | Scrape targets for the Talos-managed API servers, scheduler, controller manager, and etcd (ServiceMonitors and a ScrapeConfig; no workloads). |
 | Kube State Metrics | — | Cluster-state `kube_*` metrics for the OpenTelemetry pipeline and the CloudNativePG dashboard. |
 | Longhorn | `longhorn.${BASE_DOMAIN}` | Distributed block-storage management. |
 | Snapshot Controller | — | CSI volume-snapshot controller driving the Longhorn CSI driver for Velero data movement and CNPG volume-snapshot backups. |

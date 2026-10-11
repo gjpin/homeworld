@@ -26,6 +26,10 @@ population actually carries:
 * Target-Allocator-discovered ServiceMonitor/PodMonitor scrapes carry
   `namespace`, `pod`, `job` (`<namespace>/<monitor-name>`), and `instance`
   labels — custom dashboards scope these with `namespace="<app-ns>"`.
+* Target-Allocator-discovered ScrapeConfig scrapes (the Talos etcd service,
+  apps/kube-control-plane) have no Kubernetes object behind them and carry
+  only `job` (`scrapeConfig/<namespace>/<name>`) and `instance` (relabelled to
+  the node name).
 * OTLP-exported series (the node collector's kubeletstats families, RustFS's
   push) carry VictoriaMetrics' promoted OTel resource attributes as labels
   with dots preserved (`k8s.namespace.name`, `k8s.pod.name`,
@@ -85,6 +89,8 @@ dashboard's JSON `description` cites its provenance.
 | Home Assistant | Home Assistant | custom (HA prometheus integration, `components/prometheus`; no official dashboard) |
 | Immich | Immich | custom (OTel `http_server_duration` metrics and `immich_queues_*` gauges verified in the immich source; the project publishes no dashboard) |
 | Kubelet Serving Cert Approver | Kubelet Serving Cert Approver | custom (alex1989hu/kubelet-serving-cert-approver metrics table; no official dashboard) |
+| Kubernetes Control Plane | Kubernetes API Server, Kubernetes Scheduler, Kubernetes Controller Manager | custom (Kubernetes source metric families — `apiserver_*`, `scheduler_*`, `workqueue_*`, `leader_election_master_status`, `rest_client_*`; the Kubernetes project publishes no dashboards) |
+| Kubernetes Control Plane | etcd | official: etcd-io/website `op-guide/grafana.json` for the etcd minor Talos ships, linked from the etcd Monitoring guide; datasource variable defaulted to `prometheus`; its `cluster` variable selects the etcd ScrapeConfig job |
 | Kube State Metrics | Kube State Metrics | custom (kube-state-metrics standard `kube_*` families from its own docs; the project ships no dashboard); panels match the scrape job because `kube_*` series carry the target's namespace, not the exporter's |
 | Longhorn | Longhorn Example v1.1.0 | official: grafana.com 13032, the dashboard referenced by the longhorn.io monitoring docs; `__inputs` converted to a datasource variable |
 | MariaDB Operator | MySQL | official: prometheus/mysqld_exporter repo `mysqld-mixin/dashboards/mysql-overview.json` at the exporter version MariaDB CRs pin (the mariadb-operator project publishes no dashboard); unmodified, its prometheus-type datasource variable resolves to the compatibility datasource |

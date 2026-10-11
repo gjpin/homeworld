@@ -12,6 +12,7 @@ Browser-UI routes without usable app-native auth are authenticated by Envoy Gate
 | admission-policies | No | No user login. |
 | snapshot-controller | No | No user login. |
 | kube-state-metrics | No | No user login. |
+| kube-control-plane | No | No user login (metrics plumbing only). |
 | generic-device-plugin | No | No user login. |
 | opentelemetry-operator | No | No user login. |
 | envoy-gateway | Yes (gateway) | Envoy Gateway is the Authelia `envoy` OIDC client for the browser UIs without usable app-native auth: victoria-metrics, victoria-logs, victoria-traces, longhorn, homepage, the `envoy.${BASE_DOMAIN}` admin console, and z2m. Each host gets an HTTPRoute-scoped SecurityPolicy with `mergeType: StrategicMerge` (so the Gateway-level CrowdSec extAuth still applies) and a per-host redirect URL and cookie domain; `/logout` on a host clears that host's gateway session only. Access requires the `platform` group, a deliberate cross-app group that breaks the `<app>-admin`/`<app>-user` naming. Per the official Envoy Gateway client guide the client deviates from repo conventions: no PKCE (Envoy's oauth2 filter does not send it) and an opaque access token (`forwardAccessToken: false` everywhere, so the token never leaves Envoy's session cookie; no claims policy is needed because no claims are read or forwarded). |

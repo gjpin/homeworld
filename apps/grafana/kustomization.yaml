@@ -124,6 +124,19 @@ configMapGenerator:
   - name: grafana-dashboard-kube-state-metrics
     files:
       - json=dashboards/kube-state-metrics/kube-state-metrics.json
+  # kube-control-plane
+  - name: grafana-dashboard-kube-control-plane-kube-apiserver
+    files:
+      - json=dashboards/kube-control-plane/kube-apiserver.json
+  - name: grafana-dashboard-kube-control-plane-kube-scheduler
+    files:
+      - json=dashboards/kube-control-plane/kube-scheduler.json
+  - name: grafana-dashboard-kube-control-plane-kube-controller-manager
+    files:
+      - json=dashboards/kube-control-plane/kube-controller-manager.json
+  - name: grafana-dashboard-kube-control-plane-etcd
+    files:
+      - json=dashboards/kube-control-plane/etcd.json
   # notesnook
   - name: grafana-dashboard-notesnook
     files:
@@ -194,6 +207,7 @@ resources:
   - 1_dashboards_grafana-operator.yaml
   - 1_dashboards_homeassistant.yaml
   - 1_dashboards_immich.yaml
+  - 1_dashboards_kube-control-plane.yaml
   - 1_dashboards_kube-state-metrics.yaml
   - 1_dashboards_kubelet-serving-cert-approver.yaml
   - 1_dashboards_longhorn.yaml

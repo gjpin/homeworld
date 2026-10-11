@@ -1,0 +1,30 @@
+# https://etcd.io/docs/v3.7/op-guide/monitoring/
+# https://prometheus-operator.dev/docs/developer/scrapeconfig/
+# etcd is a Talos system service, not a pod, so no Service can select it.
+# Every control plane node serves the unauthenticated metrics listener
+# (listen-metrics-urls on port 2381, set by the Talos machine config in
+# docs/talos.md); node discovery targets each control plane's InternalIP.
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: etcd
+  namespace: kube-system
+spec:
+  scrapeInterval: 60s
+  scheme: HTTP
+  metricsPath: /metrics
+  kubernetesSDConfigs:
+    - role: Node
+  relabelings:
+    - sourceLabels:
+        - __meta_kubernetes_node_labelpresent_node_role_kubernetes_io_control_plane
+      regex: "true"
+      action: Keep
+    - sourceLabels:
+        - __meta_kubernetes_node_address_InternalIP
+      targetLabel: __address__
+      replacement: $1:2381
+    - sourceLabels:
+        - __meta_kubernetes_node_name
+      targetLabel: instance

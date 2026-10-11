@@ -75,6 +75,9 @@
    * kube-state-metrics: cluster-state `kube_*` metrics for the telemetry
      pipeline (the CloudNativePG dashboard's kube_* panels), scraped by the
      same Target Allocator as every other ServiceMonitor
+   * kube-control-plane: ServiceMonitors and an etcd ScrapeConfig for the
+     Talos-managed control plane (no workloads), after the Prometheus
+     Operator CRDs
    * forgejo
    * grafana
    * homepage: application dashboard, gateway-OIDC protected (`platform` group)
@@ -144,7 +147,7 @@ CRD lifecycles are orchestrated through a combination of sync waves, health chec
 
 ### Consumer Workload Sequencing (App-of-Apps Waves)
 In `apps/app-of-apps.yaml`, CRD-providing infrastructure and operators are sequenced strictly ahead of consuming applications:
-- **Wave -1:** `prometheus-operator-crd` (ServiceMonitor/PodMonitor CRDs) and `external-secrets` (ExternalSecret CRD and the Infisical `ClusterSecretStore`), both ahead of `argocd` in wave 0 so Argo CD's own ServiceMonitors and its wave -1 ExternalSecret validate on the first install; the monitoring CRDs are later consumed cluster-wide by the OpenTelemetry Operator's Target Allocator (wave 5)
+- **Wave -1:** `prometheus-operator-crd` (ServiceMonitor/PodMonitor/ScrapeConfig CRDs) and `external-secrets` (ExternalSecret CRD and the Infisical `ClusterSecretStore`), both ahead of `argocd` in wave 0 so Argo CD's own ServiceMonitors and its wave -1 ExternalSecret validate on the first install; the monitoring CRDs are later consumed cluster-wide by the OpenTelemetry Operator's Target Allocator (wave 5)
 - **Wave 0:** `argocd` and `dragonfly-operator` — Argo CD's tracked config replaces the chart's bundled Redis with an in-namespace Dragonfly instance through the chart's `externalRedis` block, so the operator that reconciles that instance installs in the same wave as the switch; the controllers reconnect while the operand starts (~1 minute, the same transient any Argo CD restart incurs)
 - **Wave 2:** `envoy-gateway` (Gateway API and Envoy Gateway CRDs) and `cilium` (Cilium CRDs applied from the pinned Git tag by the nested `cilium-crds` application; the Helm chart ships no CRDs, while the CiliumNetworkPolicy CRDs are consumed by every component's `-2_network_policy.yaml`)
 - **Wave 3:** `cert-manager` (Certificates and ClusterIssuers), `snapshot-controller` (CSI volume snapshot CRDs from the pinned `external-snapshotter` Git tag plus the handwritten snapshot controller — the CSI snapshot API suite Velero's data movement drives, installed ahead of the wave 4 backup operator), plus the `external-dns`, `longhorn`, `kubelet-serving-cert-approver`, and `metrics-server` applications
@@ -156,7 +159,7 @@ In `apps/app-of-apps.yaml`, CRD-providing infrastructure and operators are seque
   `conf/crds` templates so Kustomize Helm inflation includes them), whose
   collector custom resource in wave 6 both validates against the CRDs and
   reconciles against the running operator
-- **Waves 6–8:** Applications and workloads consuming those CRDs (`authelia`, `immich`, `forgejo`, `grafana`, `notesnook` via `DocumentDB`, `supernote` via `MariaDB` and `SqlJob`, `otel-collector` via `OpenTelemetryCollector`, `opencloud`, etc.)
+- **Waves 6–8:** Applications and workloads consuming those CRDs (`authelia`, `immich`, `forgejo`, `grafana`, `notesnook` via `DocumentDB`, `supernote` via `MariaDB` and `SqlJob`, `otel-collector` via `OpenTelemetryCollector`, `kube-control-plane` via `ServiceMonitor` and `ScrapeConfig`, `opencloud`, etc.)
 
 Argo CD's custom Lua Application health check pauses wave advancement until all applications in Wave $N$ report `Healthy`, preventing downstream workloads from encountering missing CRD errors during initial deployment or cluster-wide upgrades.
 

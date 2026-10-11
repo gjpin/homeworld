@@ -1377,6 +1377,20 @@
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Talos version in the Image Factory schematic links of the bootstrap guide",
+      "managerFilePatterns": [
+        "/^docs/talos\\.md$/"
+      ],
+      "matchStrings": [
+        "https://factory\\.talos\\.dev/\\?[^)\\s]*&version=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "siderolabs/talos",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver",
+      "extractVersionTemplate": "^v(?<version>\\d+\\.\\d+\\.\\d+)$"
     }
   ]
 }

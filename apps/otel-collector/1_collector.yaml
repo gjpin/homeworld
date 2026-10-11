@@ -106,16 +106,20 @@ spec:
       seccompProfile:
         type: RuntimeDefault
     prometheusCR:
-      # Empty selectors match every ServiceMonitor and PodMonitor in every
-      # namespace; only cluster administrators can create monitors here.
+      # Empty selectors match every ServiceMonitor, PodMonitor, and
+      # ScrapeConfig in every namespace; only cluster administrators can
+      # create monitors here. ScrapeConfigs cover targets no Service can
+      # select (the etcd Talos service, apps/kube-control-plane).
       # denyFSAccessThroughSMs rejects monitors that reference file-based
       # credentials (bearerTokenFile); secret-based credentials (basicAuth,
-      # bearerTokenSecret) are served over the mTLS channel.
+      # bearerTokenSecret, authorization) are served over the mTLS channel.
       enabled: true
       serviceMonitorSelector: {}
       serviceMonitorNamespaceSelector: {}
       podMonitorSelector: {}
       podMonitorNamespaceSelector: {}
+      scrapeConfigSelector: {}
+      scrapeConfigNamespaceSelector: {}
       denyFSAccessThroughSMs: true
   config:
     receivers:

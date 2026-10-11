@@ -1,0 +1,64 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kube-control-plane-kube-apiserver
+  namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  folderRef: folder-kube-control-plane
+  configMapRef:
+    name: grafana-dashboard-kube-control-plane-kube-apiserver
+    key: json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kube-control-plane-kube-scheduler
+  namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  folderRef: folder-kube-control-plane
+  configMapRef:
+    name: grafana-dashboard-kube-control-plane-kube-scheduler
+    key: json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kube-control-plane-kube-controller-manager
+  namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  folderRef: folder-kube-control-plane
+  configMapRef:
+    name: grafana-dashboard-kube-control-plane-kube-controller-manager
+    key: json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kube-control-plane-etcd
+  namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  folderRef: folder-kube-control-plane
+  configMapRef:
+    name: grafana-dashboard-kube-control-plane-etcd
+    key: json

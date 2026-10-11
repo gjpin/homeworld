@@ -7,15 +7,16 @@ metadata:
   name: otel-collector-pod-targetallocator
   namespace: otel-collector
 ---
-# The Target Allocator discovers ServiceMonitor and PodMonitor endpoints across
-# the cluster and distributes them to the collector pods. The rules mirror the
+# The Target Allocator discovers ServiceMonitor, PodMonitor, and ScrapeConfig
+# endpoints across the cluster and distributes them to the collector pods. The rules mirror the
 # upstream Target Allocator documentation; monitor RBAC verbs are read-only,
 # and no secret access is granted here because denyFSAccessThroughSMs rejects
 # only file-based credential references (bearerTokenFile). Secret-based
 # credentials (bearerTokenSecret, basicAuth from secrets) are served by the
 # Target Allocator over its mTLS channel and require per-namespace Roles
 # where they are used (e.g. apps/collabora/0_monitor_secret_rbac.yaml,
-# apps/woodpecker/0_monitor_secret_rbac.yaml).
+# apps/woodpecker/0_monitor_secret_rbac.yaml,
+# apps/kube-control-plane/0_rbac.yaml).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -68,6 +69,7 @@ rules:
     resources:
       - servicemonitors
       - podmonitors
+      - scrapeconfigs
     verbs:
       - get
       - list

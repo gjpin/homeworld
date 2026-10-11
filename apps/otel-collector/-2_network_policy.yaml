@@ -498,6 +498,42 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: allow-otel-pod-scrape-kube-control-plane
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # apps/kube-control-plane monitors: the API servers (default/kubernetes
+  # endpoints on 6443), and the host-network kube-scheduler (10259),
+  # kube-controller-manager (10257), and Talos etcd metrics listener (2381)
+  # on every control plane node, local or remote.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
+    - toEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "10259"
+              protocol: TCP
+            - port: "10257"
+              protocol: TCP
+            - port: "2381"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-otel-pod-scrape-cloudnative-pg
   namespace: otel-collector
   annotations:

@@ -1,0 +1,75 @@
+# https://kubernetes.io/docs/concepts/cluster-administration/system-metrics/
+# kube-apiserver, kube-scheduler, and kube-controller-manager serve /metrics
+# only to authenticated clients authorized for the /metrics non-resource URL.
+# This service account holds exactly that permission; its long-lived token
+# Secret is the bearer credential the ServiceMonitors reference.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: control-plane-metrics-reader
+  namespace: kube-system
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: control-plane-metrics-reader-token
+  namespace: kube-system
+  annotations:
+    kubernetes.io/service-account.name: control-plane-metrics-reader
+type: kubernetes.io/service-account-token
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: control-plane-metrics-reader
+rules:
+  - nonResourceURLs:
+      - /metrics
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: control-plane-metrics-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: control-plane-metrics-reader
+subjects:
+  - kind: ServiceAccount
+    name: control-plane-metrics-reader
+    namespace: kube-system
+---
+# The Target Allocator resolves the bearer token referenced by the control
+# plane ServiceMonitors over the mTLS channel; access is pinned to the exact
+# secret the monitors reference.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: otel-targetallocator-monitor-credentials
+  namespace: kube-system
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    resourceNames:
+      - control-plane-metrics-reader-token
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: otel-targetallocator-monitor-credentials
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: otel-targetallocator-monitor-credentials
+subjects:
+  - kind: ServiceAccount
+    name: otel-collector-pod-targetallocator
+    namespace: otel-collector

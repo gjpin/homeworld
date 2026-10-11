@@ -17,15 +17,41 @@ three and keeps working when the VIP is moving.
 
 ## Bootstrap
 Workstation requirements: `talosctl`, `kubectl`, `helm`, `yq`, and `git`.
-1. Create a schematic in the [factory](https://factory.talos.dev/), download
-   the ISO, and boot all three nodes from it. Note the schematic ID: the
-   installer image must come from the same schematic, or the extensions are
-   missing after installation.
-   - Extensions:
-      - siderolabs/gvisor
-      - siderolabs/netbird
-      - siderolabs/iscsi-tools
-      - siderolabs/util-linux-tools
+1. Each hardware platform has its own [Image Factory](https://factory.talos.dev/)
+   schematic: download the node's ISO from its schematic and boot it. The
+   installer image comes from the same schematic (set per node below), or the
+   extensions are missing after installation. Every schematic carries the
+   shared extensions — `siderolabs/gvisor`, `siderolabs/iscsi-tools`, and
+   `siderolabs/util-linux-tools` — plus the
+   platform's CPU microcode and GPU driver. No workload uses the GPUs; the
+   drivers let them enter their low-power idle states instead of staying
+   unmanaged at firmware defaults.
+
+   | Hardware | Arch | Platform extensions | Schematic ID |
+   | --- | --- | --- | --- |
+   | Desktop: AMD Ryzen 7 3700X, AMD Radeon RX 560 | `amd64` | `siderolabs/amd-ucode`, `siderolabs/amdgpu` | [`a74fbde82970b8887ebc715a94b4d5566e3ca76a11babc1b7ccfaeaa75c54732`](https://factory.talos.dev/?arch=amd64&platform=metal&schematic-id=a74fbde82970b8887ebc715a94b4d5566e3ca76a11babc1b7ccfaeaa75c54732&target=metal&version=1.14.2) |
+   | Chuwi CoreBox: Intel Core i3 (12th gen) | `amd64` | `siderolabs/intel-ucode`, `siderolabs/i915` | [`a731ab59386273e96cc78a9823e953dd6753f263dc026724cf6175304720742b`](https://factory.talos.dev/?arch=amd64&platform=metal&schematic-id=a731ab59386273e96cc78a9823e953dd6753f263dc026724cf6175304720742b&target=metal&version=1.14.2) |
+   | Radxa Dragon Q8B: Qualcomm SC8280XP | `arm64` | — | — (unsupported, see below) |
+
+   Each schematic ID links to its Image Factory page (ISO and installer
+   downloads) for the current Talos release; Renovate keeps the `version`
+   in these links on the latest Talos release. The ISO is also available
+   directly at
+   `https://factory.talos.dev/image/<schematic-id>/<talos-version>/metal-<arch>.iso`.
+   To review or rebuild a schematic, `curl
+   https://factory.talos.dev/schematics/<schematic-id>` prints its
+   definition, and `curl -X POST --data-binary @schematic.yaml
+   https://factory.talos.dev/schematics` returns the ID of an edited one.
+
+   > [!WARNING]
+   > Talos cannot run on the Radxa Dragon Q8B yet. The Image Factory has no
+   > overlay for the board, and the generic `arm64` Talos kernel is built
+   > without the SC8280XP clock controller, pin controller, and PCIe/USB PHY
+   > drivers (`CONFIG_SC_GCC_8280XP`, `CONFIG_PINCTRL_SC8280XP`,
+   > `CONFIG_PHY_QCOM_QMP`), so its storage and network never come up. The
+   > Radxa UEFI "Third-party OS Compatibility Settings" used for Debian only
+   > adjust the firmware-provided hardware description; Debian boots because
+   > its own kernel builds these drivers, which the Talos kernel does not.
 2. In the router, set a static DHCP lease for each node and reserve one
    additional unused address in the same subnet for the Kubernetes API VIP.
    The VIP must not be assignable by the DHCP server.
@@ -54,10 +80,13 @@ done
 DISK_SERIALS=(<cp-1-disk-serial> <cp-2-disk-serial> <cp-3-disk-serial>)
 LINKS=(<cp-1-link> <cp-2-link> <cp-3-link>)
 
+# Per-node Image Factory schematic ID (table in step 1), matching each
+# node's hardware, same order as above
+SCHEMATIC_IDS=(<cp-1-schematic-id> <cp-2-schematic-id> <cp-3-schematic-id>)
+
 # Set cluster env vars
 export CLUSTER_NAME=<cluster_name>
 export TALOS_VERSION=<talos-version>
-export SCHEMATIC_ID=<factory-schematic-id>
 
 # Generate secrets bundle
 # Backup the generate file: secrets.yaml
@@ -89,7 +118,7 @@ extraArgs:
   rotate-server-certificates: true
 ---
 # Enable workloads on the control plane nodes, and pin the kubelet node IP
-# to the node subnet (the NetBird and WireGuard interfaces carry other
+# to the node subnet (the Cilium WireGuard interface carries other
 # addresses)
 apiVersion: v1alpha1
 kind: KubeNodeConfig
@@ -103,15 +132,32 @@ labels:
   node.kubernetes.io/exclude-from-external-load-balancers:
     \$patch: delete
 ---
-# etcd peers advertise only node subnet addresses
+# Serve kube-scheduler and kube-controller-manager metrics on the node
+# addresses (default 127.0.0.1) for the apps/kube-control-plane
+# ServiceMonitors; /metrics still requires an authorized bearer token
+apiVersion: v1alpha1
+kind: KubeSchedulerConfig
+extraArgs:
+  bind-address: 0.0.0.0
+---
+apiVersion: v1alpha1
+kind: KubeControllerManagerConfig
+extraArgs:
+  bind-address: 0.0.0.0
+---
+# etcd peers advertise only node subnet addresses; the plain-HTTP metrics
+# listener (no client certificate) feeds the apps/kube-control-plane etcd
+# ScrapeConfig
 cluster:
   etcd:
     advertisedSubnets:
       - ${NODE_SUBNET}
+    extraArgs:
+      listen-metrics-urls: http://0.0.0.0:2381
 EOF
 
-# Create the per-node patches: hostname, install disk, and the shared VIP
-# announced on the node's LAN link
+# Create the per-node patches: hostname, installer image from the node's own
+# schematic, install disk, and the shared VIP announced on the node's LAN link
 for i in "${!CONTROL_PLANE_IPS[@]}"; do
 cat >"/tmp/${CONTROL_PLANE_NAMES[$i]}.yaml" <<EOF
 apiVersion: v1alpha1
@@ -122,6 +168,8 @@ auto:
 ---
 apiVersion: v1alpha1
 kind: UnattendedInstallConfig
+installer:
+  image: factory.talos.dev/metal-installer/${SCHEMATIC_IDS[$i]}:${TALOS_VERSION}
 provisioning:
   diskSelector:
     match: disk.serial == "${DISK_SERIALS[$i]}"
@@ -137,7 +185,6 @@ done
 # Backup the generated files: controlplane.yaml, talosconfig, and the
 # per-node patches (/tmp/cp-*.yaml)
 talosctl gen config --with-secrets secrets.yaml $CLUSTER_NAME https://$CONTROL_PLANE_VIP:6443 \
-  --install-image factory.talos.dev/metal-installer/$SCHEMATIC_ID:$TALOS_VERSION \
   --config-patch-control-plane @/tmp/cilium-talos-prereqs.yaml \
   --output-types controlplane,talosconfig
 

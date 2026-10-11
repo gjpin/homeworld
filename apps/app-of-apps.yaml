@@ -1279,6 +1279,41 @@ spec:
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.37
 ---
+# kube-control-plane
+# Metrics plumbing only (no workloads): ServiceMonitors and a ScrapeConfig
+# for the Talos-managed API servers, scheduler, controller manager, and etcd.
+# kube-system pre-exists and its Pod Security labels are not Argo's to manage.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-control-plane-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/kube-control-plane"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+---
 # otel-collector
 apiVersion: argoproj.io/v1alpha1
 kind: Application

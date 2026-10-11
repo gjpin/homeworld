@@ -357,6 +357,17 @@ spec:
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
 metadata:
+  name: folder-kube-control-plane
+  namespace: grafana
+spec:
+  title: Kubernetes Control Plane
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
   name: folder-kube-state-metrics
   namespace: grafana
 spec:
