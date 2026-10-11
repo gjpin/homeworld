@@ -8,7 +8,7 @@ Every intentionally accepted finding is registered as an explicit, resource-scop
 
 ## Scanning pipeline
 
-The `helm-security` job in `.github/workflows/validate.yaml` runs `scripts/scan-security.sh`, which:
+The `validate` job in `.github/workflows/validate.yaml` runs `scripts/scan-security.sh`, which:
 
 1. Validates the exception registry and its parity with the scanner input (`scripts/validate-security-exceptions.sh`).
 2. Renders every pinned Helm chart under `apps/` through its kustomization into an offline manifest tree (`scripts/render-helm-profiles.sh`).
@@ -16,7 +16,7 @@ The `helm-security` job in `.github/workflows/validate.yaml` runs `scripts/scan-
 4. Runs kube-linter (default checks) over the render; any diagnostic not ignored on the specific resource fails the job.
 5. Runs Kubescape with the `AllControls` framework and `--fail-on-degraded-config`; the job fails if the report contains any failed control that is not covered by an exception.
 
-The separate `trivy-image-scan` job runs `scripts/scan-images.sh`, which extracts the container images added or changed in the pull request diff and fails on unpatched `CRITICAL`/`HIGH` vulnerabilities.
+The same job's image-scan step runs `scripts/scan-images.sh`, which extracts the container images added or changed in the pull request diff and fails on unpatched `CRITICAL`/`HIGH` vulnerabilities.
 
 Scanner tool versions are pinned in `.github/workflows/validate.yaml` and updated by Renovate. The offline render covers only the Helm installations; handwritten manifests under `apps/<component>/` are deployed through Argo CD and governed by the Pod Security conventions in [pod-security.md](pod-security.md) and live cluster admission instead.
 

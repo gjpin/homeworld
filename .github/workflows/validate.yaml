@@ -1,66 +1,99 @@
 name: Validate manifests
 
+# Docs-only and OpenChamber image changes skip validation; the markdown files
+# scripts/check-k8s-version.sh reads stay in scope.
 on:
   pull_request:
+    paths:
+      - "**"
+      - "!docs/**"
+      - "!**.md"
+      - "!images/openchamber/**"
+      - "docs/pod-security.md"
+      - "README.md"
+      - "AGENTS.md"
+      - "e2e/README.md"
   push:
     branches:
       - main
+    paths:
+      - "**"
+      - "!docs/**"
+      - "!**.md"
+      - "!images/openchamber/**"
+      - "docs/pod-security.md"
+      - "README.md"
+      - "AGENTS.md"
+      - "e2e/README.md"
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
 jobs:
+  # One job instead of four: Actions bills each job rounded up to the minute.
+  # Every check step runs even after an earlier one fails.
+  #
   # Parse-only validation: CEL admission policies and pinned-CRD custom
   # resources are only parse-checked here; cluster-side schema validation is
   # impossible without the CRDs installed (see AGENTS.md Validation section).
-  manifests:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # scan-images.sh diffs against the PR base or HEAD~1.
+          fetch-depth: 0
 
       - name: Parse Kubernetes manifests
+        if: ${{ !cancelled() }}
         run: |
           find apps -type f -name '*.yaml' -not -path '*/charts/*' -not -path '*/local-charts/*' -print0 |
             xargs -0 -n1 yq eval '.' >/dev/null
 
       - name: Check for duplicate YAML keys
+        if: ${{ !cancelled() }}
         run: scripts/check-yaml-duplicates.sh
 
       - name: Check Secret key references
+        if: ${{ !cancelled() }}
         run: scripts/check-secret-refs.sh
 
       - name: Validate Grafana dashboards
+        if: ${{ !cancelled() }}
         # jq ships preinstalled on the runner image, so no install step needed.
         run: |
           find apps/grafana/dashboards -type f -name '*.json' -print0 |
             xargs -0 -n1 jq empty
 
       - name: Check Grafana dashboard wiring
+        if: ${{ !cancelled() }}
         run: scripts/check-dashboards.sh
 
       - name: Check shell script syntax
+        if: ${{ !cancelled() }}
         run: |
           for f in scripts/*.sh e2e/examples/hooks/*.sh; do
             bash -n "$f"
           done
 
       - name: Check Kubernetes version pin consistency
+        if: ${{ !cancelled() }}
         run: scripts/check-k8s-version.sh
 
-  e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
       - name: Set up Go
+        if: ${{ !cancelled() }}
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: e2e/go.mod
           cache-dependency-path: e2e/go.sum
 
       - name: Test and validate e2e suite
+        if: ${{ !cancelled() }}
         working-directory: e2e
         run: |
           go test ./...
@@ -68,18 +101,8 @@ jobs:
           go run ./cmd/e2e validate -f testdata/suite.minimal.yaml
           go run ./cmd/e2e validate -f examples/homeworld.suite.yaml
 
-  helm-security:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        profile:
-          - homelab
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
       - name: Install security toolchain
+        if: ${{ !cancelled() }}
         shell: bash
         run: |
           set -euo pipefail
@@ -126,27 +149,22 @@ jobs:
           sudo install yq_linux_amd64 /usr/local/bin/yq
 
       - name: Render and enforce security policy
-        run: scripts/scan-security.sh "${{ matrix.profile }}"
+        if: ${{ !cancelled() }}
+        run: scripts/scan-security.sh homelab
 
       - name: Upload scanner reports
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: security-${{ matrix.profile }}
-          path: security-reports/${{ matrix.profile }}
-
-  trivy-image-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
+          name: security-homelab
+          path: security-reports/homelab
 
       - name: Install Trivy
+        if: ${{ !cancelled() }}
         uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
         with:
           version: v0.75.0
 
       - name: Scan PR-updated container images
+        if: ${{ !cancelled() }}
         run: scripts/scan-images.sh
