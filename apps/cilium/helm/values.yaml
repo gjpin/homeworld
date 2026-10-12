@@ -49,6 +49,16 @@ localRedirectPolicies:
   enabled: true
 rollOutCiliumPods: true
 
+# --- Envoy Gateway virtual IP ---
+# Every Gateway publishes the 192.168.8.50 Gateway VIP (reserved on the
+# router, see docs/talos.md) through spec.addresses, which Envoy Gateway
+# renders as the Envoy Service's spec.externalIPs. The kube-proxy replacement always
+# load-balances external IPs (the chart has no separate toggle), and one node
+# at a time answers ARP for it (../2_l2_announcement_policy.yaml). One
+# announced Service stays far below the default client rate limit.
+l2announcements:
+  enabled: true
+
 # --- agent security context ---
 cgroup:
   autoMount:

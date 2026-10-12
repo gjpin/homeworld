@@ -1,0 +1,30 @@
+# https://docs.cilium.io/en/v1.20/network/l2-announcements/
+#
+# Answers ARP for 192.168.8.50 (the Gateway VIP), the Envoy Service's
+# spec.externalIPs entry that every Gateway publishes through
+# spec.addresses. One node at a time
+# holds the cilium-l2announce-envoy-gateway-<service> lease in the cilium
+# namespace and announces the address; another node takes over when it
+# stops renewing. The Envoy data plane runs as a DaemonSet
+# (apps/envoy-gateway/2_envoy_proxy.yaml), so the announcing node always has
+# a local Envoy pod and the Service keeps externalTrafficPolicy: Local
+# (client source addresses preserved), which L2 announcements would
+# otherwise not honor.
+#
+# cilium-operator registers the v2alpha1 CiliumL2AnnouncementPolicy CRD on
+# startup; wave 2 applies this policy after the wave-1 cilium Application.
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  serviceSelector:
+    matchLabels:
+      io.kubernetes.service.namespace: envoy-gateway
+      gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  externalIPs: true
+  loadBalancerIPs: false

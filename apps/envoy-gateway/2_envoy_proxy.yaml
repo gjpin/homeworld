@@ -49,13 +49,15 @@ spec:
   provider:
     type: Kubernetes
     kubernetes:
-      envoyDeployment:
+      # One Envoy pod per node: Cilium answers ARP for 192.168.8.50 from a
+      # single node at a time and does not consult externalTrafficPolicy
+      # when picking it (apps/cilium/2_l2_announcement_policy.yaml), so the
+      # announcing node must always run a local Envoy pod.
+      envoyDaemonSet:
         patch:
           type: StrategicMerge
           value:
             spec:
-              # Single replica: single-node homelab trade-off, no HA failover.
-              replicas: 1
               template:
                 spec:
                   hostUsers: false
@@ -76,4 +78,7 @@ spec:
           type: StrategicMerge
           value:
             spec:
+              # Keeps client source addresses for CrowdSec and the
+              # X-Envoy-External-Address header; safe because every node
+              # runs an Envoy pod (envoyDaemonSet above).
               externalTrafficPolicy: Local
