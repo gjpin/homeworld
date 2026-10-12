@@ -10,7 +10,7 @@
 # (Renovate's e2e load-hook image manager keeps them in sync).
 set -euo pipefail
 
-IMG="${BOUNCER_IMAGE:-ghcr.io/kdwils/envoy-proxy-bouncer:v0.8.1}"
+IMG="${BOUNCER_IMAGE:-ghcr.io/kdwils/envoy-proxy-bouncer:v0.8.2}"
 CLUSTER="${KIND_CLUSTER_NAME:-homeworld-e2e}"
 
 log() { printf '[load-bouncer-image] %s\n' "$*"; }
