@@ -39,8 +39,6 @@ pod:
       value: /secrets/authelia-files/postgres_password
     - name: AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE
       value: /secrets/authelia-files/oidc_hmac_secret
-    - name: AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
-      value: /secrets/authelia-files/smtp_password
   securityContext:
     pod:
       runAsNonRoot: true
@@ -93,13 +91,9 @@ configMap:
       password:
         disabled: true
   notifier:
-    disable_startup_check: true
-    smtp:
+    filesystem:
       enabled: true
-      address: submissions://smtp.example.com:465
-      sender: Authelia <authelia@example.com>
-      password:
-        disabled: true
+      filename: /config/notification.txt
   telemetry:
     metrics:
       enabled: true

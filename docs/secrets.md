@@ -27,7 +27,6 @@ Non-secret cluster coordinates are committed as literal values, not placeholders
 | | `/authelia/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `authelia` (the CNPG `owner` user) |
 | | `/authelia/POSTGRES_PASSWORD` | CloudNativePG application password. | `openssl rand -hex 32` |
 | | `/authelia/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for session storage. | `openssl rand -hex 32` |
-| | `/authelia/SMTP_PASSWORD` | SMTP relay password for notification emails. | From the SMTP relay provider |
 | | `/authelia/OIDC_HMAC_SECRET` | HMAC secret for the OIDC provider endpoints. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_JWK_RS256` | RSA private key (JWK) for signing OIDC tokens. | `openssl genrsa 2048` (private-key PEM, including the BEGIN/END lines; Authelia derives the public key) |
 | | `/authelia/RESET_PASSWORD_JWT_SECRET` | JWT secret for the password-reset flow. | `openssl rand -hex 32` |
@@ -104,9 +103,6 @@ Non-secret cluster coordinates are committed as literal values, not placeholders
 | **Vaultwarden** | `/vaultwarden/ADMIN_TOKEN` | Admin panel token, preferably an Argon2 PHC string. | `docker run --rm -it docker.io/vaultwarden/server /vaultwarden hash` |
 | | `/vaultwarden/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `vaultwarden` (the CNPG `owner` user) |
 | | `/vaultwarden/POSTGRES_PASSWORD` | CloudNativePG application password. Must contain only RFC 3986 unreserved characters; it is embedded unescaped in the PostgreSQL connection URL. | `openssl rand -hex 32` (hex output is RFC 3986 unreserved) |
-| | `/vaultwarden/SMTP_USERNAME` | SMTP relay username for invitation and notification emails. | From the SMTP relay provider |
-| | `/vaultwarden/SMTP_PASSWORD` | SMTP relay password. | From the SMTP relay provider |
-| | `/vaultwarden/SMTP_HOST` | SMTP relay hostname (implicit TLS on port 465 is configured in the manifest). | From the SMTP relay provider |
 | **Woodpecker CI** | `/woodpecker/FORGEJO_CLIENT` | Forgejo OAuth2 application client ID. | Manual — README §5 |
 | | `/woodpecker/FORGEJO_SECRET` | Forgejo OAuth2 application client secret. | Manual — README §4 |
 | | `/woodpecker/AGENT_SECRET` | Shared secret between Woodpecker server and agents. | `openssl rand -hex 32` |

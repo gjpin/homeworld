@@ -230,3 +230,13 @@ After the `openchamber` workspace deploys (see [docs/openchamber.md](docs/opench
   copilot login         # Copilot CLI (device-code flow)
   ```
   `/openchamber/OPENAI_API_KEY` and `/openchamber/GITHUB_TOKEN` are injected as environment variables, so Codex and OpenCode also work without interactive login. Copilot CLI checks `COPILOT_GITHUB_TOKEN`, then `GH_TOKEN`, then `GITHUB_TOKEN` before its stored login, so the injected `GITHUB_TOKEN` takes precedence: it must carry the Copilot Requests permission, otherwise `copilot login` appears to succeed but is silently shadowed.
+
+## One-Time Codes
+
+Authelia sends no email. When you register a TOTP app or security key, it asks for a one-time code, which it writes to a file inside its pod instead of mailing it:
+
+```bash
+kubectl -n authelia exec deploy/authelia -- cat /config/notification.txt
+```
+
+The newest code is at the bottom. The file lives on an emptyDir, so it empties when the pod restarts.

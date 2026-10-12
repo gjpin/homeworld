@@ -70,11 +70,11 @@ storage:
     database: authelia
     username: authelia
 notifier:
-  disable_startup_check: true
-  smtp:
-    address: submissions://${AUTHELIA_SMTP_HOST}:465
-    username: ${AUTHELIA_SMTP_USERNAME}
-    sender: ${AUTHELIA_SMTP_SENDER}
+  # No mail: one-time codes (second-factor registration) are appended to
+  # this file on the chart's /config emptyDir. Read them with
+  # `kubectl -n authelia exec deploy/authelia -- cat /config/notification.txt`.
+  filesystem:
+    filename: /config/notification.txt
 definitions:
   user_attributes:
     immich_role:

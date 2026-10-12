@@ -106,8 +106,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   # The SMTP relay host comes from the notesnook-secrets ExternalSecret so it
-  # cannot be pinned by FQDN; allow submission ports to world (vaultwarden
-  # SMTP egress precedent).
+  # cannot be pinned by FQDN; allow submission ports to world.
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: notesnook-sse

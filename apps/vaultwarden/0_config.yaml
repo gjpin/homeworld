@@ -17,9 +17,10 @@ data:
   # comma-separated entry, which clients can spoof.
   IP_HEADER: "X-Envoy-External-Address"
   # Closed registration: accounts are created only through admin-panel
-  # invitations, which are emailed via the SMTP relay.
+  # invitations. No SMTP is configured, so nothing is emailed: an invited
+  # address signs in through Authelia SSO (or registers) directly.
   SIGNUPS_ALLOWED: "false"
-  SIGNUPS_VERIFY: "true"
+  SIGNUPS_VERIFY: "false"
   INVITATIONS_ALLOWED: "true"
   SHOW_PASSWORD_HINT: "false"
   # Wait up to two minutes for the CloudNativePG cluster during startup
@@ -52,8 +53,6 @@ data:
   # settings (those env vars are silently ignored), so vaultwarden-admin
   # membership does not grant the admin role. Every SSO user gets the
   # default role; assign admins via the admin panel (ADMIN_TOKEN).
-  # SMTP relay: implicit TLS on 465, matching the shared submissions relay.
-  SMTP_SECURITY: "force_tls"
-  SMTP_PORT: "465"
-  SMTP_FROM: "vaultwarden@${BASE_DOMAIN}"
-  SMTP_FROM_NAME: "Vaultwarden"
+  # No Internet egress (apps/vaultwarden/-2_network_policy.yaml): the
+  # internal icon service serves no favicons instead of fetching them.
+  DISABLE_ICON_DOWNLOAD: "true"

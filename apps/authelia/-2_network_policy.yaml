@@ -70,8 +70,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  # NTP and the configured implicit-TLS SMTP notifier are the only Authelia
-  # Internet dependencies.
+  # NTP is Authelia's only Internet dependency: the notifier writes to a
+  # local file, so no SMTP egress exists.
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: authelia
@@ -83,12 +83,6 @@ spec:
         - ports:
             - port: "123"
               protocol: UDP
-    - toFQDNs:
-        - matchName: "${AUTHELIA_SMTP_HOST}"
-      toPorts:
-        - ports:
-            - port: "465"
-              protocol: TCP
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
