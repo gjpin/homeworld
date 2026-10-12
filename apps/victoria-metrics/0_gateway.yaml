@@ -9,18 +9,17 @@ metadata:
   name: envoy
   namespace: victoria-metrics
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: homeworld-ca
 spec:
   gatewayClassName: envoy-merged
   addresses:
     - type: IPAddress
-      value: ${EXTERNAL_IP}
+      value: 192.168.8.50
   listeners:
     - name: victoria-metrics-https
       protocol: HTTPS
       port: 443
-      hostname: "victoria-metrics.${BASE_DOMAIN}"
+      hostname: "victoria-metrics.homeworld.internal"
       allowedRoutes:
         namespaces:
           from: All
@@ -33,7 +32,7 @@ spec:
     - name: victoria-logs-https
       protocol: HTTPS
       port: 443
-      hostname: "victoria-logs.${BASE_DOMAIN}"
+      hostname: "victoria-logs.homeworld.internal"
       allowedRoutes:
         namespaces:
           from: All
@@ -46,7 +45,7 @@ spec:
     - name: victoria-traces-https
       protocol: HTTPS
       port: 443
-      hostname: "victoria-traces.${BASE_DOMAIN}"
+      hostname: "victoria-traces.homeworld.internal"
       allowedRoutes:
         namespaces:
           from: All

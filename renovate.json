@@ -525,20 +525,6 @@
     },
     {
       "customType": "regex",
-      "description": "Update the ExternalDNS Helm chart",
-      "managerFilePatterns": [
-        "/^apps/external-dns/helm/kustomization\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^\\s+- name:\\s+external-dns\\s+repo:\\s+https://kubernetes-sigs\\.github\\.io/external-dns\\s+version:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "depNameTemplate": "external-dns",
-      "datasourceTemplate": "helm",
-      "versioningTemplate": "helm",
-      "registryUrlTemplate": "https://kubernetes-sigs.github.io/external-dns"
-    },
-    {
-      "customType": "regex",
       "description": "Update the metrics-server Helm chart",
       "managerFilePatterns": [
         "/^apps/metrics-server/helm/kustomization\\.yaml$/"

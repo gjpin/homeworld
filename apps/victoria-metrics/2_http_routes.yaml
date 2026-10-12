@@ -6,7 +6,6 @@ metadata:
   namespace: victoria-metrics
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "victoria-metrics.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -15,7 +14,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "victoria-metrics.${BASE_DOMAIN}"
+    - "victoria-metrics.homeworld.internal"
   rules:
     - backendRefs:
         - name: victoria-metrics
@@ -32,7 +31,6 @@ metadata:
   namespace: victoria-metrics
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "victoria-logs.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -41,7 +39,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "victoria-logs.${BASE_DOMAIN}"
+    - "victoria-logs.homeworld.internal"
   rules:
     - backendRefs:
         - name: victoria-logs
@@ -58,7 +56,6 @@ metadata:
   namespace: victoria-metrics
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "victoria-traces.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -67,7 +64,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "victoria-traces.${BASE_DOMAIN}"
+    - "victoria-traces.homeworld.internal"
   rules:
     - backendRefs:
         - name: victoria-traces

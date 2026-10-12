@@ -10,18 +10,17 @@ metadata:
   namespace: openchamber
   annotations:
     argocd.argoproj.io/sync-wave: "0"
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: homeworld-ca
 spec:
   gatewayClassName: envoy-merged
   addresses:
     - type: IPAddress
-      value: ${EXTERNAL_IP}
+      value: 192.168.8.50
   listeners:
     - name: openchamber-https
       protocol: HTTPS
       port: 443
-      hostname: "openchamber.${BASE_DOMAIN}"
+      hostname: "openchamber.homeworld.internal"
       allowedRoutes:
         namespaces:
           from: All

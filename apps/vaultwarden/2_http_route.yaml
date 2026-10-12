@@ -6,7 +6,6 @@ metadata:
   namespace: vaultwarden
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "vault.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -14,7 +13,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "vault.${BASE_DOMAIN}"
+    - "vault.homeworld.internal"
   rules:
     - backendRefs:
         - name: vaultwarden

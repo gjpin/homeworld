@@ -108,7 +108,7 @@ spec:
       k8s:app.kubernetes.io/name: vaultwarden
   egress:
     - toFQDNs:
-        - matchName: "auth.${BASE_DOMAIN}"
+        - matchName: "auth.homeworld.internal"
       toPorts:
         - ports:
             - port: "443"

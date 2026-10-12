@@ -18,13 +18,6 @@ config:
   kind: ControllerConfiguration
   gatewayAPI:
     enabled: true
-  # DNS-01 self-checks must not follow the zone's authoritative nameservers:
-  # the controller's egress policy only allows the ACME APIs, Cloudflare, and
-  # kube-dns on :53, so direct queries to arbitrary authoritative servers
-  # would be dropped and the challenge would never validate. With this flag
-  # set (and dns01RecursiveNameservers left empty), the self-check resolves
-  # through the pod's resolver — kube-dns — which the policy admits.
-  dns01RecursiveNameserversOnly: true
   kubernetesAPIQPS: 10000
   kubernetesAPIBurst: 10000
 prometheus:

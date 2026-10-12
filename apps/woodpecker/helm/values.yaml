@@ -9,12 +9,12 @@ server:
     pullPolicy: IfNotPresent
 
   env:
-    WOODPECKER_HOST: "https://ci.${BASE_DOMAIN}"
+    WOODPECKER_HOST: "https://ci.homeworld.internal"
     WOODPECKER_SERVER_ADDR: ":8000"
     WOODPECKER_GRPC_ADDR: ":9000"
     WOODPECKER_DATABASE_DRIVER: postgres
     WOODPECKER_FORGEJO: "true"
-    WOODPECKER_FORGEJO_URL: "https://git.${BASE_DOMAIN}"
+    WOODPECKER_FORGEJO_URL: "https://git.homeworld.internal"
     # The chart's default WOODPECKER_ADMIN is the placeholder
     # 'woodpecker,admin', which would silently make any Forgejo user named
     # woodpecker or admin a CI admin. Keep the list empty until a real
@@ -24,6 +24,19 @@ server:
     # upgrade-checker rule); it runs in the admin's browser, so the server's
     # own egress policy does not stop it.
     WOODPECKER_DISABLE_VERSION_CHECK: "true"
+    # Forgejo (API and OAuth on git.homeworld.internal) serves a certificate
+    # signed by the homeworld CA; add the trust-manager ConfigMap mounted
+    # below to Go's system roots (additive to the image's CA bundle).
+    SSL_CERT_DIR: /etc/homeworld-ca
+
+  extraVolumes:
+    - name: homeworld-ca
+      configMap:
+        name: homeworld-ca
+  extraVolumeMounts:
+    - name: homeworld-ca
+      mountPath: /etc/homeworld-ca
+      readOnly: true
 
   # Expose the internal metrics endpoint the ServiceMonitor scrapes
   # (bearer token arrives via envFrom woodpecker-secrets,

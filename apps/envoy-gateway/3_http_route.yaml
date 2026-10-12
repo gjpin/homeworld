@@ -7,7 +7,6 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "3"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-    external-dns.alpha.kubernetes.io/hostname: "envoy.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -15,7 +14,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "envoy.${BASE_DOMAIN}"
+    - "envoy.homeworld.internal"
   rules:
     - backendRefs:
         - name: envoy-gateway

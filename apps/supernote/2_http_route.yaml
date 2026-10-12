@@ -6,7 +6,6 @@ metadata:
   namespace: supernote
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "supernote.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -15,7 +14,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "supernote.${BASE_DOMAIN}"
+    - "supernote.homeworld.internal"
   rules:
     - filters:
         # The bundled nginx derives the public port it hands the backend

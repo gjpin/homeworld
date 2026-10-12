@@ -1,0 +1,23 @@
+# https://cert-manager.io/docs/trust/trust-manager/api-reference/
+#
+# Publishes the homeworld root CA as ConfigMap homeworld-ca (key ca.crt) in
+# every namespace. Workloads that call *.homeworld.internal from inside the
+# cluster mount it and add it to their runtime's trust store (SSL_CERT_DIR,
+# NODE_EXTRA_CA_CERTS, or an app-specific CA setting), and the Envoy OIDC
+# BackendTLSPolicies reference it directly.
+---
+apiVersion: trust.cert-manager.io/v1alpha1
+kind: Bundle
+metadata:
+  name: homeworld-ca
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  sources:
+    - secret:
+        name: homeworld-ca
+        key: ca.crt
+  target:
+    configMap:
+      key: ca.crt

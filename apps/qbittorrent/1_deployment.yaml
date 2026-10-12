@@ -144,7 +144,7 @@ spec:
                       # listener's own address (loopback/pod IP, which
                       # covers the exporter and kubelet probes) nor a
                       # listed domain.
-                      "WebUI\\ServerDomains=qbittorrent.${BASE_DOMAIN};qbittorrent\n"
+                      "WebUI\\ServerDomains=qbittorrent.homeworld.internal;qbittorrent\n"
                       "WebUI\\UseUPnP=false\n"
                       "WebUI\\Username=" + username + "\n"
                       # Stateless WebAPI key for the exporter and the sync

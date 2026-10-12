@@ -83,8 +83,11 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   features and functionality must NOT be disabled or broken in the process;
   when in doubt whether a mechanism is pure telemetry or required for features,
   ask the user.
-- Public HTTP/gRPC endpoints use Gateway API resources plus the
-  `external-dns.alpha.kubernetes.io/hostname` annotation. Keep Gateway listeners,
+- HTTP/gRPC endpoints use Gateway API resources on `<app>.homeworld.internal`:
+  a Gateway with `spec.addresses` `192.168.8.50` (the Cilium-announced Gateway
+  VIP; the router's AdGuard Home resolves every `*.homeworld.internal` name to
+  it, so no DNS records are managed in git) and the
+  `cert-manager.io/cluster-issuer: homeworld-ca` annotation. Keep Gateway listeners,
   route hostnames, TLS hostnames, and backend ports aligned. Every route backend also
   needs a matching per-service `allow-envoy-backend-<service>` egress CiliumNetworkPolicy
   in `apps/envoy-gateway` (one port per rule — Cilium applies `toPorts` to every
@@ -94,8 +97,15 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   docs/network-policies.md): explicit `fromEntities: host` probe rules are
   optional defense-in-depth, not a requirement. Revisit if the datapath mode or
   the host firewall configuration changes.
-- Preserve `${VARIABLE}` placeholders in tracked files. They are intended for
-  `envsubst` during deployment.
+- Argo CD deploys this repository straight from git, so tracked manifests contain
+  no deployment placeholders: cluster coordinates (domain, Gateway VIP, Infisical
+  endpoint, Velero target) are literal values, and anything operator-specific
+  that is not a fixed coordinate (SMTP relays, sender addresses) comes from
+  Infisical. Runtime expansions owned by an application (CrowdSec's
+  `${DB_PASSWORD}`) stay verbatim.
+- Workloads that call `*.homeworld.internal` over HTTPS from inside the cluster
+  must trust the Homeworld CA; follow "In-cluster trust of the Homeworld CA"
+  below.
 - Never place real credentials, tokens, passwords, private keys, or substituted
   secret values in the repository. Prefer the existing External Secrets /
   Infisical pattern for new secret material. Every container env `secretKeyRef`
@@ -222,7 +232,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `!env_var` tag so the secret never lands on the PVC.
 - List every OIDC app origin explicitly in the provider's `cors.allowed_origins`.
 - Apps doing server-side token exchange get an `allow-<app>-authelia`
-  CiliumNetworkPolicy egress (`toFQDNs: auth.${BASE_DOMAIN}:443`) and a
+  CiliumNetworkPolicy egress (`toFQDNs: auth.homeworld.internal:443`) and a
   matching `docs/network-policies.md` egress entry.
 - Public browser-UI routes for workloads with no usable app-native OIDC or
   login must be authenticated by Envoy Gateway itself as the shared `envoy`
@@ -329,6 +339,50 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - For Helm workloads, use the chart's exact value key or a Kustomize patch if not exposed. For handwritten manifests, declare `runtimeClassName: gvisor` directly in the Pod template spec. For operator-generated Pods, use a supported operator pod-template or patch mechanism.
 - A Pod with `runtimeClassName: gvisor` must not use `hostNetwork`, host block devices, or direct node filesystem integration. Preserve standard runtimes only for the documented exceptions (`cilium-agent`, `cilium-envoy`, `cilium-operator`, `crowdsec-agent`, `generic-device-plugin`, `longhorn-manager`, `otel-collector-node`, `velero-node-agent`, the gluetun-based qBittorrent pod, `zigbee2mqtt`, and operator-generated operands whose pod templates the CRD cannot set — CNPG, Dragonfly, DocumentDB, MariaDB Operator, and RustFS Tenant operands). Keep the gVisor table in `docs/pod-security.md` as the source of truth for the exact list. Operator-spawned pods that accept a runtime class per-instance (e.g. Woodpecker pipeline pods) opt in through the operator's allow-from-step flag plus per-pipeline backend options, never a repo-level manifest.
 
+## In-cluster trust of the Homeworld CA
+
+Every `*.homeworld.internal` certificate is signed by the private Homeworld CA
+(cert-manager `homeworld-ca` ClusterIssuer), which no container image trusts by
+default. When onboarding or changing an app:
+
+1. List every HTTPS call the app makes to `*.homeworld.internal` from inside the
+   cluster, in every container including init containers and jobs: OIDC
+   discovery, token, userinfo, and JWKS requests to `auth.homeworld.internal`,
+   webhooks, WOPI, API widgets, and git clones. Plain-HTTP calls to in-cluster
+   Service names need nothing. Never work around a missing trust with
+   `insecureSkipVerify`, `tls_verify: false`, or similar switches.
+2. Mount the `homeworld-ca` ConfigMap (key `ca.crt`; trust-manager publishes it
+   in every namespace, `apps/trust-manager/2_bundle.yaml`) read-only at
+   `/etc/homeworld-ca` in each of those containers. Mount the whole ConfigMap,
+   not a `subPath`, so a rotated CA reaches running pods.
+3. Add it to the container's trust store, verified against the runtime's TLS
+   stack rather than assumed:
+   - Go: `SSL_CERT_DIR=/etc/homeworld-ca` (additive to the image's bundle
+     file; Forgejo, Woodpecker, OpenCloud).
+   - Node.js: `NODE_EXTRA_CA_CERTS=/etc/homeworld-ca/ca.crt` (Immich,
+     Homepage, velero-ui).
+   - Rust with rustls-native-certs or rustls-platform-verifier: setting either
+     variable replaces the platform store, so set `SSL_CERT_FILE` to the image's
+     own bundle (check the path in the pinned image) plus
+     `SSL_CERT_DIR=/etc/homeworld-ca` (Vaultwarden).
+   - Otherwise the app's own CA setting, which is preferred whenever it exists:
+     Grafana `auth.generic_oauth.tls_client_ca`, hass-oidc-auth
+     `network.tls_ca_path`, RustFS `RUSTFS_EXTRA_CA_CERT`. PVC-seeded config
+     follows the create-if-missing bootstrap convention.
+   - Apps that sync before trust-manager (app-of-apps wave 4) read the
+     certificate from `/cert-manager/CA_CERT` through their own ExternalSecret
+     instead (Argo CD's OIDC `rootCA: $argocd-oidc:rootCA`).
+4. Envoy Gateway OIDC (`SecurityPolicy` `oidc`): set `provider.backendRefs` to an
+   `authelia` Backend and add the matching BackendTLSPolicy in the same
+   namespace and wave, copied from `apps/homepage/2_authelia_backend.yaml`.
+5. `*.homeworld.internal` resolves to the private Gateway VIP `192.168.8.50`.
+   Apps with SSRF guards that refuse private destinations need the exact origin
+   allowlisted (RustFS `RUSTFS_OUTBOUND_ALLOW_ORIGINS`), and the egress
+   CiliumNetworkPolicy allows `toFQDNs: <host>.homeworld.internal` on `443`.
+6. Render the change and confirm the mount and variable reach every container
+   that makes the calls, then check the app's logs on a live or e2e cluster for
+   `x509`/`certificate` errors on its first call.
+
 ## New component checklist
 
 - `fullnameOverride`
@@ -344,6 +398,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - Document Pod Security Standards compliance and User Namespaces status in `docs/pod-security.md`.
 - Document Authelia OIDC integration status or sign-in behavior in `docs/oidc.md`.
 - Authelia OIDC client per the Authelia OIDC client conventions (if the app has user login).
+- Homeworld CA trust for every in-cluster HTTPS call to `*.homeworld.internal`
+  (see "In-cluster trust of the Homeworld CA").
 - Scope the component's internet egress with dedicated, per-app CiliumNetworkPolicies
   (FQDN- or port-scoped — there is no shared world-egress selector) and add a matching
   `docs/network-policies.md` row.
@@ -440,8 +496,8 @@ resources rather than claiming full cluster compatibility.
 - Do not edit generated/imported dashboard JSON unless the task concerns that
   dashboard; avoid formatting an entire export for a small semantic change.
 - Do not rename or reorganize existing resources merely for consistency.
-- Update documentation when environment variables, public domains, bootstrap
-  steps, component inventory, or sync ordering change.
+- Update documentation when cluster coordinates, domains, bootstrap steps,
+  component inventory, or sync ordering change.
 - Update documentation in `docs/` (including `docs/pod-security.md` for Pod
   Security Standards and User Namespaces changes, `docs/oidc.md` for Authelia
   OIDC integration status and sign-in behavior, and `docs/argocd.md` within

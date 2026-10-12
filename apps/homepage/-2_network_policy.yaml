@@ -89,7 +89,7 @@ spec:
       k8s:app.kubernetes.io/name: homepage
   egress:
     - toFQDNs:
-        - matchPattern: "*.${BASE_DOMAIN}"
+        - matchPattern: "*.homeworld.internal"
       toPorts:
         - ports:
             - port: "443"

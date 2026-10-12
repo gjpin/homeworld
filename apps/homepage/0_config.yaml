@@ -27,80 +27,80 @@ data:
     - Development:
         - Forgejo:
             icon: forgejo
-            href: https://git.${BASE_DOMAIN}
+            href: https://git.homeworld.internal
             description: Git forge
-            siteMonitor: https://git.${BASE_DOMAIN}
+            siteMonitor: https://git.homeworld.internal
         - Woodpecker CI:
             icon: woodpecker-ci
-            href: https://ci.${BASE_DOMAIN}
+            href: https://ci.homeworld.internal
             description: CI pipelines
-            siteMonitor: https://ci.${BASE_DOMAIN}
+            siteMonitor: https://ci.homeworld.internal
         - OpenChamber:
             icon: /icons/openchamber.svg
-            href: https://openchamber.${BASE_DOMAIN}
+            href: https://openchamber.homeworld.internal
             description: AI agent workspace
-            siteMonitor: https://openchamber.${BASE_DOMAIN}
+            siteMonitor: https://openchamber.homeworld.internal
     - Media:
         - Immich:
             icon: immich
-            href: https://photos.${BASE_DOMAIN}
+            href: https://photos.homeworld.internal
             description: Photos and videos
-            siteMonitor: https://photos.${BASE_DOMAIN}
+            siteMonitor: https://photos.homeworld.internal
             widget:
               type: immich
-              url: https://photos.${BASE_DOMAIN}
+              url: https://photos.homeworld.internal
               key: "{{HOMEPAGE_VAR_IMMICH_API_KEY}}"
         - qBittorrent:
             icon: qbittorrent
-            href: https://qbittorrent.${BASE_DOMAIN}
+            href: https://qbittorrent.homeworld.internal
             description: Torrent downloads over VPN
-            siteMonitor: https://qbittorrent.${BASE_DOMAIN}
+            siteMonitor: https://qbittorrent.homeworld.internal
             widget:
               type: qbittorrent
-              url: https://qbittorrent.${BASE_DOMAIN}
+              url: https://qbittorrent.homeworld.internal
               username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
               password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
     - Home:
         - Home Assistant:
             icon: home-assistant
-            href: https://home.${BASE_DOMAIN}
+            href: https://home.homeworld.internal
             description: Home automation
-            siteMonitor: https://home.${BASE_DOMAIN}
+            siteMonitor: https://home.homeworld.internal
             widget:
               type: homeassistant
-              url: https://home.${BASE_DOMAIN}
+              url: https://home.homeworld.internal
               key: "{{HOMEPAGE_VAR_HASS_TOKEN}}"
         - Zigbee2MQTT:
             icon: zigbee2mqtt
-            href: https://z2m.${BASE_DOMAIN}
+            href: https://z2m.homeworld.internal
             description: Zigbee bridge
     - Productivity:
         - OpenCloud:
             icon: mdi-cloud-outline
-            href: https://cloud.${BASE_DOMAIN}
+            href: https://cloud.homeworld.internal
             description: Files, sharing, and collaboration
-            siteMonitor: https://cloud.${BASE_DOMAIN}
+            siteMonitor: https://cloud.homeworld.internal
         - Collabora:
             icon: collabora
-            href: https://office.${BASE_DOMAIN}
+            href: https://office.homeworld.internal
             description: Online office editor
-            siteMonitor: https://office.${BASE_DOMAIN}
+            siteMonitor: https://office.homeworld.internal
         - Notesnook:
             icon: notesnook
-            href: https://notes.${BASE_DOMAIN}
+            href: https://notes.homeworld.internal
             description: Encrypted notes
-            siteMonitor: https://notes.${BASE_DOMAIN}
+            siteMonitor: https://notes.homeworld.internal
     - Monitoring:
         - Grafana:
             icon: grafana
-            href: https://grafana.${BASE_DOMAIN}
+            href: https://grafana.homeworld.internal
             description: Dashboards and observability
             # No siteMonitor: unauthenticated probes hit Grafana's OIDC
             # auto_login redirect and would measure the Authelia portal,
             # not Grafana (same class as the gateway-OIDC hosts above).
             widget:
               type: grafana
-              url: https://grafana.${BASE_DOMAIN}
+              url: https://grafana.homeworld.internal
               # The v2.4.0 grafana widget proxies through the generic
               # handler, which only sets Authorization from username/
               # password and silently ignores `key:`. Send the existing
@@ -110,54 +110,54 @@ data:
                 Authorization: Bearer {{HOMEPAGE_VAR_GRAFANA_TOKEN}}
         - VictoriaMetrics:
             icon: victoriametrics
-            href: https://victoria-metrics.${BASE_DOMAIN}
+            href: https://victoria-metrics.homeworld.internal
             description: Metrics backend
         - VictoriaLogs:
             icon: victorialogs
-            href: https://victoria-logs.${BASE_DOMAIN}
+            href: https://victoria-logs.homeworld.internal
             description: Logs backend
         - VictoriaTraces:
             icon: mdi-chart-timeline-variant
-            href: https://victoria-traces.${BASE_DOMAIN}
+            href: https://victoria-traces.homeworld.internal
             description: Traces backend
     - Platform:
         - Argo CD:
             icon: argo-cd
-            href: https://argocd.${BASE_DOMAIN}
+            href: https://argocd.homeworld.internal
             description: GitOps delivery
-            siteMonitor: https://argocd.${BASE_DOMAIN}
+            siteMonitor: https://argocd.homeworld.internal
             widget:
               type: argocd
-              url: https://argocd.${BASE_DOMAIN}
+              url: https://argocd.homeworld.internal
               key: "{{HOMEPAGE_VAR_ARGOCD_TOKEN}}"
         - Longhorn:
             icon: longhorn
-            href: https://longhorn.${BASE_DOMAIN}
+            href: https://longhorn.homeworld.internal
             description: Distributed block storage
         - RustFS:
             icon: rustfs
-            href: https://console.rustfs.${BASE_DOMAIN}
+            href: https://console.rustfs.homeworld.internal
             description: S3 object storage console
-            siteMonitor: https://s3.${BASE_DOMAIN}
+            siteMonitor: https://s3.homeworld.internal
         - RustFS Operator:
             icon: rustfs
-            href: https://rustfs.${BASE_DOMAIN}
+            href: https://rustfs.homeworld.internal
             description: Storage operator console
-            siteMonitor: https://rustfs.${BASE_DOMAIN}
+            siteMonitor: https://rustfs.homeworld.internal
         - Velero UI:
             icon: velero
-            href: https://velero.${BASE_DOMAIN}
+            href: https://velero.homeworld.internal
             description: Backup management
-            siteMonitor: https://velero.${BASE_DOMAIN}
+            siteMonitor: https://velero.homeworld.internal
         - Envoy Gateway:
             icon: mdi-lan
-            href: https://envoy.${BASE_DOMAIN}
+            href: https://envoy.homeworld.internal
             description: Gateway API admin console
         - Authelia:
             icon: authelia
-            href: https://auth.${BASE_DOMAIN}
+            href: https://auth.homeworld.internal
             description: Identity provider
-            siteMonitor: https://auth.${BASE_DOMAIN}
+            siteMonitor: https://auth.homeworld.internal
   widgets.yaml: |
     - kubernetes:
         cluster:

@@ -13,7 +13,7 @@ deployment:
         memory: 1024Mi
         ephemeral-storage: 2Gi
   # The chart defaults plus the admin console (19000), which is published at
-  # envoy.${BASE_DOMAIN} behind gateway OIDC (3_http_route.yaml). Helm
+  # envoy.homeworld.internal behind gateway OIDC (3_http_route.yaml). Helm
   # replaces lists, so the default ports are repeated here.
   ports:
     - name: grpc
@@ -34,6 +34,11 @@ deployment:
 
 config:
   envoyGateway:
+    # Backend resources route the OIDC SecurityPolicies' token requests
+    # through a BackendTLSPolicy that trusts the homeworld CA
+    # (apps/*/[23]_authelia_backend.yaml).
+    extensionApis:
+      enableBackend: true
     # The admin server binds 127.0.0.1 by default; listen on the pod address
     # so the gateway can reach the console. Cilium admits only the Envoy data
     # plane on 19000 (allow-envoy-gateway-admin-ingress). pprof stays off.

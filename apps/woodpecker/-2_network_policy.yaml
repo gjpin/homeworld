@@ -203,7 +203,7 @@ spec:
       k8s:app.kubernetes.io/instance: woodpecker
   egress:
     - toFQDNs:
-        - matchName: "git.${BASE_DOMAIN}"
+        - matchName: "git.homeworld.internal"
       toPorts:
         - ports:
             - port: "443"
@@ -240,7 +240,7 @@ spec:
             - port: "22"
               protocol: TCP
     - toFQDNs:
-        - matchName: "git.${BASE_DOMAIN}"
+        - matchName: "git.homeworld.internal"
       toPorts:
         - ports:
             - port: "443"

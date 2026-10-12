@@ -6,7 +6,6 @@ metadata:
   namespace: rustfs
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "s3.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -15,7 +14,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "s3.${BASE_DOMAIN}"
+    - "s3.homeworld.internal"
   rules:
     - backendRefs:
       - name: rustfs-io
@@ -32,7 +31,6 @@ metadata:
   namespace: rustfs
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "console.rustfs.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -41,7 +39,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "console.rustfs.${BASE_DOMAIN}"
+    - "console.rustfs.homeworld.internal"
   rules:
     - backendRefs:
       - name: rustfs-console

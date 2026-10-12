@@ -51,7 +51,7 @@ gitea:
     - name: Authelia
       provider: openidConnect
       existingSecret: forgejo-oauth
-      autoDiscoverUrl: https://auth.${BASE_DOMAIN}/.well-known/openid-configuration
+      autoDiscoverUrl: https://auth.homeworld.internal/.well-known/openid-configuration
       scopes: "openid profile email groups"
       groupClaimName: groups
       adminGroup: forgejo-admin
@@ -66,9 +66,9 @@ gitea:
       NAME: forgejo
       USER: forgejo
     server:
-      DOMAIN: git.${BASE_DOMAIN}
-      ROOT_URL: https://git.${BASE_DOMAIN}/
-      SSH_DOMAIN: git.${BASE_DOMAIN}
+      DOMAIN: git.homeworld.internal
+      ROOT_URL: https://git.homeworld.internal/
+      SSH_DOMAIN: git.homeworld.internal
     webhook:
       # Upstream default is `external`; Woodpecker's Forgejo guide adds
       # `loopback` for same-cluster delivery. `private` would additionally
@@ -118,6 +118,27 @@ gitea:
     serviceMonitor:
       enabled: true
 
+
+# Authelia (OIDC discovery in configure-gitea and at sign-in) and Woodpecker
+# (webhooks) serve certificates signed by the homeworld CA: mount the
+# trust-manager ConfigMap into every container and add it to Go's system
+# roots (SSL_CERT_DIR is additive to the image's CA bundle file).
+deployment:
+  env:
+    - name: SSL_CERT_DIR
+      value: /etc/homeworld-ca
+extraVolumes:
+  - name: homeworld-ca
+    configMap:
+      name: homeworld-ca
+extraInitVolumeMounts:
+  - name: homeworld-ca
+    mountPath: /etc/homeworld-ca
+    readOnly: true
+extraContainerVolumeMounts:
+  - name: homeworld-ca
+    mountPath: /etc/homeworld-ca
+    readOnly: true
 
 podSecurityContext:
   fsGroup: 1000

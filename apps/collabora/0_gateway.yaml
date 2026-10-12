@@ -9,18 +9,17 @@ metadata:
   name: envoy
   namespace: collabora
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: homeworld-ca
 spec:
   gatewayClassName: envoy-merged
   addresses:
     - type: IPAddress
-      value: ${EXTERNAL_IP}
+      value: 192.168.8.50
   listeners:
     - name: office-https
       protocol: HTTPS
       port: 443
-      hostname: "office.${BASE_DOMAIN}"
+      hostname: "office.homeworld.internal"
       allowedRoutes:
         namespaces:
           from: All

@@ -11,7 +11,6 @@ metadata:
   namespace: grafana
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "grafana.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -20,7 +19,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "grafana.${BASE_DOMAIN}"
+    - "grafana.homeworld.internal"
   rules:
     - matches:
         - path:

@@ -7,18 +7,17 @@ metadata:
   name: envoy
   namespace: authelia
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: homeworld-ca
 spec:
   gatewayClassName: envoy-merged
   addresses:
     - type: IPAddress
-      value: ${EXTERNAL_IP}
+      value: 192.168.8.50
   listeners:
     - name: authelia-https
       protocol: HTTPS
       port: 443
-      hostname: "auth.${BASE_DOMAIN}"
+      hostname: "auth.homeworld.internal"
       allowedRoutes:
         namespaces:
           from: All

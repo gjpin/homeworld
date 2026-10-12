@@ -8,7 +8,7 @@ Persistent AI agent workspace: a single non-root, gVisor-sandboxed pod that runs
 | :--- | :--- |
 | Component | `apps/openchamber` |
 | Image | `ghcr.io/gjpin/openchamber:main-<shortsha>`, built from [`images/openchamber/Dockerfile`](../images/openchamber/Dockerfile) |
-| Domain | `openchamber.${BASE_DOMAIN}` |
+| Domain | `openchamber.homeworld.internal` |
 | Data | `openchamber-agent-home` PVC (100Gi, Longhorn) mounted at `/home/agent` |
 
 The pod runs `openchamber serve --foreground` as the non-root `agent` user (UID 1000) under gVisor (`runtimeClassName: gvisor`) with user namespaces (`hostUsers: false`). OpenChamber manages its own OpenCode server on loopback inside the pod and drives coding-agent sessions in projects under `/home/agent`. An entrypoint script seeds a fresh PVC from an image-staged skills skeleton and re-applies the managed no-approval agent configuration idempotently on every boot, preserving agent-created settings.
@@ -17,11 +17,11 @@ Full trixie package baseline, third-party apt repositories (Buildkite helm, Open
 
 ## Access
 
-The web UI is reachable only over WireGuard at `openchamber.${BASE_DOMAIN}` through Envoy Gateway (TLS via cert-manager, protected by the CrowdSec Envoy bouncer). Authentication is OpenChamber's own `OPENCHAMBER_UI_PASSWORD`; there is no OIDC (see [oidc.md](oidc.md)). Desktop and mobile apps pair directly against the same URL via QR-code pairing — no tunnels required.
+The web UI is reachable only over WireGuard at `openchamber.homeworld.internal` through Envoy Gateway (TLS via cert-manager, protected by the CrowdSec Envoy bouncer). Authentication is OpenChamber's own `OPENCHAMBER_UI_PASSWORD`; there is no OIDC (see [oidc.md](oidc.md)). Desktop and mobile apps pair directly against the same URL via QR-code pairing — no tunnels required.
 
 ### Relay decision: not deployed
 
-[openchamber-relay](https://github.com/openchamber/openchamber-relay) is **not** hosted in the cluster. The relay is a stateless broker for *indirect* connections: it exists so devices that cannot reach an OpenChamber instance directly (NAT, no open ports) can connect by dialing outbound to it. Since every device reaches `openchamber.${BASE_DOMAIN}` directly over WireGuard, the relay would add nothing, and hosting it would require a public `wss://` route that contradicts the WireGuard-only access model. Revisit only if agents should ever be reachable from devices that are not on the VPN.
+[openchamber-relay](https://github.com/openchamber/openchamber-relay) is **not** hosted in the cluster. The relay is a stateless broker for *indirect* connections: it exists so devices that cannot reach an OpenChamber instance directly (NAT, no open ports) can connect by dialing outbound to it. Since every device reaches `openchamber.homeworld.internal` directly over WireGuard, the relay would add nothing, and hosting it would require a public `wss://` route that contradicts the WireGuard-only access model. Revisit only if agents should ever be reachable from devices that are not on the VPN.
 
 ## Updates: grouped PRs with a build-gated automerge
 

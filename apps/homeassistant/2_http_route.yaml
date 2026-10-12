@@ -6,7 +6,6 @@ metadata:
   namespace: homeassistant
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "home.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -14,7 +13,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "home.${BASE_DOMAIN}"
+    - "home.homeworld.internal"
   rules:
     - backendRefs:
         - name: homeassistant
@@ -31,7 +30,6 @@ metadata:
   namespace: homeassistant
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "z2m.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -39,7 +37,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "z2m.${BASE_DOMAIN}"
+    - "z2m.homeworld.internal"
   rules:
     - backendRefs:
         - name: homeassistant-zigbee2mqtt

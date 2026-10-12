@@ -9,18 +9,17 @@ metadata:
   name: envoy
   namespace: forgejo
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: homeworld-ca
 spec:
   gatewayClassName: envoy-merged
   addresses:
     - type: IPAddress
-      value: ${EXTERNAL_IP}
+      value: 192.168.8.50
   listeners:
     - name: forgejo-https
       protocol: HTTPS
       port: 443
-      hostname: "git.${BASE_DOMAIN}"
+      hostname: "git.homeworld.internal"
       allowedRoutes:
         namespaces:
           from: All
@@ -30,9 +29,9 @@ spec:
           - name: forgejo-tls-cert
             kind: Secret
             group: ""
-    # Plain TCP passthrough for git SSH (git@ clone/push). ExternalDNS's
-    # gateway-tcproute source reads the hostname annotation on the TCPRoute;
-    # port 22 must also be forwarded to ${EXTERNAL_IP} on the router.
+    # Plain TCP passthrough for git SSH (git@ clone/push). Raw TCP carries
+    # no hostname, so every name resolving to 192.168.8.50 reaches it;
+    # clients use git.homeworld.internal (the router's wildcard rewrite).
     - name: forgejo-ssh
       protocol: TCP
       port: 22

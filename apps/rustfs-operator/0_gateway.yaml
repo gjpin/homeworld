@@ -8,18 +8,17 @@ metadata:
   name: envoy
   namespace: rustfs-operator
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: homeworld-ca
 spec:
   gatewayClassName: envoy-merged
   addresses:
     - type: IPAddress
-      value: ${EXTERNAL_IP}
+      value: 192.168.8.50
   listeners:
     - name: rustfs-https
       protocol: HTTPS
       port: 443
-      hostname: "rustfs.${BASE_DOMAIN}"
+      hostname: "rustfs.homeworld.internal"
       allowedRoutes:
         namespaces:
           from: All

@@ -121,9 +121,9 @@ spec:
             - name: SSE_SERVER_PORT
               value: "7264"
             - name: IDENTITY_SERVER_URL
-              value: "https://auth.notes.${BASE_DOMAIN}"
+              value: "https://auth.notes.homeworld.internal"
             - name: NOTESNOOK_APP_HOST
-              value: "https://notes.${BASE_DOMAIN}"
+              value: "https://notes.homeworld.internal"
             - name: DOCUMENTDB_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -148,7 +148,7 @@ spec:
             # env into identity-server; without it every email flow fails),
             # and it embeds AUTH_SERVER_PUBLIC_URL in those emailed links.
             - name: AUTH_SERVER_PUBLIC_URL
-              value: "https://auth.notes.${BASE_DOMAIN}"
+              value: "https://auth.notes.homeworld.internal"
             - name: SMTP_USERNAME
               valueFrom:
                 secretKeyRef:

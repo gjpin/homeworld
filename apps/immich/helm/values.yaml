@@ -62,6 +62,17 @@ server:
                 secretKeyRef:
                   name: postgres-credentials
                   key: password
+            # Authelia's certificate (OIDC sign-in) is signed by the
+            # homeworld CA; Node adds this file to its built-in roots.
+            NODE_EXTRA_CA_CERTS: /etc/homeworld-ca/ca.crt
+  persistence:
+    homeworld-ca:
+      enabled: true
+      type: configMap
+      name: homeworld-ca
+      globalMounts:
+        - path: /etc/homeworld-ca
+          readOnly: true
 # Overrides the chart's shared (server + machine-learning) env defaults,
 # which point at the bundled Valkey and the release-name ML service.
 controllers:

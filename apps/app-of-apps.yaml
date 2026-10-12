@@ -253,27 +253,30 @@ spec:
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.37
 ---
-# external-dns
+# trust-manager
+# Wave 4: its webhook serving certificate comes from a cert-manager Issuer
+# (wave 3), and the homeworld-ca ConfigMap it publishes cluster-wide must
+# exist before the wave 5+ workloads that mount it start.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: external-dns-app
+  name: trust-manager-app
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/external-dns"
+    path: "apps/trust-manager"
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
-    namespace: external-dns
+    namespace: trust-manager
   syncPolicy:
     automated:
       prune: true

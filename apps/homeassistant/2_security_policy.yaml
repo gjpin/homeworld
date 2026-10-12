@@ -48,18 +48,27 @@ spec:
       name: zigbee2mqtt
   oidc:
     provider:
-      issuer: https://auth.${BASE_DOMAIN}
-      authorizationEndpoint: https://auth.${BASE_DOMAIN}/api/oidc/authorization
-      tokenEndpoint: https://auth.${BASE_DOMAIN}/api/oidc/token
+      # Token requests go through the authelia Backend so Envoy validates
+      # Authelia's certificate against the homeworld CA
+      # (2_authelia_backend.yaml).
+      backendRefs:
+        - group: gateway.envoyproxy.io
+          kind: Backend
+          name: authelia
+          port: 443
+          weight: 1
+      issuer: https://auth.homeworld.internal
+      authorizationEndpoint: https://auth.homeworld.internal/api/oidc/authorization
+      tokenEndpoint: https://auth.homeworld.internal/api/oidc/token
     clientID: envoy
     clientSecret:
       name: envoy-oidc-client-secret
     scopes:
       - openid
       - offline_access
-    redirectURL: https://z2m.${BASE_DOMAIN}/oauth2/callback
+    redirectURL: https://z2m.homeworld.internal/oauth2/callback
     logoutPath: /logout
-    cookieDomain: z2m.${BASE_DOMAIN}
+    cookieDomain: z2m.homeworld.internal
     forwardAccessToken: false
     refreshToken: true
     passThroughAuthHeader: false

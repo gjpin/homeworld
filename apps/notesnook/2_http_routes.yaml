@@ -6,7 +6,6 @@ metadata:
   namespace: notesnook
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "notes.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -15,7 +14,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "notes.${BASE_DOMAIN}"
+    - "notes.homeworld.internal"
   rules:
     - backendRefs:
         - name: notesnook-sync
@@ -32,7 +31,6 @@ metadata:
   namespace: notesnook
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "auth.notes.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -41,7 +39,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "auth.notes.${BASE_DOMAIN}"
+    - "auth.notes.homeworld.internal"
   rules:
     - backendRefs:
         - name: notesnook-identity
@@ -58,7 +56,6 @@ metadata:
   namespace: notesnook
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "sse.notes.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -67,7 +64,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "sse.notes.${BASE_DOMAIN}"
+    - "sse.notes.homeworld.internal"
   rules:
     - backendRefs:
         - name: notesnook-sse
@@ -84,7 +81,6 @@ metadata:
   namespace: notesnook
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "monograph.notes.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -93,7 +89,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "monograph.notes.${BASE_DOMAIN}"
+    - "monograph.notes.homeworld.internal"
   rules:
     - backendRefs:
         - name: notesnook-monograph

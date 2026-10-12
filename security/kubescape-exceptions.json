@@ -893,6 +893,14 @@
           "kind": "^ClusterRoleBinding$",
           "name": "^mariadb-operator-cert-controller$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^trust-manager$",
+          "namespace": "^trust-manager$"
+        }
       }
     ],
     "posturePolicies": [
@@ -1622,14 +1630,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^external-dns$",
-          "namespace": "^external-dns$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^external-secrets$",
           "namespace": "^external-secrets$"
         }
@@ -1961,6 +1961,14 @@
           "name": "^mariadb-operator-webhook$",
           "namespace": "^mariadb-operator$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^trust-manager$",
+          "namespace": "^trust-manager$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2155,14 +2163,6 @@
           "kind": "^Deployment$",
           "name": "^envoy-gateway$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^external-dns$",
-          "namespace": "^external-dns$"
         }
       },
       {
@@ -2452,6 +2452,14 @@
           "name": "^mariadb-operator-webhook$",
           "namespace": "^mariadb-operator$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^trust-manager$",
+          "namespace": "^trust-manager$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2631,6 +2639,13 @@
           "kind": "^RoleBinding$",
           "name": "^mariadb-operator$",
           "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^trust-manager$"
         }
       }
     ],
@@ -3027,13 +3042,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^ClusterRoleBinding$",
-          "name": "^external-dns-namespaces$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^ClusterRoleBinding$",
           "name": "^external-secrets-cert-controller$"
         }
       },
@@ -3084,13 +3092,6 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^rustfs-operator-console$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
-          "name": "^external-dns-viewer$"
         }
       },
       {
@@ -3385,13 +3386,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^ClusterRoleBinding$",
-          "name": "^external-dns-viewer$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^ClusterRoleBinding$",
           "name": "^kube-state-metrics$"
         }
       },
@@ -3445,6 +3439,29 @@
           "kind": "^RoleBinding$",
           "name": "^mariadb-operator-cert-controller$",
           "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^trust-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^trust-manager$",
+          "namespace": "^trust-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^trust-manager:leaderelection$",
+          "namespace": "^trust-manager$"
         }
       }
     ],
@@ -3810,6 +3827,14 @@
           "name": "^mariadb-operator-webhook$",
           "namespace": "^mariadb-operator$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^trust-manager$",
+          "namespace": "^trust-manager$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4019,14 +4044,6 @@
           "kind": "^Deployment$",
           "name": "^envoy-gateway$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^external-dns$",
-          "namespace": "^external-dns$"
         }
       },
       {
@@ -4283,6 +4300,14 @@
           "kind": "^Deployment$",
           "name": "^mariadb-operator-webhook$",
           "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^trust-manager$",
+          "namespace": "^trust-manager$"
         }
       }
     ],
@@ -4650,6 +4675,14 @@
           "kind": "^ClusterRoleBinding$",
           "name": "^mariadb-operator-cert-controller$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^trust-manager$",
+          "namespace": "^trust-manager$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4946,14 +4979,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^external-dns$",
-          "namespace": "^external-dns$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^external-secrets$",
           "namespace": "^external-secrets$"
         }
@@ -5236,6 +5261,14 @@
           "kind": "^Deployment$",
           "name": "^mariadb-operator-webhook$",
           "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^trust-manager$",
+          "namespace": "^trust-manager$"
         }
       }
     ],
@@ -5650,14 +5683,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^external-dns$",
-          "namespace": "^external-dns$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^immich-machine-learning$",
           "namespace": "^immich$"
         }
@@ -5756,6 +5781,14 @@
           "kind": "^Deployment$",
           "name": "^crowdsec-appsec$",
           "namespace": "^crowdsec$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^authelia$",
+          "namespace": "^authelia$"
         }
       }
     ],
@@ -6050,14 +6083,6 @@
           "kind": "^Deployment$",
           "name": "^envoy-gateway$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^external-dns$",
-          "namespace": "^external-dns$"
         }
       },
       {
@@ -6394,6 +6419,14 @@
           "kind": "^Deployment$",
           "name": "^mariadb-operator-webhook$",
           "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^trust-manager$",
+          "namespace": "^trust-manager$"
         }
       }
     ],
@@ -7155,14 +7188,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^external-dns$",
-          "namespace": "^external-dns$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^external-secrets$",
           "namespace": "^external-secrets$"
         }
@@ -7494,6 +7519,14 @@
           "name": "^mariadb-operator-webhook$",
           "namespace": "^mariadb-operator$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^trust-manager$",
+          "namespace": "^trust-manager$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7620,14 +7653,6 @@
           "kind": "^Deployment$",
           "name": "^envoy-gateway$",
           "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^external-dns$",
-          "namespace": "^external-dns$"
         }
       },
       {
@@ -7828,6 +7853,14 @@
           "kind": "^Deployment$",
           "name": "^mariadb-operator-cert-controller$",
           "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^trust-manager$",
+          "namespace": "^trust-manager$"
         }
       }
     ],
@@ -8115,6 +8148,14 @@
           "kind": "^Deployment$",
           "name": "^mariadb-operator-cert-controller$",
           "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^trust-manager$",
+          "namespace": "^trust-manager$"
         }
       }
     ],
@@ -8514,14 +8555,6 @@
           "kind": "^Deployment$",
           "name": "^crowdsec-lapi$",
           "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^external-dns$",
-          "namespace": "^external-dns$"
         }
       },
       {

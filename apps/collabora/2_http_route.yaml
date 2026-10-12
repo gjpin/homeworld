@@ -9,7 +9,6 @@ metadata:
   namespace: collabora
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "office.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -18,7 +17,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "office.${BASE_DOMAIN}"
+    - "office.homeworld.internal"
   rules:
     - matches:
         - path:

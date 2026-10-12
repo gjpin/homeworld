@@ -3,7 +3,7 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: default-deny
-  namespace: external-dns
+  namespace: trust-manager
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
@@ -15,7 +15,7 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: allow-dns
-  namespace: external-dns
+  namespace: trust-manager
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
@@ -36,14 +36,15 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: allow-kubernetes-api
-  namespace: external-dns
+  namespace: trust-manager
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
+  # Bundle, source Secret, and target ConfigMap reconciliation.
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/name: external-dns
-      k8s:app.kubernetes.io/instance: external-dns
+      k8s:app.kubernetes.io/name: trust-manager
+      k8s:app.kubernetes.io/instance: trust-manager
   egress:
     - toEntities:
         - kube-apiserver
@@ -55,38 +56,39 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-cloudflare-dns-api
-  namespace: external-dns
+  name: allow-webhook-ingress
+  namespace: trust-manager
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  # ExternalDNS reconciles records only through the Cloudflare HTTPS API.
+  # kube-apiserver calls the Bundle validating webhook on the pod's 6443
+  # (Service port 443).
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/name: external-dns
-      k8s:app.kubernetes.io/instance: external-dns
-  egress:
-    - toFQDNs:
-        - matchName: api.cloudflare.com
+      k8s:app.kubernetes.io/name: trust-manager
+      k8s:app.kubernetes.io/instance: trust-manager
+  ingress:
+    - fromEntities:
+        - kube-apiserver
       toPorts:
         - ports:
-            - port: "443"
+            - port: "6443"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: allow-metrics-scraping
-  namespace: external-dns
+  namespace: trust-manager
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  # The chart's ServiceMonitor scrapes the http listener that also serves
-  # the Prometheus endpoint.
+  # The chart's ServiceMonitor scrapes the metrics port, paired with the
+  # allow-otel-pod-scrape-trust-manager egress policy in apps/otel-collector.
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/name: external-dns
-      k8s:app.kubernetes.io/instance: external-dns
+      k8s:app.kubernetes.io/name: trust-manager
+      k8s:app.kubernetes.io/instance: trust-manager
   ingress:
     - fromEndpoints:
         - matchLabels:
@@ -96,5 +98,5 @@ spec:
             k8s:app.kubernetes.io/component: opentelemetry-collector
       toPorts:
         - ports:
-            - port: "7979"
+            - port: "9402"
               protocol: TCP

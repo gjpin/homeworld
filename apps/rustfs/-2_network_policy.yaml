@@ -175,7 +175,7 @@ spec:
       k8s:rustfs.tenant: rustfs
   egress:
     - toFQDNs:
-        - matchName: "auth.${BASE_DOMAIN}"
+        - matchName: "auth.homeworld.internal"
       toPorts:
         - ports:
             - port: "443"

@@ -138,7 +138,7 @@ spec:
           env:
             # nginx server_name, substituted by the entrypoint.
             - name: DOMAIN_NAME
-              value: "supernote.${BASE_DOMAIN}"
+              value: "supernote.homeworld.internal"
             - name: DB_HOSTNAME
               value: mariadb
             - name: MYSQL_DATABASE

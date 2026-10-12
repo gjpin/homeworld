@@ -82,7 +82,7 @@ spec:
             - name: API_HOST
               value: "http://notesnook-sync:5264"
             - name: PUBLIC_URL
-              value: "https://monograph.notes.${BASE_DOMAIN}"
+              value: "https://monograph.notes.homeworld.internal"
             - name: SELF_HOSTED
               value: "1"
             - name: NOTESNOOK_SERVER_HOST
@@ -99,9 +99,9 @@ spec:
               value: "7264"
             # Link generation only; runtime server-to-server calls use the internal *_HOST/*_PORT vars.
             - name: IDENTITY_SERVER_URL
-              value: "https://auth.notes.${BASE_DOMAIN}"
+              value: "https://auth.notes.homeworld.internal"
             - name: NOTESNOOK_APP_HOST
-              value: "https://notes.${BASE_DOMAIN}"
+              value: "https://notes.homeworld.internal"
           livenessProbe:
             httpGet:
               path: /api/health

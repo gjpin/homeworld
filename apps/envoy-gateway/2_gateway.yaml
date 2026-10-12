@@ -11,20 +11,20 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: homeworld-ca
 spec:
   gatewayClassName: envoy-merged
   addresses:
     - type: IPAddress
-      value: ${EXTERNAL_IP}
+      value: 192.168.8.50
   listeners:
-    # No port-80 listener by design: ACME is DNS-01 via Cloudflare, so no
-    # HTTP-01 challenge path is needed; adding HTTP would only be a footgun.
+    # No port-80 listener by design: certificates come from the private
+    # homeworld-ca issuer, so no HTTP-01 challenge path is needed; adding
+    # HTTP would only be a footgun.
     - name: envoy-https
       protocol: HTTPS
       port: 443
-      hostname: "envoy.${BASE_DOMAIN}"
+      hostname: "envoy.homeworld.internal"
       allowedRoutes:
         namespaces:
           from: All

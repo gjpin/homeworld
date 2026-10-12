@@ -1,10 +1,10 @@
-# https://artifacthub.io/packages/helm/external-dns/external-dns
-# https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/cloudflare.md
+# https://cert-manager.io/docs/trust/trust-manager/
+# https://artifacthub.io/packages/helm/cert-manager/trust-manager
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: external-dns
+  name: trust-manager
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "1"
@@ -12,19 +12,19 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: external-dns
+    namespace: trust-manager
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
       allowEmpty: false
     syncOptions:
-    - Validate=true
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
-    - ServerSideApply=true
+      - Validate=true
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ServerSideApply=true
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/external-dns/helm
+    path: apps/trust-manager/helm
     targetRevision: HEAD

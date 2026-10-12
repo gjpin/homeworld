@@ -6,7 +6,6 @@ metadata:
   namespace: forgejo
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "git.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -14,7 +13,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "git.${BASE_DOMAIN}"
+    - "git.homeworld.internal"
   rules:
     - backendRefs:
         - name: forgejo-http

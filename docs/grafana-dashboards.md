@@ -80,7 +80,6 @@ dashboard's JSON `description` cites its provenance.
 | CrowdSec Envoy Bouncer | Envoy CrowdSec Bouncer | official: chart-bundled `dashboards/bouncer.json` |
 | Dragonfly Operator | Dragonfly Dashboard | official: dragonflydb/dragonfly-operator repo `monitoring/grafana-dashboard.json` (linked from dragonflydb.io docs); `__inputs` converted to a datasource variable |
 | Envoy Gateway | Envoy Gateway Global, Envoy Clusters, Envoy Global, Global Ratelimit, Resources Monitor | official: envoyproxy/gateway repo `charts/gateway-addons-helm/dashboards/`; upstream's stale target-level datasource uids normalized to the panels' `$datasource` variable |
-| ExternalDNS | ExternalDNS | custom (official Available Metrics docs; the project publishes no dashboard) |
 | External Secrets | External Secrets Operator | official: chart-bundled monitoring dashboard; `service=~` matchers rewritten to `namespace` |
 | Forgejo | Forgejo | custom (forgejo `modules/metrics/collector.go`; the project publishes no dashboard — the gitea-monitoring mixin is a third-party fork) |
 | Generic Device Plugin | Generic Device Plugin | custom (squat/generic-device-plugin registers only the Go and process collectors; no official dashboard) |
@@ -102,6 +101,7 @@ dashboard's JSON `description` cites its provenance.
 | RustFS | RustFS | custom (docs.rustfs.com observability metrics reference; OTLP-pushed `rustfs_*`; the grafana.com RustFS dashboards are third-party) |
 | RustFS Operator | RustFS Operator | custom (rustfs/operator `src/metrics.rs`; duration metrics are summaries, so averages come from `_sum`/`_count`) |
 | Snapshot Controller | Snapshot Controller | custom (kubernetes-csi external-snapshotter; controller-runtime `workqueue_*`/`rest_client_*`/`go_*`/`process_*` families; upstream ships no dashboard) |
+| trust-manager | trust-manager | custom (controller-runtime `controller_runtime_reconcile_*`, `controller_runtime_webhook_requests_total`, `workqueue_*`, and `go_*` families on trust-manager's metrics endpoint; the project publishes no dashboard) |
 | Velero | Velero Backups | custom (velero `pkg/metrics/metrics.go`; the project publishes no dashboard — the grafana.com ones are third-party) |
 | VictoriaMetrics | VictoriaMetrics - single-node (VM), VictoriaLogs - single-node (VM), VictoriaTraces - single-node | official: VictoriaMetrics repo `dashboards/vm/` variants for VM and VictoriaLogs, grafana.com 24136 (VictoriaMetrics org) for VictoriaTraces; the VictoriaLogs `__inputs` convention converted to a datasource variable |
 | Woodpecker | Woodpecker CI | custom (woodpecker `server/metric/metrics_server.go`; no official dashboard; step-level metrics are not enabled in this deployment) |

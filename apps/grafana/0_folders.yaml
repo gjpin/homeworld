@@ -115,17 +115,6 @@ spec:
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
 metadata:
-  name: folder-external-dns
-  namespace: grafana
-spec:
-  title: ExternalDNS
-  instanceSelector:
-    matchLabels:
-      dashboards: grafana
----
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaFolder
-metadata:
   name: folder-external-secrets
   namespace: grafana
 spec:
@@ -372,6 +361,17 @@ metadata:
   namespace: grafana
 spec:
   title: Kube State Metrics
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: folder-trust-manager
+  namespace: grafana
+spec:
+  title: trust-manager
   instanceSelector:
     matchLabels:
       dashboards: grafana

@@ -1,0 +1,42 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: trust-manager
+    repo: https://charts.jetstack.io
+    version: v0.25.0
+    releaseName: trust-manager
+    namespace: trust-manager
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  # The chart exposes neither hostUsers nor runtimeClassName.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^trust-manager$
+      namespace: ^trust-manager$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: false
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+  # The chart probes readiness on 6060 without declaring the port.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^trust-manager$
+      namespace: ^trust-manager$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/ports/-
+        value:
+          name: readiness
+          containerPort: 6060
+          protocol: TCP

@@ -9,18 +9,17 @@ metadata:
   name: envoy
   namespace: notesnook
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: homeworld-ca
 spec:
   gatewayClassName: envoy-merged
   addresses:
     - type: IPAddress
-      value: ${EXTERNAL_IP}
+      value: 192.168.8.50
   listeners:
     - name: notes-https
       protocol: HTTPS
       port: 443
-      hostname: "notes.${BASE_DOMAIN}"
+      hostname: "notes.homeworld.internal"
       allowedRoutes:
         namespaces:
           from: All
@@ -33,7 +32,7 @@ spec:
     - name: notes-auth-https
       protocol: HTTPS
       port: 443
-      hostname: "auth.notes.${BASE_DOMAIN}"
+      hostname: "auth.notes.homeworld.internal"
       allowedRoutes:
         namespaces:
           from: All
@@ -46,7 +45,7 @@ spec:
     - name: notes-sse-https
       protocol: HTTPS
       port: 443
-      hostname: "sse.notes.${BASE_DOMAIN}"
+      hostname: "sse.notes.homeworld.internal"
       allowedRoutes:
         namespaces:
           from: All
@@ -59,7 +58,7 @@ spec:
     - name: notes-monograph-https
       protocol: HTTPS
       port: 443
-      hostname: "monograph.notes.${BASE_DOMAIN}"
+      hostname: "monograph.notes.homeworld.internal"
       allowedRoutes:
         namespaces:
           from: All

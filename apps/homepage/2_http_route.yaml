@@ -6,7 +6,6 @@ metadata:
   namespace: homepage
   annotations:
     argocd.argoproj.io/sync-wave: "2"
-    external-dns.alpha.kubernetes.io/hostname: "homepage.${BASE_DOMAIN}"
 spec:
   parentRefs:
     - name: envoy
@@ -15,7 +14,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "homepage.${BASE_DOMAIN}"
+    - "homepage.homeworld.internal"
   rules:
     - backendRefs:
       - name: homepage

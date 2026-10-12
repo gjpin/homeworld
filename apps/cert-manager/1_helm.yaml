@@ -1,5 +1,5 @@
 # https://artifacthub.io/packages/helm/cert-manager/cert-manager
-# https://cert-manager.io/docs/configuration/acme/dns01/cloudflare/
+# https://cert-manager.io/docs/configuration/ca/
 # https://cert-manager.io/docs/devops-tips/scaling-cert-manager/
 ---
 apiVersion: argoproj.io/v1alpha1

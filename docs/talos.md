@@ -52,9 +52,15 @@ Workstation requirements: `talosctl`, `kubectl`, `helm`, `yq`, and `git`.
    > Radxa UEFI "Third-party OS Compatibility Settings" used for Debian only
    > adjust the firmware-provided hardware description; Debian boots because
    > its own kernel builds these drivers, which the Talos kernel does not.
-2. In the router, set a static DHCP lease for each node and reserve one
-   additional unused address in the same subnet for the Kubernetes API VIP.
-   The VIP must not be assignable by the DHCP server.
+2. In the router, set a static DHCP lease for each node on the Pixel
+   network and reserve two more unused addresses there: `CONTROL_PLANE_VIP`
+   for the Kubernetes API (below) and `192.168.8.50` for the Envoy Gateway
+   (every Gateway publishes it and Cilium answers ARP for it, see
+   [docs/cilium.md](cilium.md); the router's AdGuard Home resolves
+   `*.homeworld.internal` to it). Neither VIP may be assignable by the DHCP
+   server: the Pixel pool from [docs/openwrt.md](openwrt.md) is
+   `192.168.8.100`–`192.168.8.249`, so keep the node leases and
+   `CONTROL_PLANE_VIP` below `.100` and away from `.50`.
 3. Unplug the Talos USB drives (Talos is running in RAM)
 4. In workstation, from a `bash` shell (the loops use bash array indexing;
    keep the same shell for the WireGuard and Longhorn steps below):

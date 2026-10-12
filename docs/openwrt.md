@@ -22,7 +22,9 @@ untouched, software and hardware flow offloading on (SQM off), Wireless
 Ethernet Dispatch enabled (loads after the final reboot), PixelIoT on
 WPA2-PSK `psk2+ccmp` with PMF off for older IoT devices, chrony client-only,
 dnsmasq on port 54 with no public upstreams and no cache, AdGuard Home
-primary on port 53 with its dashboard reachable from Pixel only, and an
+primary on port 53 with its dashboard reachable from Pixel only and every
+`*.homeworld.internal` name rewritten to the cluster's Gateway VIP
+`192.168.8.50`, and an
 IPv4-only WireGuard server on `VPN_IF`/`VPN_PORT`/`VPN_ADDR` attached to the
 trusted Pixel zone with no preconfigured peers (peers inherit the Pixel
 zone's DNS interception).
@@ -706,8 +708,12 @@ uci commit adguardhome
 The dashboard binds to Pixel only; DNS binds loopback, the WireGuard server
 address, and the four VLAN
 gateways. Blocked responses are NXDOMAIN, AAAA answers are disabled
-(IPv4-only networks), `.lan` and private PTR go to dnsmasq on port 54, and
-26 filter lists are enabled. An optional `DNS_REBIND_DOMAIN` adds a private
+(IPv4-only networks), `.lan` and private PTR go to dnsmasq on port 54,
+`*.homeworld.internal` (every cluster hostname, at any depth) is answered
+locally with the Envoy Gateway VIP `192.168.8.50` (reserved in
+[talos.md](talos.md) step 2), and 26 filter lists are enabled. Rewrites are
+answered before filtering, so the rebind-protection list does not block
+these private answers. An optional `DNS_REBIND_DOMAIN` adds a private
 answer exception after the built-in user rules.
 
 ```sh
@@ -847,7 +853,10 @@ filtering:
   parental_enabled: false
   safebrowsing_enabled: false
   rewrites_enabled: true
-  rewrites: []
+  rewrites:
+  - domain: '*.homeworld.internal'
+    answer: 192.168.8.50
+    enabled: true
   safe_fs_patterns: []
   safe_search:
     enabled: false
@@ -1165,6 +1174,7 @@ grep -E '^(http:|dns:|filters:|querylog:|statistics:)' /etc/adguardhome/adguardh
 grep -c -- '- enabled: true' /etc/adguardhome/adguardhome.yaml # 26
 grep -A7 'bind_hosts:' /etc/adguardhome/adguardhome.yaml       # loopback, the WireGuard server address, plus the four VLAN gateways
 uci show uhttpd | grep listen_
+nslookup git.homeworld.internal 127.0.0.1 # 192.168.8.50 (AdGuard rewrite)
 uci show dropbear           # DirectInterface='pixel', Port 22
 uci get network.wan.peerdns # 0
 chronyc tracking
@@ -1205,8 +1215,9 @@ Each client becomes a `network.wg_<name>` section of type
 `wireguard_$VPN_IF` with its public key, preshared key and a `/32` allowed
 IP, and gets a ready-to-import configuration file in
 `/root/wireguard-clients/`. Clients reach the WireGuard subnet and Pixel
-(`192.168.8.0/24`) through the tunnel; other traffic stays on their own
-connection. As members of the Pixel zone they get the same DNS policy as
+(`192.168.8.0/24`, including the cluster's Gateway VIP `192.168.8.50`, so
+every `*.homeworld.internal` service works remotely) through the tunnel;
+other traffic stays on their own connection. As members of the Pixel zone they get the same DNS policy as
 Pixel clients: AdGuard Home on the server address, port-53 interception and
 no direct port-54 access.
 
@@ -1290,5 +1301,6 @@ From a connected client, check the handshake and the DNS policy (replace
 ping -c 3 10.10.0.1                   # tunnel up; `wg show` on the router shows a recent handshake
 dig @10.10.0.1 openwrt.org +short     # answered by AdGuard Home
 dig @192.168.8.254 openwrt.org +short # also answered: intercepted and sent to AdGuard Home
+dig @10.10.0.1 git.homeworld.internal +short # 192.168.8.50 (the cluster's Gateway VIP)
 dig -p 54 @10.10.0.1 openwrt.org      # must fail: dnsmasq is not reachable directly
 ```

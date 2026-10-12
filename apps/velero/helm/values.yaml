@@ -35,15 +35,15 @@ configuration:
   backupStorageLocation:
     - name: default
       provider: aws
-      bucket: ${B2_BUCKET}
+      bucket: homeworld-velero
       prefix: velero
       default: true
       credential:
         name: velero-credentials
         key: cloud
       config:
-        region: ${B2_REGION}
-        s3Url: https://s3.${B2_REGION}.backblazeb2.com
+        region: eu-central-003
+        s3Url: https://s3.eu-central-003.backblazeb2.com
         s3ForcePathStyle: "true"
   defaultSnapshotMoveData: true
   defaultVolumesToFsBackup: false
