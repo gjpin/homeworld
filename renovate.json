@@ -187,8 +187,7 @@
       "description": "Group the CrowdSec Envoy bouncer chart, image, and the e2e load-hook image so one bump arrives in a single PR",
       "matchPackageNames": [
         "ghcr.io/kdwils/charts/envoy-proxy-bouncer",
-        "ghcr.io/kdwils/envoy-proxy-bouncer",
-        "envoy-proxy-bouncer"
+        "ghcr.io/kdwils/envoy-proxy-bouncer"
       ],
       "groupName": "crowdsec-envoy-bouncer"
     },
@@ -1305,7 +1304,7 @@
         "PROMETHEUS_OPERATOR_VERSION:-(?<currentValue>v[\\d.]+)"
       ],
       "depNameTemplate": "prometheus-operator/prometheus-operator",
-      "datasourceTemplate": "git-tags",
+      "datasourceTemplate": "github-tags",
       "versioningTemplate": "semver"
     },
     {
@@ -1359,11 +1358,10 @@
         "/^e2e/examples/hooks/load-bouncer-image\\.sh$/"
       ],
       "matchStrings": [
-        "BOUNCER_IMAGE:-ghcr\\.io/kdwils/(?<depName>envoy-proxy-bouncer):(?<currentValue>[^\\\"}]+)"
+        "BOUNCER_IMAGE:-(?<depName>ghcr\\.io/kdwils/envoy-proxy-bouncer):(?<currentValue>[^\\\"}]+)"
       ],
       "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
-      "registryUrlTemplate": "https://ghcr.io"
+      "versioningTemplate": "docker"
     },
     {
       "customType": "regex",
