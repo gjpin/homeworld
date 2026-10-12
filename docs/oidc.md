@@ -23,7 +23,7 @@ Browser-UI routes without usable app-native auth are authenticated by Envoy Gate
 | kubelet-serving-cert-approver | No | No user login. |
 | longhorn | Yes (gateway) | The UI has no built-in login. The route is protected by the gateway OIDC SecurityPolicy via the `envoy` client; `platform` group required (see envoy-gateway). |
 | velero | No | Controller only. The UI is `velero-ui`. |
-| velero-ui | Yes | Authelia. Built-in basic auth is disabled. velero-ui has no roles, so every session can manage every backup; the client's authorization policy limits sign-in to the `platform` group. |
+| velero-ui | Yes | Authelia. Built-in basic auth is disabled. The client's authorization policy limits sign-in to the `platform` group, and velero-ui's RBAC policy file (`g,platform,manage,all`) grants that group full access; federated users without a matching rule get no permissions. |
 | argocd | Yes | Authelia. Local admin and Dex are disabled. `argocd-admin` is admin. Authelia's `argocd` authorization policy limits both clients to that group, and Argo CD grants nobody else access (`policy.default` is empty; the Homepage API account is mapped read-only explicitly). CLI SSO login (`argocd login argocd.${BASE_DOMAIN} --sso --grpc-web`; there is no separate gRPC hostname) uses the public `argocd-cli` client, which grants the same scopes Argo CD requests for both flows (including `profile`). |
 | cloudnative-pg | No | No user login. |
 | documentdb-operator | No | No user login. |
