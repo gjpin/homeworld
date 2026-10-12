@@ -10,11 +10,6 @@ metadata:
     app.kubernetes.io/created-by: dragonfly-operator
 spec:
   replicas: 1
-  # The operator's generated Kubernetes NetworkPolicy (CRD default) restricts
-  # the admin metrics port to operator and peer pods, which would block the
-  # OpenTelemetry collector's scrape; CiliumNetworkPolicies govern this
-  # workload instead (allow-authelia-dragonfly-ingress).
-  networkPolicyEnabled: false
   # Pin the operand image so it cannot drift with the operator's built-in
   # default; kept in sync with apps/immich/0_dragonfly.yaml.
   image: docker.dragonflydb.io/dragonflydb/dragonfly:v2.0.2

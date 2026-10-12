@@ -26,8 +26,7 @@ metadata:
   name: cnpg-longhorn
   annotations:
     argocd.argoproj.io/sync-wave: "0"
-spec:
-  driver: driver.longhorn.io
-  deletionPolicy: Delete
-  parameters:
-    type: snap
+driver: driver.longhorn.io
+deletionPolicy: Delete
+parameters:
+  type: snap

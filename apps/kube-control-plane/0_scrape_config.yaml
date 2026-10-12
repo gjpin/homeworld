@@ -25,6 +25,8 @@ spec:
         - __meta_kubernetes_node_address_InternalIP
       targetLabel: __address__
       replacement: $1:2381
+      action: replace
     - sourceLabels:
         - __meta_kubernetes_node_name
       targetLabel: instance
+      action: replace

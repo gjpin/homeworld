@@ -25,8 +25,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
   labels:
     velero.io/csi-volumesnapshot-class: "true"
-spec:
-  driver: driver.longhorn.io
-  deletionPolicy: Delete
-  parameters:
-    type: snap
+driver: driver.longhorn.io
+deletionPolicy: Delete
+parameters:
+  type: snap
