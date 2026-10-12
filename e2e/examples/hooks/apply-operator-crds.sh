@@ -2,7 +2,7 @@
 # Argo resource.exclusions skip all CRDs (Envoy Gateway VAP forbids
 # re-applying Gateway API CRDs on --keep-cluster). ESO/Cilium/Envoy
 # CRDs have their own hooks; install the remaining operator CRDs so
-# CNPG/Grafana/Dragonfly/MariaDB/RustFS/cert-manager/ServiceMonitor CRs apply.
+# CNPG/Grafana/Dragonfly/MariaDB/RustFS/cert-manager/trust-manager/ServiceMonitor CRs apply.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 PROM_VER="${PROMETHEUS_OPERATOR_VERSION:-v0.94.1}"
@@ -85,9 +85,26 @@ apply_helm_crds opentelemetry-operator \
   "$(chart_dir "${ROOT}/apps/opentelemetry-operator/helm/charts/opentelemetry-operator-*/opentelemetry-operator")" \
   --set crds.create=true
 
+# trust-manager ships its Bundle CRD as a template gated on crds.enabled.
+apply_helm_crds trust-manager \
+  "$(chart_dir "${ROOT}/apps/trust-manager/helm/charts/trust-manager-*/trust-manager")" \
+  --set crds.enabled=true
+
 RUSTFS_CRDS="$(chart_dir "${ROOT}/apps/rustfs-operator/helm/charts/rustfs-operator-*/rustfs-operator")/crds"
 kubectl apply --server-side --force-conflicts -f "${RUSTFS_CRDS}"
 echo "[apply-operator-crds] rustfs-operator CRDs applied"
+
+# snapshot-controller-app is omitted on kind (no CSI driver), but the
+# CloudNativePG, MariaDB Operator, and Velero components ship
+# VolumeSnapshotClasses; apply the snapshot CRDs from the same pinned
+# external-snapshotter tag so those syncs do not fail.
+SNAPSHOT_TAG="$(yq '.spec.source.targetRevision' "${ROOT}/apps/snapshot-controller/0_crds.yaml" | grep -v '^---$' | head -n 1)"
+SNAPSHOT_BASE="https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOT_TAG}/client/config/crd"
+kubectl apply --server-side --force-conflicts \
+  -f "${SNAPSHOT_BASE}/snapshot.storage.k8s.io_volumesnapshotclasses.yaml" \
+  -f "${SNAPSHOT_BASE}/snapshot.storage.k8s.io_volumesnapshotcontents.yaml" \
+  -f "${SNAPSHOT_BASE}/snapshot.storage.k8s.io_volumesnapshots.yaml"
+echo "[apply-operator-crds] external-snapshotter ${SNAPSHOT_TAG} CRDs applied"
 
 DOCUMENTDB_CRDS="${ROOT}/apps/documentdb-operator/helm/local-charts/documentdb-operator/crds"
 kubectl apply --server-side --force-conflicts -f "${DOCUMENTDB_CRDS}"
@@ -96,6 +113,8 @@ echo "[apply-operator-crds] documentdb-operator CRDs applied"
 kubectl get crd \
   servicemonitors.monitoring.coreos.com \
   clusterissuers.cert-manager.io \
+  bundles.trust.cert-manager.io \
+  volumesnapshotclasses.snapshot.storage.k8s.io \
   clusters.postgresql.cnpg.io \
   grafanas.grafana.integreatly.org \
   dragonflies.dragonflydb.io \

@@ -320,15 +320,35 @@ put_secret() {
 }
 
 seed_secrets() {
-  local token project_id authelia_jwk authelia_users proof_key proof_pub folder
+  local token project_id authelia_jwk authelia_users proof_key proof_pub folder ca_dir ca_cert ca_key
   token=$(cat "${OUT_DIR}/token")
   project_id=$(cat "${OUT_DIR}/project_id")
 
-  for folder in grafana homepage authelia cloudflare immich forgejo rustfs opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker openchamber vaultwarden qbittorrent homeassistant; do
+  for folder in grafana homepage authelia cert-manager immich forgejo rustfs rustfs-operator opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker openchamber vaultwarden qbittorrent homeassistant; do
     ensure_folder "${token}" "${project_id}" "${folder}"
   done
 
   authelia_jwk=$(openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 2>/dev/null)
+  # Throwaway Homeworld CA with the production name constraint (README
+  # "Create the Homeworld CA"); an extensions file instead of -addext keeps
+  # it working with LibreSSL.
+  ca_dir=$(mktemp -d)
+  printf '%s\n' \
+    '[req]' \
+    'distinguished_name = dn' \
+    '[dn]' \
+    '[ca]' \
+    'basicConstraints = critical,CA:TRUE,pathlen:0' \
+    'keyUsage = critical,keyCertSign,cRLSign' \
+    'nameConstraints = critical,permitted;DNS:homeworld.internal' \
+    >"${ca_dir}/ca.cnf"
+  openssl req -x509 -newkey rsa:2048 -sha256 -days 30 -nodes \
+    -keyout "${ca_dir}/ca.key" -out "${ca_dir}/ca.crt" \
+    -subj '/CN=Homeworld e2e CA' -config "${ca_dir}/ca.cnf" -extensions ca \
+    >/dev/null 2>&1
+  ca_cert=$(cat "${ca_dir}/ca.crt")
+  ca_key=$(cat "${ca_dir}/ca.key")
+  rm -rf "${ca_dir}"
   proof_key=$(openssl genrsa 4096 2>/dev/null)
   proof_pub=$(printf '%s\n' "${proof_key}" | openssl rsa -pubout 2>/dev/null)
   authelia_users=$(printf '%s\n' \
@@ -377,9 +397,9 @@ seed_secrets() {
   # part of the tracked manifest set; seeding the key keeps the omit list
   # independent of the secret set.
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_HOMEASSISTANT" "e2e-oidc-homeassistant"
-  put_secret "${token}" "${project_id}" "/authelia/SMTP_PASSWORD" "e2e-authelia-smtp"
   put_secret "${token}" "${project_id}" "/authelia/USERS_DATABASE" "${authelia_users}"
-  put_secret "${token}" "${project_id}" "/cloudflare/API_TOKEN" "e2e-cloudflare-token"
+  put_secret "${token}" "${project_id}" "/cert-manager/CA_CERT" "${ca_cert}"
+  put_secret "${token}" "${project_id}" "/cert-manager/CA_KEY" "${ca_key}"
   put_secret "${token}" "${project_id}" "/immich/POSTGRES_USERNAME" "immich"
   put_secret "${token}" "${project_id}" "/immich/POSTGRES_PASSWORD" "e2e-immich-db"
   put_secret "${token}" "${project_id}" "/immich/DRAGONFLY_PASSWORD" "e2e-immich-redis"
@@ -434,9 +454,6 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/vaultwarden/ADMIN_TOKEN" "e2e-vaultwarden-admin"
   put_secret "${token}" "${project_id}" "/vaultwarden/POSTGRES_USERNAME" "vaultwarden"
   put_secret "${token}" "${project_id}" "/vaultwarden/POSTGRES_PASSWORD" "e2e-vaultwarden-db"
-  put_secret "${token}" "${project_id}" "/vaultwarden/SMTP_USERNAME" "e2e"
-  put_secret "${token}" "${project_id}" "/vaultwarden/SMTP_PASSWORD" "e2e-vaultwarden-smtp"
-  put_secret "${token}" "${project_id}" "/vaultwarden/SMTP_HOST" "smtp.e2e.local"
   log "secret seed completed"
 }
 

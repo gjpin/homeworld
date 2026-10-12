@@ -105,8 +105,6 @@ spec:
         env:
           INFISICAL_HOST: http://host.docker.internal:8080
           INFISICAL_HOSTNAME: host.docker.internal
-          INFISICAL_PROJECT_SLUG: homeworld
-          INFISICAL_ENVIRONMENT_SLUG: prod
 
   deploy:
     timeout: 120m
@@ -134,18 +132,13 @@ spec:
           name: refresh-argo
           command: ["./e2e/examples/hooks/refresh-argo.sh"]
           timeout: 5m
-      - name: copy-gateway-ca
-        hook:
-          name: copy-gateway-ca
-          command: ["./e2e/examples/hooks/copy-gateway-ca.sh"]
-          timeout: 21m
       - name: patch-coredns
         hook:
           name: patch-coredns-e2e-domain
           command: ["./e2e/examples/hooks/patch-coredns-e2e-domain.sh"]
           timeout: 16m
           env:
-            BASE_DOMAIN: e2e.local
+            BASE_DOMAIN: homeworld.internal
 
       - name: wait-argo
         wait:
@@ -195,7 +188,7 @@ spec:
             - kube-system
             # Still-omitted apps can linger Terminating on --keep-cluster;
             # this list mirrors the OMIT_APPS set in rewrite-staging.py
-            # (Longhorn, Velero, HA, external-dns, openchamber, qbittorrent,
+            # (Longhorn, Velero, HA, openchamber, qbittorrent,
             # cilium, snapshot-controller, velero-ui, supernote). The otel collectors
             # are deployed but excluded here: hostPath/kubelet integration on
             # kind can flap independently of the victoria data probes below,
@@ -203,7 +196,6 @@ spec:
             - longhorn-system
             - velero
             - homeassistant
-            - external-dns
             - otel-collector
             - otel-collector-node
             - openchamber
@@ -502,7 +494,7 @@ spec:
           service: homepage
           port: 3000
           path: "/api/healthcheck"
-          host: homepage.e2e.local
+          host: homepage.homeworld.internal
           timeout: 10m
       # The notesnook-sync service's own health endpoint.
       - name: notesnook-sync-health
@@ -569,7 +561,7 @@ spec:
           service: authelia
           port: 80
           path: "/.well-known/openid-configuration"
-          host: auth.e2e.local
+          host: auth.homeworld.internal
           headers:
             X-Forwarded-Proto: https
           bodyContains: '"issuer"'

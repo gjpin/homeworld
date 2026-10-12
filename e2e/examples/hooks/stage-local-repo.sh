@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copy apps/, envsubst e2e values, rewrite Application sources, serve git:// on :9418.
+# Copy apps/, swap production coordinates for kind, rewrite Application sources, serve git:// on :9418.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
@@ -9,12 +9,15 @@ GENERATED="${ROOT}/e2e/examples/.generated"
 GIT_PID="${HOMEWORLD_E2E_GIT_PID:-/tmp/homeworld-e2e-git-daemon.pid}"
 GIT_SERVE="${HOMEWORLD_E2E_GIT_SERVE:-/tmp/homeworld-e2e-git-serve}"
 INFISICAL_HOST="${INFISICAL_HOST:-http://host.docker.internal:8080}"
+# Production coordinates committed in apps/ (README "Manual Setup").
+readonly PROD_GATEWAY_VIP=192.168.8.50
+readonly PROD_INFISICAL_HOST=https://eu.infisical.com
+readonly PROD_INFISICAL_HOSTNAME=eu.infisical.com
 
 log() { printf '[stage-local-repo] %s\n' "$*"; }
 
 require_tools() {
   command -v rsync >/dev/null || { log "rsync required"; exit 1; }
-  command -v envsubst >/dev/null || { log "envsubst (gettext) required"; exit 1; }
   command -v git >/dev/null || { log "git required"; exit 1; }
   command -v python3 >/dev/null || { log "python3 required"; exit 1; }
   command -v kubectl >/dev/null || { log "kubectl required"; exit 1; }
@@ -32,7 +35,7 @@ load_infisical_creds() {
     exit 1
   fi
   # The credentials are applied directly to the cluster by
-  # apply-eso-credentials.sh; they are never envsubst'd from the tree.
+  # apply-eso-credentials.sh; they never enter the staged tree.
 }
 
 node_internal_ip() {
@@ -47,9 +50,9 @@ copy_tree() {
     "${ROOT}/apps/" "${STAGING}/apps/"
 }
 
-export_e2e_env() {
+kind_coordinates() {
   local ip
-  ip="${EXTERNAL_IP:-}"
+  ip="${KIND_GATEWAY_IP:-}"
   if [[ -z "${ip}" ]]; then
     ip="$(node_internal_ip)"
   fi
@@ -57,36 +60,27 @@ export_e2e_env() {
     log "could not read kind node InternalIP"
     exit 1
   fi
-
-  export BASE_DOMAIN="${BASE_DOMAIN:-e2e.local}"
-  export EXTERNAL_IP="${ip}"
-  export INFISICAL_HOST
-  export INFISICAL_HOSTNAME="${INFISICAL_HOSTNAME:-host.docker.internal}"
-  export INFISICAL_PROJECT_SLUG="${INFISICAL_PROJECT_SLUG:-homeworld}"
-  export INFISICAL_ENVIRONMENT_SLUG="${INFISICAL_ENVIRONMENT_SLUG:-prod}"
-  export ACME_EMAIL="${ACME_EMAIL:-e2e@example.com}"
-  export AUTHELIA_SMTP_HOST="${AUTHELIA_SMTP_HOST:-smtp.e2e.local}"
-  export AUTHELIA_SMTP_USERNAME="${AUTHELIA_SMTP_USERNAME:-e2e}"
-  export AUTHELIA_SMTP_SENDER="${AUTHELIA_SMTP_SENDER:-Authelia <e2e@example.com>}"
-  export B2_BUCKET="${B2_BUCKET:-e2e-b2-bucket}"
-  export B2_REGION="${B2_REGION:-us-west-004}"
-
-  log "BASE_DOMAIN=${BASE_DOMAIN} EXTERNAL_IP=${EXTERNAL_IP} INFISICAL_HOST=${INFISICAL_HOST}"
+  KIND_GATEWAY_IP="${ip}"
+  INFISICAL_HOSTNAME="${INFISICAL_HOSTNAME:-host.docker.internal}"
+  log "Gateway VIP ${PROD_GATEWAY_VIP} -> ${KIND_GATEWAY_IP}; Infisical ${PROD_INFISICAL_HOST} -> ${INFISICAL_HOST}"
 }
 
-subst_files() {
-  local vars f tmp
-  vars='${BASE_DOMAIN} ${EXTERNAL_IP} ${INFISICAL_HOST} ${INFISICAL_HOSTNAME} ${INFISICAL_PROJECT_SLUG} ${INFISICAL_ENVIRONMENT_SLUG} ${ACME_EMAIL} ${AUTHELIA_SMTP_HOST} ${AUTHELIA_SMTP_USERNAME} ${AUTHELIA_SMTP_SENDER} ${B2_BUCKET} ${B2_REGION}'
+# The tracked tree carries production coordinates as literals (README
+# "Manual Setup"); swap the ones kind cannot use. The homeworld.internal
+# domain and the Infisical project/environment (homeworld/prod) stay as-is.
+rewrite_coordinates() {
+  local f
   while IFS= read -r -d '' f; do
-    tmp="$(mktemp)"
-    envsubst "${vars}" <"${f}" >"${tmp}"
-    mv "${tmp}" "${f}"
+    sed -i.bak \
+      -e "s#${PROD_INFISICAL_HOST//./\\.}#${INFISICAL_HOST}#g" \
+      -e "s#${PROD_INFISICAL_HOSTNAME//./\\.}#${INFISICAL_HOSTNAME}#g" \
+      -e "s#${PROD_GATEWAY_VIP//./\\.}#${KIND_GATEWAY_IP}#g" \
+      "${f}"
+    rm -f "${f}.bak"
   done < <(find "${STAGING}/apps" \( -name '*.yaml' -o -name '*.yml' -o -name '*.tmpl' \) -print0)
 }
 
 apply_static_overlays() {
-  cp "${ROOT}/e2e/examples/manifests/selfsigned-cluster-issuer.yaml" \
-    "${STAGING}/apps/cert-manager/2_cluster_issuer.yaml"
   python3 "${ROOT}/e2e/examples/hooks/rewrite-staging.py" "${STAGING}"
 }
 
@@ -133,6 +127,27 @@ commit_and_serve() {
   git daemon --reuseaddr --detach --pid-file="${GIT_PID}" \
     --export-all --base-path="${GIT_SERVE}" --listen=0.0.0.0 --port=9418
   log "git daemon pid=$(cat "${GIT_PID}") serving git://127.0.0.1:9418/homeworld.git"
+  wait_git_reachable
+}
+
+# Argo CD's first comparison runs seconds after this hook. If the daemon is
+# not yet reachable through the Docker VM (seen right after a Lima VM
+# restart), wave -1's External Secrets app records a ComparisonError but
+# still reports Healthy, the waves advance, and argocd-app switches the
+# controllers to Dragonfly credentials that External Secrets never
+# created, wedging the run. Wait until the kind node can open the port.
+wait_git_reachable() {
+  local node deadline=$((SECONDS + 60))
+  node="$(kind get nodes --name "${KIND_CLUSTER_NAME:-homeworld-e2e}" 2>/dev/null | head -n 1)"
+  [[ -n "${node}" ]] || return 0
+  until docker exec "${node}" bash -c 'exec 3<>/dev/tcp/host.docker.internal/9418' >/dev/null 2>&1; do
+    if (( SECONDS >= deadline )); then
+      log "git daemon not reachable from ${node} after 60s"
+      exit 1
+    fi
+    sleep 2
+  done
+  log "git daemon reachable from ${node}"
 }
 
 publish_generated() {
@@ -144,8 +159,8 @@ publish_generated() {
 require_tools
 load_infisical_creds
 copy_tree
-export_e2e_env
-subst_files
+kind_coordinates
+rewrite_coordinates
 apply_static_overlays
 commit_and_serve
 publish_generated

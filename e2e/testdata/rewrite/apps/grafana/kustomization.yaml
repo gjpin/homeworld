@@ -72,10 +72,6 @@ configMapGenerator:
   - name: grafana-dashboard-envoy-gateway-resources-monitor
     files:
       - json=dashboards/envoy-gateway/envoy-gateway-resources-monitor.json
-  # external-dns
-  - name: grafana-dashboard-external-dns
-    files:
-      - json=dashboards/external-dns/external-dns.json
   # external-secrets
   - name: grafana-dashboard-external-secrets
     files:
@@ -174,7 +170,6 @@ resources:
   - 1_dashboards_crowdsec-envoy-bouncer.yaml
   - 1_dashboards_dragonfly-operator.yaml
   - 1_dashboards_envoy-gateway.yaml
-  - 1_dashboards_external-dns.yaml
   - 1_dashboards_external-secrets.yaml
   - 1_dashboards_forgejo.yaml
   - 1_dashboards_generic-device-plugin.yaml

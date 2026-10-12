@@ -202,7 +202,7 @@ func newValidateCmd(g *globalFlags) *cobra.Command {
 				}
 				return nil
 			}
-			fmt.Println("prerequisites: docker, docker compose, kind, kubectl, helm, rsync, envsubst, python3, git, openssl, jq, curl — OK")
+			fmt.Println("prerequisites: docker, docker compose, kind, kubectl, helm, rsync, python3, git, openssl, jq, curl — OK")
 			return nil
 		},
 	}
@@ -216,7 +216,7 @@ func checkPrereqs() []string {
 	// run can proceed.
 	for _, bin := range []string{
 		"docker", "kind", "kubectl", "helm",
-		"rsync", "envsubst", "python3", "git", "openssl", "jq", "curl",
+		"rsync", "python3", "git", "openssl", "jq", "curl",
 	} {
 		if _, err := exec.LookPath(bin); err != nil {
 			missing = append(missing, bin)

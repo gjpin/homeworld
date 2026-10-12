@@ -12,7 +12,7 @@ spec:
   disableDefaultAdminSecret: true
   config:
     server:
-      root_url: "https://grafana.${BASE_DOMAIN}"
+      root_url: "https://grafana.homeworld.internal"
     analytics:
       reporting_enabled: "false"
       check_for_updates: "false"
@@ -36,9 +36,9 @@ spec:
       name: Authelia
       client_id: grafana
       scopes: "openid profile email groups"
-      auth_url: "https://auth.${BASE_DOMAIN}/api/oidc/authorization"
-      token_url: "https://auth.${BASE_DOMAIN}/api/oidc/token"
-      api_url: "https://auth.${BASE_DOMAIN}/api/oidc/userinfo"
+      auth_url: "https://auth.homeworld.internal/api/oidc/authorization"
+      token_url: "https://auth.homeworld.internal/api/oidc/token"
+      api_url: "https://auth.homeworld.internal/api/oidc/userinfo"
       use_pkce: "true"
       auth_style: "InHeader"
       allow_sign_up: "true"

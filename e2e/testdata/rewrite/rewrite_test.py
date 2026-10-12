@@ -385,11 +385,11 @@ def main() -> int:
         fj = (dest / "apps" / "forgejo" / "helm" / "values.yaml").read_text()
         if "http://authelia.authelia.svc.cluster.local" in fj:
             raise SystemExit("forgejo OIDC must keep Gateway HTTPS (Authelia rejects plain HTTP)")
-        if "https://auth.${BASE_DOMAIN}/.well-known/openid-configuration" not in fj:
+        if "https://auth.homeworld.internal/.well-known/openid-configuration" not in fj:
             raise SystemExit("forgejo OIDC discovery URL unexpectedly changed")
         fj_k = (dest / "apps" / "forgejo" / "helm" / "kustomization.yaml").read_text()
-        if "gateway-ca" not in fj_k or "SSL_CERT_FILE" not in fj_k:
-            raise SystemExit("forgejo OIDC init missing Gateway CA trust patch")
+        if "gateway-ca" in fj_k or "SSL_CERT_FILE" in fj_k:
+            raise SystemExit("forgejo trusts the homeworld-ca ConfigMap; staging must not patch a Gateway CA")
         sc = (ROOT / "examples" / "manifests" / "longhorn-crypto-storageclass.yaml").read_text()
         if "volumeBindingMode: WaitForFirstConsumer" not in sc:
             raise SystemExit("kind longhorn-crypto StorageClass not WaitForFirstConsumer")

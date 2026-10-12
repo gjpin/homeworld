@@ -33,8 +33,9 @@ data:
   clientSecret: $(b64 "${INFISICAL_CLIENT_SECRET}")
 EOF
 
-# Apply the ClusterSecretStore from the repo tree (envsubst of
-# apps/external-secrets/2_secret_store.yaml). The external-secrets-app
+# Apply the ClusterSecretStore from the repo tree
+# (apps/external-secrets/2_secret_store.yaml, with its committed Infisical
+# Cloud endpoint and scope swapped for the local instance). The external-secrets-app
 # only reaches its wave-2 store apply after the ESO conversion webhook is
 # up; on a cold image cache that window is 10-20 minutes during which NO
 # ExternalSecret can sync (the argocd controller's rollout blocks on the
@@ -42,17 +43,18 @@ EOF
 # Seeding the store here lets ESO sync secrets from the first minute; the
 # app's later SSA apply adopts the same object (adds the tracking
 # annotation), so the two paths stay one resource.
-if command -v envsubst >/dev/null 2>&1; then
-  ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-  STORE_MANIFEST="${ROOT}/apps/external-secrets/2_secret_store.yaml"
-  if [[ -f "${STORE_MANIFEST}" ]]; then
-    export INFISICAL_HOST INFISICAL_PROJECT_SLUG INFISICAL_ENVIRONMENT_SLUG
-    envsubst < "${STORE_MANIFEST}" | kubectl apply -f - >/dev/null
-    echo "[apply-eso-credentials] applied ClusterSecretStore/infisical"
-  fi
+ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+STORE_MANIFEST="${ROOT}/apps/external-secrets/2_secret_store.yaml"
+if [[ -f "${STORE_MANIFEST}" ]]; then
+  sed \
+    -e "s#^\( *hostAPI:\).*#\1 ${INFISICAL_HOST}#" \
+    -e "s#^\( *projectSlug:\).*#\1 ${INFISICAL_PROJECT_SLUG}#" \
+    -e "s#^\( *environmentSlug:\).*#\1 ${INFISICAL_ENVIRONMENT_SLUG}#" \
+    "${STORE_MANIFEST}" | kubectl apply -f - >/dev/null
+  echo "[apply-eso-credentials] applied ClusterSecretStore/infisical"
 fi
 
-# Materialize a small env file for later hooks / manual envsubst.
+# Materialize a small env file for later hooks.
 cat >"${OUT_DIR}/eso.env" <<EOF
 export INFISICAL_HOST=${INFISICAL_HOST}
 export INFISICAL_CLIENT_ID=${INFISICAL_CLIENT_ID}

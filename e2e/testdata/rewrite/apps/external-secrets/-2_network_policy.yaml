@@ -67,7 +67,7 @@ spec:
       k8s:app.kubernetes.io/instance: external-secrets
   egress:
     - toFQDNs:
-        - matchName: "${INFISICAL_HOSTNAME}"
+        - matchName: eu.infisical.com
       toPorts:
         - ports:
             - port: "443"

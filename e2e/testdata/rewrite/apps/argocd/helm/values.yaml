@@ -15,7 +15,7 @@ crds:
 # https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#ingressroute-crd
 configs:
   cm:
-    url: https://argocd.${BASE_DOMAIN}
+    url: https://argocd.homeworld.internal
     admin.enabled: false
     # Local account for the Homepage dashboard's Argo CD widget: API-key-only,
     # read-only through the RBAC role mapping below.
@@ -25,7 +25,7 @@ configs:
     # Keep this dollar reference intact; do not run it through envsubst.
     oidc.config: |
       name: Authelia
-      issuer: https://auth.${BASE_DOMAIN}
+      issuer: https://auth.homeworld.internal
       clientID: argocd
       clientSecret: $argocd-oidc:clientSecret
       cliClientID: argocd-cli
@@ -100,7 +100,7 @@ notifications:
   # Context URL used in notification templates; nothing is subscribed today —
   # set before enabling any subscription, or templates render with the
   # chart-default https://argocd.example.com.
-  argocdUrl: https://argocd.${BASE_DOMAIN}
+  argocdUrl: https://argocd.homeworld.internal
   metrics:
     enabled: true
     serviceMonitor:

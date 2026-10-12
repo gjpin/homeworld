@@ -17,7 +17,6 @@ OMIT_APPS = {
     "velero-app",
     "velero-ui-app",
     "homeassistant-app",
-    "external-dns-app",
     # Rootless Docker (Lima or Desktop) cannot mount bpffs, so the Cilium
     # datapath cannot start on kind; the suite installs its own CRD-only
     # Cilium in kube-system.
@@ -542,54 +541,6 @@ def rewrite_crowdsec_disable_enroll(root: pathlib.Path) -> None:
             path.write_text(new)
             count += 1
     print(f"[rewrite-staging] crowdsec console enroll disabled in {count} files")
-
-
-def rewrite_forgejo_oidc_http(root: pathlib.Path) -> None:
-    """Trust the kind Gateway CA in gitea's OIDC registration init.
-
-    configure-gitea fetches Authelia discovery over https://auth.e2e.local,
-    which serves a self-signed cert-manager cert on kind. Mount that cert's
-    CA (stored by cert-manager in the tls Secret) and point Go at it via
-    SSL_CERT_FILE. Nothing in e2e exercises the browser OIDC flow.
-    """
-    path = root / "apps" / "forgejo" / "helm" / "kustomization.yaml"
-    if not path.exists():
-        print("[rewrite-staging] forgejo kustomization missing; skipping OIDC CA trust")
-        return
-    text = path.read_text()
-    if "gateway-ca" in text:
-        print("[rewrite-staging] forgejo OIDC CA trust already present")
-        return
-    entry = (
-        "  - target:\n"
-        "      group: apps\n"
-        "      version: v1\n"
-        "      kind: Deployment\n"
-        "      name: ^forgejo$\n"
-        "      namespace: ^forgejo$\n"
-        "    patch: |-\n"
-        "      - op: add\n"
-        "        path: /spec/template/spec/volumes/-\n"
-        "        value:\n"
-        "          name: gateway-ca\n"
-        "          secret:\n"
-        # Created at deploy time by copy-gateway-ca.sh from the Authelia
-        # Gateway TLS secret (per-Gateway self-signed CAs on kind).
-        "            secretName: gateway-ca\n"
-        "            items:\n"
-        "            - key: ca.crt\n"
-        "              path: ca.crt\n"
-        "      - op: add\n"
-        "        path: /spec/template/spec/initContainers/2/env/-\n"
-        "        value: {name: SSL_CERT_FILE, value: /gateway-ca/ca.crt}\n"
-        "      - op: add\n"
-        "        path: /spec/template/spec/initContainers/2/volumeMounts/-\n"
-        "        value: {name: gateway-ca, mountPath: /gateway-ca, readOnly: true}\n"
-    )
-    if not text.endswith("\n"):
-        text += "\n"
-    path.write_text(text + entry)
-    print("[rewrite-staging] forgejo OIDC discovery trusts kind Gateway CA")
 
 
 def rewrite_argocd_disable_extras(root: pathlib.Path) -> None:
@@ -1274,7 +1225,6 @@ def main() -> int:
     rewrite_opencloud_web_extensions(root)
     rewrite_opencloud_collaboration_insecure(root)
     rewrite_crowdsec_credential_secrets(root)
-    rewrite_forgejo_oidc_http(root)
     rewrite_crowdsec_disable_enroll(root)
     rewrite_crowdsec_skip_hooks(root)
     rewrite_argocd_disable_extras(root)

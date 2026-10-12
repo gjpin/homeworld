@@ -121,9 +121,35 @@ func conditionMatches(obj *unstructured.Unstructured, condType, status string) (
 // ConditionStatus returns the status string for a condition type, or empty.
 func ConditionStatus(obj *unstructured.Unstructured, condType string) string {
 	conditions, found, err := unstructured.NestedSlice(obj.Object, "status", "conditions")
-	if err != nil || !found {
+	if err == nil && found {
+		return conditionStatusIn(conditions, condType)
+	}
+	// Gateway API routes report conditions per parent under
+	// status.parents[].conditions instead of status.conditions. The route
+	// matches only when every parent reports the same status; otherwise the
+	// first differing (or missing) status is returned.
+	parents, found, err := unstructured.NestedSlice(obj.Object, "status", "parents")
+	if err != nil || !found || len(parents) == 0 {
 		return ""
 	}
+	status := ""
+	for i, p := range parents {
+		m, ok := p.(map[string]interface{})
+		if !ok {
+			return ""
+		}
+		conds, _, _ := unstructured.NestedSlice(m, "conditions")
+		s := conditionStatusIn(conds, condType)
+		if i == 0 {
+			status = s
+		} else if s != status {
+			return s
+		}
+	}
+	return status
+}
+
+func conditionStatusIn(conditions []interface{}, condType string) string {
 	for _, c := range conditions {
 		m, ok := c.(map[string]interface{})
 		if !ok {
