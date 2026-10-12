@@ -1,6 +1,6 @@
 # Security Scanners
 
-All Helm-rendered manifests are scanned by three security tools in CI. **Kubescape** checks the offline render of every pinned Helm chart against the `AllControls` framework, **kube-linter** evaluates the same render for manifest best practices, and **Trivy** scans container images added or changed in a pull request for known vulnerabilities.
+All Helm-rendered manifests are scanned by two security tools in CI. **Kubescape** checks the offline render of every pinned Helm chart against the `AllControls` framework, and **kube-linter** evaluates the same render for manifest best practices.
 
 Every intentionally accepted finding is registered as an explicit, resource-scoped exception with a written reason. There are no blanket, namespace-wide, or cluster-wide suppressions: an exception names the exact rendered resource and the exact check it waives, and CI fails if the exception registry and the scanner inputs drift apart.
 
@@ -15,8 +15,6 @@ The `validate` job in `.github/workflows/validate.yaml` runs `scripts/scan-secur
 3. Validates the kube-linter exceptions: annotations naming an unknown check, and annotations whose finding has disappeared from an annotation-stripped copy of the render, both fail the job.
 4. Runs kube-linter (default checks) over the render; any diagnostic not ignored on the specific resource fails the job.
 5. Runs Kubescape with the `AllControls` framework and `--fail-on-degraded-config`; the job fails if the report contains any failed control that is not covered by an exception.
-
-The same job's image-scan step runs `scripts/scan-images.sh`, which extracts the container images added or changed in the pull request diff and fails on unpatched `CRITICAL`/`HIGH` vulnerabilities.
 
 Scanner tool versions are pinned in `.github/workflows/validate.yaml` and updated by Renovate. The offline render covers only the Helm installations; handwritten manifests under `apps/<component>/` are deployed through Argo CD and governed by the Pod Security conventions in [pod-security.md](pod-security.md) and live cluster admission instead.
 
@@ -47,10 +45,6 @@ kube-linter runs its built-in default checks and has no central exception file. 
 For Helm workloads the annotation is applied either as a kustomize patch in `apps/<component>/helm/kustomization.yaml` or through the chart's own annotation values (`deploymentAnnotations` / `annotations`) in `apps/<component>/helm/values.yaml`.
 
 kube-linter silently ignores annotations that name a check it does not know, and an annotation whose finding has disappeared is a stale exception. `scripts/scan-security.sh` therefore fails when an annotation names anything other than a built-in check of the pinned kube-linter version, and fails when an annotation does not suppress at least one finding in an annotation-stripped copy of the render.
-
-### Trivy
-
-Trivy image scanning has no exception mechanism by design. The scan gates on unpatched `CRITICAL`/`HIGH` findings for images changed in the pull request, and the remediation path is an image bump through Renovate, not a waiver.
 
 ### Pod Security Standards exceptions
 

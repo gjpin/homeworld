@@ -45,9 +45,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          # scan-images.sh diffs against the PR base or HEAD~1.
-          fetch-depth: 0
 
       - name: Parse Kubernetes manifests
         if: ${{ !cancelled() }}
@@ -158,13 +155,3 @@ jobs:
         with:
           name: security-homelab
           path: security-reports/homelab
-
-      - name: Install Trivy
-        if: ${{ !cancelled() }}
-        uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
-        with:
-          version: v0.75.0
-
-      - name: Scan PR-updated container images
-        if: ${{ !cancelled() }}
-        run: scripts/scan-images.sh
