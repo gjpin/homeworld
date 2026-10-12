@@ -3,7 +3,7 @@ image:
   repository: docker.io/otwld/velero-ui
   # Pin the tag so the image cannot drift with the chart's appVersion
   # (Renovate tracks it via the velero-ui image manager).
-  tag: "0.10.3"
+  tag: "0.11.0"
 # Prefer the chart-native key over a kustomize patch (AGENTS.md).
 runtimeClassName: gvisor
 rbac:
