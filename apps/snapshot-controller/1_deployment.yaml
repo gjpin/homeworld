@@ -165,7 +165,7 @@ spec:
         - name: snapshot-controller
           # Keep in sync with the CRD application's targetRevision
           # (apps/snapshot-controller/0_crds.yaml); Renovate groups the two.
-          image: registry.k8s.io/sig-storage/snapshot-controller:v8.6.0
+          image: registry.k8s.io/sig-storage/snapshot-controller:v8.7.0
           imagePullPolicy: IfNotPresent
           args:
             - "--v=2"
