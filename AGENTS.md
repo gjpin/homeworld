@@ -145,9 +145,10 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   resource, with schema seeds as `SqlJob`s); do not deploy application-bundled
   MariaDB/MySQL or standalone `mysqld` StatefulSets. Each instance sets
   `updateStrategy.mariadbAutoUpgradeEnabled`, pins `innodb_fast_shutdown=1`,
-  and ships a daily volume-snapshot `PhysicalBackup` plus a PreSync-hook
-  `PhysicalBackup` (`target: PreferReplica`, class `mariadb-longhorn`) so image
-  upgrades never roll without a fresh backup (Supernote is the reference).
+  and ships a PreSync-hook volume-snapshot `PhysicalBackup`
+  (`target: PreferReplica`, class `mariadb-longhorn`) so image upgrades never
+  roll without a fresh backup (Supernote is the reference); Velero's nightly
+  B2 copy is the scheduled backup.
 - Every S3 or object storage requirement must be satisfied by the cluster's
   RustFS Operator or existing shared RustFS `Tenant` store; do not deploy
   application-bundled object storage engines (e.g. MinIO).

@@ -125,8 +125,7 @@ configMaps:
               type: skip
 schedules:
   daily:
-    # 22:00 Lisbon: done before the database snapshots (23:30 UTC, 00:00
-    # Lisbon) and outside the 01:00-06:30 upgrade and reboot windows.
+    # 22:00 Lisbon: outside the 01:00-06:30 upgrade and reboot windows.
     schedule: CRON_TZ=Europe/Lisbon 0 22 * * *
     template:
       resourcePolicy:

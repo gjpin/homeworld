@@ -39,8 +39,8 @@ All PostgreSQL databases (`authelia`, `crowdsec`, `forgejo`, `homeassistant`,
 ### Before Merging a Major Upgrade
 
 1. **Take an on-demand backup.** CNPG recommends a full backup immediately
-   before the upgrade. The daily `ScheduledBackup` may be up to a day old, and
-   a Velero copy of a running database volume is only crash-consistent.
+   before the upgrade. The nightly Velero copy may be up to a day old and is
+   only crash-consistent.
    Create a CNPG volume-snapshot `Backup` and wait for it to complete:
 
    ```bash
@@ -380,8 +380,8 @@ The applications below document procedures beyond that review.
 | **Forgejo** | [Upgrade guide](https://forgejo.org/docs/latest/admin/upgrade/): versions may be skipped. Back up before a major, flush queues before upgrading, run the doctor afterwards. | Before a major: a CNPG on-demand `Backup` ([§1](#before-merging-a-major-upgrade)) and `forgejo manager flush-queues`. After: `forgejo doctor check --all`. Chart majors list breaking value changes in the chart README. |
 | **Woodpecker** | [Migrations](https://woodpecker-ci.org/migrations): per-major breaking changes, some requiring admin actions (repairing repository webhooks, plugin privileges, file ownership). | Apply the listed actions after the sync. |
 | **Immich** | [Upgrading](https://docs.immich.app/install/upgrading): read the breaking changes; downgrades are unsupported, even within a minor. Mobile apps move before the server on a major. | The VectorChord range constrains the CNPG image ([§1](#before-merging-a-major-upgrade)). |
-| **Authelia** | [Storage migrations](https://www.authelia.com/configuration/storage/migrations/) run automatically on start; going back requires a manual schema downgrade. | Roll back by restoring the CNPG backup, not by reverting the image alone. |
-| **Home Assistant** | [Updating](https://www.home-assistant.io/common-tasks/container/#updating): back up first and read the backward-incompatible changes of every release crossed; check repairs and logs afterwards. | Confirm the latest [Velero backup](velero.md) and CNPG backup before a bump. |
+| **Authelia** | [Storage migrations](https://www.authelia.com/configuration/storage/migrations/) run automatically on start; going back requires a manual schema downgrade. | Take a CNPG on-demand `Backup` ([§1](#before-merging-a-major-upgrade)) before a bump and roll back by restoring it (or the latest [Velero backup](velero.md)), not by reverting the image alone. |
+| **Home Assistant** | [Updating](https://www.home-assistant.io/common-tasks/container/#updating): back up first and read the backward-incompatible changes of every release crossed; check repairs and logs afterwards. | Confirm the latest [Velero backup](velero.md) and take a CNPG on-demand `Backup` ([§1](#before-merging-a-major-upgrade)) before a bump. |
 | **RustFS** | [Upgrade runbook](https://docs.rustfs.com/upgrade-scale/upgrade): never upgrade with offline nodes or degraded erasure sets; the on-disk format never changes. The operator chart needs its CRDs first. | CRDs sync with the render. |
 | **Longhorn** | See [§2](#2-automated-storage-engine-upgrades-longhorn). | |
 | **OpenCloud, DocumentDB, MariaDB, CloudNativePG operands** | See [§3](#3-automated-post-upgrade-tasks-opencloud), [§7](#7-documentdb-engine-upgrades), [§8](#8-mariadb-engine-upgrades-mariadb-operator), [§1](#1-automated-major-database-upgrades-cloudnativepg). | |

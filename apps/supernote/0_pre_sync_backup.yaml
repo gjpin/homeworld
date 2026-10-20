@@ -13,8 +13,12 @@
 # not running (so a fix can still sync) — the check reports Healthy and the
 # sync continues.
 #
-# The hook object is recreated on each sync; its VolumeSnapshots carry no
-# owner reference and are pruned by maxRetention instead.
+# The hook object is recreated on each sync. Without a schedule it snapshots
+# only while it finds no snapshot labelled with its name, and its
+# VolumeSnapshots carry no owner reference and are never pruned by the
+# operator: the rotation hook that runs before it
+# (-1_pre_sync_snapshot_rotation.yaml) retires the previous snapshots and
+# keeps the newest seven.
 ---
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: PhysicalBackup
@@ -27,9 +31,9 @@ metadata:
 spec:
   mariaDbRef:
     name: mariadb
-  # No schedule: a single snapshot per hook object.
+  # No schedule: a single snapshot per hook object (maxRetention applies
+  # only to scheduled backups; the rotation hook prunes instead).
   target: PreferReplica
-  maxRetention: 168h
   timeout: 30m
   storage:
     volumeSnapshot:
