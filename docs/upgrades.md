@@ -152,6 +152,8 @@ Longhorn upgrades consist of two components:
    * **Automation:** Configured with `defaultSettings.concurrentAutomaticEngineUpgradePerNodeLimit: 2` in `apps/longhorn/helm/values.yaml`.
    * **Behavior:** After the Longhorn Manager upgrades, Longhorn automatically rolls and upgrades volume engines across nodes concurrently, removing the need for manual engine upgrades in the Longhorn UI.
 
+Before merging a Longhorn bump, check the pre-upgrade conditions from the [upstream upgrade guide](https://longhorn.io/docs/latest/deploy/upgrade/): no volume is `Faulted` (unusable replicas may be deleted during the upgrade) and no BackingImage is in a failed state. Upstream also recommends a Longhorn system backup, which needs a Longhorn backup target this cluster does not configure; confirm the latest [Velero backup](velero.md) succeeded instead. Longhorn cannot be downgraded.
+
 ---
 
 ## 3. Automated Post-Upgrade Tasks (OpenCloud)
@@ -162,14 +164,17 @@ As documented in [docs/opencloud.md](opencloud.md), OpenCloud automatically hand
 
 ## 4. Applications Requiring Sequential Version Stepping
 
-Certain upstream applications require sequential version progression and prohibit skipping releases:
+Certain upstream applications require (or recommend) sequential version progression instead of skipping releases:
 
 | Application | Upgrade Constraint | Upstream Rationale |
 | :--- | :--- | :--- |
-| **Forgejo** | Sequential major versions (`v7.x` → `v8.x` → `v9.x`) | Database schema migrations must run in sequence. Skipping major versions can cause irrecoverable database corruption. |
-| **Immich** | Step through checkpoint releases | Breaking changes, database migrations, and machine-learning model updates must be applied incrementally. Background queues must be cleared before the next upgrade. |
-| **Longhorn** | Sequential minor versions (`1.10.x` → `1.11.x` → `1.12.x`) | Upstream explicitly does not support jumping minor versions. Manager and CSI plugin schemas evolve sequentially. |
-| **cert-manager** | Sequential minor versions (`1.15.x` → `1.16.x` → `1.17.x`) | CRD schemas and conversion webhooks require minor-by-minor progression. |
+| **Cilium** | Sequential minor versions, each from the latest patch of the previous minor | The only tested upgrade and rollback path is between consecutive minor releases. |
+| **Longhorn** | Sequential minor versions | Upstream does not support jumping minor versions and rejects the upgrade automatically. Downgrades are blocked. |
+| **cert-manager** | Sequential minor versions (recommended), each on its latest patch | Upstream recommends one minor at a time; larger jumps are only covered by a reinstall. |
+| **External Secrets** | Sequential minor versions (recommended) | Upstream's stability policy recommends upgrading version by version. |
+| **Velero** | From the previous minor only | Each upgrade guide assumes the previous minor is running; older installations step through the earlier guides. The chart version does not follow Velero's, so Renovate cannot enforce this: check the release a chart bump ships. |
+
+Forgejo, Immich, and the other applications have no stepping constraint; their upstream procedures are in [§9](#9-upstream-upgrade-procedures).
 
 ---
 
@@ -184,9 +189,8 @@ To prevent breaking jumps while keeping standard application updates streamlined
   pod-security docs, e2e hook comments, and every
   `managedNamespaceMetadata` PSA `*-version` label across `apps/` — in one PR
   (`scripts/check-k8s-version.sh` fails the build if any of them drift).
-* **Strict Components:** Forgejo, Immich, Longhorn, cert-manager, and CloudNativePG operand images have `separateMajorMinor: true`, `separateMultipleMajor: true`, or `separateMinorPatch: true` enabled. This guarantees:
-  * Renovate opens individual PRs for each major or minor increment rather than jumping to the highest version.
-  * PR bodies include automated notices linking to upstream release notes, breaking change checklists, and backup reminders.
+* **Strict Components:** Cilium, Longhorn, cert-manager, and External Secrets set `separateMultipleMinor: true`, so Renovate opens one PR per minor increment instead of jumping to the highest version ([§4](#4-applications-requiring-sequential-version-stepping)). Forgejo, Immich, MariaDB, and the CloudNativePG operand images set `separateMajorMinor: true` and `separateMultipleMajor: true`, so each major arrives in its own PR.
+* **PR notices:** the components with an upstream procedure ([§9](#9-upstream-upgrade-procedures)) carry `prBodyNotes` that summarize it and link the upstream release notes or upgrade guide.
 * **Grouped platform pins:** the system-upgrade-controller CRD tag, remote base and image move in one PR; the VictoriaMetrics single-node and vmalert charts move together; the agents VM tool pins (`host/agents-vm/versions.env`) arrive as one PR, so a merge rebuilds the VM once.
 * **Kubernetes version pins:** every reference to the cluster's Kubernetes minor — the k3s version in `host/versions.env` and `apps/system-upgrade-controller/2_plans.yaml`, the `managedNamespaceMetadata` Pod Security Admission labels in `apps/app-of-apps.yaml` and `apps/otel-collector/1_helm_node.yaml`, the e2e suite's `kubeVersion` (kind node image) and its README, the user-namespaces documentation in `AGENTS.md` and `docs/pod-security.md`, and the e2e staging hook comments — is tracked by `customManagers` in `renovate.json` and grouped into a single `kubernetes-version` PR. The kind-side references are sourced from `kindest/node` Docker Hub tags, so Renovate can never propose a node image kind cannot pull, and the k3s references from k3s releases. Merge a minor bump only once the PR carries the matching k3s minor as well (k3s publishes a new minor after upstream Kubernetes), so the PSA labels never reference a minor newer than the API server once the Plans have run, and only when the local kind CLI is new enough to pull the new node image. `scripts/check-k8s-version.sh` (run by the [validate workflow](../.github/workflows/validate.yaml)) fails CI when any reference drifts from the rest.
 * **`ignorePaths` override:** `config:recommended` defaults `ignorePaths` to `**/examples/**`, `**/tests/**`, and similar patterns, which silently excludes `e2e/examples/` from every manager (the suite pin, the e2e README tag, and the staging hook comments). The explicit `ignorePaths` in `renovate.json` keeps only `**/node_modules/**` and `**/bower_components/**`; do not remove it or the Kubernetes version automation stops seeing the e2e suite.
@@ -333,3 +337,82 @@ run closes. To apply it:
 
 The script's schema statements are idempotent, but like upstream's installer
 it also empties the recycle-bin and file-conversion tables on every run.
+
+---
+
+## 9. Upstream Upgrade Procedures
+
+Merging a Renovate PR is only safe once the upstream release notes for every
+version it crosses have been read: majors routinely carry required manual
+actions, and minors of the operators below do too. For each application,
+check the notes for removed or renamed configuration keys, new prerequisites
+(CRD or dependency versions), and one-time manual steps, and apply them in the
+same PR when they are declarative.
+
+Then check that this repository's own inputs still fit the target version:
+
+* **Helm values:** every key in `apps/<component>/helm/values.yaml` still
+  exists in the new chart's `values.yaml` (and `values.schema.json`, when the
+  chart ships one) with the same meaning. Helm ignores unknown keys, so a
+  renamed key silently falls back to the chart default.
+* **Kustomize patches:** each patch still matches its target resource, and
+  the fields it sets or deletes still exist in the new render.
+* **Application configuration:** config templates, ConfigMaps, environment
+  variables, command-line flags, and custom resource fields use no removed,
+  renamed, or deprecated option; switch deprecated ones to the documented
+  replacement in the same PR instead of waiting for their removal.
+* **Rendered output:** render the component before and after the bump
+  (`kubectl kustomize --enable-helm`) and diff the two, confirming the
+  security contexts, `runtimeClassName`/`hostUsers`, resources,
+  ServiceMonitors, and ports are still emitted. After the sync, check the
+  application's logs for deprecation warnings.
+
+The applications below document procedures beyond that review.
+
+| Application | Upstream procedure | Here |
+| :--- | :--- | :--- |
+| **Cilium** | [Upgrade guide](https://docs.cilium.io/en/stable/operations/upgrade/) plus the per-minor upgrade notes: run the pre-flight check, keep `upgradeCompatibility` at the originally installed version, and apply each minor's required actions (removed APIs, Gateway API CRD minimums). | Manual pre-flight before merging a minor bump (below). Gateway API CRDs come from k3s, so a Gateway API minimum can require a k3s upgrade first. |
+| **Envoy Gateway** | [Upgrade notes](https://gateway.envoyproxy.io/docs/install/install-helm/): CRDs before the controller; releases can require a minimum Gateway API CRD version. | CRDs sync with the render. Check the release's Gateway API requirement against the k3s-bundled CRDs ([k3s.md](k3s.md)). |
+| **CloudNativePG operator** | [Operator upgrade](https://cloudnative-pg.io/docs/current/installation_upgrade): read the release notes (some versions need extra steps or are not directly upgradable), avoid skipping versions. | Every operator bump rolls every PostgreSQL cluster; with `instances: 1` each database restarts once. |
+| **MariaDB Operator** | Per-release `UPGRADE_<version>.md` [guides](https://github.com/mariadb-operator/mariadb-operator/tree/main/docs/releases): CRDs first, sometimes prerequisites on the `MariaDB` CR (e.g. `updateStrategy` fields) before the operator moves. | CRDs sync with the render. Apply any CR prerequisite in an earlier commit than the chart bump. |
+| **Velero** | Per-version guide (`velero.io/docs/main/upgrade-to-<minor>/`): CRDs first, from the previous minor only, plugin images matching the [compatibility matrix](https://github.com/vmware-tanzu/velero-plugin-for-aws). | CRDs sync with the render (`upgradeCRDs: false`). Bump `velero-plugin-for-aws` together with Velero when the matrix requires it. |
+| **Argo CD** | [Upgrade overview](https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/overview/): read the `upgrading/<from>-<to>` notes of every minor crossed; majors carry incompatible changes. | Chart majors also list value changes in the chart README. |
+| **Forgejo** | [Upgrade guide](https://forgejo.org/docs/latest/admin/upgrade/): versions may be skipped. Back up before a major, flush queues before upgrading, run the doctor afterwards. | Before a major: a CNPG on-demand `Backup` ([§1](#before-merging-a-major-upgrade)) and `forgejo manager flush-queues`. After: `forgejo doctor check --all`. Chart majors list breaking value changes in the chart README. |
+| **Woodpecker** | [Migrations](https://woodpecker-ci.org/migrations): per-major breaking changes, some requiring admin actions (repairing repository webhooks, plugin privileges, file ownership). | Apply the listed actions after the sync. |
+| **Immich** | [Upgrading](https://docs.immich.app/install/upgrading): read the breaking changes; downgrades are unsupported, even within a minor. Mobile apps move before the server on a major. | The VectorChord range constrains the CNPG image ([§1](#before-merging-a-major-upgrade)). |
+| **Authelia** | [Storage migrations](https://www.authelia.com/configuration/storage/migrations/) run automatically on start; going back requires a manual schema downgrade. | Roll back by restoring the CNPG backup, not by reverting the image alone. |
+| **Home Assistant** | [Updating](https://www.home-assistant.io/common-tasks/container/#updating): back up first and read the backward-incompatible changes of every release crossed; check repairs and logs afterwards. | Confirm the latest [Velero backup](velero.md) and CNPG backup before a bump. |
+| **RustFS** | [Upgrade runbook](https://docs.rustfs.com/upgrade-scale/upgrade): never upgrade with offline nodes or degraded erasure sets; the on-disk format never changes. The operator chart needs its CRDs first. | CRDs sync with the render. |
+| **Longhorn** | See [§2](#2-automated-storage-engine-upgrades-longhorn). | |
+| **OpenCloud, DocumentDB, MariaDB, CloudNativePG operands** | See [§3](#3-automated-post-upgrade-tasks-opencloud), [§7](#7-documentdb-engine-upgrades), [§8](#8-mariadb-engine-upgrades-mariadb-operator), [§1](#1-automated-major-database-upgrades-cloudnativepg). | |
+
+Charts that ship their CRDs in `crds/` (Grafana Operator, OpenTelemetry
+Operator, RustFS Operator, Envoy Gateway, Velero) tell Helm users to apply
+the CRDs by hand before `helm upgrade`. Here the render includes them and
+Argo CD server-side applies them in the same sync ([argocd.md](argocd.md)),
+so no manual step is needed.
+
+### Cilium Pre-Flight Check
+
+Before merging a Cilium minor bump, render the pre-flight DaemonSet from the
+target chart, apply it, and wait until it is ready on every node (it pre-pulls
+the new image) and its `cnp-validator` reports every `CiliumNetworkPolicy`
+valid. Pass only these flags, not `apps/cilium/helm/values.yaml`: the full
+values also render Hubble and a freshly generated `cilium-ca` Secret, which
+would overwrite the live ones.
+
+```bash
+helm template cilium-preflight cilium --repo https://helm.cilium.io \
+  --version <target> --namespace cilium \
+  --set preflight.enabled=true --set agent=false --set operator.enabled=false \
+  --set k8sServiceHost=127.0.0.1 --set k8sServicePort=6444 \
+  > cilium-preflight.yaml
+kubectl apply -f cilium-preflight.yaml
+kubectl -n cilium get daemonset cilium-pre-flight-check
+kubectl -n cilium get deployment cilium-pre-flight-check
+```
+
+The DaemonSet's ready count must match the `cilium` DaemonSet's, and the
+Deployment must report `1/1`; a Deployment stuck at `0/1` names the invalid
+policy in its `cnp-validator` logs. Fix it, then delete the pre-flight
+resources (`kubectl delete -f cilium-preflight.yaml`) and merge.

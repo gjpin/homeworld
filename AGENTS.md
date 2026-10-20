@@ -432,6 +432,27 @@ default. When onboarding or changing an app:
 
 - Check the upstream chart/image documentation before changing a version or
   values schema.
+- Every application upgrade, including reviewing or merging Renovate PRs,
+  starts with the upstream release notes (changelog, upgrade guide, chart
+  README *Upgrading* section) for every version between the current pin and
+  the target, not only the PR body. Majors always need this, and so do
+  operator and CNI minors. When a chart bump ships a new application version,
+  read the application's notes as well as the chart's. Look for removed or
+  renamed config keys and values, new prerequisites (CRD, Gateway API,
+  Kubernetes, or dependency minimums), required version stepping, and
+  one-time manual steps. Then re-verify this repository's own inputs against
+  the target version: every Helm values key still exists in the new chart's
+  `values.yaml`/`values.schema.json` and keeps its meaning (unknown keys are
+  silently ignored); Kustomize patches still match their targets and fields;
+  application configuration (config templates, ConfigMaps, environment
+  variables, CLI flags, CRD fields) uses no removed, renamed, or deprecated
+  option and adopts the documented replacement. Render the chart before and
+  after the bump and diff the output to confirm the intended resources and
+  fields are still emitted. Apply declarative changes in the same PR. Before
+  merging, report any manual step, or an upgrade that crosses an unsupported
+  jump, to the user instead of merging. Follow `docs/upgrades.md` (version
+  stepping in §4, per-app procedures in §9). When a release introduces a new
+  standing procedure, add it to §9 and to the app's Renovate `prBodyNotes`.
 - Before modifying an existing Helm installation or adding a new one, render
   the exact pinned chart with the proposed values and patches, and inspect all
   generated resources. Ground chart versions, value keys, resource names,

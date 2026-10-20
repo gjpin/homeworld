@@ -26,7 +26,7 @@
   "separateMultipleMajor": false,
   "packageRules": [
     {
-      "description": "Forgejo requires sequential major upgrades to execute database schema migrations",
+      "description": "Forgejo majors: one PR per major with the upstream backup, queue-flush, and doctor steps",
       "matchPackageNames": [
         "code.forgejo.org/forgejo-helm/forgejo",
         "forgejo"
@@ -34,11 +34,11 @@
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
       "prBodyNotes": [
-        "⚠️ **Forgejo Upgrade Requirement**: Upstream requires upgrading major releases sequentially (e.g. 7.x → 8.x → 9.x) to execute database migrations in sequence. Do not skip major versions."
+        "⚠️ **Forgejo Upgrade**: Read the [Forgejo release notes](https://codeberg.org/forgejo/forgejo/releases) and, for a chart major, the chart README's *Upgrading* section. Upstream allows skipping versions; before a major, take a CNPG on-demand `Backup` and run `forgejo manager flush-queues`, and after the sync run `forgejo doctor check --all` (see [docs/upgrades.md](docs/upgrades.md#9-upstream-upgrade-procedures))."
       ]
     },
     {
-      "description": "Immich requires review of breaking changes and migration checkpoints",
+      "description": "Immich: one PR per major with a breaking-change review reminder",
       "matchPackageNames": [
         "ghcr.io/immich-app/immich-charts/immich",
         "immich"
@@ -46,7 +46,7 @@
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
       "prBodyNotes": [
-        "⚠️ **Immich Upgrade Requirement**: Review the [Immich Release Notes](https://github.com/immich-app/immich/releases) for breaking changes and verify all migration jobs are completed before proceeding to subsequent releases."
+        "⚠️ **Immich Upgrade**: Review the [Immich release notes](https://github.com/immich-app/immich/releases) for breaking changes and the supported VectorChord range. Downgrades are unsupported, even within a minor; on a major, update the mobile apps first."
       ]
     },
     {
@@ -57,8 +57,9 @@
       "separateMajorMinor": true,
       "separateMinorPatch": true,
       "prBodyNotes": [
-        "⚠️ **Longhorn Upgrade Requirement**: Upstream requires sequential minor version upgrades (e.g. 1.10 → 1.11 → 1.12). Skipping minor versions is unsupported. Note: volume engine upgrades are automated via `concurrentAutomaticEngineUpgradePerNodeLimit`."
-      ]
+        "⚠️ **Longhorn Upgrade Requirement**: Upstream only supports consecutive minor upgrades and blocks downgrades. Before merging, confirm no volume is `Faulted`, no BackingImage has failed, and the latest Velero backup succeeded. Volume engine upgrades are automated via `concurrentAutomaticEngineUpgradePerNodeLimit` (see [docs/upgrades.md](docs/upgrades.md#2-automated-storage-engine-upgrades-longhorn))."
+      ],
+      "separateMultipleMinor": true
     },
     {
       "description": "cert-manager recommends sequential minor version upgrades for CRD/webhook alignment",
@@ -69,7 +70,8 @@
       "separateMinorPatch": true,
       "prBodyNotes": [
         "⚠️ **cert-manager Upgrade Requirement**: Upstream recommends upgrading minor versions sequentially (e.g. 1.15 → 1.16 → 1.17) to ensure CRD schema and webhook compatibility."
-      ]
+      ],
+      "separateMultipleMinor": true
     },
     {
       "description": "CloudNativePG operand major upgrades trigger automated in-place pg_upgrade",
@@ -167,7 +169,66 @@
         "cilium",
         "https://github.com/cilium/cilium.git"
       ],
-      "groupName": "cilium"
+      "groupName": "cilium",
+      "separateMultipleMinor": true,
+      "prBodyNotes": [
+        "⚠️ **Cilium Upgrade Requirement**: Upstream only supports consecutive minor upgrades. Before merging a minor, read its [upgrade notes](https://docs.cilium.io/en/stable/operations/upgrade/) (removed APIs, minimum Gateway API CRD version, which k3s supplies here) and run the [pre-flight check](docs/upgrades.md#cilium-pre-flight-check)."
+      ]
+    },
+    {
+      "description": "External Secrets recommends sequential minor upgrades",
+      "matchPackageNames": [
+        "external-secrets"
+      ],
+      "separateMultipleMinor": true,
+      "prBodyNotes": [
+        "⚠️ **External Secrets Upgrade**: Upstream recommends upgrading one minor at a time. Check the [release notes](https://github.com/external-secrets/external-secrets/releases) for removed API versions before merging."
+      ]
+    },
+    {
+      "description": "CloudNativePG operator upgrades roll every PostgreSQL cluster and can carry required steps",
+      "matchPackageNames": [
+        "cloudnative-pg"
+      ],
+      "prBodyNotes": [
+        "ℹ️ **CloudNativePG Operator Upgrade**: Read the [release notes](https://github.com/cloudnative-pg/cloudnative-pg/releases) for required steps; upstream advises against skipping versions. The sync restarts every PostgreSQL cluster once (`instances: 1`)."
+      ]
+    },
+    {
+      "description": "MariaDB Operator releases publish per-version upgrade guides",
+      "matchPackageNames": [
+        "mariadb-operator"
+      ],
+      "prBodyNotes": [
+        "⚠️ **MariaDB Operator Upgrade**: Read every `UPGRADE_<version>.md` [guide](https://github.com/mariadb-operator/mariadb-operator/tree/main/docs/releases) up to the target. Prerequisites on the `MariaDB` CR must be committed before the chart bump."
+      ]
+    },
+    {
+      "description": "Velero upgrades step from the previous minor and need a compatible AWS plugin",
+      "matchPackageNames": [
+        "velero"
+      ],
+      "prBodyNotes": [
+        "⚠️ **Velero Upgrade**: The chart version does not follow Velero's. Check which Velero release this chart ships, read its `upgrade-to-<minor>` guide (upgrades start from the previous minor only), and bump `velero-plugin-for-aws` per its [compatibility matrix](https://github.com/vmware-tanzu/velero-plugin-for-aws)."
+      ]
+    },
+    {
+      "description": "Argo CD minors and majors carry upgrade notes",
+      "matchPackageNames": [
+        "argo-cd"
+      ],
+      "prBodyNotes": [
+        "ℹ️ **Argo CD Upgrade**: Read the [upgrading notes](https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/overview/) of every Argo CD minor this chart bump crosses, and the chart README for value changes."
+      ]
+    },
+    {
+      "description": "Woodpecker majors carry required admin actions",
+      "matchPackageNames": [
+        "woodpecker"
+      ],
+      "prBodyNotes": [
+        "ℹ️ **Woodpecker Upgrade**: Read the [migration notes](https://woodpecker-ci.org/migrations) for every major crossed and apply the listed admin actions after the sync."
+      ]
     },
     {
       "description": "Group the Prometheus Operator CRD tag bumps (repo pin + e2e hook) so the release and its CRDs stay version-aligned",
