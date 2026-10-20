@@ -1,0 +1,124 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: actual-budget
+  namespace: actual-budget
+  labels:
+    app.kubernetes.io/name: actual-budget
+    app.kubernetes.io/component: budget
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: actual-budget
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: actual-budget
+        app.kubernetes.io/component: budget
+    spec:
+      serviceAccountName: actual-budget
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
+      # The image's non-root `actual` user (UID/GID 1001); the image sets
+      # no USER, so it is pinned here.
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: actual-budget
+          image: docker.io/actualbudget/actual-server:26.10.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            seccompProfile:
+              type: RuntimeDefault
+          envFrom:
+            - configMapRef:
+                name: actual-budget-config
+          env:
+            - name: ACTUAL_OPENID_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: actual-budget-secrets
+                  key: ACTUAL_OPENID_CLIENT_SECRET
+            # OpenID discovery, token, and UserInfo calls to Authelia need
+            # the homeworld CA; Node adds this file to its built-in roots.
+            - name: NODE_EXTRA_CA_CERTS
+              value: /etc/homeworld-ca/ca.crt
+          ports:
+            - name: http
+              containerPort: 5006
+              protocol: TCP
+          # Ready only once OpenID is bootstrapped. If discovery against
+          # Authelia fails at the first start, the server stays
+          # un-bootstrapped and its /account/bootstrap endpoint would accept
+          # a server password from anyone; the pod is kept out of the route
+          # and restarted to retry discovery instead.
+          startupProbe:
+            exec:
+              command:
+                - node
+                - -e
+                - "fetch('http://127.0.0.1:5006/account/needs-bootstrap').then(r=>r.json()).then(b=>process.exit(b.data.bootstrapped?0:1),()=>process.exit(1))"
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 10m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+          volumeMounts:
+            - name: actual-budget
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+            - name: homeworld-ca
+              mountPath: /etc/homeworld-ca
+              readOnly: true
+      volumes:
+        - name: actual-budget
+          persistentVolumeClaim:
+            claimName: actual-budget
+        - name: tmp
+          emptyDir: {}
+        - name: homeworld-ca
+          configMap:
+            name: homeworld-ca

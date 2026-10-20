@@ -110,7 +110,8 @@ dashboard's JSON `description` cites its provenance.
 Apps without collectible metrics have no folder: `admission-policies` and
 `prometheus-operator-crd` deploy no workloads; `csi-driver-nfs` runs only its
 node plugin, whose metrics listener belongs to the omitted controller;
-`system-upgrade-controller` serves no metrics endpoint; `homepage`, `radicale`,
+`system-upgrade-controller` serves no metrics endpoint; `actual-budget` serves
+only a JSON `/metrics` (process memory and uptime, not Prometheus); `homepage`, `radicale`,
 `openchamber`, `velero-ui`, and `opentelemetry-operator` expose no scrapeable
 metrics; the DocumentDB operator's controller-runtime metrics endpoint is
 disabled upstream with no chart toggle. Apps whose only metrics are the

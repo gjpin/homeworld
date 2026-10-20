@@ -101,6 +101,9 @@
      Dragonfly cache, pinned to amd64 nodes
    * vaultwarden: Bitwarden-compatible password manager (CloudNativePG-backed)
      with optional Authelia SSO
+   * actual-budget: Actual Budget sync server (SQLite on Longhorn) with
+     Authelia sign-in; its startup probe holds the pod un-Ready until the
+     OpenID discovery against Authelia (same wave) succeeds
    * qbittorrent: torrent client with a gluetun VPN sidecar and a
      port-forward sync job, after csi-driver-nfs (the downloads share),
      External Secrets, and the CrowdSec Envoy bouncer

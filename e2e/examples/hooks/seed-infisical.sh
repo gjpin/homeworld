@@ -388,6 +388,7 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_VELERO_UI" "e2e-oidc-velero-ui"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_RUSTFS" "e2e-oidc-rustfs"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_VAULTWARDEN" "e2e-oidc-vaultwarden"
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_ACTUAL_BUDGET" "e2e-oidc-actual-budget"
   # Shared gateway-OIDC client: consumed by the authelia, envoy-gateway,
   # homepage, victoria-metrics, homeassistant, and longhorn ExternalSecrets
   # (the latter two apps are omitted on kind, but seeding the key keeps the

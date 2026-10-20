@@ -235,6 +235,7 @@ spec:
             - notesnook
             - woodpecker
             - vaultwarden
+            - actual-budget
             - homepage
             - opentelemetry-operator
             # metrics-server and the kubelet-serving-cert approver run in
@@ -466,6 +467,17 @@ spec:
           service: vaultwarden
           port: 8080
           path: "/alive"
+          timeout: 10m
+      # Actual Budget reports bootstrapped only after its startup OpenID
+      # discovery against Authelia succeeded (the pod's startup probe gates
+      # on the same endpoint).
+      - name: actual-budget-openid-bootstrap
+        serviceProbe:
+          namespace: actual-budget
+          service: actual-budget
+          port: 5006
+          path: "/account/needs-bootstrap"
+          bodyContains: '"bootstrapped":true'
           timeout: 10m
       # Collabora's WOPI discovery endpoint must serve its XML.
       - name: collabora-wopi-discovery

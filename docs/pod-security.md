@@ -14,6 +14,7 @@ The table below outlines the Pod Security Standard compliance level for every co
 
 | Application | Namespace | PSA Level | Compliance | Details & Rationale |
 | :--- | :--- | :---: | :---: | :--- |
+| **Actual Budget** | `actual-budget` | Restricted | **Restricted** | Sync server runs as the image's non-root `actual` user (UID/GID `1001`) on port `5006` with dropped capabilities (`ALL`), read-only root filesystem, and `RuntimeDefault` seccomp. |
 | **Argo CD** | `argocd` | Restricted | **Restricted** | All components (`server`, `repo-server`, `application-controller`, `applicationset-controller`, `notifications-controller`) run as non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. The attached Dragonfly instance (the chart's bundled Redis is disabled) runs as the image's `dfly` user (UID/GID `999`) with dropped capabilities and `RuntimeDefault` seccomp. Dex and the bundled Redis are disabled in values. |
 | **Authelia** | `authelia` | Restricted | **Restricted** | Application container runs as UID `1000` with read-only root filesystem, dropped capabilities (`ALL`), and `RuntimeDefault` seccomp. Attached PostgreSQL and Dragonfly instances also conform to Restricted. |
 | **cert-manager** | `cert-manager` | Restricted | **Restricted** | Controller, cainjector, webhook, and startup check run non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. |
@@ -108,6 +109,7 @@ Only workloads requiring direct host device access, host namespaces, raw block d
 
 | Workload | Namespace | gVisor Sandboxing | Implementation Mechanism | Details & Rationale |
 | :--- | :--- | :---: | :--- | :--- |
+| **Actual Budget** | `actual-budget` | **Enabled** (`gvisor`) | Manifest | Declared in the Actual Budget Deployment. |
 | **Argo CD** | `argocd` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `server`, `repo-server`, `application-controller`, `applicationset-controller`, and `notifications-controller`. The Dragonfly operand is a documented standard-runtime exception (CRD lacks a `runtimeClassName` field). |
 | **Authelia** | `authelia` | **Enabled** (`gvisor`) | Kustomize patch | Applied to Authelia Deployment. |
 | **cert-manager** | `cert-manager` | **Enabled** (`gvisor`) | Kustomize patch | Applied across `controller`, `cainjector`, and `webhook` Deployments (the `startupapicheck` Job is disabled in values: it is an inert Helm-hook upgrade checker under Argo). |
@@ -170,6 +172,7 @@ Standalone applications use dedicated ServiceAccounts rather than the namespace 
 - `opencloud`: Dedicated `opencloud` ServiceAccount with `automountServiceAccountToken: false`.
 - `homeassistant`: Dedicated `homeassistant-app` ServiceAccount with `automountServiceAccountToken: false` applied to `homeassistant`, `mosquitto`, and `zigbee2mqtt` (the name avoids colliding with the CloudNativePG cluster-derived `homeassistant` ServiceAccount, which CNPG adopts as-is and needs a mounted token).
 - `radicale`: Dedicated `radicale` ServiceAccount with `automountServiceAccountToken: false`.
+- `actual-budget`: Dedicated `actual-budget` ServiceAccount with `automountServiceAccountToken: false`.
 - `homepage`: Dedicated `homepage` ServiceAccount with `automountServiceAccountToken: true` — the dashboard's Kubernetes integration reads pods, nodes, and `metrics.k8s.io` from the API server, scoped to a read-only ClusterRole.
 
 Handwritten application ServiceAccounts:

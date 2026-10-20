@@ -788,6 +788,19 @@
     },
     {
       "customType": "regex",
+      "description": "Update the Actual Budget server image",
+      "managerFilePatterns": [
+        "/^apps/actual-budget/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>docker\\.io/actualbudget/actual-server):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
       "description": "Update the Supernote service image (main and nginx-config init containers)",
       "managerFilePatterns": [
         "/^apps/supernote/1_supernote_service\\.yaml$/"

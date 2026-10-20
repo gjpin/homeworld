@@ -30,6 +30,7 @@
 ## Apps
 | App | Domain(s) | Description |
 | --- | --- | --- |
+| Actual Budget | `budget.homeworld.internal` | Envelope-budgeting sync server and web app with Authelia sign-in and Enable Banking bank sync. |
 | Admission Policies | — | CEL ValidatingAdmissionPolicies protecting Pod Security Admission labels. |
 | Argo CD | `argocd.homeworld.internal` | GitOps continuous delivery. |
 | Authelia | `auth.homeworld.internal` | Identity provider for every OIDC sign-in (applications and the gateway-OIDC routes). |

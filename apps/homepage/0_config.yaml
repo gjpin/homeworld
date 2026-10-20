@@ -90,6 +90,11 @@ data:
             href: https://notes.homeworld.internal
             description: Encrypted notes
             siteMonitor: https://notes.homeworld.internal
+        - Actual Budget:
+            icon: actual-budget
+            href: https://budget.homeworld.internal
+            description: Personal budgeting
+            siteMonitor: https://budget.homeworld.internal
     - Monitoring:
         - Grafana:
             icon: grafana
