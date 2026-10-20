@@ -712,8 +712,8 @@ address, and the four VLAN
 gateways. Blocked responses are NXDOMAIN, AAAA answers are disabled
 (IPv4-only networks), `.lan` and private PTR go to dnsmasq on port 54,
 `*.homeworld.internal` (every cluster hostname, at any depth) is answered
-locally with the Envoy Gateway VIP `192.168.8.50` (reserved in
-[talos.md](talos.md) step 2), and 26 filter lists are enabled. Rewrites are
+locally with the Envoy Gateway VIP `192.168.8.50` (outside the DHCP pool,
+see section 17), and 26 filter lists are enabled. Rewrites are
 answered before filtering, so the rebind-protection list does not block
 these private answers. An optional `DNS_REBIND_DOMAIN` adds a private
 answer exception after the built-in user rules.
@@ -1216,10 +1216,11 @@ chronyc -N authdata
 Each client becomes a `network.wg_<name>` section of type
 `wireguard_$VPN_IF` with its public key, preshared key and a `/32` allowed
 IP, and gets a ready-to-import configuration file in
-`/root/wireguard-clients/`. Clients reach the WireGuard subnet and Pixel
+`/root/wireguard-clients/`. Clients reach the WireGuard subnet, Pixel
 (`192.168.8.0/24`, including the cluster's Gateway VIP `192.168.8.50`, so
-every `*.homeworld.internal` service works remotely) through the tunnel;
-other traffic stays on their own connection. As members of the Pixel zone they get the same DNS policy as
+every `*.homeworld.internal` service works remotely) and the agents VM
+subnet (`10.20.0.0/24`, routed through the Ryzen node, section 17) through
+the tunnel; other traffic stays on their own connection. As members of the Pixel zone they get the same DNS policy as
 Pixel clients: AdGuard Home on the server address, port-53 interception and
 no direct port-54 access.
 
@@ -1239,7 +1240,7 @@ VPN_PORT=$(uci get "network.$VPN_IF.listen_port")
 VPN_ADDR=$(uci get "network.$VPN_IF.addresses") # one IPv4 /24 address, e.g. 10.10.0.1/24
 VPN_PREFIX=${VPN_ADDR%.*}
 VPN_SERVER_ADDR=${VPN_ADDR%/*}
-CLIENT_ALLOWED_IPS="${VPN_PREFIX}.0/24,192.168.8.0/24"
+CLIENT_ALLOWED_IPS="${VPN_PREFIX}.0/24,192.168.8.0/24,10.20.0.0/24"
 SERVER_PUBLIC=$(uci get "network.$VPN_IF.private_key" | wg pubkey)
 mkdir -p "$WG_CLIENT_DIR"
 chmod 700 "$WG_CLIENT_DIR"
@@ -1306,3 +1307,122 @@ dig @192.168.8.254 openwrt.org +short # also answered: intercepted and sent to A
 dig @10.10.0.1 git.homeworld.internal +short # 192.168.8.50 (the cluster's Gateway VIP)
 dig -p 54 @10.10.0.1 openwrt.org      # must fail: dnsmasq is not reachable directly
 ```
+
+## 17. Homeworld cluster
+
+Run this once, from the `192.168.8.1` session, before installing the nodes
+([docs/k3s.md](k3s.md)). It gives the three nodes and the NAS static leases,
+routes the agents VM subnet through the Ryzen node, rejects that subnet
+everywhere but the internet, and runs the Tang server the nodes' LUKS roots
+are bound to ([docs/fedora.md](fedora.md)).
+
+The Pixel DHCP pool is `192.168.8.100`–`.249` (section 3), so every address
+below `.100` stays unassigned unless a lease names it. The two cluster
+virtual IPs need no router configuration beyond staying out of every lease:
+`192.168.8.50` (Gateway VIP, answered by Cilium) and `192.168.8.51`
+(Kubernetes API VIP, answered by kube-vip). The node-to-address assignment
+may change; keep every address below `.100`, and update `host/cluster.env`
+in git if the NAS or a VIP moves.
+
+```sh
+# MAC address of each machine's LAN port (`ip link` on the machine, or the
+# DHCP lease list in LuCI).
+RYZEN_MAC='aa:bb:cc:dd:ee:10'
+COREBOX_MAC='aa:bb:cc:dd:ee:11'
+RADXA_MAC='aa:bb:cc:dd:ee:12'
+NAS_MAC='aa:bb:cc:dd:ee:20'
+
+uci -q batch <<EOF
+set dhcp.ryzen='host'
+set dhcp.ryzen.name='ryzen'
+set dhcp.ryzen.mac='$RYZEN_MAC'
+set dhcp.ryzen.ip='192.168.8.10'
+set dhcp.corebox='host'
+set dhcp.corebox.name='corebox'
+set dhcp.corebox.mac='$COREBOX_MAC'
+set dhcp.corebox.ip='192.168.8.11'
+set dhcp.radxa='host'
+set dhcp.radxa.name='radxa'
+set dhcp.radxa.mac='$RADXA_MAC'
+set dhcp.radxa.ip='192.168.8.12'
+set dhcp.nas='host'
+set dhcp.nas.name='nas'
+set dhcp.nas.mac='$NAS_MAC'
+set dhcp.nas.ip='192.168.8.20'
+
+set network.agents='route'
+set network.agents.interface='pixel'
+set network.agents.target='10.20.0.0/24'
+set network.agents.gateway='192.168.8.10'
+
+set firewall.reject_agents_input='rule'
+set firewall.reject_agents_input.name='Reject-Agents-Input'
+set firewall.reject_agents_input.src='pixel'
+set firewall.reject_agents_input.src_ip='10.20.0.0/24'
+set firewall.reject_agents_input.family='ipv4'
+set firewall.reject_agents_input.proto='all'
+set firewall.reject_agents_input.target='REJECT'
+set firewall.reject_agents_local='rule'
+set firewall.reject_agents_local.name='Reject-Agents-Local'
+set firewall.reject_agents_local.src='pixel'
+set firewall.reject_agents_local.src_ip='10.20.0.0/24'
+set firewall.reject_agents_local.dest='*'
+add_list firewall.reject_agents_local.dest_ip='10.0.0.0/8'
+add_list firewall.reject_agents_local.dest_ip='172.16.0.0/12'
+add_list firewall.reject_agents_local.dest_ip='192.168.0.0/16'
+add_list firewall.reject_agents_local.dest_ip='100.64.0.0/10'
+add_list firewall.reject_agents_local.dest_ip='169.254.0.0/16'
+add_list firewall.reject_agents_local.dest_ip='224.0.0.0/4'
+set firewall.reject_agents_local.family='ipv4'
+set firewall.reject_agents_local.proto='all'
+set firewall.reject_agents_local.target='REJECT'
+EOF
+uci commit dhcp
+uci commit network
+uci commit firewall
+
+# Tang (LUKS network unlock). The package generates its key pair on first
+# start in /usr/share/tang/db.
+apk add tang
+uci set tang.config=tang
+uci set tang.config.enabled='1'
+uci set tang.config.port='7500'
+uci commit tang
+/etc/init.d/tang enable
+/etc/init.d/tang start
+
+/etc/init.d/dnsmasq restart
+/etc/init.d/network reload
+fw4 check && fw4 reload
+```
+
+The route sends LAN and WireGuard traffic for `10.20.0.0/24` to the Ryzen
+node, which runs the VM on a routed libvirt network
+([docs/openchamber.md](openchamber.md)). The two reject rules are defense in
+depth behind the Ryzen's firewalld, which already confines the VM to the
+internet: the VM may not open connections to the router or to any private,
+CGNAT, link-local or multicast address through it. Replies to LAN and
+WireGuard clients are established traffic and pass before these rules.
+
+Verify:
+
+```sh
+uci show dhcp | grep -E '^dhcp\.(ryzen|corebox|radxa|nas)\.'
+ip route show 10.20.0.0/24             # via 192.168.8.10
+fw4 print | grep -F 10.20.0.0/24       # the two reject rules
+ss -lnt | grep -F ':7500'              # tangd
+tang-show-keys 7500                    # the thumbprint bootstrap.sh asks you to compare
+```
+
+Back up `/usr/share/tang/db` offline, together with the nodes' LUKS recovery
+passphrases and header backups ([docs/fedora.md](fedora.md)), and never only
+in Vaultwarden: the cluster that runs Vaultwarden cannot boot unattended
+without these keys. The sysupgrade backup keeps them too (the package marks
+the directory as configuration).
+
+LAN clients reach the VM asymmetrically: their packets go through the router
+(their default gateway) and the route above, while the VM's replies go from
+the Ryzen straight back on the LAN. WireGuard clients are symmetric. From a
+Pixel client, connect to `10.20.0.10:6767` (Paseo) directly; if the
+connection stalls after the handshake, check `logread -e firewall` for
+invalid-state drops.

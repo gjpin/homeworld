@@ -11,6 +11,12 @@
 # (client source addresses preserved), which L2 announcements would
 # otherwise not honor.
 #
+# The node labelled with the ryzen profile (host/nodes/ryzen.env) never
+# announces the VIP: it hosts the agents VM, whose traffic to the VIP enters
+# on the libvirt bridge, which is not a Cilium device, so the kube-proxy
+# replacement would never translate it there. The VIP fails over between the
+# other nodes; the Envoy DaemonSet still runs on every node.
+#
 # cilium-operator registers the v2alpha1 CiliumL2AnnouncementPolicy CRD on
 # startup; wave 2 applies this policy after the wave-1 cilium Application.
 ---
@@ -22,6 +28,12 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
+  nodeSelector:
+    matchExpressions:
+      - key: node.homeworld.internal/profile
+        operator: NotIn
+        values:
+          - ryzen
   serviceSelector:
     matchLabels:
       io.kubernetes.service.namespace: envoy-gateway

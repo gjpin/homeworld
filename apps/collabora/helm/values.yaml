@@ -53,7 +53,7 @@ podLabels:
 podSecurityContext:
   # Hardened over the chart's deliberately-empty defaults (podSecurityContext
   # and securityContext both ship as {}): UID/GID 1000, RuntimeDefault seccomp,
-  # drop ALL, no privilege escalation, plus gvisor/hostUsers via the
+  # drop ALL, no privilege escalation, plus gVisor via the
   # kustomization patches. coolwsd runs its own internal forkit sandboxing, so
   # smoke-test document editing live after deploy; if kit-namespace failures
   # occur, scope a documented exception instead of weakening the namespace.

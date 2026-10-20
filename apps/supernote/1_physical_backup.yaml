@@ -10,19 +10,20 @@ metadata:
 spec:
   mariaDbRef:
     name: mariadb
-  # Daily at 01:00 UTC (the operator evaluates the cron on its own clock,
-  # UTC in its distroless image), alongside the CloudNativePG volume-snapshot
-  # backups and staggered from Velero's 03:00 Europe/Lisbon schedule.
+  # Midnight Lisbon time (the operator's robfig/cron v3 parser honors
+  # CRON_TZ), between Velero (22:00) and the 01:00-06:30 upgrade and reboot
+  # windows, next to the CloudNativePG snapshots (23:30 UTC).
   schedule:
-    cron: "0 1 * * *"
+    cron: "CRON_TZ=Europe/Lisbon 0 0 * * *"
     suspend: false
   # The default (Replica) never schedules on a standalone instance; the
   # operator holds FLUSH TABLES WITH READ LOCK on the primary while the
   # snapshot is cut, so it is consistent.
   target: PreferReplica
-  # Matches Velero's 30-day retention; the operator prunes older snapshots
-  # after each successful one.
-  maxRetention: 720h
+  # A week of in-volume snapshots, like the CloudNativePG backups; Velero
+  # keeps 30 days off-site. The operator prunes older snapshots after each
+  # successful one.
+  maxRetention: 168h
   timeout: 1h
   storage:
     volumeSnapshot:

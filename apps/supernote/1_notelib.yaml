@@ -28,7 +28,6 @@ spec:
       serviceAccountName: supernote-app
       automountServiceAccountToken: false
       runtimeClassName: gvisor
-      hostUsers: false
       nodeSelector:
         # Upstream publishes amd64-only images.
         kubernetes.io/arch: amd64

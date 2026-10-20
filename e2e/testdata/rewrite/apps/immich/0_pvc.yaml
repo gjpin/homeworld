@@ -1,0 +1,40 @@
+# The photo library lives on the NAS (docs/nas.md): the homeworld-immich
+# share, exported with all_squash to its owner 20001 and snapshotted on the
+# NAS. A static PersistentVolume binds the claim to that one share; Retain
+# keeps the data if the claim is ever deleted. Velero skips NFS volumes.
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homeworld-immich
+  labels:
+    app.kubernetes.io/name: immich
+spec:
+  capacity:
+    storage: 10Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.1
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.8.20#homeworld-immich##
+    volumeAttributes:
+      server: 192.168.8.20
+      share: /homeworld-immich
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: photos
+  namespace: immich
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: homeworld-immich
+  resources:
+    requests:
+      storage: 10Ti

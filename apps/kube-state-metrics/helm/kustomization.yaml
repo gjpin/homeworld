@@ -12,9 +12,7 @@ helmCharts:
     skipTests: true
     valuesFile: values.yaml
 patches:
-  # The chart exposes no runtimeClassName key (and its hostUsers default is
-  # a chart-computed nil), so both fields are pinned with a patch to keep
-  # the rendered output deterministic across Argo CD, CI, and local renders.
+  # The chart exposes no runtimeClassName key, so it is set with a patch.
   - target:
       group: apps
       version: v1
@@ -22,9 +20,6 @@ patches:
       name: ^kube-state-metrics$
       namespace: ^kube-state-metrics$
     patch: |-
-      - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor

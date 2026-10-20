@@ -36,9 +36,6 @@ patches:
       - op: add
         path: /metadata/namespace
         value: velero-ui
-      - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
   - target:
       group: apps
       version: v1

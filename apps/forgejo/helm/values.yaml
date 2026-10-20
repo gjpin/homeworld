@@ -17,6 +17,8 @@ persistence:
   enabled: true
   claimName: gitea-shared-storage
   storageClass: longhorn-crypto
+  # Repositories, LFS and the container registry (the agents VM pushes there).
+  size: 20Gi
 
 resources:
   requests:

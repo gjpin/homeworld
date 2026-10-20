@@ -1,7 +1,7 @@
 # https://github.com/alex1989hu/kubelet-serving-cert-approver/blob/v0.12.1/deploy/standalone-install.yaml
 # Approves kubernetes.io/kubelet-serving CertificateSigningRequests so
-# metrics-server can scrape kubelets over verified TLS (Talos enables
-# rotate-server-certificates; see docs/talos.md).
+# metrics-server can scrape kubelets over verified TLS (the k3s kubelet-arg
+# rotate-server-certificates in host/files/k3s/config.yaml.in).
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

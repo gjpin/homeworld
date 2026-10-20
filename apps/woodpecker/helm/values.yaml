@@ -94,9 +94,11 @@ agent:
     WOODPECKER_SERVER: "woodpecker-server:9000"
     WOODPECKER_BACKEND: kubernetes
     WOODPECKER_BACKEND_K8S_NAMESPACE: woodpecker
-    WOODPECKER_BACKEND_K8S_STORAGE_CLASS: longhorn-crypto
+    # Per-pipeline workspaces are disposable: one encrypted replica, so a
+    # running pipeline costs its own size on disk rather than three times it.
+    WOODPECKER_BACKEND_K8S_STORAGE_CLASS: longhorn-scratch
     WOODPECKER_BACKEND_K8S_STORAGE_RWX: false
-    WOODPECKER_BACKEND_K8S_VOLUME_SIZE: 10G
+    WOODPECKER_BACKEND_K8S_VOLUME_SIZE: 5G
     WOODPECKER_CONNECT_RETRY_COUNT: "5"
     # v3.18 has no agent-wide runtime-class flag: pipelines opt into gVisor
     # per-step via backend_options.runtimeClassName, which this gate allows.

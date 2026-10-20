@@ -1,6 +1,3 @@
-global:
-  hostUsers: false
-
 fullnameOverride: cert-manager
 namespace: cert-manager
 # The post-install startupapicheck Job is an upgrade checker (it phones

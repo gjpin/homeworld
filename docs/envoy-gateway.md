@@ -10,3 +10,5 @@ Every Gateway merges into one Envoy data plane (`mergeGateways: true` in `apps/e
 - **A DaemonSet satisfies both.** An Envoy pod on every node means whichever node holds the lease, including after a failover, has a local Envoy to serve the VIP.
 
 A Deployment would only work with `externalTrafficPolicy: Cluster`, which forwards to Envoy on another node and replaces every client address with a node IP.
+
+The announcement policy never picks the Ryzen node (it runs the agents VM, whose traffic to the VIP must leave through the LAN), so the VIP fails over between the other two nodes; Envoy still runs on the Ryzen like on every node ([docs/cilium.md](cilium.md#cluster-specific-settings)).

@@ -188,8 +188,9 @@ spec:
             - kube-system
             # Still-omitted apps can linger Terminating on --keep-cluster;
             # this list mirrors the OMIT_APPS set in rewrite-staging.py
-            # (Longhorn, Velero, HA, openchamber, qbittorrent,
-            # cilium, snapshot-controller, velero-ui, supernote). The otel collectors
+            # (Longhorn, Velero, HA, qbittorrent, cilium,
+            # snapshot-controller, velero-ui, supernote, kured,
+            # system-upgrade-controller, csi-driver-nfs). The otel collectors
             # are deployed but excluded here: hostPath/kubelet integration on
             # kind can flap independently of the victoria data probes below,
             # which assert the collectors actually export metrics and logs.
@@ -198,12 +199,14 @@ spec:
             - homeassistant
             - otel-collector
             - otel-collector-node
-            - openchamber
             - qbittorrent
             - cilium
             - snapshot-controller
             - velero-ui
             - supernote
+            - kured
+            - system-upgrade
+            - csi-driver-nfs
           ignoreCompletedJobs: true
       - name: workloads
         workloadsReady:
@@ -241,8 +244,8 @@ spec:
             - kubelet-serving-cert-approver
             # kube-state-metrics (apps/kube-state-metrics) joined the suite.
             - kube-state-metrics
-            # kube-system hosts the generic-device-plugin alongside kind's
-            # own infra (kube-proxy/coredns/kindnet), all workload-backed.
+            # kube-system hosts kind's own infra (kube-proxy/coredns/kindnet),
+            # all workload-backed.
             - kube-system
       - name: eso-store
         resourceCondition:

@@ -5,6 +5,9 @@ server:
   image:
     registry: docker.io
   retentionPeriod: "30d"
+  # Delete the oldest data before the 5 GiB volume fills up.
+  extraArgs:
+    retention.maxDiskSpaceUsageBytes: "4GiB"
   runtimeClassName: gvisor
   podSecurityContext:
     enabled: true
@@ -24,7 +27,7 @@ server:
   persistentVolume:
     enabled: true
     storageClassName: longhorn-crypto
-    size: 20Gi
+    size: 5Gi
   serviceMonitor:
     enabled: true
     namespace: victoria-metrics

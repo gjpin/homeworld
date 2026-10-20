@@ -38,9 +38,6 @@ patches:
       name: ^crowdsec-envoy-bouncer$
     patch: |-
       - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
-      - op: add
         path: /spec/template/spec/automountServiceAccountToken
         value: false
       - op: add

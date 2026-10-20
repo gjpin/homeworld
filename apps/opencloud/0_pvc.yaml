@@ -10,8 +10,10 @@ spec:
   storageClassName: longhorn-crypto
   resources:
     requests:
-      storage: 5Gi
+      storage: 128Mi
 ---
+# /var/lib/opencloud: NATS, the search index, IDM and thumbnails. The users'
+# files themselves live on the NAS (opencloud-users below).
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -23,4 +25,44 @@ spec:
   storageClassName: longhorn-crypto
   resources:
     requests:
-      storage: 100Gi
+      storage: 2Gi
+---
+# The users storage root on the NAS (docs/nas.md): the homeworld-opencloud
+# share, exported with all_squash to its owner 20002 and snapshotted on the
+# NAS. A static PersistentVolume binds the claim to that one share; Retain
+# keeps the data if the claim is ever deleted. Velero skips NFS volumes.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homeworld-opencloud
+  labels:
+    app.kubernetes.io/name: opencloud
+spec:
+  capacity:
+    storage: 10Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.1
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 192.168.8.20#homeworld-opencloud##
+    volumeAttributes:
+      server: 192.168.8.20
+      share: /homeworld-opencloud
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: opencloud-users
+  namespace: opencloud
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: homeworld-opencloud
+  resources:
+    requests:
+      storage: 10Ti

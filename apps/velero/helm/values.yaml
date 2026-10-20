@@ -64,6 +64,16 @@ credentials:
 upgradeCRDs: false
 deployNodeAgent: true
 nodeAgent:
+  # Data-mover settings (the velero-node-agent-config ConfigMap below).
+  extraArgs:
+    - --node-agent-configmap=velero-node-agent-config
+  # The node-agent reads other pods' volumes under /var/lib/kubelet/pods, each
+  # labelled with its own pod's MCS categories, and kubelet's volume
+  # metadata (container_var_lib_t); container_t can read neither under
+  # SELinux enforcing, so it runs as spc_t (docs/pod-security.md).
+  podSecurityContext:
+    seLinuxOptions:
+      type: spc_t
   # Close-to-Restricted hardening for the node-agent container; the pod stays
   # root (runAsUser 0 upstream default) for the kubelet hostPath mounts.
   containerSecurityContext:
@@ -91,10 +101,37 @@ metrics:
     autodetect: false
     enabled: true
     namespace: velero
+configMaps:
+  # https://velero.io/docs/v1.18/data-movement-backup-pvc-configuration/
+  # Velero's data mover clones each snapshot into a full-size temporary
+  # volume; with one replica instead of three its peak disk use stays at the
+  # volume's own size.
+  node-agent-config:
+    data:
+      node-agent-config.json: |
+        {"backupPVC": {"longhorn-crypto": {"storageClass": "longhorn-scratch"}}}
+  # https://velero.io/docs/v1.18/resource-filtering/#resource-policies
+  # NFS volumes have no VolumeSnapshotClass (the CSI snapshot would fail the
+  # backup) and the NAS snapshots its own shares.
+  volume-policy:
+    data:
+      policies.yaml: |
+        version: v1
+        volumePolicies:
+          - conditions:
+              csi:
+                driver: nfs.csi.k8s.io
+            action:
+              type: skip
 schedules:
   daily:
-    schedule: CRON_TZ=Europe/Lisbon 0 3 * * *
+    # 22:00 Lisbon: done before the database snapshots (23:30 UTC, 00:00
+    # Lisbon) and outside the 01:00-06:30 upgrade and reboot windows.
+    schedule: CRON_TZ=Europe/Lisbon 0 22 * * *
     template:
+      resourcePolicy:
+        kind: configmap
+        name: velero-volume-policy
       ttl: 720h
       includedNamespaces:
         - '*'

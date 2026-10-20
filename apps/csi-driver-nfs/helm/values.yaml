@@ -1,0 +1,29 @@
+# NFS volumes are static PVs (one per NAS share, docs/nas.md); nothing is
+# provisioned dynamically, so only the node plugin runs (kustomization.yaml
+# deletes the controller). The chart can render fsGroupPolicy File or omit
+# it; the CSIDriver is patched to None so kubelet never chowns a share.
+feature:
+  enableFSGroupPolicy: false
+node:
+  resources:
+    livenessProbe:
+      requests:
+        cpu: 10m
+        memory: 20Mi
+      limits:
+        cpu: 100m
+        memory: 100Mi
+    nodeDriverRegistrar:
+      requests:
+        cpu: 10m
+        memory: 20Mi
+      limits:
+        cpu: 100m
+        memory: 100Mi
+    nfs:
+      requests:
+        cpu: 10m
+        memory: 20Mi
+      limits:
+        cpu: "1"
+        memory: 300Mi

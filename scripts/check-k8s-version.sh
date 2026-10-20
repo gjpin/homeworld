@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Fail when any pinned Kubernetes version reference drifts from the rest.
+# Fail when any pinned Kubernetes version reference (k3s, PSA labels, kind
+# node image, documentation, e2e hook comments) drifts from the rest.
 #
 # Renovate's kubernetes-version group (customManagers in renovate.json)
 # bumps every reference atomically in a single PR. This guard catches
@@ -81,6 +82,17 @@ hook_refs="$(
     sed -E 's#^([0-9]+):.*[[:space:]]([0-9]+\.[0-9]+)$#e2e/examples/hooks/rewrite-staging.py:\1:\2#' || true
 )"
 
+# k3s pins: the version bootstrap.sh installs and the system-upgrade-controller
+# Plans that upgrade every node afterwards.
+k3s_refs="$(
+  grep -noE '^K3S_VERSION=v[0-9]+\.[0-9]+\.[0-9]+\+k3s[0-9]+$' host/versions.env |
+    sed -E 's#^([0-9]+):K3S_VERSION=v([0-9]+\.[0-9]+)\..*$#host/versions.env:\1:\2#' || true
+  grep -noE '^[[:space:]]*version:[[:space:]]*v[0-9]+\.[0-9]+\.[0-9]+\+k3s[0-9]+[[:space:]]*$' \
+    apps/system-upgrade-controller/2_plans.yaml |
+    sed -E 's#^([0-9]+):[[:space:]]*version:[[:space:]]*v([0-9]+\.[0-9]+)\..*$#apps/system-upgrade-controller/2_plans.yaml:\1:\2#' || true
+)"
+
+check_refs 'k3s version' "$k3s_refs"
 check_refs 'e2e suite kubeVersion' "$suite_refs"
 check_refs 'e2e README kind node tag' "$e2e_readme_refs"
 check_refs 'user namespaces documentation' "$docs_refs"

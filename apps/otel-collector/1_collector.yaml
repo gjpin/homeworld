@@ -16,7 +16,6 @@ spec:
   mode: statefulset
   replicas: 1
   image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.162.0
-  hostUsers: false
   podSecurityContext:
     runAsNonRoot: true
     seccompProfile:
@@ -109,7 +108,8 @@ spec:
       # Empty selectors match every ServiceMonitor, PodMonitor, and
       # ScrapeConfig in every namespace; only cluster administrators can
       # create monitors here. ScrapeConfigs cover targets no Service can
-      # select (the etcd Talos service, apps/kube-control-plane).
+      # select (the k3s-embedded etcd, scheduler and controller manager,
+      # apps/kube-control-plane).
       # denyFSAccessThroughSMs rejects monitors that reference file-based
       # credentials (bearerTokenFile); secret-based credentials (basicAuth,
       # bearerTokenSecret, authorization) are served over the mTLS channel.

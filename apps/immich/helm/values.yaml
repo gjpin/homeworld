@@ -1,5 +1,6 @@
+# Both pods run on gVisor (kustomization.yaml), which cannot join a pod user
+# namespace yet, so they keep the host user namespace (docs/pod-security.md).
 defaultPodOptions:
-  hostUsers: false
   securityContext:
     runAsNonRoot: true
     seccompProfile:
@@ -27,14 +28,37 @@ immich:
   existingConfiguration: immich-config
   configurationKind: Secret
 machine-learning:
+  # The image declares no USER and writes only to /cache (the PVC below), so
+  # it runs as a fixed non-root ID that owns that volume.
+  defaultPodOptions:
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+      seccompProfile:
+        type: RuntimeDefault
   persistence:
     cache:
       enabled: true
-      size: 10Gi
+      size: 4Gi
       type: persistentVolumeClaim
       accessMode: ReadWriteOnce
       storageClass: longhorn-crypto
 server:
+  # The library lives on the NAS (NFS, docs/nas.md), which squashes every
+  # access to the share's owner, 20001: the server runs as that ID, and NFS
+  # (no idmapped mounts) requires the host user namespace.
+  defaultPodOptions:
+    hostUsers: true
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 20001
+      runAsGroup: 20001
+      fsGroup: 20001
+      seccompProfile:
+        type: RuntimeDefault
   service:
     main:
       ports:

@@ -18,16 +18,6 @@ patches:
       group: apps
       version: v1
       kind: Deployment
-      name: ^(longhorn-driver-deployer|longhorn-global-manager|longhorn-ui)$
-      namespace: ^longhorn-system$
-    patch: |-
-      - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
       name: ^longhorn-driver-deployer$
       namespace: ^longhorn-system$
     patch: |-
@@ -117,9 +107,6 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
-      - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor

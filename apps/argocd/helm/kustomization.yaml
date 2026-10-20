@@ -83,16 +83,6 @@ patches:
   - target:
       group: apps
       version: v1
-      kind: Deployment
-      name: ^argocd-argocd-(applicationset-controller|notifications-controller|repo-server|server)$
-      namespace: ^argocd$
-    patch: |-
-      - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
-  - target:
-      group: apps
-      version: v1
       kind: StatefulSet
       name: ^argocd-argocd-application-controller$
       namespace: ^argocd$
@@ -113,9 +103,6 @@ patches:
             # races alike.
             maxSurge: 1
             maxUnavailable: 0
-      - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
   - target:
       group: apps
       version: v1

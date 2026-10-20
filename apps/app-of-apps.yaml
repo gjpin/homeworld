@@ -199,8 +199,8 @@ spec:
         # cilium-operator) require privileged host, BPF, and hostPath
         # integration; PSS baseline forbids these host integrations.
         # This also covers the cilium connectivity test PodSecurity
-        # workaround. The CNI is bootstrapped by the manifest apply in
-        # docs/talos.md; this application owns its lifecycle and is
+        # workaround. The CNI is bootstrapped by host/bootstrap.sh
+        # (docs/k3s.md); this application owns its lifecycle and is
         # sequenced after prometheus-operator-crd so the chart's
         # ServiceMonitors validate.
         pod-security.kubernetes.io/enforce: privileged
@@ -380,6 +380,96 @@ spec:
         pod-security.kubernetes.io/audit-version: v1.37
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.37
+---
+# csi-driver-nfs
+# Wave 3: the static NFS PersistentVolumes of the wave 6+ apps (Immich,
+# OpenCloud, qBittorrent) mount through its node plugin.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: csi-driver-nfs-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/csi-driver-nfs"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: csi-driver-nfs
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+      annotations:
+        security.homeworld/exception-reason: The NFS CSI node plugin mounts NAS exports into kubelet's pod directories, which requires a privileged host-network container with bidirectional hostPath mounts.
+---
+# system-upgrade-controller
+# Wave 3: Plan CRD (wave 0 inside) and controller; the Plans upgrade k3s in
+# the 01:00-02:00 window (docs/upgrades.md).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: system-upgrade-controller-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/system-upgrade-controller"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: system-upgrade
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+      annotations:
+        security.homeworld/exception-reason: The k3s upgrade Jobs replace the k3s binary on every node, which requires privileged containers with host PID and hostPath access.
 ---
 # kubelet-serving-cert-approver
 apiVersion: argoproj.io/v1alpha1
@@ -1040,38 +1130,6 @@ spec:
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.37
 ---
-# generic-device-plugin
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: generic-device-plugin-app
-  namespace: argocd
-  labels:
-    app.kubernetes.io/part-of: homeworld
-  finalizers:
-  - resources-finalizer.argocd.argoproj.io
-  annotations:
-    argocd.argoproj.io/sync-wave: "5"
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/generic-device-plugin"
-    targetRevision: HEAD
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: kube-system
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-      allowEmpty: false
-    syncOptions:
-    - Validate=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
-    - ServerSideApply=true
----
 # authelia
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -1284,7 +1342,7 @@ spec:
 ---
 # kube-control-plane
 # Metrics plumbing only (no workloads): ServiceMonitors and a ScrapeConfig
-# for the Talos-managed API servers, scheduler, controller manager, and etcd.
+# for the k3s-embedded API servers, scheduler, controller manager, and etcd.
 # kube-system pre-exists and its Pod Security labels are not Argo's to manage.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -1316,6 +1374,51 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
     - ServerSideApply=true
+---
+# kured
+# Wave 6: every reboot is gated on vmalert's ALERTS in VictoriaMetrics
+# (wave 5); without them kured blocks instead of rebooting.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kured-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/kured"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kured
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+      annotations:
+        security.homeworld/exception-reason: kured reboots nodes, so its privileged container enters the host PID namespace to run the reboot sentinel and reboot helpers.
 ---
 # otel-collector
 apiVersion: argoproj.io/v1alpha1
@@ -1639,7 +1742,7 @@ spec:
     managedNamespaceMetadata:
       labels:
         # The gluetun VPN sidecar requires NET_ADMIN/NET_RAW capabilities
-        # and the /dev/net/tun device; PSS baseline forbids added
+        # for the kernel WireGuard tunnel; PSS baseline forbids added
         # capabilities, so the namespace follows the Home Assistant
         # exception profile.
         pod-security.kubernetes.io/enforce: privileged
@@ -1649,7 +1752,7 @@ spec:
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.37
       annotations:
-        security.homeworld/exception-reason: The gluetun VPN sidecar requires NET_ADMIN/NET_RAW capabilities and the /dev/net/tun device to tunnel all qBittorrent traffic; PSS baseline forbids added capabilities. The pod runs in an unprivileged user namespace with Cilium default-deny egress limited to the VPN endpoints, and the tun device is allocated without hostPath or privileged mode through the generic-device-plugin.
+        security.homeworld/exception-reason: The gluetun VPN sidecar requires the NET_ADMIN and NET_RAW capabilities to tunnel all qBittorrent traffic through WireGuard; PSS baseline forbids added capabilities. SELinux confines the pod as container_t, and Cilium default-deny egress allows only the VPN endpoints.
 ---
 # collabora
 apiVersion: argoproj.io/v1alpha1

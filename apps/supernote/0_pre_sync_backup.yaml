@@ -29,7 +29,7 @@ spec:
     name: mariadb
   # No schedule: a single snapshot per hook object.
   target: PreferReplica
-  maxRetention: 720h
+  maxRetention: 168h
   timeout: 30m
   storage:
     volumeSnapshot:

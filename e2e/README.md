@@ -214,8 +214,9 @@ Staging copies live under `/tmp/homeworld-e2e-git`. The kubectl-applied Applicat
 | `homeassistant-app` | Zigbee / host devices |
 | `cilium-app` | Rootless Docker (Lima or Desktop) cannot mount bpffs, so the Cilium datapath cannot start on kind; the suite installs its own CRD-only Cilium in kube-system |
 | `snapshot-controller-app` | kind's local-path provisioner has no CSI driver, so there is nothing for the snapshot controller to act on |
-| `openchamber-app` | Workspace image `ghcr.io/gjpin/openchamber` is private; kind cannot pull it without credentials |
-| `qbittorrent-app` | The gluetun VPN sidecar needs `/dev/net/tun` and real VPN credentials, neither of which exists on kind |
+| `qbittorrent-app` | The gluetun VPN sidecar needs real ProtonVPN WireGuard credentials, which the suite does not have |
+| `kured-app`, `system-upgrade-controller-app` | Host lifecycle: kured reads the node's reboot sentinel through the host PID namespace and reboots nodes, and the upgrade Plans replace the k3s binary; kind nodes are neither Fedora nor k3s |
+| `csi-driver-nfs-app` | No NAS: the static NFS volumes (Immich, OpenCloud) are rewritten to local-path claims of the `longhorn-crypto` substitute class |
 | `supernote-app` | Upstream publishes amd64-only images, and the kind node follows the host architecture (arm64 on Apple-silicon hosts) |
 
 `otel-collector-app` is **included** in e2e: the victoria-metrics/…-logs `serviceProbe`

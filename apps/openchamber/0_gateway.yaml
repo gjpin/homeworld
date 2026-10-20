@@ -30,3 +30,16 @@ spec:
           - name: openchamber-tls-cert
             kind: Secret
             group: ""
+    - name: paseo-https
+      protocol: HTTPS
+      port: 443
+      hostname: "paseo.homeworld.internal"
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: paseo-tls-cert
+            kind: Secret
+            group: ""

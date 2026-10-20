@@ -178,27 +178,36 @@ Certain upstream applications require sequential version progression and prohibi
 To prevent breaking jumps while keeping standard application updates streamlined, `renovate.json` implements targeted `packageRules`:
 
 * **Global Defaults:** `separateMajorMinor: false`, `separateMinorPatch: false`, and `separateMultipleMajor: false` (standard applications receive direct updates to the latest release in a single PR).
-* **Kubernetes version pin:** the `kindest/node` group carries every place a
-  Kubernetes minor is pinned — the e2e suite's `kubeVersion`, the README's
-  Kubernetes version note, the pod-security docs, e2e hook comments, and every
+* **Kubernetes version pin:** the `kubernetes-version` group carries every place a
+  Kubernetes minor is pinned — the k3s version (`host/versions.env` and the
+  system-upgrade-controller Plans), the e2e suite's `kubeVersion`, the
+  pod-security docs, e2e hook comments, and every
   `managedNamespaceMetadata` PSA `*-version` label across `apps/` — in one PR
   (`scripts/check-k8s-version.sh` fails the build if any of them drift).
 * **Strict Components:** Forgejo, Immich, Longhorn, cert-manager, and CloudNativePG operand images have `separateMajorMinor: true`, `separateMultipleMajor: true`, or `separateMinorPatch: true` enabled. This guarantees:
   * Renovate opens individual PRs for each major or minor increment rather than jumping to the highest version.
   * PR bodies include automated notices linking to upstream release notes, breaking change checklists, and backup reminders.
-* **OpenChamber Workspace Image:** Node.js major bumps are separated (`separateMajorMinor: true`) because OpenChamber requires a minimum Node.js version; the PR body reminds you to verify it before merging.
-* **Kubernetes version pins:** every reference to the cluster's Kubernetes minor — the `managedNamespaceMetadata` Pod Security Admission labels in `apps/app-of-apps.yaml` and `apps/otel-collector/1_helm_node.yaml`, the e2e suite's `kubeVersion` (kind node image) and its README, the user-namespaces documentation in `AGENTS.md` and `docs/pod-security.md`, and the e2e staging hook comments — is tracked by `customManagers` in `renovate.json` and grouped into a single `kubernetes-version` PR. Updates are sourced from `kindest/node` Docker Hub tags, so Renovate can never propose a node image kind cannot pull (patch bumps roll the e2e suite pin forward on their own; minor bumps move every reference together). Merge the PR only after the Talos nodes run the new minor and the local kind CLI is new enough to pull the new node image. `scripts/check-k8s-version.sh` (run by the [validate workflow](../.github/workflows/validate.yaml)) fails CI when any reference drifts from the rest.
+* **Grouped platform pins:** the system-upgrade-controller CRD tag, remote base and image move in one PR; the VictoriaMetrics single-node and vmalert charts move together; the agents VM tool pins (`host/agents-vm/versions.env`) arrive as one PR, so a merge rebuilds the VM once.
+* **Kubernetes version pins:** every reference to the cluster's Kubernetes minor — the k3s version in `host/versions.env` and `apps/system-upgrade-controller/2_plans.yaml`, the `managedNamespaceMetadata` Pod Security Admission labels in `apps/app-of-apps.yaml` and `apps/otel-collector/1_helm_node.yaml`, the e2e suite's `kubeVersion` (kind node image) and its README, the user-namespaces documentation in `AGENTS.md` and `docs/pod-security.md`, and the e2e staging hook comments — is tracked by `customManagers` in `renovate.json` and grouped into a single `kubernetes-version` PR. The kind-side references are sourced from `kindest/node` Docker Hub tags, so Renovate can never propose a node image kind cannot pull, and the k3s references from k3s releases. Merge a minor bump only once the PR carries the matching k3s minor as well (k3s publishes a new minor after upstream Kubernetes), so the PSA labels never reference a minor newer than the API server once the Plans have run, and only when the local kind CLI is new enough to pull the new node image. `scripts/check-k8s-version.sh` (run by the [validate workflow](../.github/workflows/validate.yaml)) fails CI when any reference drifts from the rest.
 * **`ignorePaths` override:** `config:recommended` defaults `ignorePaths` to `**/examples/**`, `**/tests/**`, and similar patterns, which silently excludes `e2e/examples/` from every manager (the suite pin, the e2e README tag, and the staging hook comments). The explicit `ignorePaths` in `renovate.json` keeps only `**/node_modules/**` and `**/bower_components/**`; do not remove it or the Kubernetes version automation stops seeing the e2e suite.
 
 ---
 
-## 6. OpenChamber Agent Workspace Image Refreshes
+## 6. Platform Upgrades (k3s, Fedora, Host Components, Agents VM)
 
-The persistent AI agent workspace (`apps/openchamber`) runs a custom image built from `images/openchamber/Dockerfile`. The running pod never updates itself: every change to the workspace arrives as a PR you approve, and merging rolls the pod at a moment you choose (merge when the agents are idle; session state, worktrees, and credentials persist on the `openchamber-agent-home` PVC).
+Nothing on the nodes updates outside these windows (Europe/Lisbon):
 
-* **Pinned tool versions** (base image digest, Node.js, pnpm, uv, OpenChamber, OpenCode, Codex CLI, Pi agent, Grok Build, Antigravity CLI, Copilot CLI, Playwright packages, chrome-devtools-mcp, skills): Renovate opens one PR per updated dependency via `customManagers` in `renovate.json`.
-* **Debian packages and Google Chrome** (not visible to Renovate): the daily [package refresh check](../.github/workflows/check-openchamber-apt-updates.yaml) runs `apt-get --simulate full-upgrade` inside the published image and opens a PR bumping `ARG APT_REFRESH` whenever packages are outdated. Each run also recreates any open refresh branch whose checks have failed from the current main, so a refresh PR wedged by an upstream release between its branch cut and its smoke build does not linger red.
-* **Image builds** ([Build OpenChamber workspace image](../.github/workflows/build-openchamber.yaml)): merging a PR that touches `images/openchamber/**` builds `linux/amd64` + `linux/arm64`, pushes `ghcr.io/gjpin/openchamber:main-<shortsha>`, and commits the new tag into `apps/openchamber/1_deployment.yaml`. Argo CD then rolls the agent pod.
+| Window | What |
+| --- | --- |
+| 01:00–02:00 | k3s upgrades (system-upgrade-controller) |
+| 02:00–02:30 | Agents VM root rebuild, only when its pins changed |
+| 02:30–06:30 | kured reboots: package updates, host configuration changes k3s reads at start, Fedora release upgrades |
+
+* **k3s:** the `kubernetes-version` PR bumps `K3S_VERSION` in `host/versions.env` (what `host/bootstrap.sh` installs on a new node) and `version` in the `k3s-server` and `k3s-agent` Plans (`apps/system-upgrade-controller/2_plans.yaml`). After the merge, the controller upgrades one server at a time in the window with `docker.io/rancher/k3s-upgrade`: it cordons the node (no drain), replaces `/usr/local/bin/k3s`, restarts k3s and uncordons. The cordon blocks kured through its `NodeCordoned` gate, so upgrades and reboots never overlap. k3s upgrades also move the Gateway API CRDs (k3s's `gateway-api-crd` addon). Upgrade one minor at a time, per the [k3s upgrade docs](https://docs.k3s.io/upgrades).
+* **Fedora packages:** `dnf5-automatic` installs updates daily and never reboots; kured reboots each node that needs it ([fedora.md](fedora.md#updates-and-reboots)).
+* **Fedora releases:** Renovate opens a PR bumping `FEDORA_RELEASE` in `host/versions.env`. After the merge, every node downloads the upgrade on its next hourly pull and kured reboots the nodes into the offline upgrade one at a time; a node that fails its post-boot check halts the rollout ([fedora.md](fedora.md#fedora-release-upgrades)). The agents VM is rebuilt on the new release in the next window.
+* **gVisor, kube-vip, helm:** Renovate bumps `GVISOR_VERSION`, `KUBE_VIP_VERSION` and `HELM_VERSION` in `host/versions.env`. apply.sh installs a new gVisor on the next pull (new pods use it; running sandboxes keep theirs until they restart), rewrites the kube-vip static pod (kubelet restarts it), and uses helm only during bootstrap.
+* **Agents VM tools:** Renovate bumps `host/agents-vm/versions.env` in one grouped PR; the merge rebuilds the VM root in the next window ([openchamber.md](openchamber.md#rebuildable-root-persistent-home)).
 
 ---
 

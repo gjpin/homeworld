@@ -8,7 +8,7 @@ metadata:
     io.kompose.service: homeassistant
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-    security.homeworld/exception-reason: "Home Assistant requires container UID 0 under s6-overlay; hostUsers: false isolates root execution within an unprivileged user namespace."
+    security.homeworld/exception-reason: "Home Assistant requires container UID 0 under s6-overlay; the gVisor sandbox kernel isolates root execution from the host kernel."
 spec:
   replicas: 1
   selector:
@@ -25,7 +25,6 @@ spec:
       serviceAccountName: homeassistant-app
       automountServiceAccountToken: false
       runtimeClassName: gvisor
-      hostUsers: false
       securityContext:
         runAsNonRoot: false
         # Grants rootless init containers write access to the /config PVC:
@@ -109,14 +108,14 @@ spec:
               default_config:
 
               # Reverse proxy: Envoy terminates TLS, so trust its forwarded
-              # headers (Envoy's pod IP lives in the Talos default pod CIDR;
+              # headers (Envoy's pod IP lives in the k3s default pod CIDR;
               # the Cilium policies exclude the cluster CIDRs — see
-              # -2_network_policy.yaml and docs/talos.md) and generate
+              # -2_network_policy.yaml and docs/k3s.md) and generate
               # https callback URLs for the OIDC flow.
               http:
                 use_x_forwarded_for: true
                 trusted_proxies:
-                  - 10.244.0.0/16
+                  - 10.42.0.0/16
 
               # Metrics endpoint for the ServiceMonitor. requires_auth is
               # disabled because the tokenless OTel collector is the only

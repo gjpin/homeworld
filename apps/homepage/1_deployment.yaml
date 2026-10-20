@@ -27,7 +27,6 @@ spec:
       # and metrics.k8s.io from the API server (read-only ClusterRole).
       automountServiceAccountToken: true
       runtimeClassName: gvisor
-      hostUsers: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000

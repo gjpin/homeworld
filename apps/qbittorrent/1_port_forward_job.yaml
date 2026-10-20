@@ -1,7 +1,7 @@
 ---
 # Syncs the VPN provider's forwarded port into qBittorrent every 5 minutes
 # (TrueCharts pattern, reimplemented as a small shell script): reads the
-# port gluetun obtained (ProtonVPN NAT-PMP or Private Internet Access API)
+# port gluetun obtained (ProtonVPN NAT-PMP)
 # from the control server and applies it to qBittorrent's listening-port
 # setting through the WebAPI. Both endpoints authenticate with dedicated
 # API keys, so no WebUI password is involved.
@@ -30,7 +30,6 @@ spec:
           restartPolicy: Never
           automountServiceAccountToken: false
           runtimeClassName: gvisor
-          hostUsers: false
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000

@@ -1,0 +1,11 @@
+#!/bin/sh
+# kured reboot command (--reboot-command), run in the host namespaces after
+# the drain: finish a staged Fedora upgrade offline, otherwise reboot.
+state=/var/lib/homeworld
+rm -f "$state/reboot-required"
+if [ -e "$state/fedora-upgrade-staged" ]; then
+  # homeworld-postboot checks the release this boot was meant to reach.
+  cp "$state/fedora-upgrade-staged" "$state/fedora-upgrade-attempted"
+  exec dnf5 offline reboot -y
+fi
+exec systemctl reboot

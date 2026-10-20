@@ -12,7 +12,7 @@ helmCharts:
     skipTests: true
     valuesFile: values.yaml
 patches:
-  # The chart exposes neither hostUsers nor runtimeClassName.
+  # The chart exposes no runtimeClassName key.
   - target:
       group: apps
       version: v1
@@ -20,9 +20,6 @@ patches:
       name: ^trust-manager$
       namespace: ^trust-manager$
     patch: |-
-      - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor

@@ -26,7 +26,6 @@ spec:
       serviceAccountName: kubelet-serving-cert-approver
       priorityClassName: system-cluster-critical
       runtimeClassName: gvisor
-      hostUsers: false
       # Upstream tolerations preserved: the approver must run even while
       # control-plane taints are still present.
       tolerations:

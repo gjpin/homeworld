@@ -68,6 +68,15 @@ spec:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: grafana
             k8s:app.kubernetes.io/name: grafana
+        # vmalert queries the reboot-gating rules and writes ALERTS back.
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: victoria-metrics
+            k8s:app.kubernetes.io/name: victoria-metrics-alert
+            k8s:app.kubernetes.io/instance: vmalert
+        # kured queries ALERTS before every reboot (apps/kured).
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kured
+            k8s:app.kubernetes.io/name: kured
       toPorts:
         - ports:
             - port: "8428"
@@ -153,4 +162,37 @@ spec:
       toPorts:
         - ports:
             - port: "10428"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-vmalert
+  namespace: victoria-metrics
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: victoria-metrics-alert
+      k8s:app.kubernetes.io/instance: vmalert
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "8880"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: victoria-metrics
+            k8s:app.kubernetes.io/name: victoria-metrics-single
+      toPorts:
+        - ports:
+            - port: "8428"
               protocol: TCP

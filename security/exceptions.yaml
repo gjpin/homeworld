@@ -131,6 +131,16 @@
       "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
     },
     {
+      "check": "C-0038",
+      "control": "Host PID/IPC privileges",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "kured enters the host PID namespace (nsenter -t 1) to run the node's dnf5 reboot sentinel and reboot command; it is limited to the exact rendered DaemonSet."
+    },
+    {
       "check": "C-0041",
       "control": "HostNetwork access",
       "profiles": [
@@ -138,7 +148,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "The kube-proxy-free datapath requires hostNetwork on the cilium-agent, cilium-envoy, and cilium-operator to program node networking and reach the KubePrism API endpoint."
+      "reason": "The kube-proxy-free datapath requires hostNetwork on the cilium-agent, cilium-envoy, and cilium-operator to program node networking and reach the local API server (127.0.0.1:6444), and the csi-driver-nfs node plugin mounts NAS exports from the host network namespace."
     },
     {
       "check": "C-0044",
@@ -348,7 +358,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "Pod admission is governed by Pod Security Admission labels and Talos admission controls that live outside this repository's rendered manifests."
+      "reason": "Pod admission is governed by Pod Security Admission labels and the k3s admission configuration (host/files/k3s/psa.yaml) that live outside this repository's rendered manifests."
     },
     {
       "check": "C-0193",
@@ -589,6 +599,16 @@
       "scanner": "kubescape",
       "owner": "platform",
       "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+    },
+    {
+      "check": "C-0275",
+      "control": "Minimize the admission of containers wishing to share the host process ID namespace",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "kured enters the host PID namespace (nsenter -t 1) to run the node's dnf5 reboot sentinel and reboot command; it is limited to the exact rendered DaemonSet."
     },
     {
       "check": "C-0278",

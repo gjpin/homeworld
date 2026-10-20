@@ -1,0 +1,8 @@
+[Unit]
+Description=Apply the homeworld host configuration from git
+Wants=network-online.target
+After=network-online.target k3s.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/homeworld/homeworld-pull

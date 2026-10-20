@@ -23,9 +23,13 @@ spec:
       serviceAccountName: opencloud
       automountServiceAccountToken: false
       runtimeClassName: gvisor
-      hostUsers: false
+      # The users storage root lives on the NAS (NFS, docs/nas.md), which has
+      # no idmapped mounts: the pod keeps the host user namespace (gVisor
+      # cannot join a pod user namespace either) and every container runs as
+      # the share's owner, 20002, to which the NAS squashes all access.
+      hostUsers: true
       securityContext:
-        fsGroup: 1000
+        fsGroup: 20002
         fsGroupChangePolicy: OnRootMismatch
         runAsNonRoot: true
         seccompProfile:
@@ -44,9 +48,9 @@ spec:
             capabilities:
               drop:
                 - ALL
-            runAsGroup: 1000
+            runAsGroup: 20002
             runAsNonRoot: true
-            runAsUser: 1000
+            runAsUser: 20002
             seccompProfile:
               type: RuntimeDefault
           resources:
@@ -74,9 +78,9 @@ spec:
             capabilities:
               drop:
                 - ALL
-            runAsGroup: 1000
+            runAsGroup: 20002
             runAsNonRoot: true
-            runAsUser: 1000
+            runAsUser: 20002
             seccompProfile:
               type: RuntimeDefault
           resources:
@@ -104,9 +108,9 @@ spec:
             capabilities:
               drop:
                 - ALL
-            runAsGroup: 1000
+            runAsGroup: 20002
             runAsNonRoot: true
-            runAsUser: 1000
+            runAsUser: 20002
             seccompProfile:
               type: RuntimeDefault
           resources:
@@ -134,9 +138,9 @@ spec:
             capabilities:
               drop:
                 - ALL
-            runAsGroup: 1000
+            runAsGroup: 20002
             runAsNonRoot: true
-            runAsUser: 1000
+            runAsUser: 20002
             seccompProfile:
               type: RuntimeDefault
           resources:
@@ -164,9 +168,9 @@ spec:
             capabilities:
               drop:
                 - ALL
-            runAsGroup: 1000
+            runAsGroup: 20002
             runAsNonRoot: true
-            runAsUser: 1000
+            runAsUser: 20002
             seccompProfile:
               type: RuntimeDefault
           resources:
@@ -194,9 +198,9 @@ spec:
             capabilities:
               drop:
                 - ALL
-            runAsGroup: 1000
+            runAsGroup: 20002
             runAsNonRoot: true
-            runAsUser: 1000
+            runAsUser: 20002
             seccompProfile:
               type: RuntimeDefault
           resources:
@@ -224,9 +228,9 @@ spec:
             capabilities:
               drop:
                 - ALL
-            runAsGroup: 1000
+            runAsGroup: 20002
             runAsNonRoot: true
-            runAsUser: 1000
+            runAsUser: 20002
             seccompProfile:
               type: RuntimeDefault
           resources:
@@ -254,9 +258,9 @@ spec:
             capabilities:
               drop:
                 - ALL
-            runAsGroup: 1000
+            runAsGroup: 20002
             runAsNonRoot: true
-            runAsUser: 1000
+            runAsUser: 20002
             seccompProfile:
               type: RuntimeDefault
           resources:
@@ -284,9 +288,9 @@ spec:
             capabilities:
               drop:
                 - ALL
-            runAsGroup: 1000
+            runAsGroup: 20002
             runAsNonRoot: true
-            runAsUser: 1000
+            runAsUser: 20002
             seccompProfile:
               type: RuntimeDefault
           resources:
@@ -314,9 +318,9 @@ spec:
             capabilities:
               drop:
                 - ALL
-            runAsGroup: 1000
+            runAsGroup: 20002
             runAsNonRoot: true
-            runAsUser: 1000
+            runAsUser: 20002
             seccompProfile:
               type: RuntimeDefault
           resources:
@@ -344,9 +348,9 @@ spec:
             capabilities:
               drop:
                 - ALL
-            runAsGroup: 1000
+            runAsGroup: 20002
             runAsNonRoot: true
-            runAsUser: 1000
+            runAsUser: 20002
             seccompProfile:
               type: RuntimeDefault
           resources:
@@ -375,8 +379,8 @@ spec:
                 - ALL
             readOnlyRootFilesystem: false
             runAsNonRoot: true
-            runAsUser: 1000
-            runAsGroup: 1000
+            runAsUser: 20002
+            runAsGroup: 20002
             seccompProfile:
               type: RuntimeDefault
           env:
@@ -494,28 +498,16 @@ spec:
               value: "false"
             - name: COLLABORATION_WOPI_SRC
               value: https://cloud.homeworld.internal
+            # Blobs and metadata of every space on a POSIX filesystem: the
+            # NAS share mounted at the users storage root (the default path,
+            # set explicitly). The rest of /var/lib/opencloud (NATS, search
+            # index, IDM, thumbnails) stays on the small Longhorn volume.
             - name: STORAGE_USERS_DRIVER
-              value: decomposeds3
+              value: decomposed
+            - name: STORAGE_USERS_DECOMPOSED_ROOT
+              value: /var/lib/opencloud/storage/users
             - name: STORAGE_SYSTEM_DRIVER
               value: decomposed
-            - name: STORAGE_USERS_DECOMPOSEDS3_ENDPOINT
-              value: http://rustfs-io.rustfs.svc.cluster.local:9000
-            - name: STORAGE_USERS_DECOMPOSEDS3_REGION
-              value: default
-            - name: STORAGE_USERS_DECOMPOSEDS3_BUCKET
-              value: opencloud
-            - name: STORAGE_USERS_DECOMPOSEDS3_CREATE_BUCKET
-              value: "false"
-            - name: STORAGE_USERS_DECOMPOSEDS3_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: opencloud-credentials
-                  key: RUSTFS_ACCESS_KEY
-            - name: STORAGE_USERS_DECOMPOSEDS3_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: opencloud-credentials
-                  key: RUSTFS_SECRET_KEY
             - name: SEARCH_EXTRACTOR_TYPE
               value: tika
             - name: SEARCH_EXTRACTOR_TIKA_TIKA_URL
@@ -589,6 +581,8 @@ spec:
               readOnly: true
             - name: opencloud-data
               mountPath: /var/lib/opencloud
+            - name: opencloud-users
+              mountPath: /var/lib/opencloud/storage/users
             - name: opencloud-apps
               mountPath: /var/lib/opencloud/web/assets/apps
         - name: yjs
@@ -601,8 +595,8 @@ spec:
                 - ALL
             readOnlyRootFilesystem: false
             runAsNonRoot: true
-            runAsUser: 1000
-            runAsGroup: 1000
+            runAsUser: 20002
+            runAsGroup: 20002
             seccompProfile:
               type: RuntimeDefault
           env:
@@ -651,6 +645,9 @@ spec:
         - name: opencloud-data
           persistentVolumeClaim:
             claimName: opencloud-data
+        - name: opencloud-users
+          persistentVolumeClaim:
+            claimName: opencloud-users
         - name: opencloud-apps
           emptyDir: {}
         - name: homeworld-ca
@@ -681,7 +678,6 @@ spec:
       serviceAccountName: opencloud
       automountServiceAccountToken: false
       runtimeClassName: gvisor
-      hostUsers: false
       securityContext:
         runAsNonRoot: true
         seccompProfile:

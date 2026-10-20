@@ -47,7 +47,6 @@ spec:
         app.kubernetes.io/instance: notesnook
     spec:
       runtimeClassName: gvisor
-      hostUsers: false
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true

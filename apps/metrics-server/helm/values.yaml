@@ -1,7 +1,7 @@
 # https://artifacthub.io/packages/helm/metrics-server/metrics-server
-# https://docs.siderolabs.com/kubernetes-guides/monitoring-and-observability/deploy-metrics-server
 #
-# Kubelet serving certificates rotate (Talos machine config enables
+# k3s's packaged metrics-server is disabled (host/files/k3s/config.yaml.in).
+# Kubelet serving certificates rotate (the k3s kubelet-arg
 # rotate-server-certificates; the kubelet-serving-cert-approver application
 # approves the CSRs), so kubelets are scraped over verified TLS. No
 # --kubelet-insecure-tls, and the chart's defaultArgs already prefer

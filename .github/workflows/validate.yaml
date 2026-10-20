@@ -1,6 +1,6 @@
 name: Validate manifests
 
-# Docs-only and OpenChamber image changes skip validation; the markdown files
+# Docs-only changes skip validation; the markdown files
 # scripts/check-k8s-version.sh reads stay in scope.
 on:
   pull_request:
@@ -8,7 +8,6 @@ on:
       - "**"
       - "!docs/**"
       - "!**.md"
-      - "!images/openchamber/**"
       - "docs/pod-security.md"
       - "README.md"
       - "AGENTS.md"
@@ -20,7 +19,6 @@ on:
       - "**"
       - "!docs/**"
       - "!**.md"
-      - "!images/openchamber/**"
       - "docs/pod-security.md"
       - "README.md"
       - "AGENTS.md"
@@ -74,8 +72,11 @@ jobs:
       - name: Check shell script syntax
         if: ${{ !cancelled() }}
         run: |
-          for f in scripts/*.sh e2e/examples/hooks/*.sh; do
+          for f in scripts/*.sh e2e/examples/hooks/*.sh host/*.sh host/agents-vm/*.sh; do
             bash -n "$f"
+          done
+          for f in host/files/libexec/*; do
+            sh -n "$f"
           done
 
       - name: Check Kubernetes version pin consistency

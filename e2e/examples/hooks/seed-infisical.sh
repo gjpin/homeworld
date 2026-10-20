@@ -324,7 +324,7 @@ seed_secrets() {
   token=$(cat "${OUT_DIR}/token")
   project_id=$(cat "${OUT_DIR}/project_id")
 
-  for folder in grafana homepage authelia cert-manager immich forgejo rustfs rustfs-operator opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker openchamber vaultwarden qbittorrent homeassistant; do
+  for folder in grafana homepage authelia cert-manager immich forgejo rustfs rustfs-operator opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker vaultwarden qbittorrent homeassistant; do
     ensure_folder "${token}" "${project_id}" "${folder}"
   done
 
@@ -442,8 +442,8 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/woodpecker/FORGEJO_CLIENT" "e2e-woodpecker-forgejo-client"
   put_secret "${token}" "${project_id}" "/woodpecker/FORGEJO_SECRET" "e2e-woodpecker-forgejo-secret"
   put_secret "${token}" "${project_id}" "/woodpecker/PROMETHEUS_AUTH_TOKEN" "e2e-woodpecker-metrics"
-  # The qbittorrent app itself is omitted on kind (gluetun needs TUN and real
-  # VPN credentials), but Homepage's service widgets read the WebUI pair, and
+  # The qbittorrent app itself is omitted on kind (gluetun needs real VPN
+  # credentials), but Homepage's service widgets read the WebUI pair, and
   # qBittorrent enforces a minimum username length of 3 without a colon and
   # a minimum password length of 6.
   put_secret "${token}" "${project_id}" "/qbittorrent/WEBUI_USERNAME" "e2e-qbittorrent"
