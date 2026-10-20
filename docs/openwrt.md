@@ -20,7 +20,8 @@ Invariants these blocks preserve: IPv4-only (no `wan6`, no ULA, IPv6
 delegation and RA/DHCPv6/NDP disabled on every managed network), `system`
 untouched, software and hardware flow offloading on (SQM off), Wireless
 Ethernet Dispatch enabled (loads after the final reboot), PixelIoT on
-WPA2-PSK `psk2+ccmp` with PMF off for older IoT devices, chrony client-only,
+WPA2-PSK `psk2+ccmp` with PMF off for older IoT devices, PixelThings on
+WPA2/WPA3 `sae-mixed` with optional PMF for WPA2-only clients, chrony client-only,
 dnsmasq on port 54 with no public upstreams and no cache, AdGuard Home
 primary on port 53 with its dashboard reachable from Pixel only and every
 `*.homeworld.internal` name rewritten to the cluster's Gateway VIP
@@ -386,7 +387,8 @@ set wireless.pixelthings='wifi-iface'
 set wireless.pixelthings.mode='ap'
 set wireless.pixelthings.network='pixelthings'
 set wireless.pixelthings.ssid='PixelThings'
-set wireless.pixelthings.encryption='sae'
+set wireless.pixelthings.encryption='sae-mixed'
+set wireless.pixelthings.ieee80211w='1'
 set wireless.pixelthings.isolate='1'
 
 set wireless.pixelguest='wifi-iface'
