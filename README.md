@@ -29,58 +29,64 @@
 - AI agent [virtual machine](docs/openchamber.md) (OpenChamber, Paseo, OpenCode, Claude Code, Codex CLI, Pi agent, Antigravity CLI, Copilot CLI on Fedora) with a rebuildable root and pinned tools
 
 ## Apps
+User-facing applications:
 | App | Domain(s) | Description |
 | --- | --- | --- |
 | Actual Budget | `budget.homeworld.internal` | Envelope-budgeting sync server and web app with Authelia sign-in and Enable Banking bank sync. |
+| Coder | `coder.homeworld.internal`<br>`*.coder.homeworld.internal` | Cloud development workspaces and Coder Agents; the wildcard serves workspace apps ([docs/coder.md](docs/coder.md)). |
+| Collabora | `office.homeworld.internal` | WOPI office editor for OpenCloud. |
+| Forgejo | `git.homeworld.internal` | Git forge. |
+| Home Assistant | `home.homeworld.internal`<br>`z2m.homeworld.internal` | Home automation and Zigbee bridge. |
+| Homepage | `homepage.homeworld.internal` | Application dashboard aggregating links, status, and live service widgets. |
+| Immich | `photos.homeworld.internal` | Photo and video management. |
+| Notesnook | `notes.homeworld.internal`<br>`auth.notes.homeworld.internal`<br>`sse.notes.homeworld.internal`<br>`monograph.notes.homeworld.internal` | End-to-end encrypted note-taking sync server with auth, SSE, and Monograph. |
+| OpenChamber | `openchamber.homeworld.internal`<br>`paseo.homeworld.internal` | Routes to the AI agent VM on the Ryzen node: the OpenChamber web server and the Paseo daemon. |
+| OpenCloud | `cloud.homeworld.internal` | Files, sharing, search, collaboration, CalDAV, and CardDAV. |
+| qBittorrent | `qbittorrent.homeworld.internal` | Torrent client with a gluetun VPN sidecar, a three-layer kill switch (gluetun firewall, Cilium egress allowlist, readiness gate), and VPN port-forwarding (see [qbittorrent.md](docs/qbittorrent.md)). |
+| Supernote | `supernote.homeworld.internal` | Supernote Private Cloud: device sync, web file manager, and note conversion (amd64 nodes only). |
+| Vaultwarden | `vault.homeworld.internal` | Bitwarden-compatible password manager with optional Authelia SSO sign-in. |
+| Woodpecker CI | `ci.homeworld.internal` | Continuous integration engine integrated with Forgejo. |
+
+## Platform
+Operators, foundations, and supporting services:
+| App | Domain(s) | Description |
+| --- | --- | --- |
 | Admission Policies | — | CEL ValidatingAdmissionPolicies protecting Pod Security Admission labels. |
 | Argo CD | `argocd.homeworld.internal` | GitOps continuous delivery. |
 | Authelia | `auth.homeworld.internal` | Identity provider for every OIDC sign-in (applications and the gateway-OIDC routes). |
 | cert-manager | — | TLS certificates for every Gateway listener from the private Homeworld CA. |
 | Cilium | — | kube-proxy-free eBPF CNI with WireGuard pod-to-pod encryption and Hubble relay/UI observability (cluster-internal). |
 | CloudNativePG | — | PostgreSQL operator. |
-| Coder | `coder.homeworld.internal`<br>`*.coder.homeworld.internal` | Cloud development workspaces and Coder Agents; the wildcard serves workspace apps ([docs/coder.md](docs/coder.md)). |
-| Collabora | `office.homeworld.internal` | WOPI office editor for OpenCloud. |
 | CrowdSec | — | Security Engine, PostgreSQL-backed LAPI, and AppSec WAF. |
-| DocumentDB Operator | — | DocumentDB, a MongoDB-compatible datastore, operator. |
 | CrowdSec Envoy Bouncer | — | Envoy Gateway external-authorization bouncer. |
 | csi-driver-nfs | — | NFS CSI node plugin mounting the NAS shares behind the static Immich, OpenCloud, and qBittorrent volumes. |
+| DocumentDB Operator | — | DocumentDB, a MongoDB-compatible datastore, operator. |
 | Dragonfly Operator | — | Dragonfly, a Redis-compatible datastore, operator. |
 | Envoy Gateway | `envoy.homeworld.internal` | Gateway API implementation and its admin console. |
 | External Secrets | — | Infisical-backed secret synchronization. |
-| Forgejo | `git.homeworld.internal` | Git forge. |
 | Grafana | `grafana.homeworld.internal` | Dashboards and observability visualization. |
 | Grafana Operator | — | Grafana instance, dashboard, and datasource operator. |
-| Home Assistant | `home.homeworld.internal`<br>`z2m.homeworld.internal` | Home automation and Zigbee bridge. |
-| Homepage | `homepage.homeworld.internal` | Application dashboard aggregating links, status, and live service widgets. |
-| Immich | `photos.homeworld.internal` | Photo and video management. |
-| Kubelet Serving Cert Approver | — | Approves kubelet serving certificate CSRs so metrics-server scrapes kubelets over verified TLS. |
 | Kube Control Plane | — | Scrape targets for the k3s-embedded API servers, scheduler, controller manager, and etcd (a ServiceMonitor and ScrapeConfigs; no workloads). |
-| kured | — | Serialized node reboots for package updates and Fedora release upgrades, gated on vmalert alerts. |
 | Kube State Metrics | — | Cluster-state `kube_*` metrics for the OpenTelemetry pipeline and the CloudNativePG dashboard. |
+| Kubelet Serving Cert Approver | — | Approves kubelet serving certificate CSRs so metrics-server scrapes kubelets over verified TLS. |
+| kured | — | Serialized node reboots for package updates and Fedora release upgrades, gated on vmalert alerts. |
 | Longhorn | `longhorn.homeworld.internal` | Distributed block-storage management. |
-| Snapshot Controller | — | CSI volume-snapshot controller driving the Longhorn CSI driver for Velero data movement and CNPG volume-snapshot backups. |
 | MariaDB Operator | — | MariaDB operator; provisions MariaDB instances, their databases and users, and SQL seed jobs. |
 | Metrics Server | — | Resource metrics for `kubectl top` and HPA, scraped from kubelets over verified TLS. |
-| Notesnook | `notes.homeworld.internal`<br>`auth.notes.homeworld.internal`<br>`sse.notes.homeworld.internal`<br>`monograph.notes.homeworld.internal` | End-to-end encrypted note-taking sync server with auth, SSE, and Monograph. |
-| OpenChamber | `openchamber.homeworld.internal`<br>`paseo.homeworld.internal` | Routes to the AI agent VM on the Ryzen node: the OpenChamber web server and the Paseo daemon. |
-| VictoriaMetrics | `victoria-metrics.homeworld.internal` | Metrics backend (VictoriaMetrics Single, vmui) and vmalert, whose alerts gate node reboots. |
-| VictoriaLogs | `victoria-logs.homeworld.internal` | Logs backend (VictoriaLogs Single, web UI). |
-| VictoriaTraces | `victoria-traces.homeworld.internal` | Traces backend (VictoriaTraces Single, Jaeger/Tempo-compatible query APIs; visualize via Grafana). |
 | OpenTelemetry Collector | — | Telemetry collection and export. |
 | OpenTelemetry Operator | — | Manages the collector and its Target Allocator, which discovers ServiceMonitor and PodMonitor scrape targets. |
-| OpenCloud | `cloud.homeworld.internal` | Files, sharing, search, collaboration, CalDAV, and CardDAV. |
 | Prometheus Operator CRDs | — | Custom resource definitions required for monitoring resources; consumed by the OpenTelemetry Operator's Target Allocator. |
-| qBittorrent | `qbittorrent.homeworld.internal` | Torrent client with a gluetun VPN sidecar, a three-layer kill switch (gluetun firewall, Cilium egress allowlist, readiness gate), and VPN port-forwarding (see [qbittorrent.md](docs/qbittorrent.md)). |
 | Radicale | — | Internal CalDAV and CardDAV backend authenticated by OpenCloud. |
 | RustFS | `s3.homeworld.internal`<br>`console.rustfs.homeworld.internal` | Shared S3-compatible object storage and Tenant console. |
 | RustFS Operator | `rustfs.homeworld.internal` | RustFS storage operator and management console. |
-| trust-manager | — | Publishes the Homeworld CA certificate as the `homeworld-ca` ConfigMap in every namespace for in-cluster HTTPS clients. |
+| Snapshot Controller | — | CSI volume-snapshot controller driving the Longhorn CSI driver for Velero data movement and CNPG volume-snapshot backups. |
 | System Upgrade Controller | — | k3s upgrades from version-pinned Plans, one server at a time. |
-| Supernote | `supernote.homeworld.internal` | Supernote Private Cloud: device sync, web file manager, and note conversion (amd64 nodes only). |
+| trust-manager | — | Publishes the Homeworld CA certificate as the `homeworld-ca` ConfigMap in every namespace for in-cluster HTTPS clients. |
 | Velero | — | Whole-cluster backups to Backblaze B2. |
 | Velero UI | `velero.homeworld.internal` | Web interface for managing Velero. |
-| Vaultwarden | `vault.homeworld.internal` | Bitwarden-compatible password manager with optional Authelia SSO sign-in. |
-| Woodpecker CI | `ci.homeworld.internal` | Continuous integration engine integrated with Forgejo. |
+| VictoriaLogs | `victoria-logs.homeworld.internal` | Logs backend (VictoriaLogs Single, web UI). |
+| VictoriaMetrics | `victoria-metrics.homeworld.internal` | Metrics backend (VictoriaMetrics Single, vmui) and vmalert, whose alerts gate node reboots. |
+| VictoriaTraces | `victoria-traces.homeworld.internal` | Traces backend (VictoriaTraces Single, Jaeger/Tempo-compatible query APIs; visualize via Grafana). |
 
 ## Manual Setup
 

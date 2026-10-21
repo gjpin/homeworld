@@ -101,6 +101,12 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   needs a matching per-service `allow-envoy-backend-<service>` egress CiliumNetworkPolicy
   in `apps/envoy-gateway` (one port per rule — Cilium applies `toPorts` to every
   `toServices` entry) plus an ingress rule on the app side, and a `docs/network-policies.md` row.
+- Every browser web UI gets a Homepage entry in `apps/homepage/0_config.yaml`
+  (`services.yaml`, in the fitting group) linking its public hostname, with a
+  `siteMonitor` unless the route sits behind gateway OIDC or the app
+  auto-redirects to Authelia (an unauthenticated probe would measure the portal).
+  List the app in the README's user-facing Apps table or the Platform table
+  (operators, foundations, and supporting services) accordingly.
 - Under default-deny ingress, kubelet readiness/liveness probes are covered by
   Cilium's implicit ALLOW for local-host→local-pod traffic (see
   docs/network-policies.md): explicit `fromEntities: host` probe rules are
@@ -408,6 +414,8 @@ default. When onboarding or changing an app:
 - `fullnameOverride`
 - `runtimeClassName: gvisor` (where supported; otherwise `hostUsers: false`)
 - Gateway listener and `HTTPRoute` (if applicable)
+- Homepage entry for every browser web UI (`apps/homepage/0_config.yaml`)
+- README Apps (user-facing) or Platform table row
 - `ServiceMonitor`
 - Grafana dashboard in the app's Grafana folder (Grafana dashboard conventions above; docs/grafana-dashboards.md)
 - `ServerSideApply=true` in `spec.syncPolicy.syncOptions` for all `Application` resources
