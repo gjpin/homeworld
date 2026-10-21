@@ -25,6 +25,7 @@
 - Unified telemetry pipeline with OpenTelemetry Collector, VictoriaMetrics, VictoriaLogs, and VictoriaTraces
 - Declarative dashboards and monitoring via Grafana Operator, with Prometheus Operator ServiceMonitors and PodMonitors consumed by the OpenTelemetry Operator's Target Allocator
 - Automated dependency updates and [upgrade procedures](docs/upgrades.md) via Renovate
+- [Coder](docs/coder.md) cloud development workspaces on Kubernetes, with Coder Agents running AI coding agents from the control plane
 - AI agent [virtual machine](docs/openchamber.md) (OpenChamber, Paseo, OpenCode, Claude Code, Codex CLI, Pi agent, Antigravity CLI, Copilot CLI on Fedora) with a rebuildable root and pinned tools
 
 ## Apps
@@ -37,6 +38,7 @@
 | cert-manager | — | TLS certificates for every Gateway listener from the private Homeworld CA. |
 | Cilium | — | kube-proxy-free eBPF CNI with WireGuard pod-to-pod encryption and Hubble relay/UI observability (cluster-internal). |
 | CloudNativePG | — | PostgreSQL operator. |
+| Coder | `coder.homeworld.internal`<br>`*.coder.homeworld.internal` | Cloud development workspaces and Coder Agents; the wildcard serves workspace apps ([docs/coder.md](docs/coder.md)). |
 | Collabora | `office.homeworld.internal` | WOPI office editor for OpenCloud. |
 | CrowdSec | — | Security Engine, PostgreSQL-backed LAPI, and AppSec WAF. |
 | DocumentDB Operator | — | DocumentDB, a MongoDB-compatible datastore, operator. |
@@ -144,6 +146,7 @@ users:
 | `opencloud-admin` / `opencloud-spaceadmin` / `opencloud-user` / `opencloud-user-light` | OpenCloud roles; sign-in requires one of these groups (deny-by-default) |
 | `vaultwarden-admin` / `vaultwarden-user` | Vaultwarden sign-in groups (role mapping is not supported by the upstream image; admin access is assigned in the admin panel via `ADMIN_TOKEN`) |
 | `homeassistant-admin` | Home Assistant admin role |
+| `coder-user` | Coder sign-in; required (deny-by-default). Coder roles are not mapped from groups: the first user to sign in becomes Owner ([docs/coder.md](docs/coder.md)) |
 
 After editing the Infisical value, the change reaches the cluster on the ExternalSecret's hourly refresh (or immediately with `kubectl -n authelia delete secret authelia-files`, which External Secrets recreates at once). Authelia reads the database only at startup (`watch: false`), so finish with `kubectl -n authelia rollout restart deploy/authelia`.
 
@@ -198,7 +201,10 @@ The Homepage dashboard's live widgets authenticate to four services with dedicat
 
 Homepage reads its dashboard configuration (`apps/homepage/0_config.yaml`) at startup; after changing it, restart the pod with `kubectl -n homepage rollout restart deploy/homepage`.
 
-### 12. Use the Agents VM
+### 12. Set Up Coder
+Sign in to `https://coder.homeworld.internal` with a `coder-user` account; the first sign-in becomes the deployment Owner. Then push the workspace template from `apps/coder/template/` and configure an LLM provider for Coder Agents, following [docs/coder.md](docs/coder.md).
+
+### 13. Use the Agents VM
 The Ryzen node builds the agents VM during its bootstrap ([docs/openchamber.md](docs/openchamber.md)):
 
 - **Browser**: `https://openchamber.homeworld.internal` (sign in with `/agents/OPENCHAMBER_UI_PASSWORD`) and `https://paseo.homeworld.internal` (`/agents/PASEO_PASSWORD`), from the Pixel network or over WireGuard.

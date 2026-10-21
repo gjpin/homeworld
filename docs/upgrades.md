@@ -6,8 +6,8 @@ This document details upgrade automation, database migration procedures, and ver
 
 ## 1. Automated Major Database Upgrades (CloudNativePG)
 
-All PostgreSQL databases (`authelia`, `crowdsec`, `forgejo`, `homeassistant`,
-`immich`, `vaultwarden`, `woodpecker`) run on **CloudNativePG** (CNPG). Each
+All PostgreSQL databases (`authelia`, `coder`, `crowdsec`, `forgejo`,
+`homeassistant`, `immich`, `vaultwarden`, `woodpecker`) run on **CloudNativePG** (CNPG). Each
 `apps/<app>/0_postgres.yaml` pins `spec.imageName`, which Renovate tracks:
 
 * `ghcr.io/cloudnative-pg/postgresql:<major>.<minor>-system-<debian>` (every
@@ -381,6 +381,7 @@ The applications below document procedures beyond that review.
 | **Woodpecker** | [Migrations](https://woodpecker-ci.org/migrations): per-major breaking changes, some requiring admin actions (repairing repository webhooks, plugin privileges, file ownership). | Apply the listed actions after the sync. |
 | **Immich** | [Upgrading](https://docs.immich.app/install/upgrading): read the breaking changes; downgrades are unsupported, even within a minor. Mobile apps move before the server on a major. | The VectorChord range constrains the CNPG image ([§1](#before-merging-a-major-upgrade)). |
 | **Authelia** | [Storage migrations](https://www.authelia.com/configuration/storage/migrations/) run automatically on start; going back requires a manual schema downgrade. | Take a CNPG on-demand `Backup` ([§1](#before-merging-a-major-upgrade)) before a bump and roll back by restoring it (or the latest [Velero backup](velero.md)), not by reverting the image alone. |
+| **Coder** | [Upgrade](https://coder.com/docs/install/operate/upgrade) and [best practices](https://coder.com/docs/install/operate/upgrade/best-practices): rollbacks are unsupported, so snapshot the database first; migrations run at startup and take longer the more minors are crossed. Read the [release notes](https://github.com/coder/coder/releases) of every minor crossed — Coder Agents settings and APIs can change between releases. | Take a CNPG on-demand `Backup` ([§1](#before-merging-a-major-upgrade)) before a minor bump and roll back by restoring it, not by reverting the image. The chart and image move together in one Renovate PR. When the bump raises a Terraform or provider minimum, push the repository template again ([coder.md](coder.md#workspace-template)). |
 | **Home Assistant** | [Updating](https://www.home-assistant.io/common-tasks/container/#updating): back up first and read the backward-incompatible changes of every release crossed; check repairs and logs afterwards. | Confirm the latest [Velero backup](velero.md) and take a CNPG on-demand `Backup` ([§1](#before-merging-a-major-upgrade)) before a bump. |
 | **RustFS** | [Upgrade runbook](https://docs.rustfs.com/upgrade-scale/upgrade): never upgrade with offline nodes or degraded erasure sets; the on-disk format never changes. The operator chart needs its CRDs first. | CRDs sync with the render. |
 | **Longhorn** | See [§2](#2-automated-storage-engine-upgrades-longhorn). | |

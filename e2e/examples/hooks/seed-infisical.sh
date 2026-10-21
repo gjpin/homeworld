@@ -324,7 +324,7 @@ seed_secrets() {
   token=$(cat "${OUT_DIR}/token")
   project_id=$(cat "${OUT_DIR}/project_id")
 
-  for folder in grafana homepage authelia cert-manager immich forgejo rustfs rustfs-operator opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker vaultwarden qbittorrent homeassistant; do
+  for folder in grafana homepage authelia cert-manager immich forgejo rustfs rustfs-operator opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker vaultwarden qbittorrent homeassistant coder; do
     ensure_folder "${token}" "${project_id}" "${folder}"
   done
 
@@ -384,6 +384,7 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_GRAFANA" "e2e-oidc-grafana"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_FORGEJO" "e2e-oidc-forgejo"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_ARGOCD" "e2e-oidc-argocd"
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_CODER" "e2e-oidc-coder"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_IMMICH" "e2e-oidc-immich"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_VELERO_UI" "e2e-oidc-velero-ui"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_RUSTFS" "e2e-oidc-rustfs"
@@ -443,6 +444,8 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/woodpecker/FORGEJO_CLIENT" "e2e-woodpecker-forgejo-client"
   put_secret "${token}" "${project_id}" "/woodpecker/FORGEJO_SECRET" "e2e-woodpecker-forgejo-secret"
   put_secret "${token}" "${project_id}" "/woodpecker/PROMETHEUS_AUTH_TOKEN" "e2e-woodpecker-metrics"
+  put_secret "${token}" "${project_id}" "/coder/POSTGRES_USERNAME" "coder"
+  put_secret "${token}" "${project_id}" "/coder/POSTGRES_PASSWORD" "e2e-coder-db"
   # The qbittorrent app itself is omitted on kind (gluetun needs real VPN
   # credentials), but Homepage's service widgets read the WebUI pair, and
   # qBittorrent enforces a minimum username length of 3 without a colon and

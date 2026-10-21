@@ -10,7 +10,8 @@
     "github-actions",
     "gomod",
     "kustomize",
-    "kubernetes"
+    "kubernetes",
+    "terraform"
   ],
   "ignorePaths": [
     "**/node_modules/**",
@@ -152,6 +153,21 @@
       }
     },
     {
+      "description": "Refresh the mise binary sha256 in the Coder workspace template on version bumps",
+      "matchPackageNames": [
+        "jdx/mise"
+      ],
+      "postUpgradeTasks": {
+        "commands": [
+          "bash scripts/refresh-mise-sha.sh"
+        ],
+        "fileFilters": [
+          "apps/coder/template/main.tf"
+        ],
+        "executionMode": "update"
+      }
+    },
+    {
       "description": "Group every Kubernetes version pin (k3s, PSA labels, kind node image, documentation, e2e hook comments) into one PR",
       "matchPackageNames": [
         "kindest/node",
@@ -219,6 +235,28 @@
       ],
       "prBodyNotes": [
         "ℹ️ **Argo CD Upgrade**: Read the [upgrading notes](https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/overview/) of every Argo CD minor this chart bump crosses, and the chart README for value changes."
+      ]
+    },
+    {
+      "description": "Group the Coder chart and server image: the chart's appVersion and the pinned image move together",
+      "matchPackageNames": [
+        "coder",
+        "ghcr.io/coder/coder"
+      ],
+      "groupName": "coder"
+    },
+    {
+      "description": "Coder minors run irreversible database migrations",
+      "matchPackageNames": [
+        "coder",
+        "ghcr.io/coder/coder"
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor"
+      ],
+      "prBodyNotes": [
+        "ℹ️ **Coder Upgrade**: Read the [release notes](https://github.com/coder/coder/releases) of every minor crossed. Migrations run on startup and cannot be rolled back, so take the CNPG volume-snapshot backup first (docs/upgrades.md §9), then push the repository template again if a provider minimum changed (docs/coder.md)."
       ]
     },
     {
@@ -427,7 +465,7 @@
       "customType": "regex",
       "description": "Update CloudNativePG Cluster images",
       "managerFilePatterns": [
-        "/^apps/(?:authelia|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker)/0_postgres\\.yaml$/"
+        "/^apps/(?:authelia|coder|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker)/0_postgres\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^\\s*imageName:\\s*(?<depName>ghcr\\.io/[^:\\s]+):(?<currentValue>[^\\s#]+)\\s*$"
@@ -440,7 +478,7 @@
       "customType": "regex",
       "description": "Move CloudNativePG Cluster images to the newest Debian stable release CNPG publishes for the pinned PostgreSQL version (the docker manager above treats the -system-<debian> suffix as fixed)",
       "managerFilePatterns": [
-        "/^apps/(?:authelia|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker)/0_postgres\\.yaml$/"
+        "/^apps/(?:authelia|coder|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker)/0_postgres\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^\\s*imageName:\\s*(?<packageName>ghcr\\.io/cloudnative-pg/postgresql):(?<pgVersion>\\d+\\.\\d+)-system-(?<currentValue>[a-z]+)\\s*$"
@@ -933,6 +971,58 @@
       "datasourceTemplate": "helm",
       "versioningTemplate": "helm",
       "registryUrlTemplate": "https://woodpecker-ci.org/"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Coder Helm chart",
+      "managerFilePatterns": [
+        "/^apps/coder/helm/kustomization\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^\\s+- name:\\s+coder\\s+repo:\\s+https://helm\\.coder\\.com/v2\\s+version:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "depNameTemplate": "coder",
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm",
+      "registryUrlTemplate": "https://helm.coder.com/v2"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Coder server image",
+      "managerFilePatterns": [
+        "/^apps/coder/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^\\s+image:\\s*\\n\\s+repo:\\s*(?<depName>ghcr\\.io/coder/coder)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Coder workspace template image",
+      "managerFilePatterns": [
+        "/^apps/coder/template/main\\.tf$/"
+      ],
+      "matchStrings": [
+        "image\\s*=\\s*\"(?<depName>docker\\.io/codercom/example-base):(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "regex:^ubuntu-(?<major>\\d{8})$",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the mise version installed by the Coder workspace template",
+      "managerFilePatterns": [
+        "/^apps/coder/template/main\\.tf$/"
+      ],
+      "matchStrings": [
+        "mise_version\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "jdx/mise",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.+)$"
     },
     {
       "customType": "regex",

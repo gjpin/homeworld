@@ -1,0 +1,166 @@
+coder:
+  image:
+    repo: ghcr.io/coder/coder
+    tag: v2.38.1
+    pullPolicy: IfNotPresent
+
+  # The access URL is set explicitly below; the chart's in-cluster fallback
+  # (http://coder.coder.svc.cluster.local) would hand workspaces and OIDC an
+  # unreachable or plain-HTTP origin.
+  envUseClusterAccessURL: false
+
+  env:
+    - name: CODER_ACCESS_URL
+      value: "https://coder.homeworld.internal"
+    # Workspace apps (code-server, AI agent UIs, forwarded ports) are served
+    # on their own origins under the wildcard listener rather than as path
+    # apps on the dashboard origin.
+    - name: CODER_WILDCARD_ACCESS_URL
+      value: "*.coder.homeworld.internal"
+    - name: CODER_PG_CONNECTION_URL
+      valueFrom:
+        secretKeyRef:
+          name: coder-secrets
+          key: CODER_PG_CONNECTION_URL
+    # Envoy Gateway terminates TLS; the dashboard is only ever reached over
+    # https://coder.homeworld.internal.
+    - name: CODER_SECURE_AUTH_COOKIE
+      value: "true"
+    - name: CODER_REDIRECT_TO_ACCESS_URL
+      value: "false"
+    # Envoy appends the client address to X-Forwarded-For; trust it only from
+    # the pod network the Envoy data plane runs in.
+    - name: CODER_PROXY_TRUSTED_HEADERS
+      value: "X-Forwarded-For"
+    - name: CODER_PROXY_TRUSTED_ORIGINS
+      value: "10.0.0.0/8"
+
+    # --- Authelia OIDC (https://www.authelia.com/integration/openid-connect/clients/coder/)
+    - name: CODER_OIDC_ISSUER_URL
+      value: "https://auth.homeworld.internal"
+    - name: CODER_OIDC_CLIENT_ID
+      value: coder
+    - name: CODER_OIDC_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: coder-secrets
+          key: CODER_OIDC_CLIENT_SECRET
+    # offline_access makes Authelia issue a refresh token, so sessions
+    # outlive the one-hour access token (Coder's OIDC refresh-token guide).
+    - name: CODER_OIDC_SCOPES
+      value: "openid,profile,email,offline_access"
+    - name: CODER_OIDC_EMAIL_FIELD
+      value: email
+    - name: CODER_OIDC_USERNAME_FIELD
+      value: preferred_username
+    - name: CODER_OIDC_IGNORE_EMAIL_VERIFIED
+      value: "false"
+    # The default {"access_type": "offline"} is a Google-only parameter;
+    # Authelia keys refresh tokens off the offline_access scope alone.
+    - name: CODER_OIDC_AUTH_URL_PARAMS
+      value: "{}"
+    # No CODER_OIDC_ICON_URL: the guide's authelia.com icon would be fetched
+    # from the internet by every browser that opens the login page; Coder's
+    # bundled OpenID icon is used instead.
+    - name: CODER_OIDC_SIGN_IN_TEXT
+      value: "Sign in with Authelia"
+    # Authelia is the only sign-in method. Owners can still use a password
+    # (Coder never locks them out), and `coder server create-admin` recovers
+    # a lost owner account directly in the database.
+    - name: CODER_DISABLE_PASSWORD_AUTH
+      value: "true"
+    # Coder-managed GitHub OAuth apps: a GitHub login button and a GitHub
+    # external-auth provider that authenticate through Coder's own OAuth
+    # client. Authelia is the identity provider here, and coderd has no
+    # github.com egress for the token exchange.
+    - name: CODER_OAUTH2_GITHUB_DEFAULT_PROVIDER_ENABLE
+      value: "false"
+    - name: CODER_EXTERNAL_AUTH_GITHUB_DEFAULT_PROVIDER_ENABLE
+      value: "false"
+
+    # --- Telemetry and phone-home (https://coder.com/docs/admin/setup/telemetry)
+    - name: CODER_TELEMETRY_ENABLE
+      value: "false"
+    - name: CODER_UPDATE_CHECK
+      value: "false"
+
+    # --- Networking: workspace connections relay through the embedded DERP
+    # server over the access URL. The default STUN servers are Google's
+    # (stun.l.google.com); pod IPs are unreachable from client devices, so
+    # peer-to-peer connections could never form anyway.
+    - name: CODER_DERP_SERVER_STUN_ADDRESSES
+      value: disable
+    - name: CODER_BLOCK_DIRECT
+      value: "true"
+
+    # --- Metrics (https://coder.com/docs/admin/integrations/prometheus).
+    # The chart binds CODER_PROMETHEUS_ADDRESS to 0.0.0.0:2112 and renders
+    # the named prometheus-http container port the PodMonitor scrapes.
+    - name: CODER_PROMETHEUS_ENABLE
+      value: "true"
+    - name: CODER_PROMETHEUS_COLLECT_AGENT_STATS
+      value: "true"
+
+    # --- Logs (https://coder.com/docs/admin/monitoring/logs): the default
+    # human-readable stderr stream, which the OTel node collector ships to
+    # VictoriaLogs and the upstream dashboards' log panels parse.
+    - name: CODER_LOGGING_HUMAN
+      value: /dev/stderr
+
+    # Authelia (OIDC discovery, token, userinfo, JWKS) and coderd's own
+    # access URL (health checks, DERP) serve certificates signed by the
+    # homeworld CA; add the trust-manager ConfigMap mounted below to Go's
+    # system roots (SSL_CERT_DIR is additive to the image's CA bundle).
+    - name: SSL_CERT_DIR
+      value: /etc/homeworld-ca
+
+  volumes:
+    - name: homeworld-ca
+      configMap:
+        name: homeworld-ca
+  volumeMounts:
+    - name: homeworld-ca
+      mountPath: /etc/homeworld-ca
+      readOnly: true
+
+  # Workspaces run in their own namespace (apps/coder/workspaces/), away
+  # from coderd, its database credentials, and the OIDC client secret. The
+  # service account gets no workspace permissions in its own namespace.
+  serviceAccount:
+    workspacePerms: false
+    enableDeployments: false
+    workspaceNamespaces:
+      - name: coder-workspaces
+        workspacePerms: true
+        enableDeployments: true
+
+  podSecurityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
+  # coderd runs the built-in provisioner daemons, so Terraform and its
+  # provider cache live in this container (~/.cache/coder).
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+      ephemeral-storage: 512Mi
+    limits:
+      cpu: "2"
+      memory: 4Gi
+      ephemeral-storage: 4Gi
+
+  service:
+    type: ClusterIP

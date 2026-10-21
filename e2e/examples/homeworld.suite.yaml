@@ -234,6 +234,7 @@ spec:
             - documentdb-operator
             - notesnook
             - woodpecker
+            - coder
             - vaultwarden
             - actual-budget
             - homepage
@@ -338,6 +339,15 @@ spec:
           kind: Cluster
           name: woodpecker
           namespace: woodpecker
+          condition: Ready
+          status: "True"
+          timeout: 10m
+      - name: cnpg-coder
+        resourceCondition:
+          apiVersion: postgresql.cnpg.io/v1
+          kind: Cluster
+          name: coder
+          namespace: coder
           condition: Ready
           status: "True"
           timeout: 10m
@@ -500,6 +510,13 @@ spec:
         serviceProbe:
           namespace: woodpecker
           service: woodpecker-server
+          port: 80
+          path: "/healthz"
+          timeout: 10m
+      - name: coder-health
+        serviceProbe:
+          namespace: coder
+          service: coder
           port: 80
           path: "/healthz"
           timeout: 10m

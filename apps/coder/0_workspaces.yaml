@@ -1,0 +1,40 @@
+# Workspace namespace: the network policies and container defaults for the
+# Pods, Deployments, and PVCs that coderd's Terraform provisioners create
+# from templates. Wave 0, ahead of the wave-1 chart, whose Role and
+# RoleBinding for the coder service account live in this namespace.
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: coder-workspaces
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: coder-workspaces
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/coder/workspaces
+    targetRevision: HEAD

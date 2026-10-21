@@ -1,0 +1,19 @@
+# https://coder.com/docs/admin/integrations/prometheus
+#
+# The chart exposes no metrics Service: the prometheus-http container port
+# (2112) is scraped straight from the coderd pod.
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: coder
+  namespace: coder
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: coder
+      app.kubernetes.io/instance: coder
+  podMetricsEndpoints:
+    - port: prometheus-http
+      path: /metrics
+      interval: 60s

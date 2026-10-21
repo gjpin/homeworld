@@ -1,0 +1,42 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy
+  namespace: coder
+  annotations:
+    cert-manager.io/cluster-issuer: homeworld-ca
+spec:
+  gatewayClassName: envoy-merged
+  addresses:
+    - type: IPAddress
+      value: 192.168.8.50
+  listeners:
+    - name: coder-https
+      protocol: HTTPS
+      port: 443
+      hostname: "coder.homeworld.internal"
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: coder-tls-cert
+            kind: Secret
+            group: ""
+    # Workspace apps (CODER_WILDCARD_ACCESS_URL): each app and forwarded
+    # port gets its own <app>--<agent>--<workspace>--<user> origin.
+    - name: coder-apps-https
+      protocol: HTTPS
+      port: 443
+      hostname: "*.coder.homeworld.internal"
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: coder-apps-tls-cert
+            kind: Secret
+            group: ""

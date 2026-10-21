@@ -239,6 +239,14 @@
           "kind": "^ClusterRoleBinding$",
           "name": "^kured$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^coder$",
+          "namespace": "^coder-workspaces$"
+        }
       }
     ],
     "posturePolicies": [
@@ -285,6 +293,14 @@
           "kind": "^ConfigMap$",
           "name": "^cilium-config$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
         }
       }
     ],
@@ -1322,6 +1338,14 @@
           "name": "^csi-nfs-node$",
           "namespace": "^csi-driver-nfs$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -1992,6 +2016,14 @@
           "name": "^vmalert$",
           "namespace": "^victoria-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2482,6 +2514,14 @@
           "kind": "^DaemonSet$",
           "name": "^csi-nfs-node$",
           "namespace": "^csi-driver-nfs$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
         }
       }
     ],
@@ -3525,6 +3565,14 @@
           "name": "^kured$",
           "namespace": "^kured$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^coder$",
+          "namespace": "^coder-workspaces$"
+        }
       }
     ],
     "posturePolicies": [
@@ -3896,6 +3944,14 @@
           "kind": "^DaemonSet$",
           "name": "^csi-nfs-node$",
           "namespace": "^csi-driver-nfs$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
         }
       }
     ],
@@ -4395,6 +4451,14 @@
           "name": "^vmalert$",
           "namespace": "^victoria-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4887,6 +4951,14 @@
           "name": "^opentelemetry-operator-leader-election$",
           "namespace": "^opentelemetry-operator$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^coder$",
+          "namespace": "^coder-workspaces$"
+        }
       }
     ],
     "posturePolicies": [
@@ -5347,6 +5419,14 @@
           "kind": "^DaemonSet$",
           "name": "^csi-nfs-node$",
           "namespace": "^csi-driver-nfs$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
         }
       }
     ],
@@ -5859,6 +5939,14 @@
           "kind": "^Deployment$",
           "name": "^authelia$",
           "namespace": "^authelia$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
         }
       }
     ],
@@ -6514,6 +6602,14 @@
           "name": "^vmalert$",
           "namespace": "^victoria-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -6905,6 +7001,14 @@
           "name": "^vmalert$",
           "namespace": "^victoria-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7125,6 +7229,14 @@
           "kind": "^Deployment$",
           "name": "^velero-ui$",
           "namespace": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
         }
       }
     ],
@@ -7629,6 +7741,14 @@
           "name": "^vmalert$",
           "namespace": "^victoria-metrics$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7964,6 +8084,14 @@
           "name": "^kured$",
           "namespace": "^kured$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -8250,6 +8378,14 @@
           "kind": "^Deployment$",
           "name": "^trust-manager$",
           "namespace": "^trust-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
         }
       }
     ],

@@ -114,6 +114,10 @@
    * openchamber: Gateway listeners, routes, and selectorless Services for
      the agents VM ([docs/openchamber.md](openchamber.md)), after Envoy
      Gateway, cert-manager, and the CrowdSec Envoy bouncer
+   * coder: Coder control plane (CloudNativePG-backed) and, through its
+     intra-component wave-0 `coder-workspaces` application, the workspace
+     namespace whose Role the wave-1 chart binds; after Authelia, whose OIDC
+     discovery coderd requires at startup ([docs/coder.md](coder.md))
 * **Sync wave 8**
    * opencloud: OpenCloud (users' files on the NAS), Tika, authenticated DAV
      proxy, and routes

@@ -38,6 +38,7 @@ Non-secret cluster coordinates are committed as literal values, not placeholders
 | | `/authelia/RESET_PASSWORD_JWT_SECRET` | JWT secret for the password-reset flow. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_ARGOCD` | Argo CD OIDC client secret. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_ACTUAL_BUDGET` | Actual Budget OIDC client secret (also delivered to the `actual-budget` namespace as `actual-budget-secrets`). | `openssl rand -hex 32` |
+| | `/authelia/OIDC_CLIENT_SECRET_CODER` | Coder OIDC client secret (also delivered to coderd by the `coder-secrets` ExternalSecret). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_ENVOY` | Envoy Gateway OIDC client secret (shared by every gateway-OIDC route; delivered to each protected app's namespace — envoy-gateway, homepage, longhorn-system, victoria-metrics, and homeassistant — as `envoy-oidc-client-secret`). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_FORGEJO` | Forgejo OIDC client secret. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_GRAFANA` | Grafana OIDC client secret. | `openssl rand -hex 32` |
@@ -48,6 +49,8 @@ Non-secret cluster coordinates are committed as literal values, not placeholders
 | | `/authelia/OIDC_CLIENT_SECRET_VAULTWARDEN` | Vaultwarden OIDC client secret. | `openssl rand -hex 32` |
 | **cert-manager** | `/cert-manager/CA_CERT` | Homeworld root CA certificate (PEM). Read by cert-manager's `homeworld-ca` ClusterIssuer, trust-manager's `homeworld-ca` Bundle source, and Argo CD's OIDC `rootCA`. | `homeworld-ca.crt` from the README "Create the Homeworld CA" step |
 | | `/cert-manager/CA_KEY` | Homeworld root CA private key (PEM); only cert-manager reads it. | `homeworld-ca.key` from the same step |
+| **Coder** | `/coder/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `coder` (the CNPG `owner` user) |
+| | `/coder/POSTGRES_PASSWORD` | CloudNativePG application password (also templated into coderd's `CODER_PG_CONNECTION_URL`). | `openssl rand -hex 32` |
 | **Collabora** | `/opencloud/COLLABORA_ADMIN_USER` | Collabora admin console username. | Chosen username |
 | | `/opencloud/COLLABORA_ADMIN_PASSWORD` | Collabora admin console password. | `openssl rand -hex 32` |
 | | `/opencloud/COLLABORA_PROOF_KEY` | WOPI proof private key for OpenCloud ↔ Collabora requests. | `openssl genrsa -out proof_key 4096` (matching the chart's 4096-bit requirement; existing 2048-bit keys still verify) |
@@ -117,6 +120,6 @@ Some secrets are produced by manual one-time procedures rather than generated di
 
 Generation constraints worth knowing:
 
-- The nine `/authelia/OIDC_CLIENT_SECRET_*` values are 64-character hex strings from `openssl rand -hex 32`: hex output is RFC 3986 unreserved, which avoids token-endpoint encoding issues, and exceeds Authelia's 40-character recommendation for client secrets.
+- The ten `/authelia/OIDC_CLIENT_SECRET_*` values are 64-character hex strings from `openssl rand -hex 32`: hex output is RFC 3986 unreserved, which avoids token-endpoint encoding issues, and exceeds Authelia's 40-character recommendation for client secrets.
 - S3 secret keys (`/rustfs/RUSTFS_SECRET_KEY`, `/notesnook/RUSTFS_SECRET_KEY`) use `openssl rand -hex 16` to stay within the 40-character secret-key limit MinIO-compatible stores accept; access key IDs are chosen and must be at least 8 characters with no whitespace, `=` or `,`.
 - The RustFS user behind the `/notesnook/RUSTFS_*` keypair does not require manual registration: the `Tenant` in `apps/rustfs/0_tenant.yaml` declares its bucket, policy, and user, and the RustFS Operator provisions them from the Secrets synced by `apps/rustfs/-1_user_secrets.yaml` once the Tenant workload is ready. If equivalent users were previously created through the RustFS console, remove any console user carrying the same access key before the first sync, then confirm all items provisioned with `kubectl -n rustfs get tenant rustfs -o jsonpath='{.status.provisioning}'`.

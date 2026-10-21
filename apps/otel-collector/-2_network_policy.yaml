@@ -1225,6 +1225,33 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: allow-otel-pod-scrape-coder
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Coder's PodMonitor scrapes coderd's Prometheus endpoint (named port
+  # prometheus-http 2112, enabled via CODER_PROMETHEUS_ENABLE) and its
+  # CNPG PodMonitor scrapes the CloudNativePG instance metrics port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: coder
+      toPorts:
+        - ports:
+            - port: "2112"
+              protocol: TCP
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-otel-pod-scrape-woodpecker
   namespace: otel-collector
   annotations:
