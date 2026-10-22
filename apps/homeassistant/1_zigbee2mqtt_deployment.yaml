@@ -54,7 +54,7 @@ spec:
         # exist and crashloops. Later git changes to the seed must be
         # applied by editing /app/data/configuration.yaml directly.
         - name: zigbee2mqtt-config-bootstrap
-          image: docker.io/library/alpine:3.24.2
+          image: docker.io/library/alpine:3.24.3
           imagePullPolicy: IfNotPresent
           command:
             - sh
