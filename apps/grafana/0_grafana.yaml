@@ -100,7 +100,7 @@ spec:
                   rm /var/lib/grafana/plugins/vm-metrics.tar.gz
 
                   wget -O /var/lib/grafana/plugins/vm-logs.tar.gz \
-                    https://github.com/VictoriaMetrics/victorialogs-datasource/releases/download/v0.32.0/victoriametrics-logs-datasource-v0.32.0.tar.gz
+                    https://github.com/VictoriaMetrics/victorialogs-datasource/releases/download/v0.33.1/victoriametrics-logs-datasource-v0.32.0.tar.gz
                   echo 'e100b767f19cd614ac8ac3860458a3fb33f5aa7a876e924d0340010e40d1c0d4  /var/lib/grafana/plugins/vm-logs.tar.gz' | sha256sum -c -
                   tar -xzf /var/lib/grafana/plugins/vm-logs.tar.gz -C /var/lib/grafana/plugins
                   rm /var/lib/grafana/plugins/vm-logs.tar.gz
