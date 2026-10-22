@@ -460,7 +460,10 @@ default. When onboarding or changing an app:
   fields are still emitted. Apply declarative changes in the same PR. Before
   merging, report any manual step, or an upgrade that crosses an unsupported
   jump, to the user instead of merging. Follow `docs/upgrades.md` (version
-  stepping in §4, per-app procedures in §9). When a release introduces a new
+  stepping in §4, per-app procedures in §9); `scripts/upgrade-report.sh`
+  gathers the release notes, values drift, render diff, and convention
+  findings for a range, and the `/upgrade` skill works Renovate PRs end to
+  end. When a release introduces a new
   standing procedure, add it to §9 and to the app's Renovate `prBodyNotes`.
 - Before modifying an existing Helm installation or adding a new one, render
   the exact pinned chart with the proposed values and patches, and inspect all

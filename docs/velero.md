@@ -37,6 +37,18 @@ would otherwise fail those claims; the NAS snapshots its own shares and
 backs them up to B2 with restic ([nas.md](nas.md#off-site-backups)). Their
 Kubernetes objects (PersistentVolumes and claims) are still backed up.
 
+## Pre-upgrade backups
+
+Before an upgrade of a stateful component is merged,
+`scripts/pre-upgrade-backup.sh <namespace>...` checks for a `Completed`
+backup covering each namespace that finished within the last hour. When
+there is none, it creates a `Backup` named `pre-upgrade-<namespace>-<UTC
+timestamp>` (label `homeworld/pre-upgrade: "true"`) whose spec is the
+`velero-daily` schedule's template narrowed to those namespaces: the same
+volume policy, snapshot data movement to B2, and 30-day expiry. It waits for
+the backup to complete and fails on any other outcome, so the upgrade is not
+merged without it. Restore it like a nightly backup.
+
 ## Database-native volume-snapshot backups
 
 Velero is the only scheduled backup of the databases: its nightly copy of

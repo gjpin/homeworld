@@ -367,6 +367,38 @@ Then check that this repository's own inputs still fit the target version:
   ServiceMonitors, and ports are still emitted. After the sync, check the
   application's logs for deprecation warnings.
 
+### Upgrade Tooling
+
+`scripts/upgrade-report.sh` does the mechanical half of this review for a
+git range (by default a branch against `origin/main`). Per touched component
+it renders both sides and diffs them per resource, diffs the chart's default
+values and values schema, lists the values keys the new chart no longer
+reads, keys no chart version knows, values that equal the new default, new
+chart options, and defaults that changed under keys left unset. It also
+reports the latest stable chart and image tags upstream, the convention
+findings on the new render (gVisor or user namespaces, Restricted security
+contexts, requests and limits, fully qualified images, 60s monitors), with
+those introduced by the change called out, whether the component holds
+state, and the release notes of every chart and application release in the
+range, with lines mentioning breaking changes, deprecations, or removals
+extracted. With `--all` and `--base` equal to `--head`, it audits the
+current state of every component instead.
+
+The `/upgrade` Claude Code skill (`.claude/skills/upgrade/SKILL.md`) works
+open Renovate PRs end to end on top of the report: one reviewer per PR reads
+the release notes and the target version's configuration reference, adapts
+values, patches, and application configuration, fixes convention
+regressions, and pushes to the PR branch. The skill then merges the PRs one
+at a time once CI passes. Before merging an upgrade of a stateful component
+it runs `scripts/pre-upgrade-backup.sh`, which takes a Velero backup of the
+component's namespaces unless one completed within the last hour
+([velero.md](velero.md#pre-upgrade-backups)). Before a Cilium minor it runs
+`scripts/cilium-preflight.sh` ([below](#cilium-pre-flight-check)). It stops
+instead of merging when a release needs a decision or a step outside git:
+an Immich major, a Gateway API or Kubernetes minimum the cluster does not
+meet, a failed backup or pre-flight, or a stepping constraint from
+[§4](#4-applications-requiring-sequential-version-stepping).
+
 The applications below document procedures beyond that review.
 
 | Application | Upstream procedure | Here |
@@ -394,6 +426,9 @@ Argo CD server-side applies them in the same sync ([argocd.md](argocd.md)),
 so no manual step is needed.
 
 ### Cilium Pre-Flight Check
+
+`scripts/cilium-preflight.sh <target>` runs the whole check below and
+deletes the pre-flight resources afterwards.
 
 Before merging a Cilium minor bump, render the pre-flight DaemonSet from the
 target chart, apply it, and wait until it is ready on every node (it pre-pulls
