@@ -105,10 +105,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          curl -sSfLO https://github.com/kubescape/kubescape/releases/download/v4.0.15/kubescape_4.0.15_linux_amd64
-          curl -sSfL https://github.com/kubescape/kubescape/releases/download/v4.0.15/checksums.sha256 |
-            grep ' kubescape_4.0.15_linux_amd64$' | sha256sum --check
-          sudo install kubescape_4.0.15_linux_amd64 /usr/local/bin/kubescape
+          curl -sSfLO https://github.com/kubescape/kubescape/releases/download/v4.0.16/kubescape_4.0.16_linux_amd64
+          curl -sSfL https://github.com/kubescape/kubescape/releases/download/v4.0.16/checksums.sha256 |
+            grep ' kubescape_4.0.16_linux_amd64$' | sha256sum --check
+          sudo install kubescape_4.0.16_linux_amd64 /usr/local/bin/kubescape
 
           # kube-linter publishes no checksums asset (only sigstore bundles),
           # so unlike the other tools the pinned release is trusted over
