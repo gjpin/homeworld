@@ -1,5 +1,7 @@
 # Velero B2 backups
-Velero creates a whole-cluster backup every day at 03:00 Europe/Lisbon. The B2
+Velero creates a whole-cluster backup every day at 22:00 Europe/Lisbon, clear
+of the nightly k3s-upgrade and reboot windows
+([upgrades.md](upgrades.md#6-platform-upgrades-k3s-fedora-host-components-agents-vm)). The B2
 backup location is `https://s3.eu-central-003.backblazeb2.com`, storing data in
 `homeworld-velero` under the `velero` prefix. Backups expire after 30 days, retaining
 30 daily restore points. The `velero` namespace itself is excluded from the
@@ -22,33 +24,59 @@ repository. The class pins `parameters.type: snap` — the Longhorn CSI driver
 treats an empty type as `bak` (a Longhorn backup needing a backup target this
 cluster does not have), which would fail every Velero snapshot.
 
+The data mover reads each snapshot through a temporary clone volume. The
+node-agent configuration (`velero-node-agent-config`) puts those clones on the
+encrypted single-replica `longhorn-scratch` class instead of the three-replica
+`longhorn-crypto`, so a backup costs one extra copy of each volume while it
+runs, not three.
+
+NFS volumes (the NAS shares, [nas.md](nas.md)) are skipped: the `velero-volume-policy`
+ConfigMap, referenced by the schedule's `resourcePolicy`, skips every
+`nfs.csi.k8s.io` volume. No NFS VolumeSnapshotClass exists, so the CSI plugin
+would otherwise fail those claims; the NAS snapshots its own shares and
+backs them up to B2 with restic ([nas.md](nas.md#off-site-backups)). Their
+Kubernetes objects (PersistentVolumes and claims) are still backed up.
+
+## Pre-upgrade backups
+
+Before an upgrade of a stateful component is merged,
+`scripts/pre-upgrade-backup.sh <namespace>...` checks for a `Completed`
+backup covering each namespace that finished within the last hour. When
+there is none, it creates a `Backup` named `pre-upgrade-<namespace>-<UTC
+timestamp>` (label `homeworld/pre-upgrade: "true"`) whose spec is the
+`velero-daily` schedule's template narrowed to those namespaces: the same
+volume policy, snapshot data movement to B2, and 30-day expiry. It waits for
+the backup to complete and fails on any other outcome, so the upgrade is not
+merged without it. Restore it like a nightly backup.
+
 ## Database-native volume-snapshot backups
 
-Every CloudNativePG cluster also takes a **daily 01:00 UTC volume-snapshot
-backup** (a `ScheduledBackup` with `method: volumeSnapshot` in each
-component's `1_scheduled_backup.yaml`) against the dedicated
-`cnpg-longhorn` VolumeSnapshotClass (`apps/cloudnative-pg/0_snapshot_class.yaml`,
-`deletionPolicy: Delete`, `parameters.type: snap`). Volume-snapshot backups
-give the databases a same-day in-cluster restore point independent of Velero
-and B2. Two caveats: Longhorn runs `numberOfReplicas: "1"`, so a volume
-snapshot is a point-in-time rollback chain on the *same single copy* — it is
-not a second copy, and Velero/B2 remains the disaster-recovery path; and CNPG
-volume-snapshot backups have no built-in retention: prune old `Backup` CRs
-(`kubectl -n <namespace> delete backup <name>`) and their `VolumeSnapshots` —
-and the Longhorn snapshot contents — are garbage-collected with them
-(`snapshotOwnerReference: backup` on each Cluster).
+Velero is the only scheduled backup of the databases: its nightly copy of
+each CloudNativePG and MariaDB volume is crash-consistent, which both engines
+recover from on start. The databases additionally take **pre-upgrade volume
+snapshots**, which are rollback points rather than independent copies (they
+live inside the same Longhorn volume, on each of its three replicas):
 
-The MariaDB instance (Supernote) mirrors this with the MariaDB Operator's
-`PhysicalBackup`: a **daily 01:00 UTC volume snapshot**
-(`apps/supernote/1_physical_backup.yaml`) against the dedicated
-`mariadb-longhorn` VolumeSnapshotClass (`apps/mariadb-operator/0_snapshot_class.yaml`,
-`deletionPolicy: Delete`, `parameters.type: snap`), consistent because the
-operator holds `FLUSH TABLES WITH READ LOCK` while the snapshot is cut, plus a
-pre-upgrade snapshot taken by a PreSync hook before every sync of the
-application (see [upgrades.md](upgrades.md#8-mariadb-engine-upgrades-mariadb-operator)).
-Unlike CNPG, retention is automatic: `maxRetention: 720h` makes the operator
-delete each schedule's snapshots older than 30 days after every successful
-one. The same single-replica caveat applies.
+* CloudNativePG: an on-demand `Backup` with `method: volumeSnapshot`, taken
+  by hand before a major upgrade
+  ([upgrades.md](upgrades.md#before-merging-a-major-upgrade)), against the
+  dedicated `cnpg-longhorn` VolumeSnapshotClass
+  (`apps/cloudnative-pg/0_snapshot_class.yaml`, `deletionPolicy: Delete`,
+  `parameters.type: snap`). Each Cluster sets `snapshotOwnerReference:
+  backup`, so deleting the `Backup` deletes its `VolumeSnapshot` and the
+  Longhorn snapshot.
+* MariaDB (Supernote): a `PhysicalBackup` taken by an Argo CD PreSync hook
+  before every sync of the application (`apps/supernote/0_pre_sync_backup.yaml`,
+  [upgrades.md](upgrades.md#8-mariadb-engine-upgrades-mariadb-operator)),
+  against the dedicated `mariadb-longhorn` VolumeSnapshotClass
+  (`apps/mariadb-operator/0_snapshot_class.yaml`, `deletionPolicy: Delete`,
+  `parameters.type: snap`), consistent because the operator holds
+  `FLUSH TABLES WITH READ LOCK` while the snapshot is cut. The operator
+  prunes only scheduled backups, and an unscheduled one snapshots only while
+  no snapshot carries its name label, so a rotation Job runs first in the
+  same phase (`apps/supernote/-1_pre_sync_snapshot_rotation.yaml`): it
+  deletes the previous hook CR, moves the existing `mariadb-pre-sync-*`
+  VolumeSnapshots off the operator's label, and keeps the newest seven.
 
 Before syncing Velero, create a dedicated Backblaze B2 application key limited
 to the backup bucket with list, read, write, and delete permissions. Enable

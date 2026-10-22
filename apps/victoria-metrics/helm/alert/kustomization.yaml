@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: victoria-metrics-alert
+    repo: https://victoriametrics.github.io/helm-charts/
+    version: 0.50.0
+    releaseName: vmalert
+    namespace: victoria-metrics
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^vmalert$
+      namespace: ^victoria-metrics$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/automountServiceAccountToken
+        value: false

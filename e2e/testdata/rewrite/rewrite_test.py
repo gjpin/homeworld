@@ -206,8 +206,6 @@ def main() -> int:
             raise SystemExit("immich ML volume still RWX")
         if "accessMode: ReadWriteOnce" not in immich:
             raise SystemExit("immich ML volume not RWO")
-        if "runAsUser: 1000" not in immich:
-            raise SystemExit("immich runAsUser not set for root image")
         if "REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local:6379" in immich:
             raise SystemExit("immich REDIS_HOSTNAME still includes port")
         if "REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local\n" not in immich:
@@ -335,8 +333,20 @@ def main() -> int:
             raise SystemExit("notesnook-app should be kept")
         if "woodpecker-app" not in apps:
             raise SystemExit("woodpecker-app should be kept")
-        if "openchamber-app" in apps:
-            raise SystemExit("openchamber-app should be omitted (private GHCR image)")
+        if "openchamber-app" not in apps:
+            raise SystemExit("openchamber-app should be kept")
+        for omitted in ("kured-app", "system-upgrade-controller-app", "csi-driver-nfs-app"):
+            if omitted in apps:
+                raise SystemExit(f"{omitted} should be omitted (host lifecycle / NFS)")
+        photos = (dest / "apps" / "immich" / "0_pvc.yaml").read_text()
+        if "kind: PersistentVolume\n" in photos or "nfs.csi.k8s.io" in photos:
+            raise SystemExit("immich NFS PersistentVolume not dropped")
+        if "volumeName:" in photos or "storageClassName: longhorn-crypto" not in photos:
+            raise SystemExit("immich photos claim not rewritten to local-path")
+        if "- ReadWriteOnce" not in photos:
+            raise SystemExit("immich photos claim still RWX")
+        if (dest / "apps" / "admission-policies" / "0_opentelemetry_gvisor_policy.yaml").exists():
+            raise SystemExit("gVisor-only OpenTelemetry MAP not dropped for kind")
         if "kind: DocumentDB" not in apps:
             raise SystemExit("parent Applications missing DocumentDB ignoreDifferences")
         if "resource.customizations.health.documentdb.io_DocumentDB" not in argocd_vals:

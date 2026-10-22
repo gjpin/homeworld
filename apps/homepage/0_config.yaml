@@ -35,6 +35,11 @@ data:
             href: https://ci.homeworld.internal
             description: CI pipelines
             siteMonitor: https://ci.homeworld.internal
+        - Coder:
+            icon: coder
+            href: https://coder.homeworld.internal
+            description: Cloud development workspaces
+            siteMonitor: https://coder.homeworld.internal
         - OpenChamber:
             icon: /icons/openchamber.svg
             href: https://openchamber.homeworld.internal
@@ -90,6 +95,21 @@ data:
             href: https://notes.homeworld.internal
             description: Encrypted notes
             siteMonitor: https://notes.homeworld.internal
+        - Actual Budget:
+            icon: actual-budget
+            href: https://budget.homeworld.internal
+            description: Personal budgeting
+            siteMonitor: https://budget.homeworld.internal
+        - Vaultwarden:
+            icon: vaultwarden
+            href: https://vault.homeworld.internal
+            description: Password manager
+            siteMonitor: https://vault.homeworld.internal
+        - Supernote:
+            icon: mdi-notebook-edit-outline
+            href: https://supernote.homeworld.internal
+            description: Supernote private cloud
+            siteMonitor: https://supernote.homeworld.internal
     - Monitoring:
         - Grafana:
             icon: grafana

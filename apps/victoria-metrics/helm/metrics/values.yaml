@@ -28,7 +28,7 @@ server:
   persistentVolume:
     enabled: true
     storageClassName: longhorn-crypto
-    size: 20Gi
+    size: 5Gi
   serviceMonitor:
     enabled: true
     namespace: victoria-metrics

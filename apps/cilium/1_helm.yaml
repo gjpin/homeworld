@@ -1,9 +1,10 @@
 # https://artifacthub.io/packages/helm/cilium/cilium
-# https://docs.siderolabs.com/kubernetes-guides/cni/deploying-cilium#without-kube-proxy-6
+# https://docs.cilium.io/en/stable/installation/k3s/
 #
-# The CNI itself is installed during Talos bootstrap by applying this
-# directory's render (see docs/talos.md); this application adopts the
-# identical resources and owns every upgrade afterwards. The cert Secrets
+# The CNI itself is installed on the first k3s server by the bootstrap
+# manifests rendered from this directory (host/bootstrap.sh, docs/k3s.md);
+# this application adopts the identical resources and owns every upgrade
+# afterwards. The cert Secrets
 # are generated at render time by the chart: their data is applied once
 # and then ignored so Argo CD refreshes never rotate live key material.
 ---

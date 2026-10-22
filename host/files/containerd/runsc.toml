@@ -1,0 +1,5 @@
+# containerd-shim-runsc-v1 options. runsc refuses OCI specs that carry an
+# SELinux process label, so the shim runs it through a wrapper that drops
+# the label: gVisor pods are not SELinux-confined, runc pods keep container_t.
+binary_name = "/usr/local/libexec/homeworld/runsc-selinux-strip"
+[runsc_config]

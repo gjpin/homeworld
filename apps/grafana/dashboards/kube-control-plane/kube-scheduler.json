@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "kube-scheduler leadership, queues, and scheduling latency. Custom dashboard (the Kubernetes project publishes none); metric families verified against kubernetes v1.37.1 sources: scheduler_schedule_attempts_total, scheduler_scheduling_attempt_duration_seconds, scheduler_pending_pods, scheduler_unschedulable_pods, scheduler_preemption_attempts_total (pkg/scheduler/metrics/metrics.go), leader_election_master_status (component-base/metrics/prometheus/clientgo/leaderelection), rest_client_requests_total (component-base/metrics/prometheus/restclient), plus the standard process_ collectors. Scraped by the kube-scheduler ServiceMonitor (apps/kube-control-plane), scoped to the kube-system kube-scheduler-* static pods.",
+  "description": "kube-scheduler leadership, queues, and scheduling latency. Custom dashboard (the Kubernetes project publishes none); metric families verified against kubernetes v1.37.1 sources: scheduler_schedule_attempts_total, scheduler_scheduling_attempt_duration_seconds, scheduler_pending_pods, scheduler_unschedulable_pods, scheduler_preemption_attempts_total (pkg/scheduler/metrics/metrics.go), plus the standard process_ collectors. Leadership comes from kube-state-metrics' kube_lease_owner for the kube-scheduler Lease (k3s registers no leader_election_master_status). k3s runs the component inside the k3s server process: the kube-scheduler ScrapeConfig (apps/kube-control-plane) scrapes every node and keeps only these families, so process_* describe the whole k3s process. API client request counts are left out: the k3s process shares one REST-client registry across every component.",
   "editable": true,
   "graphTooltip": 1,
   "links": [],
@@ -96,7 +96,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(up{namespace=\"kube-system\", pod=~\"kube-scheduler-.*\"})",
+          "expr": "sum(up{job=\"scrapeConfig/kube-system/kube-scheduler\"})",
           "legendFormat": "Schedulers up",
           "range": false,
           "refId": "A"
@@ -168,7 +168,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(leader_election_master_status{namespace=\"kube-system\", pod=~\"kube-scheduler-.*\", name=\"kube-scheduler\"})",
+          "expr": "count(kube_lease_owner{lease=\"kube-scheduler\", lease_holder!=\"\"})",
           "legendFormat": "Leader",
           "range": false,
           "refId": "A"
@@ -232,7 +232,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "max(sum by (pod) (scheduler_pending_pods{namespace=\"kube-system\", pod=~\"kube-scheduler-.*\"}))",
+          "expr": "max(sum by (instance) (scheduler_pending_pods{job=\"scrapeConfig/kube-system/kube-scheduler\"}))",
           "legendFormat": "Pending pods",
           "range": false,
           "refId": "A"
@@ -300,7 +300,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "max(sum by (pod) (scheduler_unschedulable_pods{namespace=\"kube-system\", pod=~\"kube-scheduler-.*\"}))",
+          "expr": "max(sum by (instance) (scheduler_unschedulable_pods{job=\"scrapeConfig/kube-system/kube-scheduler\"}))",
           "legendFormat": "Unschedulable pods",
           "range": false,
           "refId": "A"
@@ -411,7 +411,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (result) (rate(scheduler_schedule_attempts_total{namespace=\"kube-system\", pod=~\"kube-scheduler-.*\"}[$__rate_interval]))",
+          "expr": "sum by (result) (rate(scheduler_schedule_attempts_total{job=\"scrapeConfig/kube-system/kube-scheduler\"}[$__rate_interval]))",
           "legendFormat": "{{result}}",
           "range": true,
           "refId": "A"
@@ -505,7 +505,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by (le, result) (rate(scheduler_scheduling_attempt_duration_seconds_bucket{namespace=\"kube-system\", pod=~\"kube-scheduler-.*\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(0.99, sum by (le, result) (rate(scheduler_scheduling_attempt_duration_seconds_bucket{job=\"scrapeConfig/kube-system/kube-scheduler\"}[$__rate_interval])))",
           "legendFormat": "{{result}}",
           "range": true,
           "refId": "A"
@@ -599,7 +599,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (queue) (scheduler_pending_pods{namespace=\"kube-system\", pod=~\"kube-scheduler-.*\"})",
+          "expr": "sum by (queue) (scheduler_pending_pods{job=\"scrapeConfig/kube-system/kube-scheduler\"})",
           "legendFormat": "{{queue}}",
           "range": true,
           "refId": "A"
@@ -693,7 +693,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (plugin) (scheduler_unschedulable_pods{namespace=\"kube-system\", pod=~\"kube-scheduler-.*\"})",
+          "expr": "sum by (plugin) (scheduler_unschedulable_pods{job=\"scrapeConfig/kube-system/kube-scheduler\"})",
           "legendFormat": "{{plugin}}",
           "range": true,
           "refId": "A"
@@ -787,7 +787,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(scheduler_preemption_attempts_total{namespace=\"kube-system\", pod=~\"kube-scheduler-.*\"}[$__rate_interval]))",
+          "expr": "sum(rate(scheduler_preemption_attempts_total{job=\"scrapeConfig/kube-system/kube-scheduler\"}[$__rate_interval]))",
           "legendFormat": "preemptions",
           "range": true,
           "refId": "A"
@@ -812,100 +812,6 @@
       "panels": [],
       "title": "Runtime",
       "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "victoriametrics-metrics-datasource",
-        "uid": "victoriametrics"
-      },
-      "description": "Scheduler requests to the API server by status code (rest_client_requests_total).",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 23
-      },
-      "id": 13,
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "pluginVersion": "12.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "victoriametrics-metrics-datasource",
-            "uid": "victoriametrics"
-          },
-          "editorMode": "code",
-          "expr": "sum by (code) (rate(rest_client_requests_total{namespace=\"kube-system\", pod=~\"kube-scheduler-.*\"}[$__rate_interval]))",
-          "legendFormat": "{{code}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "API client requests by code",
-      "type": "timeseries"
     },
     {
       "datasource": {
@@ -965,8 +871,8 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 8,
+        "w": 12,
+        "x": 0,
         "y": 23
       },
       "id": 14,
@@ -992,8 +898,8 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (pod) (rate(process_cpu_seconds_total{namespace=\"kube-system\", pod=~\"kube-scheduler-.*\"}[$__rate_interval]))",
-          "legendFormat": "{{pod}}",
+          "expr": "sum by (instance) (rate(process_cpu_seconds_total{job=\"scrapeConfig/kube-system/kube-scheduler\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A"
         }
@@ -1059,8 +965,8 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 16,
+        "w": 12,
+        "x": 12,
         "y": 23
       },
       "id": 15,
@@ -1086,8 +992,8 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (pod) (process_resident_memory_bytes{namespace=\"kube-system\", pod=~\"kube-scheduler-.*\"})",
-          "legendFormat": "{{pod}}",
+          "expr": "sum by (instance) (process_resident_memory_bytes{job=\"scrapeConfig/kube-system/kube-scheduler\"})",
+          "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A"
         }

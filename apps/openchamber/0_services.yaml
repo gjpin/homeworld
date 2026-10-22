@@ -1,0 +1,66 @@
+# OpenChamber and Paseo run in the agents VM on the VM host's routed libvirt
+# network (docs/openchamber.md), not in the cluster. These selectorless
+# Services and their EndpointSlices point Envoy at the VM's fixed address;
+# the VM host's firewall lets node and pod sources reach only these two ports.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openchamber
+  namespace: openchamber
+  labels:
+    app.kubernetes.io/name: openchamber
+spec:
+  ports:
+    - name: http
+      port: 3000
+      protocol: TCP
+      targetPort: 3000
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: openchamber-agents-vm
+  namespace: openchamber
+  labels:
+    kubernetes.io/service-name: openchamber
+    endpointslice.kubernetes.io/managed-by: homeworld
+addressType: IPv4
+ports:
+  - name: http
+    port: 3000
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 10.20.0.10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paseo
+  namespace: openchamber
+  labels:
+    app.kubernetes.io/name: paseo
+spec:
+  ports:
+    - name: http
+      port: 6767
+      protocol: TCP
+      targetPort: 6767
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: paseo-agents-vm
+  namespace: openchamber
+  labels:
+    kubernetes.io/service-name: paseo
+    endpointslice.kubernetes.io/managed-by: homeworld
+addressType: IPv4
+ports:
+  - name: http
+    port: 6767
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 10.20.0.10

@@ -151,6 +151,16 @@ identity_providers:
           - policy: two_factor
             subject:
               - group:argocd-admin
+      # Coder hands every user cluster compute with internet egress and
+      # Coder Agents' LLM providers, so sign-in is limited to an explicit
+      # group. Coder OSS has no group or role sync: the group only gates
+      # access, and the first user to sign in becomes the deployment Owner.
+      coder:
+        default_policy: deny
+        rules:
+          - policy: two_factor
+            subject:
+              - group:coder-user
     jwks:
       - key_id: opencloud-rs256
         algorithm: RS256
@@ -177,6 +187,8 @@ identity_providers:
         - https://console.rustfs.homeworld.internal
         - https://vault.homeworld.internal
         - https://home.homeworld.internal
+        - https://budget.homeworld.internal
+        - https://coder.homeworld.internal
     clients:
       # OpenCloud clients deviate from the official Authelia guide
       # (https://www.authelia.com/integration/openid-connect/clients/opencloud/)
@@ -474,6 +486,38 @@ identity_providers:
           - authorization_code
           - refresh_token
         response_types: *app_responses
+      # Deviates from the official actual-budget guide in two ways:
+      #   1. PKCE is required (S256): the sync-server always sends an S256
+      #      code_challenge and its code_verifier (accounts/openid.ts), so
+      #      the repo-wide rule holds although the guide disables it.
+      #   2. RS256 access tokens instead of `none`: Actual only presents the
+      #      access token to the UserInfo endpoint, which RS256 satisfies.
+      # No claims_policy: Actual hydrates claims from UserInfo and has no
+      # role mapping (the first sign-in becomes the owner; the owner adds
+      # further users in Actual's User Directory).
+      - client_id: actual-budget
+        client_name: Actual Budget
+        client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_actual_budget" | msquote }}
+        public: false
+        authorization_policy: two_factor
+        require_pkce: true
+        pkce_challenge_method: S256
+        consent_mode: pre-configured
+        pre_configured_consent_duration: 1 week
+        token_endpoint_auth_method: client_secret_basic
+        access_token_signed_response_alg: RS256
+        userinfo_signed_response_alg: none
+        redirect_uris:
+          - https://budget.homeworld.internal/openid/callback
+        scopes:
+          - openid
+          - profile
+          - groups
+          - email
+        grant_types:
+          - authorization_code
+        response_types:
+          - code
       # Deviates from the official home-assistant guide (RS256 access
       # tokens instead of `none`): the hass-oidc-auth plugin consumes the
       # access token as a UserInfo bearer, which RS256 satisfies.
@@ -497,6 +541,40 @@ identity_providers:
           - groups
         grant_types:
           - authorization_code
+        response_types:
+          - code
+      # Deviates from the official coder guide in three ways, all within the
+      # repo-wide client rules: require_pkce: true (coderd sends S256 PKCE
+      # whenever discovery advertises it), client_secret_basic instead of
+      # client_secret_post (coderd's golang.org/x/oauth2 client auto-detects
+      # the auth style and sends Basic first), and RS256 access tokens
+      # instead of `none`. authorization_policy is the `coder` group gate
+      # rather than the guide's two_factor. No claims_policy: coderd merges
+      # the ID token with the UserInfo response.
+      - client_id: coder
+        client_name: Coder
+        client_secret: {{ secret "/secrets/authelia-files/oidc_client_secret_coder" | msquote }}
+        public: false
+        authorization_policy: coder
+        require_pkce: true
+        pkce_challenge_method: S256
+        consent_mode: pre-configured
+        pre_configured_consent_duration: 1 week
+        token_endpoint_auth_method: client_secret_basic
+        access_token_signed_response_alg: RS256
+        userinfo_signed_response_alg: 'none'
+        redirect_uris:
+          - https://coder.homeworld.internal/api/v2/users/oidc/callback
+        # offline_access / refresh_token keep Coder sessions alive past the
+        # access token lifetime (Coder's OIDC refresh-token guide).
+        scopes:
+          - openid
+          - profile
+          - email
+          - offline_access
+        grant_types:
+          - authorization_code
+          - refresh_token
         response_types:
           - code
       # Envoy Gateway itself is the OIDC client for the browser UIs that

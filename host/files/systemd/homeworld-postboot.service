@@ -1,0 +1,12 @@
+[Unit]
+Description=Homeworld post-boot health check
+Wants=network-online.target
+After=network-online.target k3s.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/homeworld/homeworld-postboot
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

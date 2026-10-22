@@ -1,0 +1,65 @@
+# https://docs.k3s.io/upgrades/automated
+#
+# k3s patch and minor upgrades, one node at a time, cordoned (not drained),
+# in the 01:00-02:00 Europe/Lisbon window ahead of kured's reboots (02:30).
+# `version` is pinned and bumped by Renovate together with host/versions.env
+# (the version bootstrap.sh installs). Each upgrade replaces /usr/local/bin/k3s
+# in place; it keeps its container_runtime_exec_t SELinux label.
+---
+apiVersion: upgrade.cattle.io/v1
+kind: Plan
+metadata:
+  name: k3s-server
+  namespace: system-upgrade
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  concurrency: 1
+  cordon: true
+  nodeSelector:
+    matchExpressions:
+      - key: node-role.kubernetes.io/control-plane
+        operator: In
+        values:
+          - "true"
+  serviceAccountName: system-upgrade
+  upgrade:
+    image: docker.io/rancher/k3s-upgrade
+  version: v1.37.1+k3s1
+  window:
+    days: [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
+    startTime: "01:00"
+    endTime: "02:00"
+    timeZone: Europe/Lisbon
+---
+# k3s agents (none today; every node is a server) upgrade after the servers.
+apiVersion: upgrade.cattle.io/v1
+kind: Plan
+metadata:
+  name: k3s-agent
+  namespace: system-upgrade
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  concurrency: 1
+  cordon: true
+  nodeSelector:
+    matchExpressions:
+      - key: node-role.kubernetes.io/control-plane
+        operator: DoesNotExist
+  prepare:
+    image: docker.io/rancher/k3s-upgrade
+    args:
+      - prepare
+      - k3s-server
+  serviceAccountName: system-upgrade
+  upgrade:
+    image: docker.io/rancher/k3s-upgrade
+  version: v1.37.1+k3s1
+  window:
+    days: [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
+    startTime: "01:00"
+    endTime: "02:00"
+    timeZone: Europe/Lisbon

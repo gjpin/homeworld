@@ -295,3 +295,26 @@ spec:
         - ports:
             - port: "9999"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-supernote-pre-sync-rotation-kubernetes-api
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The PreSync snapshot-rotation Job (-1_pre_sync_snapshot_rotation.yaml)
+  # deletes the previous hook PhysicalBackup and relabels and prunes
+  # VolumeSnapshots. On the first sync it runs before any policy exists.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: supernote
+      k8s:app.kubernetes.io/component: pre-sync-snapshot-rotation
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

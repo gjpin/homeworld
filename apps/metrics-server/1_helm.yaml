@@ -1,5 +1,4 @@
 # https://artifacthub.io/packages/helm/metrics-server/metrics-server
-# https://docs.siderolabs.com/kubernetes-guides/monitoring-and-observability/deploy-metrics-server
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application

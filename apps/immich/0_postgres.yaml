@@ -12,12 +12,20 @@ metadata:
     cnpg.io/podPatch: '[{"op":"add","path":"/spec/hostUsers","value":false}]'
 spec:
   instances: 1
+  # A single instance has no failover target: a PodDisruptionBudget would
+  # block every node drain (kured reboots) forever.
+  enablePDB: false
   imageName: ghcr.io/tensorchord/cloudnative-vectorchord:18.6-1.1.1
   # VectorChord's _PG_init only registers the index access methods and GUCs
   # during server start; CREATE EXTENSION fails with "must be loaded via
   # shared_preload_libraries" without this (Immich upstream requires
   # vchord.so in shared_preload_libraries).
   postgresql:
+    parameters:
+      # Bounds WAL on the small volume (PostgreSQL defaults max_wal_size to 1GB).
+      max_wal_size: 512MB
+      min_wal_size: 80MB
+      wal_keep_size: 128MB
     shared_preload_libraries:
       - vchord.so
   # Immich expects superuser permissions on its database by default
@@ -28,8 +36,12 @@ spec:
         ensure: present
         login: true
         superuser: true
+  # Replaces CNPG's default pod security context, so keep its fsGroup: the
+  # postgres user (26) must own the data volume, or initdb fails.
   podSecurityContext:
     runAsNonRoot: true
+    fsGroup: 26
+    fsGroupChangePolicy: OnRootMismatch
     seccompProfile:
       type: RuntimeDefault
   securityContext:
@@ -57,10 +69,10 @@ spec:
     storageClass: longhorn-crypto
     size: 5Gi
   backup:
-    # Database-native volume-snapshot backups (1_scheduled_backup.yaml); the
-    # cnpg-longhorn class is provisioned by apps/cloudnative-pg. Ownership by
-    # the Backup CR makes pruning old Backup CRs garbage-collect their
-    # snapshots (the class uses deletionPolicy: Delete).
+    # On-demand volume-snapshot backups before a major upgrade
+    # (docs/upgrades.md); the cnpg-longhorn class is provisioned by
+    # apps/cloudnative-pg. Ownership by the Backup CR makes deleting it
+    # garbage-collect its snapshot (the class uses deletionPolicy: Delete).
     volumeSnapshot:
       className: cnpg-longhorn
       snapshotOwnerReference: backup

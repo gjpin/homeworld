@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: kured
+    repo: https://kubereboot.github.io/charts
+    version: 6.1.0
+    releaseName: kured
+    namespace: kured
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+    # The chart gates its ServiceMonitor on the monitoring.coreos.com/v1 API;
+    # offline Kustomize Helm inflation has no API discovery.
+    apiVersions:
+      - monitoring.coreos.com/v1
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: DaemonSet
+      name: ^kured$
+      namespace: ^kured$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1host-pid
+        value: kured enters the host namespaces (nsenter -t 1) to run the reboot sentinel and reboot helpers on the node.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1privileged-container
+        value: Rebooting the node and checking its reboot sentinel require a privileged container in the host PID namespace.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1privilege-escalation-container
+        value: The privileged container (see privileged-container) implies privilege escalation.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The host reboot and dnf5 sentinel commands run as root in the host namespaces.

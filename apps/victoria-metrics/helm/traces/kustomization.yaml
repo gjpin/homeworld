@@ -20,8 +20,5 @@ patches:
       namespace: ^victoria-metrics$
     patch: |-
       - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
-      - op: add
         path: /spec/template/spec/automountServiceAccountToken
         value: false

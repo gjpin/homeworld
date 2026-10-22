@@ -3,8 +3,18 @@ namespaceOverride: otel-collector-node
 mode: daemonset
 image:
   repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
+# Documented privileged exception (docs/pod-security.md). Pod logs are
+# 0640 root:root under /var/log/pods (0750), so only host root can read them:
+# the agent runs as UID 0 in the host user namespace, with every capability
+# dropped and read-only hostPath mounts. It also reads the host through
+# /hostfs (init_t's /proc/1, host /etc); container_t may read neither under
+# SELinux enforcing, so it runs as spc_t.
 podSecurityContext:
-  runAsNonRoot: true
+  runAsNonRoot: false
+  runAsUser: 0
+  runAsGroup: 0
+  seLinuxOptions:
+    type: spc_t
   seccompProfile:
     type: RuntimeDefault
 securityContext:
@@ -12,7 +22,8 @@ securityContext:
   capabilities:
     drop:
       - ALL
-  runAsNonRoot: true
+  runAsNonRoot: false
+  runAsUser: 0
   seccompProfile:
     type: RuntimeDefault
 service:
@@ -67,6 +78,15 @@ presets:
     extractAllPodAnnotations: true
 config:
   receivers:
+    # The volume group adds the per-PVC k8s.volume.available/capacity
+    # series that vmalert's PersistentVolumeFillingUp rule (and kured's
+    # reboot gate) depend on.
+    kubeletstats:
+      metric_groups:
+        - container
+        - pod
+        - node
+        - volume
     jaeger: null
     zipkin: null
     prometheus:

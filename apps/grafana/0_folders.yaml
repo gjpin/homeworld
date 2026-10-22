@@ -60,6 +60,17 @@ spec:
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
 metadata:
+  name: folder-coder
+  namespace: grafana
+spec:
+  title: Coder
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
   name: folder-collabora
   namespace: grafana
 spec:
@@ -130,17 +141,6 @@ metadata:
   namespace: grafana
 spec:
   title: Forgejo
-  instanceSelector:
-    matchLabels:
-      dashboards: grafana
----
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaFolder
-metadata:
-  name: folder-generic-device-plugin
-  namespace: grafana
-spec:
-  title: Generic Device Plugin
   instanceSelector:
     matchLabels:
       dashboards: grafana
@@ -372,6 +372,17 @@ metadata:
   namespace: grafana
 spec:
   title: trust-manager
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: folder-kured
+  namespace: grafana
+spec:
+  title: kured
   instanceSelector:
     matchLabels:
       dashboards: grafana

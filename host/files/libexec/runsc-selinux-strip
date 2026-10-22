@@ -1,0 +1,16 @@
+#!/bin/sh
+# runsc wrapper for containerd-shim-runsc-v1 (binary_name in runsc.toml).
+# k3s labels every container with an SELinux process label; runsc rejects
+# such specs (https://gvisor.dev/docs/user_guide/faq/), so drop the label
+# from the bundle before handing it to runsc.
+bundle='' prev=''
+for a in "$@"; do
+  case $prev in --bundle|-bundle|-b) bundle=$a ;; esac
+  case $a in --bundle=*|-bundle=*) bundle=${a#*=} ;; esac
+  prev=$a
+done
+cfg=$bundle/config.json
+if [ -n "$bundle" ] && [ -f "$cfg" ] && grep -q '"selinuxLabel"' "$cfg"; then
+  jq 'del(.process.selinuxLabel)' "$cfg" > "$cfg.tmp" && mv -f "$cfg.tmp" "$cfg" || exit 1
+fi
+exec /usr/local/bin/runsc "$@"

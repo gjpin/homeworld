@@ -12,10 +12,7 @@ helmCharts:
     skipTests: true
     valuesFile: values.yaml
 patches:
-  # The chart has no runtimeClassName value, and its hostUsers value is gated
-  # on the kube version assumed by whichever helm binary renders the chart, so
-  # both fields are pinned with patches to keep the rendered output
-  # deterministic across Argo CD, CI, and local renders.
+  # The chart has no runtimeClassName value, so it is set with a patch.
   - target:
       group: apps
       version: v1
@@ -23,9 +20,6 @@ patches:
       name: ^metrics-server$
       namespace: ^metrics-server$
     patch: |-
-      - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor

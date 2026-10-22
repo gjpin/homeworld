@@ -1,0 +1,270 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: coder
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: coder
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The built-in provisioners run Terraform's kubernetes provider with the
+  # coder service account to create workspace Deployments and PVCs in the
+  # coder-workspaces namespace.
+  name: allow-kubernetes-api
+  namespace: coder
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: coder
+      k8s:app.kubernetes.io/instance: coder
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-coder-postgres
+  namespace: coder
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: coder
+      k8s:app.kubernetes.io/instance: coder
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: coder-rw
+            namespace: coder
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-coder-postgres-ingress
+  namespace: coder
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: coder
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: coder
+            k8s:app.kubernetes.io/instance: coder
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Dashboard, API, workspace apps (wildcard listener), and the workspace
+  # agents' coordination and DERP WebSockets all arrive through the Gateway.
+  name: allow-coder-gateway
+  namespace: coder
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: coder
+      k8s:app.kubernetes.io/instance: coder
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-coder-authelia
+  namespace: coder
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: coder
+      k8s:app.kubernetes.io/instance: coder
+  egress:
+    - toFQDNs:
+        - matchName: "auth.homeworld.internal"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The deployment health checks (Admin settings > Health) probe the access
+  # URL and the embedded DERP relay through it.
+  name: allow-coder-access-url
+  namespace: coder
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: coder
+      k8s:app.kubernetes.io/instance: coder
+  egress:
+    - toFQDNs:
+        - matchName: "coder.homeworld.internal"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Template imports and workspace builds: Terraform resolves providers
+  # through registry.terraform.io and downloads them from
+  # releases.hashicorp.com (hashicorp/*) or GitHub releases, which redirect
+  # to release-assets.githubusercontent.com (coder/coder); registry modules
+  # (and the template builder's module catalog) download from
+  # registry.coder.com itself.
+  name: allow-coder-terraform
+  namespace: coder
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: coder
+      k8s:app.kubernetes.io/instance: coder
+  egress:
+    - toFQDNs:
+        - matchName: registry.terraform.io
+        - matchName: releases.hashicorp.com
+        - matchName: registry.coder.com
+        - matchName: github.com
+        - matchName: release-assets.githubusercontent.com
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Coder Agents runs its agent loop inside coderd, so only the control
+  # plane talks to LLM providers; workspaces never see the API keys.
+  name: allow-coder-llm-providers
+  namespace: coder
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: coder
+      k8s:app.kubernetes.io/instance: coder
+  egress:
+    - toFQDNs:
+        - matchName: api.anthropic.com
+        - matchName: api.openai.com
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # CODER_PROMETHEUS_ENABLE serves /metrics on the prometheus-http port
+  # 2112, scraped by the OpenTelemetry collector pod via the PodMonitor.
+  name: allow-coder-metrics-ingress
+  namespace: coder
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: coder
+      k8s:app.kubernetes.io/instance: coder
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "2112"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-coder-postgres-metrics-ingress
+  namespace: coder
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The handwritten PodMonitor scrapes the CloudNativePG instance metrics
+  # port.
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: coder
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP

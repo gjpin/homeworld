@@ -5,10 +5,9 @@
 # (PhysicalBackup with storage.volumeSnapshot), the MariaDB counterpart of
 # apps/cloudnative-pg/0_snapshot_class.yaml:
 #
-#   * deletionPolicy: Delete — each PhysicalBackup's maxRetention is the
-#     retention unit: the operator deletes VolumeSnapshots older than it
-#     after every successful snapshot, and the Longhorn snapshot contents go
-#     with them.
+#   * deletionPolicy: Delete — deleting a VolumeSnapshot (Supernote's
+#     pre-sync rotation hook keeps the newest seven) deletes the Longhorn
+#     snapshot contents with it.
 #   * parameters.type: snap — Longhorn's CSI driver treats an empty type as
 #     `bak` (a Longhorn backup, which needs a backup target) rather than an
 #     in-cluster snapshot.

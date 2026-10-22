@@ -1,0 +1,38 @@
+# Rendered by host/apply.sh into /etc/rancher/k3s/config.yaml. k3s reads it
+# only at start: apply.sh flags a change for kured's next serialized reboot.
+# https://docs.k3s.io/datastore/ha-embedded
+# https://docs.cilium.io/en/stable/installation/k3s/
+@JOIN@
+token-file: /etc/rancher/k3s/token
+node-ip: @NODE_IP@
+tls-san:
+  - @API_VIP@
+node-label:
+  - node.homeworld.internal/profile=@PROFILE@
+  - node.longhorn.io/create-default-disk=config
+selinux: true
+secrets-encryption: true
+protect-kernel-defaults: true
+# Cilium is the CNI, network policy engine and kube-proxy replacement.
+flannel-backend: none
+disable-network-policy: true
+disable-kube-proxy: true
+# The repo ships its own ingress, load balancing, storage and metrics-server.
+# `runtimes` would register RuntimeClasses for runtimes that are not
+# installed; gVisor's classes come from the bootstrap manifests.
+disable:
+  - traefik
+  - servicelb
+  - local-storage
+  - metrics-server
+  - runtimes
+etcd-expose-metrics: true
+kubelet-arg:
+  - rotate-server-certificates=true
+  - system-reserved=memory=@SYSTEM_RESERVED_MEMORY@
+kube-scheduler-arg:
+  - bind-address=0.0.0.0
+kube-controller-manager-arg:
+  - bind-address=0.0.0.0
+kube-apiserver-arg:
+  - admission-control-config-file=/etc/rancher/k3s/psa.yaml

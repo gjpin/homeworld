@@ -6,8 +6,8 @@ This document details upgrade automation, database migration procedures, and ver
 
 ## 1. Automated Major Database Upgrades (CloudNativePG)
 
-All PostgreSQL databases (`authelia`, `crowdsec`, `forgejo`, `homeassistant`,
-`immich`, `vaultwarden`, `woodpecker`) run on **CloudNativePG** (CNPG). Each
+All PostgreSQL databases (`authelia`, `coder`, `crowdsec`, `forgejo`,
+`homeassistant`, `immich`, `vaultwarden`, `woodpecker`) run on **CloudNativePG** (CNPG). Each
 `apps/<app>/0_postgres.yaml` pins `spec.imageName`, which Renovate tracks:
 
 * `ghcr.io/cloudnative-pg/postgresql:<major>.<minor>-system-<debian>` (every
@@ -39,8 +39,8 @@ All PostgreSQL databases (`authelia`, `crowdsec`, `forgejo`, `homeassistant`,
 ### Before Merging a Major Upgrade
 
 1. **Take an on-demand backup.** CNPG recommends a full backup immediately
-   before the upgrade. The daily `ScheduledBackup` may be up to a day old, and
-   a Velero copy of a running database volume is only crash-consistent.
+   before the upgrade. The nightly Velero copy may be up to a day old and is
+   only crash-consistent.
    Create a CNPG volume-snapshot `Backup` and wait for it to complete:
 
    ```bash
@@ -152,6 +152,8 @@ Longhorn upgrades consist of two components:
    * **Automation:** Configured with `defaultSettings.concurrentAutomaticEngineUpgradePerNodeLimit: 2` in `apps/longhorn/helm/values.yaml`.
    * **Behavior:** After the Longhorn Manager upgrades, Longhorn automatically rolls and upgrades volume engines across nodes concurrently, removing the need for manual engine upgrades in the Longhorn UI.
 
+Before merging a Longhorn bump, check the pre-upgrade conditions from the [upstream upgrade guide](https://longhorn.io/docs/latest/deploy/upgrade/): no volume is `Faulted` (unusable replicas may be deleted during the upgrade) and no BackingImage is in a failed state. Upstream also recommends a Longhorn system backup, which needs a Longhorn backup target this cluster does not configure; confirm the latest [Velero backup](velero.md) succeeded instead. Longhorn cannot be downgraded.
+
 ---
 
 ## 3. Automated Post-Upgrade Tasks (OpenCloud)
@@ -162,14 +164,17 @@ As documented in [docs/opencloud.md](opencloud.md), OpenCloud automatically hand
 
 ## 4. Applications Requiring Sequential Version Stepping
 
-Certain upstream applications require sequential version progression and prohibit skipping releases:
+Certain upstream applications require (or recommend) sequential version progression instead of skipping releases:
 
 | Application | Upgrade Constraint | Upstream Rationale |
 | :--- | :--- | :--- |
-| **Forgejo** | Sequential major versions (`v7.x` → `v8.x` → `v9.x`) | Database schema migrations must run in sequence. Skipping major versions can cause irrecoverable database corruption. |
-| **Immich** | Step through checkpoint releases | Breaking changes, database migrations, and machine-learning model updates must be applied incrementally. Background queues must be cleared before the next upgrade. |
-| **Longhorn** | Sequential minor versions (`1.10.x` → `1.11.x` → `1.12.x`) | Upstream explicitly does not support jumping minor versions. Manager and CSI plugin schemas evolve sequentially. |
-| **cert-manager** | Sequential minor versions (`1.15.x` → `1.16.x` → `1.17.x`) | CRD schemas and conversion webhooks require minor-by-minor progression. |
+| **Cilium** | Sequential minor versions, each from the latest patch of the previous minor | The only tested upgrade and rollback path is between consecutive minor releases. |
+| **Longhorn** | Sequential minor versions | Upstream does not support jumping minor versions and rejects the upgrade automatically. Downgrades are blocked. |
+| **cert-manager** | Sequential minor versions (recommended), each on its latest patch | Upstream recommends one minor at a time; larger jumps are only covered by a reinstall. |
+| **External Secrets** | Sequential minor versions (recommended) | Upstream's stability policy recommends upgrading version by version. |
+| **Velero** | From the previous minor only | Each upgrade guide assumes the previous minor is running; older installations step through the earlier guides. The chart version does not follow Velero's, so Renovate cannot enforce this: check the release a chart bump ships. |
+
+Forgejo, Immich, and the other applications have no stepping constraint; their upstream procedures are in [§9](#9-upstream-upgrade-procedures).
 
 ---
 
@@ -178,27 +183,35 @@ Certain upstream applications require sequential version progression and prohibi
 To prevent breaking jumps while keeping standard application updates streamlined, `renovate.json` implements targeted `packageRules`:
 
 * **Global Defaults:** `separateMajorMinor: false`, `separateMinorPatch: false`, and `separateMultipleMajor: false` (standard applications receive direct updates to the latest release in a single PR).
-* **Kubernetes version pin:** the `kindest/node` group carries every place a
-  Kubernetes minor is pinned — the e2e suite's `kubeVersion`, the README's
-  Kubernetes version note, the pod-security docs, e2e hook comments, and every
+* **Kubernetes version pin:** the `kubernetes-version` group carries every place a
+  Kubernetes minor is pinned — the k3s version (`host/versions.env` and the
+  system-upgrade-controller Plans), the e2e suite's `kubeVersion`, the
+  pod-security docs, e2e hook comments, and every
   `managedNamespaceMetadata` PSA `*-version` label across `apps/` — in one PR
   (`scripts/check-k8s-version.sh` fails the build if any of them drift).
-* **Strict Components:** Forgejo, Immich, Longhorn, cert-manager, and CloudNativePG operand images have `separateMajorMinor: true`, `separateMultipleMajor: true`, or `separateMinorPatch: true` enabled. This guarantees:
-  * Renovate opens individual PRs for each major or minor increment rather than jumping to the highest version.
-  * PR bodies include automated notices linking to upstream release notes, breaking change checklists, and backup reminders.
-* **OpenChamber Workspace Image:** Node.js major bumps are separated (`separateMajorMinor: true`) because OpenChamber requires a minimum Node.js version; the PR body reminds you to verify it before merging.
-* **Kubernetes version pins:** every reference to the cluster's Kubernetes minor — the `managedNamespaceMetadata` Pod Security Admission labels in `apps/app-of-apps.yaml` and `apps/otel-collector/1_helm_node.yaml`, the e2e suite's `kubeVersion` (kind node image) and its README, the user-namespaces documentation in `AGENTS.md` and `docs/pod-security.md`, and the e2e staging hook comments — is tracked by `customManagers` in `renovate.json` and grouped into a single `kubernetes-version` PR. Updates are sourced from `kindest/node` Docker Hub tags, so Renovate can never propose a node image kind cannot pull (patch bumps roll the e2e suite pin forward on their own; minor bumps move every reference together). Merge the PR only after the Talos nodes run the new minor and the local kind CLI is new enough to pull the new node image. `scripts/check-k8s-version.sh` (run by the [validate workflow](../.github/workflows/validate.yaml)) fails CI when any reference drifts from the rest.
+* **Strict Components:** Cilium, Longhorn, cert-manager, and External Secrets set `separateMultipleMinor: true`, so Renovate opens one PR per minor increment instead of jumping to the highest version ([§4](#4-applications-requiring-sequential-version-stepping)). Forgejo, Immich, MariaDB, and the CloudNativePG operand images set `separateMajorMinor: true` and `separateMultipleMajor: true`, so each major arrives in its own PR.
+* **PR notices:** the components with an upstream procedure ([§9](#9-upstream-upgrade-procedures)) carry `prBodyNotes` that summarize it and link the upstream release notes or upgrade guide.
+* **Grouped platform pins:** the system-upgrade-controller CRD tag, remote base and image move in one PR; the VictoriaMetrics single-node and vmalert charts move together; the agents VM tool pins (`host/agents-vm/versions.env`) arrive as one PR, so a merge rebuilds the VM once.
+* **Kubernetes version pins:** every reference to the cluster's Kubernetes minor — the k3s version in `host/versions.env` and `apps/system-upgrade-controller/2_plans.yaml`, the `managedNamespaceMetadata` Pod Security Admission labels in `apps/app-of-apps.yaml` and `apps/otel-collector/1_helm_node.yaml`, the e2e suite's `kubeVersion` (kind node image) and its README, the user-namespaces documentation in `AGENTS.md` and `docs/pod-security.md`, and the e2e staging hook comments — is tracked by `customManagers` in `renovate.json` and grouped into a single `kubernetes-version` PR. The kind-side references are sourced from `kindest/node` Docker Hub tags, so Renovate can never propose a node image kind cannot pull, and the k3s references from k3s releases. Merge a minor bump only once the PR carries the matching k3s minor as well (k3s publishes a new minor after upstream Kubernetes), so the PSA labels never reference a minor newer than the API server once the Plans have run, and only when the local kind CLI is new enough to pull the new node image. `scripts/check-k8s-version.sh` (run by the [validate workflow](../.github/workflows/validate.yaml)) fails CI when any reference drifts from the rest.
 * **`ignorePaths` override:** `config:recommended` defaults `ignorePaths` to `**/examples/**`, `**/tests/**`, and similar patterns, which silently excludes `e2e/examples/` from every manager (the suite pin, the e2e README tag, and the staging hook comments). The explicit `ignorePaths` in `renovate.json` keeps only `**/node_modules/**` and `**/bower_components/**`; do not remove it or the Kubernetes version automation stops seeing the e2e suite.
 
 ---
 
-## 6. OpenChamber Agent Workspace Image Refreshes
+## 6. Platform Upgrades (k3s, Fedora, Host Components, Agents VM)
 
-The persistent AI agent workspace (`apps/openchamber`) runs a custom image built from `images/openchamber/Dockerfile`. The running pod never updates itself: every change to the workspace arrives as a PR you approve, and merging rolls the pod at a moment you choose (merge when the agents are idle; session state, worktrees, and credentials persist on the `openchamber-agent-home` PVC).
+Nothing on the nodes updates outside these windows (Europe/Lisbon):
 
-* **Pinned tool versions** (base image digest, Node.js, pnpm, uv, OpenChamber, OpenCode, Codex CLI, Pi agent, Grok Build, Antigravity CLI, Copilot CLI, Playwright packages, chrome-devtools-mcp, skills): Renovate opens one PR per updated dependency via `customManagers` in `renovate.json`.
-* **Debian packages and Google Chrome** (not visible to Renovate): the daily [package refresh check](../.github/workflows/check-openchamber-apt-updates.yaml) runs `apt-get --simulate full-upgrade` inside the published image and opens a PR bumping `ARG APT_REFRESH` whenever packages are outdated. Each run also recreates any open refresh branch whose checks have failed from the current main, so a refresh PR wedged by an upstream release between its branch cut and its smoke build does not linger red.
-* **Image builds** ([Build OpenChamber workspace image](../.github/workflows/build-openchamber.yaml)): merging a PR that touches `images/openchamber/**` builds `linux/amd64` + `linux/arm64`, pushes `ghcr.io/gjpin/openchamber:main-<shortsha>`, and commits the new tag into `apps/openchamber/1_deployment.yaml`. Argo CD then rolls the agent pod.
+| Window | What |
+| --- | --- |
+| 01:00–02:00 | k3s upgrades (system-upgrade-controller) |
+| 02:00–02:30 | Agents VM root rebuild, only when its pins changed |
+| 02:30–06:30 | kured reboots: package updates, host configuration changes k3s reads at start, Fedora release upgrades |
+
+* **k3s:** the `kubernetes-version` PR bumps `K3S_VERSION` in `host/versions.env` (what `host/bootstrap.sh` installs on a new node) and `version` in the `k3s-server` and `k3s-agent` Plans (`apps/system-upgrade-controller/2_plans.yaml`). After the merge, the controller upgrades one server at a time in the window with `docker.io/rancher/k3s-upgrade`: it cordons the node (no drain), replaces `/usr/local/bin/k3s`, restarts k3s and uncordons. The cordon blocks kured through its `NodeCordoned` gate, so upgrades and reboots never overlap. k3s upgrades also move the Gateway API CRDs (k3s's `gateway-api-crd` addon). Upgrade one minor at a time, per the [k3s upgrade docs](https://docs.k3s.io/upgrades).
+* **Fedora packages:** `dnf5-automatic` installs updates daily and never reboots; kured reboots each node that needs it ([fedora.md](fedora.md#updates-and-reboots)).
+* **Fedora releases:** Renovate opens a PR bumping `FEDORA_RELEASE` in `host/versions.env`. After the merge, every node downloads the upgrade on its next hourly pull and kured reboots the nodes into the offline upgrade one at a time; a node that fails its post-boot check halts the rollout ([fedora.md](fedora.md#fedora-release-upgrades)). The agents VM is rebuilt on the new release in the next window.
+* **gVisor, kube-vip, helm:** Renovate bumps `GVISOR_VERSION`, `KUBE_VIP_VERSION` and `HELM_VERSION` in `host/versions.env`. apply.sh installs a new gVisor on the next pull (new pods use it; running sandboxes keep theirs until they restart), rewrites the kube-vip static pod (kubelet restarts it), and uses helm only during bootstrap.
+* **Agents VM tools:** Renovate bumps `host/agents-vm/versions.env` in one grouped PR; the merge rebuilds the VM root in the next window ([openchamber.md](openchamber.md#rebuildable-root-persistent-home)).
 
 ---
 
@@ -324,3 +337,118 @@ run closes. To apply it:
 
 The script's schema statements are idempotent, but like upstream's installer
 it also empties the recycle-bin and file-conversion tables on every run.
+
+---
+
+## 9. Upstream Upgrade Procedures
+
+Merging a Renovate PR is only safe once the upstream release notes for every
+version it crosses have been read: majors routinely carry required manual
+actions, and minors of the operators below do too. For each application,
+check the notes for removed or renamed configuration keys, new prerequisites
+(CRD or dependency versions), and one-time manual steps, and apply them in the
+same PR when they are declarative.
+
+Then check that this repository's own inputs still fit the target version:
+
+* **Helm values:** every key in `apps/<component>/helm/values.yaml` still
+  exists in the new chart's `values.yaml` (and `values.schema.json`, when the
+  chart ships one) with the same meaning. Helm ignores unknown keys, so a
+  renamed key silently falls back to the chart default.
+* **Kustomize patches:** each patch still matches its target resource, and
+  the fields it sets or deletes still exist in the new render.
+* **Application configuration:** config templates, ConfigMaps, environment
+  variables, command-line flags, and custom resource fields use no removed,
+  renamed, or deprecated option; switch deprecated ones to the documented
+  replacement in the same PR instead of waiting for their removal.
+* **Rendered output:** render the component before and after the bump
+  (`kubectl kustomize --enable-helm`) and diff the two, confirming the
+  security contexts, `runtimeClassName`/`hostUsers`, resources,
+  ServiceMonitors, and ports are still emitted. After the sync, check the
+  application's logs for deprecation warnings.
+
+### Upgrade Tooling
+
+`scripts/upgrade-report.sh` does the mechanical half of this review for a
+git range (by default a branch against `origin/main`). Per touched component
+it renders both sides and diffs them per resource, diffs the chart's default
+values and values schema, lists the values keys the new chart no longer
+reads, keys no chart version knows, values that equal the new default, new
+chart options, and defaults that changed under keys left unset. It also
+reports the latest stable chart and image tags upstream, the convention
+findings on the new render (gVisor or user namespaces, Restricted security
+contexts, requests and limits, fully qualified images, 60s monitors), with
+those introduced by the change called out, whether the component holds
+state, and the release notes of every chart and application release in the
+range, with lines mentioning breaking changes, deprecations, or removals
+extracted. With `--all` and `--base` equal to `--head`, it audits the
+current state of every component instead.
+
+The `/upgrade` Claude Code skill (`.claude/skills/upgrade/SKILL.md`) works
+open Renovate PRs end to end on top of the report: one reviewer per PR reads
+the release notes and the target version's configuration reference, adapts
+values, patches, and application configuration, fixes convention
+regressions, and pushes to the PR branch. The skill then merges the PRs one
+at a time once CI passes. Before merging an upgrade of a stateful component
+it runs `scripts/pre-upgrade-backup.sh`, which takes a Velero backup of the
+component's namespaces unless one completed within the last hour
+([velero.md](velero.md#pre-upgrade-backups)). Before a Cilium minor it runs
+`scripts/cilium-preflight.sh` ([below](#cilium-pre-flight-check)). It stops
+instead of merging when a release needs a decision or a step outside git:
+an Immich major, a Gateway API or Kubernetes minimum the cluster does not
+meet, a failed backup or pre-flight, or a stepping constraint from
+[§4](#4-applications-requiring-sequential-version-stepping).
+
+The applications below document procedures beyond that review.
+
+| Application | Upstream procedure | Here |
+| :--- | :--- | :--- |
+| **Cilium** | [Upgrade guide](https://docs.cilium.io/en/stable/operations/upgrade/) plus the per-minor upgrade notes: run the pre-flight check, keep `upgradeCompatibility` at the originally installed version, and apply each minor's required actions (removed APIs, Gateway API CRD minimums). | Manual pre-flight before merging a minor bump (below). Gateway API CRDs come from k3s, so a Gateway API minimum can require a k3s upgrade first. |
+| **Envoy Gateway** | [Upgrade notes](https://gateway.envoyproxy.io/docs/install/install-helm/): CRDs before the controller; releases can require a minimum Gateway API CRD version. | CRDs sync with the render. Check the release's Gateway API requirement against the k3s-bundled CRDs ([k3s.md](k3s.md)). |
+| **CloudNativePG operator** | [Operator upgrade](https://cloudnative-pg.io/docs/current/installation_upgrade): read the release notes (some versions need extra steps or are not directly upgradable), avoid skipping versions. | Every operator bump rolls every PostgreSQL cluster; with `instances: 1` each database restarts once. |
+| **MariaDB Operator** | Per-release `UPGRADE_<version>.md` [guides](https://github.com/mariadb-operator/mariadb-operator/tree/main/docs/releases): CRDs first, sometimes prerequisites on the `MariaDB` CR (e.g. `updateStrategy` fields) before the operator moves. | CRDs sync with the render. Apply any CR prerequisite in an earlier commit than the chart bump. |
+| **Velero** | Per-version guide (`velero.io/docs/main/upgrade-to-<minor>/`): CRDs first, from the previous minor only, plugin images matching the [compatibility matrix](https://github.com/vmware-tanzu/velero-plugin-for-aws). | CRDs sync with the render (`upgradeCRDs: false`). Bump `velero-plugin-for-aws` together with Velero when the matrix requires it. |
+| **Argo CD** | [Upgrade overview](https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/overview/): read the `upgrading/<from>-<to>` notes of every minor crossed; majors carry incompatible changes. | Chart majors also list value changes in the chart README. |
+| **Forgejo** | [Upgrade guide](https://forgejo.org/docs/latest/admin/upgrade/): versions may be skipped. Back up before a major, flush queues before upgrading, run the doctor afterwards. | Before a major: a CNPG on-demand `Backup` ([§1](#before-merging-a-major-upgrade)) and `forgejo manager flush-queues`. After: `forgejo doctor check --all`. Chart majors list breaking value changes in the chart README. |
+| **Woodpecker** | [Migrations](https://woodpecker-ci.org/migrations): per-major breaking changes, some requiring admin actions (repairing repository webhooks, plugin privileges, file ownership). | Apply the listed actions after the sync. |
+| **Immich** | [Upgrading](https://docs.immich.app/install/upgrading): read the breaking changes; downgrades are unsupported, even within a minor. Mobile apps move before the server on a major. | The VectorChord range constrains the CNPG image ([§1](#before-merging-a-major-upgrade)). |
+| **Authelia** | [Storage migrations](https://www.authelia.com/configuration/storage/migrations/) run automatically on start; going back requires a manual schema downgrade. | Take a CNPG on-demand `Backup` ([§1](#before-merging-a-major-upgrade)) before a bump and roll back by restoring it (or the latest [Velero backup](velero.md)), not by reverting the image alone. |
+| **Coder** | [Upgrade](https://coder.com/docs/install/operate/upgrade) and [best practices](https://coder.com/docs/install/operate/upgrade/best-practices): rollbacks are unsupported, so snapshot the database first; migrations run at startup and take longer the more minors are crossed. Read the [release notes](https://github.com/coder/coder/releases) of every minor crossed — Coder Agents settings and APIs can change between releases. | Take a CNPG on-demand `Backup` ([§1](#before-merging-a-major-upgrade)) before a minor bump and roll back by restoring it, not by reverting the image. The chart and image move together in one Renovate PR. When the bump raises a Terraform or provider minimum, push the repository template again ([coder.md](coder.md#workspace-template)). |
+| **Home Assistant** | [Updating](https://www.home-assistant.io/common-tasks/container/#updating): back up first and read the backward-incompatible changes of every release crossed; check repairs and logs afterwards. | Confirm the latest [Velero backup](velero.md) and take a CNPG on-demand `Backup` ([§1](#before-merging-a-major-upgrade)) before a bump. |
+| **RustFS** | [Upgrade runbook](https://docs.rustfs.com/upgrade-scale/upgrade): never upgrade with offline nodes or degraded erasure sets; the on-disk format never changes. The operator chart needs its CRDs first. | CRDs sync with the render. |
+| **Longhorn** | See [§2](#2-automated-storage-engine-upgrades-longhorn). | |
+| **OpenCloud, DocumentDB, MariaDB, CloudNativePG operands** | See [§3](#3-automated-post-upgrade-tasks-opencloud), [§7](#7-documentdb-engine-upgrades), [§8](#8-mariadb-engine-upgrades-mariadb-operator), [§1](#1-automated-major-database-upgrades-cloudnativepg). | |
+
+Charts that ship their CRDs in `crds/` (Grafana Operator, OpenTelemetry
+Operator, RustFS Operator, Envoy Gateway, Velero) tell Helm users to apply
+the CRDs by hand before `helm upgrade`. Here the render includes them and
+Argo CD server-side applies them in the same sync ([argocd.md](argocd.md)),
+so no manual step is needed.
+
+### Cilium Pre-Flight Check
+
+`scripts/cilium-preflight.sh <target>` runs the whole check below and
+deletes the pre-flight resources afterwards.
+
+Before merging a Cilium minor bump, render the pre-flight DaemonSet from the
+target chart, apply it, and wait until it is ready on every node (it pre-pulls
+the new image) and its `cnp-validator` reports every `CiliumNetworkPolicy`
+valid. Pass only these flags, not `apps/cilium/helm/values.yaml`: the full
+values also render Hubble and a freshly generated `cilium-ca` Secret, which
+would overwrite the live ones.
+
+```bash
+helm template cilium-preflight cilium --repo https://helm.cilium.io \
+  --version <target> --namespace cilium \
+  --set preflight.enabled=true --set agent=false --set operator.enabled=false \
+  --set k8sServiceHost=127.0.0.1 --set k8sServicePort=6444 \
+  > cilium-preflight.yaml
+kubectl apply -f cilium-preflight.yaml
+kubectl -n cilium get daemonset cilium-pre-flight-check
+kubectl -n cilium get deployment cilium-pre-flight-check
+```
+
+The DaemonSet's ready count must match the `cilium` DaemonSet's, and the
+Deployment must report `1/1`; a Deployment stuck at `0/1` names the invalid
+policy in its `cnp-validator` logs. Fix it, then delete the pre-flight
+resources (`kubectl delete -f cilium-preflight.yaml`) and merge.

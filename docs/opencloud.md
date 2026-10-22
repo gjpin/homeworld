@@ -4,9 +4,9 @@ OpenCloud provides file sync, sharing, web office integration, and collaborative
 
 ## Storage Architecture
 
-* `opencloud-config` (5 GiB, `longhorn-crypto`, RWO): Mounted at `/etc/opencloud` for generated configuration (`opencloud.yaml`) and backups.
-* `opencloud-data` (100 GiB, `longhorn-crypto`, RWO): Mounted at `/var/lib/opencloud` for persistent user state, local metadata, and upgrade markers.
-* Workload storage uses the `decomposeds3` driver backed by RustFS S3 (`rustfs-io.rustfs.svc.cluster.local:9000`).
+* `opencloud-config` (128 MiB, `longhorn-crypto`, RWO): Mounted at `/etc/opencloud` for generated configuration (`opencloud.yaml`) and backups.
+* `opencloud-data` (2 GiB, `longhorn-crypto`, RWO): Mounted at `/var/lib/opencloud` for the service state (NATS, the search index, IDM, thumbnails) and upgrade markers.
+* `opencloud-users` (the NAS share `homeworld-opencloud`, NFS, [nas.md](nas.md)): Mounted at `/var/lib/opencloud/storage/users`, the users storage root of the POSIX `decomposed` driver (`STORAGE_USERS_DRIVER=decomposed`, `STORAGE_USERS_DECOMPOSED_ROOT`). The server pod runs as the share's owner, UID/GID `20002`, and Velero skips the share; the NAS snapshots it.
 
 ## Upgrades & Maintenance Automation
 

@@ -1,0 +1,15 @@
+---
+# server-files (account.sqlite) and user-files (budget SQLite blobs) under
+# /data. SQLite stays on Longhorn: it is small and does not belong on NFS.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: actual-budget
+  namespace: actual-budget
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-crypto
+  resources:
+    requests:
+      storage: 2Gi

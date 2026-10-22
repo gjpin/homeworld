@@ -1,0 +1,44 @@
+#cloud-config
+# Rendered by rebuild.sh into the agents VM's NoCloud seed; every rebuild is
+# a new instance, so cloud-init runs fully on each fresh root disk.
+hostname: agents
+timezone: @TIMEZONE@
+users:
+  - name: agent
+    uid: "1000"
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+@AGENT_SSH_KEYS@
+bootcmd:
+  # /home is the persistent second disk. Create its filesystem only once:
+  # cloud-init's fs_setup reformats a whole-disk device on every new instance.
+  - [sh, -c, 'blkid /dev/vdb >/dev/null || mkfs.xfs -q -L agents-home /dev/vdb']
+  # Fedora Cloud mounts a btrfs /home subvolume of the root disk; drop it.
+  - [sh, -c, 'sed -i "/[[:space:]]\\/home[[:space:]]/d" /etc/fstab; if findmnt -no FSTYPE /home | grep -q btrfs; then umount /home; fi']
+mounts:
+  - [LABEL=agents-home, /home, xfs, "defaults,nofail", "0", "2"]
+write_files:
+  - path: /etc/pki/ca-trust/source/anchors/homeworld-ca.crt
+    encoding: b64
+    content: @CA_B64@
+  - path: /etc/agents/infisical.env
+    permissions: '0600'
+    encoding: b64
+    content: @INFISICAL_ENV_B64@
+  - path: /usr/local/share/agents/versions.env
+    encoding: b64
+    content: @VERSIONS_B64@
+  - path: /usr/local/share/agents/AGENTS.md
+    encoding: b64
+    content: @INSTRUCTIONS_B64@
+  - path: /usr/local/libexec/agents-config
+    permissions: '0755'
+    encoding: b64
+    content: @CONFIG_B64@
+  - path: /usr/local/share/agents/provision.sh
+    permissions: '0755'
+    encoding: b64
+    content: @PROVISION_B64@
+runcmd:
+  - [/usr/local/share/agents/provision.sh]

@@ -11,8 +11,34 @@ provisioner: driver.longhorn.io
 allowVolumeExpansion: true
 reclaimPolicy: Retain
 volumeBindingMode: WaitForFirstConsumer
-mountOptions:
-  - context=system_u:object_r:ephemeral_t:s0
+# No SELinux mountOptions: the Longhorn CSI plugin drops them (libmount in
+# its container strips context=). Kubelet relabels each volume to its pod's
+# own MCS categories instead (docs/pod-security.md).
+parameters:
+  numberOfReplicas: "3"
+  staleReplicaTimeout: "2880"
+  fsType: "xfs"
+  encrypted: "true"
+  csi.storage.k8s.io/provisioner-secret-name: "longhorn-crypto"
+  csi.storage.k8s.io/provisioner-secret-namespace: "longhorn-system"
+  csi.storage.k8s.io/node-publish-secret-name: "longhorn-crypto"
+  csi.storage.k8s.io/node-publish-secret-namespace: "longhorn-system"
+  csi.storage.k8s.io/node-stage-secret-name: "longhorn-crypto"
+  csi.storage.k8s.io/node-stage-secret-namespace: "longhorn-system"
+  csi.storage.k8s.io/node-expand-secret-name: "longhorn-crypto"
+  csi.storage.k8s.io/node-expand-secret-namespace: "longhorn-system"
+---
+# Disposable data that is rebuilt on loss: Woodpecker pipeline workspaces and
+# Velero's temporary data-mover volumes. One replica keeps their full-size
+# copies from tripling on disk; encrypted like longhorn-crypto.
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: longhorn-scratch
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
 parameters:
   numberOfReplicas: "1"
   staleReplicaTimeout: "2880"

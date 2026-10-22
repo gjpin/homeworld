@@ -65,7 +65,7 @@ spec:
       storageClassName: longhorn-crypto
       resources:
         requests:
-          storage: 10Gi
+          storage: 1Gi
   service:
     metadata:
       labels:
@@ -76,7 +76,6 @@ spec:
         type: Recreate
       template:
         spec:
-          hostUsers: false
           runtimeClassName: gvisor
           automountServiceAccountToken: false
           securityContext:

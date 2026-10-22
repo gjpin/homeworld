@@ -1,9 +1,12 @@
 # https://etcd.io/docs/v3.7/op-guide/monitoring/
 # https://prometheus-operator.dev/docs/developer/scrapeconfig/
-# etcd is a Talos system service, not a pod, so no Service can select it.
-# Every control plane node serves the unauthenticated metrics listener
-# (listen-metrics-urls on port 2381, set by the Talos machine config in
-# docs/talos.md); node discovery targets each control plane's InternalIP.
+#
+# k3s runs etcd, kube-scheduler and kube-controller-manager inside the k3s
+# server process on every node, so no pod or Service selects them: node
+# discovery targets each control plane's InternalIP instead.
+#
+# etcd serves its own registry on the unauthenticated metrics listener
+# (port 2381, k3s etcd-expose-metrics in host/files/k3s/config.yaml).
 ---
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
@@ -30,3 +33,88 @@ spec:
         - __meta_kubernetes_node_name
       targetLabel: instance
       action: replace
+---
+# kube-scheduler (10259) and kube-controller-manager (10257) listen on every
+# address (bind-address in host/files/k3s/config.yaml) with an in-memory
+# self-signed certificate, so there is no CA to verify against; the bearer
+# token still authenticates the scrape. Both endpoints serve the whole k3s
+# process registry (the API server's families included): each job keeps only
+# its component's families plus the process-level ones, which describe the
+# whole k3s process. The work queues of every controller in the process share
+# workqueue_* (told apart by the name label); rest_client_* is shared the same
+# way with no component label, so neither job keeps it.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: kube-scheduler
+  namespace: kube-system
+spec:
+  scrapeInterval: 60s
+  scheme: HTTPS
+  metricsPath: /metrics
+  authorization:
+    type: Bearer
+    credentials:
+      name: control-plane-metrics-reader-token
+      key: token
+  tlsConfig:
+    insecureSkipVerify: true
+  kubernetesSDConfigs:
+    - role: Node
+  relabelings:
+    - sourceLabels:
+        - __meta_kubernetes_node_labelpresent_node_role_kubernetes_io_control_plane
+      regex: "true"
+      action: Keep
+    - sourceLabels:
+        - __meta_kubernetes_node_address_InternalIP
+      targetLabel: __address__
+      replacement: $1:10259
+      action: replace
+    - sourceLabels:
+        - __meta_kubernetes_node_name
+      targetLabel: instance
+      action: replace
+  metricRelabelings:
+    - sourceLabels:
+        - __name__
+      regex: (scheduler_.*|process_cpu_seconds_total|process_resident_memory_bytes)
+      action: keep
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: kube-controller-manager
+  namespace: kube-system
+spec:
+  scrapeInterval: 60s
+  scheme: HTTPS
+  metricsPath: /metrics
+  authorization:
+    type: Bearer
+    credentials:
+      name: control-plane-metrics-reader-token
+      key: token
+  tlsConfig:
+    insecureSkipVerify: true
+  kubernetesSDConfigs:
+    - role: Node
+  relabelings:
+    - sourceLabels:
+        - __meta_kubernetes_node_labelpresent_node_role_kubernetes_io_control_plane
+      regex: "true"
+      action: Keep
+    - sourceLabels:
+        - __meta_kubernetes_node_address_InternalIP
+      targetLabel: __address__
+      replacement: $1:10257
+      action: replace
+    - sourceLabels:
+        - __meta_kubernetes_node_name
+      targetLabel: instance
+      action: replace
+  metricRelabelings:
+    - sourceLabels:
+        - __name__
+      regex: (workqueue_.*|process_cpu_seconds_total|process_resident_memory_bytes)
+      action: keep

@@ -32,53 +32,12 @@ spec:
           configMap:
             name: kube-root-ca.crt
             key: ca.crt
----
-# kube-scheduler and kube-controller-manager serve /metrics with an
-# in-memory self-signed certificate (Talos passes them no serving
-# certificate), so there is no CA to verify against; the bearer token still
-# authenticates the scrape.
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: kube-scheduler
-  namespace: kube-system
-spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: kube-scheduler
-      app.kubernetes.io/component: control-plane-metrics
-  endpoints:
-    - port: https-metrics
-      scheme: https
-      path: /metrics
-      interval: 60s
-      authorization:
-        type: Bearer
-        credentials:
-          name: control-plane-metrics-reader-token
-          key: token
-      tlsConfig:
-        insecureSkipVerify: true
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: kube-controller-manager
-  namespace: kube-system
-spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: kube-controller-manager
-      app.kubernetes.io/component: control-plane-metrics
-  endpoints:
-    - port: https-metrics
-      scheme: https
-      path: /metrics
-      interval: 60s
-      authorization:
-        type: Bearer
-        credentials:
-          name: control-plane-metrics-reader-token
-          key: token
-      tlsConfig:
-        insecureSkipVerify: true
+      # k3s runs every control-plane component in one process, and each of
+      # their endpoints serves that process's whole metrics registry. Keep
+      # only the API server's own families here; the scheduler and
+      # controller-manager ScrapeConfigs keep theirs.
+      metricRelabelings:
+        - sourceLabels:
+            - __name__
+          regex: (apiserver|etcd_request|etcd_db|aggregator|apiextensions|authentication|authorization|watch_cache|go|process)_.*
+          action: keep
