@@ -1,0 +1,40 @@
+# Serialized node reboots for dnf5-automatic updates, host configuration
+# changes and staged Fedora upgrades (docs/fedora.md). kured runs the host
+# helpers installed by host/apply.sh in the host namespaces.
+configuration:
+  # The sentinel inverts `dnf5 needs-restarting` and honors the
+  # /var/lib/homeworld markers; the reboot command finishes a staged Fedora
+  # upgrade offline. useRebootSentinelHostPath must be false, or the chart
+  # renders the file sentinel instead of the command.
+  useRebootSentinelHostPath: false
+  rebootSentinelCommand: /usr/local/libexec/homeworld/kured-sentinel
+  rebootCommand: /usr/local/libexec/homeworld/kured-reboot
+  # Any firing vmalert rule blocks the next reboot. kured queries PromQL
+  # `ALERTS`, which vmalert writes into VictoriaMetrics (vmalert itself only
+  # serves /api/v1/alerts).
+  prometheusUrl: http://victoria-metrics.victoria-metrics.svc.cluster.local:8428
+  alertFiringOnly: true
+  # Window after the k3s upgrades (01:00-02:00) and the agents VM rebuild
+  # (02:00-02:30). One node at a time; the lock stays held until the
+  # rebooted node is back.
+  startTime: "02:30"
+  endTime: "06:30"
+  timeZone: Europe/Lisbon
+  period: 10m
+  concurrency: 1
+  drainTimeout: 30m
+  logFormat: text
+metrics:
+  create: true
+  interval: 60s
+service:
+  create: true
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+    ephemeral-storage: 16Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+    ephemeral-storage: 128Mi

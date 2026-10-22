@@ -1,0 +1,182 @@
+# Rotates the pre-upgrade snapshots ahead of the PreSync PhysicalBackup
+# (0_pre_sync_backup.yaml). The MariaDB operator finds a PhysicalBackup's
+# snapshots by the physicalbackup.k8s.mariadb.com/name label, which carries
+# the CR's name, and a PhysicalBackup without a schedule takes a snapshot
+# only while it finds none (and prunes nothing). The hook CR is recreated
+# under the same name on every sync, so without this Job it would see the
+# first sync's snapshot, report Complete at once and never take another.
+#
+# This Job runs first in the PreSync phase (hook wave -1; Argo CD orders the
+# ServiceAccount and RBAC ahead of the Job within the wave). It deletes the
+# previous sync's hook CR (otherwise the operator, still reconciling it,
+# would answer the relabel below with a snapshot of its own), moves every
+# existing mariadb-pre-sync-* VolumeSnapshot off the operator label onto
+# backup.homeworld/retired-pre-sync, so the PhysicalBackup always cuts a
+# fresh snapshot, then deletes all but the newest KEEP retired snapshots
+# (deletionPolicy: Delete on mariadb-longhorn removes the Longhorn snapshot
+# with each one). Snapshot names stay untouched for the restore in
+# docs/upgrades.md.
+#
+# Hooks, not regular resources: PreSync runs before the main sync creates
+# anything, so the ServiceAccount and RBAC must be hooks of their own to
+# exist on the first sync. BeforeHookCreation recreates them on each sync.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pre-sync-snapshot-rotation
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-1"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pre-sync-snapshot-rotation
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-1"
+rules:
+  - apiGroups:
+      - k8s.mariadb.com
+    resources:
+      - physicalbackups
+    resourceNames:
+      - mariadb-pre-sync
+    verbs:
+      - get
+      - delete
+  - apiGroups:
+      - snapshot.storage.k8s.io
+    resources:
+      - volumesnapshots
+    verbs:
+      - list
+      - patch
+      - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pre-sync-snapshot-rotation
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-1"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pre-sync-snapshot-rotation
+subjects:
+  - kind: ServiceAccount
+    name: pre-sync-snapshot-rotation
+    namespace: supernote
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pre-sync-snapshot-rotation
+  namespace: supernote
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: supernote
+        app.kubernetes.io/component: pre-sync-snapshot-rotation
+    spec:
+      serviceAccountName: pre-sync-snapshot-rotation
+      restartPolicy: Never
+      runtimeClassName: gvisor
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: rotate
+          image: docker.io/library/python:3.14-alpine3.24
+          imagePullPolicy: IfNotPresent
+          command:
+            - python3
+            - -c
+            - |
+              import json, ssl, time, urllib.error, urllib.parse, urllib.request
+
+              KEEP = 7
+              NAMESPACE = "supernote"
+              OPERATOR_LABEL = "physicalbackup.k8s.mariadb.com/name"
+              HOOK = "mariadb-pre-sync"
+              RETIRED_LABEL = "backup.homeworld/retired-pre-sync"
+              SA = "/var/run/secrets/kubernetes.io/serviceaccount"
+              API = "https://kubernetes.default.svc/apis"
+              SNAPSHOTS = f"{API}/snapshot.storage.k8s.io/v1/namespaces/{NAMESPACE}/volumesnapshots"
+              HOOK_CR = f"{API}/k8s.mariadb.com/v1alpha1/namespaces/{NAMESPACE}/physicalbackups/{HOOK}"
+              token = open(f"{SA}/token").read()
+              ctx = ssl.create_default_context(cafile=f"{SA}/ca.crt")
+
+              def call(method, url, body=None):
+                  headers = {"Authorization": f"Bearer {token}"}
+                  if body is not None:
+                      headers["Content-Type"] = "application/merge-patch+json"
+                      body = json.dumps(body).encode()
+                  req = urllib.request.Request(url, data=body, method=method, headers=headers)
+                  with urllib.request.urlopen(req, context=ctx) as resp:
+                      return json.load(resp)
+
+              def select(selector):
+                  query = urllib.parse.urlencode({"labelSelector": selector})
+                  return call("GET", f"{SNAPSHOTS}?{query}")["items"]
+
+              def hook_cr_exists():
+                  try:
+                      call("GET", HOOK_CR)
+                      return True
+                  except urllib.error.HTTPError as e:
+                      if e.code == 404:
+                          return False
+                      raise
+
+              # The PhysicalBackup carries no finalizer, so it goes at once.
+              if hook_cr_exists():
+                  call("DELETE", HOOK_CR)
+                  while hook_cr_exists():
+                      time.sleep(1)
+                  print(f"deleted PhysicalBackup {HOOK}")
+
+              for s in select(f"{OPERATOR_LABEL}={HOOK}"):
+                  name = s["metadata"]["name"]
+                  call("PATCH", f"{SNAPSHOTS}/{name}", {"metadata": {"labels": {OPERATOR_LABEL: None, RETIRED_LABEL: HOOK}}})
+                  print(f"retired {name}")
+
+              retired = sorted(select(f"{RETIRED_LABEL}={HOOK}"),
+                               key=lambda s: s["metadata"]["creationTimestamp"], reverse=True)
+              for s in retired[KEEP:]:
+                  name = s["metadata"]["name"]
+                  call("DELETE", f"{SNAPSHOTS}/{name}")
+                  print(f"deleted {name} ({s['metadata']['creationTimestamp']})")
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+              ephemeral-storage: 16Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+              ephemeral-storage: 64Mi

@@ -30,5 +30,3 @@ podSecurityContext:
   runAsNonRoot: true
   seccompProfile:
     type: RuntimeDefault
-
-hostUsers: false

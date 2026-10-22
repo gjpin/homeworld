@@ -22,9 +22,6 @@ patches:
         path: /metadata/namespace
         value: mariadb-operator
       - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
-      - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
   # The chart's templates omit metadata.namespace on every namespaced

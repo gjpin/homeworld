@@ -9,9 +9,22 @@ metadata:
     cnpg.io/podPatch: '[{"op":"add","path":"/spec/hostUsers","value":false}]'
 spec:
   instances: 1
+  # A single instance has no failover target: a PodDisruptionBudget would
+  # block every node drain (kured reboots) forever.
+  enablePDB: false
+  postgresql:
+    parameters:
+      # Bounds WAL on the small volume (PostgreSQL defaults max_wal_size to 1GB).
+      max_wal_size: 512MB
+      min_wal_size: 80MB
+      wal_keep_size: 128MB
   imageName: ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie
+  # Replaces CNPG's default pod security context, so keep its fsGroup: the
+  # postgres user (26) must own the data volume, or initdb fails.
   podSecurityContext:
     runAsNonRoot: true
+    fsGroup: 26
+    fsGroupChangePolicy: OnRootMismatch
     seccompProfile:
       type: RuntimeDefault
   securityContext:
@@ -36,12 +49,12 @@ spec:
       ephemeral-storage: 2Gi
   storage:
     storageClass: longhorn-crypto
-    size: 10Gi
+    size: 2Gi
   backup:
-    # Database-native volume-snapshot backups (1_scheduled_backup.yaml); the
-    # cnpg-longhorn class is provisioned by apps/cloudnative-pg. Ownership by
-    # the Backup CR makes pruning old Backup CRs garbage-collect their
-    # snapshots (the class uses deletionPolicy: Delete).
+    # On-demand volume-snapshot backups before a major upgrade
+    # (docs/upgrades.md); the cnpg-longhorn class is provisioned by
+    # apps/cloudnative-pg. Ownership by the Backup CR makes deleting it
+    # garbage-collect its snapshot (the class uses deletionPolicy: Delete).
     volumeSnapshot:
       className: cnpg-longhorn
       snapshotOwnerReference: backup

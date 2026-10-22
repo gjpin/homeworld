@@ -1,0 +1,5 @@
+# /etc/sysconfig/libvirt-guests: shut the agents VM down cleanly with the
+# host; the domain's autostart flag brings it back on boot.
+ON_BOOT=ignore
+ON_SHUTDOWN=shutdown
+SHUTDOWN_TIMEOUT=180

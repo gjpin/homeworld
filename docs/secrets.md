@@ -12,7 +12,9 @@ the RFC 3986-unreserved guidance below and the CNPG bootstrap both assume.)
 
 ## Bootstrap exception
 
-The External Secrets Operator's own Infisical credentials (Secret `universal-auth-credentials` in `external-secrets`) are not synchronized from Infisical: the operator cannot fetch the credentials that grant access to Infisical, so they are seeded manually during cluster bootstrap — see [talos.md](talos.md) ("Seed External Secrets Infisical credentials"). They come from the Infisical console under **Settings → Machine Identity → Universal Auth**.
+The External Secrets Operator's own Infisical credentials (Secret `universal-auth-credentials` in `external-secrets`) are not synchronized from Infisical: the operator cannot fetch the credentials that grant access to Infisical, so `host/bootstrap.sh` asks for them on the first server and hands them to k3s, which creates the Secret — see [k3s.md](k3s.md#first-server). They come from the Infisical console under **Settings → Machine Identity → Universal Auth**.
+
+The agents VM ([openchamber.md](openchamber.md)) is not a cluster workload and does not use the External Secrets Operator: it has its own read-only Machine Identity (Universal Auth), granted read access to the `/agents` folder only. `host/bootstrap.sh` asks for its client ID, client secret and the project ID on the Ryzen and stores them root-only in `/etc/homeworld/agents-vm.env`; the VM fetches the `/agents/*` keys below at every boot.
 
 Non-secret cluster coordinates are committed as literal values, not placeholders: the `homeworld.internal` domain, the `192.168.8.50` Gateway VIP, the Infisical endpoint (`https://eu.infisical.com`, project `homeworld`, environment `prod`) in `apps/external-secrets/2_secret_store.yaml`, and the Velero B2 target (`homeworld-velero` in `eu-central-003`) in `apps/velero/helm/values.yaml`.
 
@@ -20,6 +22,10 @@ Non-secret cluster coordinates are committed as literal values, not placeholders
 
 | Component | Infisical path | Description | Generation |
 | :--- | :--- | :--- | :--- |
+| **Agents VM** | `/agents/OPENCHAMBER_UI_PASSWORD` | Password protecting the OpenChamber web UI. | Chosen strong password |
+| | `/agents/PASEO_PASSWORD` | Paseo daemon password (clients send it as a bearer token); required, because the daemon listens on the VM's network address. | Chosen strong password |
+| | `/agents/OPENAI_API_KEY` | OpenAI API key for Codex CLI and OpenCode. | From OpenAI |
+| | `/agents/GITHUB_TOKEN` | GitHub token for agent git operations. | From GitHub (needs the Copilot Requests permission, [openchamber.md](openchamber.md#agent-logins)) |
 | **Argo CD** | `/argocd/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for the controllers' cache; rendered into both the `password` key (Dragonfly CR) and the chart's `redis-password` key. | `openssl rand -hex 32` |
 | **Authelia** | `/authelia/SESSION_SECRET` | Session cookie encryption secret. | `openssl rand -hex 32` |
 | | `/authelia/STORAGE_ENCRYPTION_KEY` | At-rest encryption key for the SQL configuration storage. | `openssl rand -hex 32` |
@@ -31,6 +37,8 @@ Non-secret cluster coordinates are committed as literal values, not placeholders
 | | `/authelia/OIDC_JWK_RS256` | RSA private key (JWK) for signing OIDC tokens. | `openssl genrsa 2048` (private-key PEM, including the BEGIN/END lines; Authelia derives the public key) |
 | | `/authelia/RESET_PASSWORD_JWT_SECRET` | JWT secret for the password-reset flow. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_ARGOCD` | Argo CD OIDC client secret. | `openssl rand -hex 32` |
+| | `/authelia/OIDC_CLIENT_SECRET_ACTUAL_BUDGET` | Actual Budget OIDC client secret (also delivered to the `actual-budget` namespace as `actual-budget-secrets`). | `openssl rand -hex 32` |
+| | `/authelia/OIDC_CLIENT_SECRET_CODER` | Coder OIDC client secret (also delivered to coderd by the `coder-secrets` ExternalSecret). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_ENVOY` | Envoy Gateway OIDC client secret (shared by every gateway-OIDC route; delivered to each protected app's namespace — envoy-gateway, homepage, longhorn-system, victoria-metrics, and homeassistant — as `envoy-oidc-client-secret`). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_FORGEJO` | Forgejo OIDC client secret. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_GRAFANA` | Grafana OIDC client secret. | `openssl rand -hex 32` |
@@ -41,6 +49,8 @@ Non-secret cluster coordinates are committed as literal values, not placeholders
 | | `/authelia/OIDC_CLIENT_SECRET_VAULTWARDEN` | Vaultwarden OIDC client secret. | `openssl rand -hex 32` |
 | **cert-manager** | `/cert-manager/CA_CERT` | Homeworld root CA certificate (PEM). Read by cert-manager's `homeworld-ca` ClusterIssuer, trust-manager's `homeworld-ca` Bundle source, and Argo CD's OIDC `rootCA`. | `homeworld-ca.crt` from the README "Create the Homeworld CA" step |
 | | `/cert-manager/CA_KEY` | Homeworld root CA private key (PEM); only cert-manager reads it. | `homeworld-ca.key` from the same step |
+| **Coder** | `/coder/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `coder` (the CNPG `owner` user) |
+| | `/coder/POSTGRES_PASSWORD` | CloudNativePG application password (also templated into coderd's `CODER_PG_CONNECTION_URL`). | `openssl rand -hex 32` |
 | **Collabora** | `/opencloud/COLLABORA_ADMIN_USER` | Collabora admin console username. | Chosen username |
 | | `/opencloud/COLLABORA_ADMIN_PASSWORD` | Collabora admin console password. | `openssl rand -hex 32` |
 | | `/opencloud/COLLABORA_PROOF_KEY` | WOPI proof private key for OpenCloud ↔ Collabora requests. | `openssl genrsa -out proof_key 4096` (matching the chart's 4096-bit requirement; existing 2048-bit keys still verify) |
@@ -55,10 +65,10 @@ Non-secret cluster coordinates are committed as literal values, not placeholders
 | | `/homeassistant/MOSQUITTO_PASSWORD_ZIGBEE2MQTT` | Mosquitto password for the `zigbee2mqtt` MQTT user; Zigbee2MQTT reads it from `ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD`. | `openssl rand -hex 32` |
 | **Grafana** | `/grafana/GF_SECURITY_ADMIN_USER` | Admin username (required for startup; login is via Authelia OIDC). | Chosen username |
 | | `/grafana/GF_SECURITY_ADMIN_PASSWORD` | Admin password (required for startup; login is via Authelia OIDC). | Chosen strong password |
-| **Homepage** | `/homepage/ARGOCD_TOKEN` | Read-only Argo CD account API token for the Argo CD widget. | Manual — README §6 |
-| | `/homepage/GRAFANA_TOKEN` | Grafana service account token for the Grafana widget. | Manual — README §6 |
-| | `/homepage/HASS_TOKEN` | Home Assistant long-lived access token for the Home Assistant widget. | Manual — README §6 |
-| | `/homepage/IMMICH_API_KEY` | Immich API key for the Immich widget. | Manual — README §6 |
+| **Homepage** | `/homepage/ARGOCD_TOKEN` | Read-only Argo CD account API token for the Argo CD widget. | Manual — README §11 |
+| | `/homepage/GRAFANA_TOKEN` | Grafana service account token for the Grafana widget. | Manual — README §11 |
+| | `/homepage/HASS_TOKEN` | Home Assistant long-lived access token for the Home Assistant widget. | Manual — README §11 |
+| | `/homepage/IMMICH_API_KEY` | Immich API key for the Immich widget. | Manual — README §11 |
 | **Immich** | `/immich/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `immich` (the CNPG `owner` user) |
 | | `/immich/POSTGRES_PASSWORD` | CloudNativePG application password. | `openssl rand -hex 32` |
 | | `/immich/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for cache and job queues. | `openssl rand -hex 32` |
@@ -72,20 +82,10 @@ Non-secret cluster coordinates are committed as literal values, not placeholders
 | | `/notesnook/DOCUMENTDB_PASSWORD` | DocumentDB gateway password. | `openssl rand -hex 32` |
 | | `/notesnook/RUSTFS_ACCESS_KEY` | RustFS S3 access key for note attachments. | Chosen access key ID (≥8 characters, no whitespace, `=` or `,`) |
 | | `/notesnook/RUSTFS_SECRET_KEY` | RustFS S3 secret key for note attachments. | `openssl rand -hex 16` |
-| **OpenChamber** | `/openchamber/OPENCHAMBER_UI_PASSWORD` | Password protecting the OpenChamber web UI. | Chosen strong password |
-| | `/openchamber/OPENAI_API_KEY` | OpenAI API key for Codex CLI and OpenCode. | From OpenAI |
-| | `/openchamber/GITHUB_TOKEN` | GitHub token for agent git operations. | From GitHub (needs the Copilot Requests permission — README §7) |
 | **OpenCloud** | `/opencloud/IDM_ADMIN_PASSWORD` | OpenCloud IDM administrator password. | `openssl rand -hex 32` |
-| | `/opencloud/RUSTFS_ACCESS_KEY` | RustFS S3 access key for primary storage. | Chosen access key ID (≥8 characters, no whitespace, `=` or `,`) |
-| | `/opencloud/RUSTFS_SECRET_KEY` | RustFS S3 secret key for primary storage. | `openssl rand -hex 16` |
-| **qBittorrent** | `/qbittorrent/VPN_SERVICE_PROVIDER` | Active gluetun VPN provider. The values are gluetun's literal provider identifiers, spaces included. | Fixed: `protonvpn` or `private internet access` |
-| | `/qbittorrent/VPN_TYPE` | Tunnel protocol for the active provider: gluetun supports Private Internet Access natively over OpenVPN only. Switch together with `VPN_SERVICE_PROVIDER`. | Fixed: `wireguard` (ProtonVPN) or `openvpn` (Private Internet Access) |
-| | `/qbittorrent/VPN_PORT_FORWARDING_PROVIDER` | Port-forwarding mechanism matching the active provider (`protonvpn` uses NAT-PMP, `private internet access` its own API). | Fixed: same value as `VPN_SERVICE_PROVIDER` |
-| | `/qbittorrent/SERVER_NAMES` | Preferred servers from the provider's gluetun server list. Required for Private Internet Access port forwarding (pick a port-forwarding-capable server); optional refinement for ProtonVPN. | Server name from the provider's server list |
-| | `/qbittorrent/WIREGUARD_PRIVATE_KEY` | ProtonVPN WireGuard private key. Placeholder when using Private Internet Access, which tunnels over OpenVPN with the credentials below. | `wg genkey` / from a ProtonVPN WireGuard configuration |
-| | `/qbittorrent/WIREGUARD_ADDRESSES` | ProtonVPN WireGuard interface address (i.e. `10.2.0.6/32`). Placeholder when using Private Internet Access. | From the same ProtonVPN WireGuard configuration |
-| | `/qbittorrent/OPENVPN_USER` | Private Internet Access username (authenticates the OpenVPN tunnel and the port-forwarding API). Placeholder when using ProtonVPN. | From the Private Internet Access account |
-| | `/qbittorrent/OPENVPN_PASSWORD` | Private Internet Access password. Placeholder when using ProtonVPN. | From the Private Internet Access account |
+| **qBittorrent** | `/qbittorrent/SERVER_NAMES` | Preferred ProtonVPN servers from gluetun's server list (port-forwarding-capable). | Server name from the ProtonVPN server list |
+| | `/qbittorrent/WIREGUARD_PRIVATE_KEY` | ProtonVPN WireGuard private key. | From a ProtonVPN WireGuard configuration (with NAT-PMP port forwarding enabled) |
+| | `/qbittorrent/WIREGUARD_ADDRESSES` | ProtonVPN WireGuard interface address (i.e. `10.2.0.2/32`). | From the same ProtonVPN WireGuard configuration |
 | | `/qbittorrent/WEBUI_USERNAME` | qBittorrent WebUI username, shared with the Homepage widget. At least 3 characters, no colon. | Chosen username |
 | | `/qbittorrent/WEBUI_PASSWORD` | qBittorrent WebUI password, seeded into `qBittorrent.conf` as a PBKDF2 hash by the config-bootstrap init container. At least 6 characters. | Chosen strong password |
 | | `/qbittorrent/WEBUI_API_KEY` | Stateless WebAPI key (the qBittorrent WebAPI key mechanism) seeded into `qBittorrent.conf`, used by the metrics exporter and the port-forward sync job. Must be exactly 32 characters (`qbt_` prefix + 28, `src/base/utils/apikey.cpp`); qBittorrent **silently ignores** a non-empty key of the wrong length and Bearer auth stops working with no error. | `printf 'qbt_%s' "$(openssl rand -hex 14)"` |
@@ -103,8 +103,8 @@ Non-secret cluster coordinates are committed as literal values, not placeholders
 | **Vaultwarden** | `/vaultwarden/ADMIN_TOKEN` | Admin panel token, preferably an Argon2 PHC string. | `docker run --rm -it docker.io/vaultwarden/server /vaultwarden hash` |
 | | `/vaultwarden/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `vaultwarden` (the CNPG `owner` user) |
 | | `/vaultwarden/POSTGRES_PASSWORD` | CloudNativePG application password. Must contain only RFC 3986 unreserved characters; it is embedded unescaped in the PostgreSQL connection URL. | `openssl rand -hex 32` (hex output is RFC 3986 unreserved) |
-| **Woodpecker CI** | `/woodpecker/FORGEJO_CLIENT` | Forgejo OAuth2 application client ID. | Manual — README §5 |
-| | `/woodpecker/FORGEJO_SECRET` | Forgejo OAuth2 application client secret. | Manual — README §4 |
+| **Woodpecker CI** | `/woodpecker/FORGEJO_CLIENT` | Forgejo OAuth2 application client ID. | Manual — README §10 |
+| | `/woodpecker/FORGEJO_SECRET` | Forgejo OAuth2 application client secret. | Manual — README §10 |
 | | `/woodpecker/AGENT_SECRET` | Shared secret between Woodpecker server and agents. | `openssl rand -hex 32` |
 | | `/woodpecker/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `woodpecker` (the CNPG `owner` user) |
 | | `/woodpecker/POSTGRES_PASSWORD` | CloudNativePG application password. | `openssl rand -hex 32` |
@@ -116,10 +116,10 @@ Some secrets are produced by manual one-time procedures rather than generated di
 
 - `/woodpecker/FORGEJO_CLIENT` and `/woodpecker/FORGEJO_SECRET` are created by the **Forgejo OAuth Application for Woodpecker CI** procedure in the [README's Manual Setup](../README.md#manual-setup) section.
 - The four `/homepage/*` tokens are created by the **Create API Tokens for Homepage Widgets** procedure in the [README's Manual Setup](../README.md#manual-setup) section.
-- The three `/openchamber/*` keys are used by the agent workspace described in [openchamber.md](openchamber.md), which also covers workspace access and coding-agent logins.
+- The four `/agents/*` keys are read by the agents VM described in [openchamber.md](openchamber.md), which also covers access and coding-agent logins.
 
 Generation constraints worth knowing:
 
-- The nine `/authelia/OIDC_CLIENT_SECRET_*` values are 64-character hex strings from `openssl rand -hex 32`: hex output is RFC 3986 unreserved, which avoids token-endpoint encoding issues, and exceeds Authelia's 40-character recommendation for client secrets.
-- S3 secret keys (`/rustfs/RUSTFS_SECRET_KEY`, `/notesnook/RUSTFS_SECRET_KEY`, `/opencloud/RUSTFS_SECRET_KEY`) use `openssl rand -hex 16` to stay within the 40-character secret-key limit MinIO-compatible stores accept; access key IDs are chosen and must be at least 8 characters with no whitespace, `=` or `,`.
-- The RustFS users behind the `/notesnook/RUSTFS_*` and `/opencloud/RUSTFS_*` keypairs do not require manual registration: the `Tenant` in `apps/rustfs/0_tenant.yaml` declares their buckets, policies, and users, and the RustFS Operator provisions them from the Secrets synced by `apps/rustfs/-1_user_secrets.yaml` once the Tenant workload is ready. If equivalent users were previously created through the RustFS console, remove any console user carrying the same access key before the first sync, then confirm all items provisioned with `kubectl -n rustfs get tenant rustfs -o jsonpath='{.status.provisioning}'`.
+- The ten `/authelia/OIDC_CLIENT_SECRET_*` values are 64-character hex strings from `openssl rand -hex 32`: hex output is RFC 3986 unreserved, which avoids token-endpoint encoding issues, and exceeds Authelia's 40-character recommendation for client secrets.
+- S3 secret keys (`/rustfs/RUSTFS_SECRET_KEY`, `/notesnook/RUSTFS_SECRET_KEY`) use `openssl rand -hex 16` to stay within the 40-character secret-key limit MinIO-compatible stores accept; access key IDs are chosen and must be at least 8 characters with no whitespace, `=` or `,`.
+- The RustFS user behind the `/notesnook/RUSTFS_*` keypair does not require manual registration: the `Tenant` in `apps/rustfs/0_tenant.yaml` declares its bucket, policy, and user, and the RustFS Operator provisions them from the Secrets synced by `apps/rustfs/-1_user_secrets.yaml` once the Tenant workload is ready. If equivalent users were previously created through the RustFS console, remove any console user carrying the same access key before the first sync, then confirm all items provisioned with `kubectl -n rustfs get tenant rustfs -o jsonpath='{.status.provisioning}'`.

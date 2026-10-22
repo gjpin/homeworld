@@ -1,0 +1,75 @@
+# The release manifests from the pinned tag. The tag's own kustomization
+# still names the previous controller image, so the image is set here.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+resources:
+  - https://github.com/rancher/system-upgrade-controller?ref=v0.20.2
+images:
+  - name: rancher/system-upgrade-controller
+    newName: docker.io/rancher/system-upgrade-controller
+    newTag: v0.20.2
+patches:
+  # apps/app-of-apps.yaml owns the namespace and its Pod Security labels.
+  - target:
+      version: v1
+      kind: Namespace
+      name: ^system-upgrade$
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: system-upgrade
+  # The kubectl image the upgrade Jobs use to cordon nodes, fully qualified
+  # (rancher/kubectl has no 1.37 build yet; kubectl supports one minor of
+  # skew).
+  - target:
+      version: v1
+      kind: ConfigMap
+      name: ^default-controller-env$
+    patch: |-
+      - op: replace
+        path: /data/SYSTEM_UPGRADE_JOB_KUBECTL_IMAGE
+        value: docker.io/rancher/kubectl:v1.36.2
+  # The controller only talks to the Kubernetes API with the in-cluster CA:
+  # drop the host CA hostPath mounts, which makes it Restricted and lets it
+  # run on gVisor. The upgrade Jobs it creates stay privileged (they replace
+  # the k3s binary on the host).
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^system-upgrade-controller$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/volumes
+        value:
+          - name: tmp
+            emptyDir: {}
+      - op: replace
+        path: /spec/template/spec/containers/0/volumeMounts
+        value:
+          - name: tmp
+            mountPath: /tmp
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+      - op: add
+        path: /spec/template/spec/securityContext
+        value:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+            ephemeral-storage: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+            ephemeral-storage: 512Mi

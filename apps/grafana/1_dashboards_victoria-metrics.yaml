@@ -46,3 +46,19 @@ spec:
   configMapRef:
     name: grafana-dashboard-victoriatraces
     key: json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: vmalert
+  namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  folderRef: folder-victoria-metrics
+  configMapRef:
+    name: grafana-dashboard-vmalert
+    key: json

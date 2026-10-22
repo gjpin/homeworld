@@ -24,12 +24,18 @@ OMIT_APPS = {
     # Kind's local-path provisioner has no CSI driver, so there is nothing
     # for the snapshot controller to act on; keep the suite lean.
     "snapshot-controller-app",
-    # Image ghcr.io/gjpin/openchamber is private; kind cannot pull it
-    # without credentials (401 Unauthorized).
-    "openchamber-app",
-    # Gluetun needs /dev/net/tun and real VPN credentials, neither of which
-    # exists on kind; the qBittorrent pod can never become Ready.
+    # Gluetun needs real ProtonVPN WireGuard credentials, which the suite
+    # does not have; the qBittorrent pod can never become Ready.
     "qbittorrent-app",
+    # Host lifecycle: kured reads the node's reboot sentinel through the
+    # host PID namespace and reboots nodes, and the system-upgrade-controller
+    # Plans replace the k3s binary on the host. Kind nodes are neither
+    # Fedora nor k3s.
+    "kured-app",
+    "system-upgrade-controller-app",
+    # No NAS on kind: the NFS volumes are rewritten to local-path claims
+    # (rewrite_kind_nfs_volumes), so the NFS CSI node plugin has no work.
+    "csi-driver-nfs-app",
     # Supernote publishes amd64-only images, and the kind node follows the
     # host architecture (arm64 on Apple-silicon Lima / Docker Desktop).
     "supernote-app",
@@ -362,9 +368,12 @@ def rewrite_kind_runtime_class(root: pathlib.Path) -> None:
         except (OSError, UnicodeDecodeError):
             continue
         new = re.sub(r"(?m)^\s*runtimeClassName:\s*gvisor\s*\n", "", text)
-        # MutatingAdmissionPolicy CEL mutations inject the runtime class at
-        # admission; strip it from the object literal the same way.
-        new = new.replace("runtimeClassName: 'gvisor', hostUsers", "hostUsers")
+        # A policy whose only mutation is the runtime class has nothing left
+        # to inject on kind: drop it with its binding.
+        if "Object{spec: Object.spec{runtimeClassName: 'gvisor'}}" in new:
+            path.unlink()
+            count += 1
+            continue
         if new != text:
             path.write_text(new)
             count += 1
@@ -781,19 +790,40 @@ def rewrite_immich_kind_storage(root: pathlib.Path) -> None:
         "REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local:6379",
         "REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local",
     )
-    # Official Immich images USER root; kubelet rejects runAsNonRoot without a UID.
-    if "runAsUser:" not in new:
-        new = re.sub(
-            r"(?m)^(\s*)runAsNonRoot: true\s*$",
-            r"\1runAsNonRoot: true\n\1runAsUser: 1000\n\1runAsGroup: 1000",
-            new,
-        )
     if new != text:
         path.write_text(new)
-        print("[rewrite-staging] immich existingClaim=photos, ML volume RWO, runAsUser 1000")
+        print("[rewrite-staging] immich existingClaim=photos, ML volume RWO")
     else:
         print("[rewrite-staging] immich storage rewrite unchanged")
     rewrite_immich_memory(root)
+
+
+def rewrite_kind_nfs_volumes(root: pathlib.Path) -> None:
+    """Kind has no NAS and no NFS CSI driver (csi-driver-nfs-app is omitted).
+
+    Drop the static NFS PersistentVolumes and turn the claims bound to them
+    into small local-path claims of the longhorn-crypto substitute class.
+    """
+    count = 0
+    for path in (root / "apps").rglob("*.yaml"):
+        if "/charts/" in path.as_posix():
+            continue
+        text = path.read_text()
+        if "kind: PersistentVolume\n" not in text or "driver: nfs.csi.k8s.io" not in text:
+            continue
+        docs = []
+        for doc in split_docs(text):
+            if "kind: PersistentVolume\n" in doc and "driver: nfs.csi.k8s.io" in doc:
+                continue
+            if "kind: PersistentVolumeClaim\n" in doc and "volumeName: homeworld-" in doc:
+                doc = re.sub(r"(?m)^  volumeName: homeworld-\S+\n", "", doc)
+                doc = doc.replace('storageClassName: ""', "storageClassName: longhorn-crypto")
+                doc = doc.replace("- ReadWriteMany", "- ReadWriteOnce")
+                doc = re.sub(r"(?m)^(\s*storage:) \S+$", r"\1 1Gi", doc)
+            docs.append(doc)
+        path.write_text(join_docs(docs))
+        count += 1
+    print(f"[rewrite-staging] NFS volumes -> local-path claims in {count} files")
 
 
 def rewrite_immich_memory(root: pathlib.Path) -> None:
@@ -1146,7 +1176,7 @@ def rewrite_documentdb_kind(root: pathlib.Path) -> None:
 def rewrite_metrics_server_kind_kubelet_tls(root: pathlib.Path) -> None:
     """Kind kubelet serving certs carry no IP SANs for the docker-network node
     address, so verified-TLS scrapes fail with x509 errors and the pod never
-    passes its metric-storage-ready probe. Production (Talos) rotates serving
+    passes its metric-storage-ready probe. Production (k3s) rotates serving
     certs with node IPs in the SANs and keeps verified TLS."""
     path = root / "apps" / "metrics-server" / "helm" / "values.yaml"
     if not path.exists():
@@ -1231,6 +1261,7 @@ def main() -> int:
     # Controller memory patch lives in rewrite_argocd_disable_extras.
     rewrite_collabora_kind_jail(root)
     rewrite_immich_kind_storage(root)
+    rewrite_kind_nfs_volumes(root)
     rewrite_rustfs_map_hostusers(root)
     rewrite_route_sync_wave(root)
     rewrite_crowdsec_disable_agent(root)

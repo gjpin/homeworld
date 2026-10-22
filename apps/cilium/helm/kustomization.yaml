@@ -11,6 +11,8 @@ helmCharts:
     includeCRDs: true
     skipTests: true
     valuesFile: values.yaml
+resources:
+  - agents_vm_host_node_config.yaml
 patches:
   # --- gVisor for the pod-network Hubble control-plane components (the
   # chart has no runtimeClassName value). The cilium-agent and cilium-envoy
@@ -83,7 +85,7 @@ patches:
   # --- requests/limits for the cilium-agent init containers that ship
   # without them (install-cni-binaries already declares upstream cpu/memory
   # requests; only limits and the ephemeral-storage request are added so the
-  # higher upstream values are preserved). Talos pre-mounts bpffs
+  # higher upstream values are preserved). systemd pre-mounts bpffs
   # (bpf.autoMount.enabled: false in values.yaml), so no privileged
   # mount-bpf-fs init container renders and the remaining inits are indexed
   # accordingly: config(0), apply-sysctl-overwrites(1), clean-cilium-state(2),

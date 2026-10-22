@@ -80,10 +80,6 @@ configMapGenerator:
   - name: grafana-dashboard-forgejo
     files:
       - json=dashboards/forgejo/forgejo.json
-  # generic-device-plugin
-  - name: grafana-dashboard-generic-device-plugin
-    files:
-      - json=dashboards/generic-device-plugin/generic-device-plugin.json
   # grafana
   - name: grafana-dashboard-grafana
     files:
@@ -172,7 +168,6 @@ resources:
   - 1_dashboards_envoy-gateway.yaml
   - 1_dashboards_external-secrets.yaml
   - 1_dashboards_forgejo.yaml
-  - 1_dashboards_generic-device-plugin.yaml
   - 1_dashboards_grafana.yaml
   - 1_dashboards_grafana-operator.yaml
   - 1_dashboards_homeassistant.yaml

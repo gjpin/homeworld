@@ -1,0 +1,88 @@
+# Every Pod in coder-workspaces is a workspace built from a Coder template.
+# Workspaces accept no inbound connections: the agent dials out to the
+# access URL and every session (web terminal, IDEs, SSH, workspace apps,
+# Coder Agents tool calls) rides back over that connection through the
+# embedded DERP relay.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: coder-workspaces
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: coder-workspaces
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The agent init script downloads the agent binary from the access URL,
+  # and the agent then holds its coordination and DERP WebSockets to it.
+  name: allow-workspace-coder
+  namespace: coder-workspaces
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toFQDNs:
+        - matchName: "coder.homeworld.internal"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Development egress: git over HTTPS and SSH (Forgejo through the Gateway
+  # VIP, public forges), package registries, and toolchain downloads.
+  name: allow-workspace-egress
+  namespace: coder-workspaces
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "22"
+              protocol: TCP
+    - toFQDNs:
+        - matchName: "git.homeworld.internal"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "22"
+              protocol: TCP

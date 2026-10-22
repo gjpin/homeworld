@@ -1,0 +1,22 @@
+# https://kubernetes.io/docs/concepts/policy/limit-ranges/
+#
+# Templates set their own requests and limits (the repository template in
+# apps/coder/template/ derives them from workspace parameters); these
+# defaults only catch containers a template leaves unresourced.
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: workspace-defaults
+  namespace: coder-workspaces
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "2"
+        memory: 4Gi
+        ephemeral-storage: 4Gi
+      defaultRequest:
+        cpu: 250m
+        memory: 512Mi
+        ephemeral-storage: 256Mi

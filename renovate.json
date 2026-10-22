@@ -10,7 +10,8 @@
     "github-actions",
     "gomod",
     "kustomize",
-    "kubernetes"
+    "kubernetes",
+    "terraform"
   ],
   "ignorePaths": [
     "**/node_modules/**",
@@ -26,7 +27,7 @@
   "separateMultipleMajor": false,
   "packageRules": [
     {
-      "description": "Forgejo requires sequential major upgrades to execute database schema migrations",
+      "description": "Forgejo majors: one PR per major with the upstream backup, queue-flush, and doctor steps",
       "matchPackageNames": [
         "code.forgejo.org/forgejo-helm/forgejo",
         "forgejo"
@@ -34,11 +35,11 @@
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
       "prBodyNotes": [
-        "⚠️ **Forgejo Upgrade Requirement**: Upstream requires upgrading major releases sequentially (e.g. 7.x → 8.x → 9.x) to execute database migrations in sequence. Do not skip major versions."
+        "⚠️ **Forgejo Upgrade**: Read the [Forgejo release notes](https://codeberg.org/forgejo/forgejo/releases) and, for a chart major, the chart README's *Upgrading* section. Upstream allows skipping versions; before a major, take a CNPG on-demand `Backup` and run `forgejo manager flush-queues`, and after the sync run `forgejo doctor check --all` (see [docs/upgrades.md](docs/upgrades.md#9-upstream-upgrade-procedures))."
       ]
     },
     {
-      "description": "Immich requires review of breaking changes and migration checkpoints",
+      "description": "Immich: one PR per major with a breaking-change review reminder",
       "matchPackageNames": [
         "ghcr.io/immich-app/immich-charts/immich",
         "immich"
@@ -46,7 +47,7 @@
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
       "prBodyNotes": [
-        "⚠️ **Immich Upgrade Requirement**: Review the [Immich Release Notes](https://github.com/immich-app/immich/releases) for breaking changes and verify all migration jobs are completed before proceeding to subsequent releases."
+        "⚠️ **Immich Upgrade**: Review the [Immich release notes](https://github.com/immich-app/immich/releases) for breaking changes and the supported VectorChord range. Downgrades are unsupported, even within a minor; on a major, update the mobile apps first."
       ]
     },
     {
@@ -57,8 +58,9 @@
       "separateMajorMinor": true,
       "separateMinorPatch": true,
       "prBodyNotes": [
-        "⚠️ **Longhorn Upgrade Requirement**: Upstream requires sequential minor version upgrades (e.g. 1.10 → 1.11 → 1.12). Skipping minor versions is unsupported. Note: volume engine upgrades are automated via `concurrentAutomaticEngineUpgradePerNodeLimit`."
-      ]
+        "⚠️ **Longhorn Upgrade Requirement**: Upstream only supports consecutive minor upgrades and blocks downgrades. Before merging, confirm no volume is `Faulted`, no BackingImage has failed, and the latest Velero backup succeeded. Volume engine upgrades are automated via `concurrentAutomaticEngineUpgradePerNodeLimit` (see [docs/upgrades.md](docs/upgrades.md#2-automated-storage-engine-upgrades-longhorn))."
+      ],
+      "separateMultipleMinor": true
     },
     {
       "description": "cert-manager recommends sequential minor version upgrades for CRD/webhook alignment",
@@ -69,7 +71,8 @@
       "separateMinorPatch": true,
       "prBodyNotes": [
         "⚠️ **cert-manager Upgrade Requirement**: Upstream recommends upgrading minor versions sequentially (e.g. 1.15 → 1.16 → 1.17) to ensure CRD schema and webhook compatibility."
-      ]
+      ],
+      "separateMultipleMinor": true
     },
     {
       "description": "CloudNativePG operand major upgrades trigger automated in-place pg_upgrade",
@@ -150,13 +153,30 @@
       }
     },
     {
-      "description": "Group every Kubernetes version pin (PSA labels, kind node image, documentation, e2e hook comments) into one PR",
+      "description": "Refresh the mise binary sha256 in the Coder workspace template on version bumps",
       "matchPackageNames": [
-        "kindest/node"
+        "jdx/mise"
+      ],
+      "postUpgradeTasks": {
+        "commands": [
+          "bash scripts/refresh-mise-sha.sh"
+        ],
+        "fileFilters": [
+          "apps/coder/template/main.tf"
+        ],
+        "executionMode": "update"
+      }
+    },
+    {
+      "description": "Group every Kubernetes version pin (k3s, PSA labels, kind node image, documentation, e2e hook comments) into one PR",
+      "matchPackageNames": [
+        "kindest/node",
+        "k3s-io/k3s"
       ],
       "groupName": "kubernetes-version",
+      "separateMultipleMinor": true,
       "prBodyNotes": [
-        "⚠️ **Cluster Upgrade Ordering**: merge only after the Talos nodes run the new Kubernetes minor, so the `managedNamespaceMetadata` PSA labels never reference a version newer than the API server. The e2e suite also requires a local kind CLI new enough to pull the new `kindest/node` image (see docs/upgrades.md)."
+        "⚠️ **Cluster Upgrade Ordering**: the PSA labels must never reference a Kubernetes minor newer than the API server. Merge a minor bump only once this PR also carries the matching k3s minor (`host/versions.env` and the system-upgrade-controller Plans, which upgrade the nodes in the next 01:00–02:00 Europe/Lisbon window); k3s ships a new minor after upstream Kubernetes does. The e2e suite also requires a local kind CLI new enough to pull the new `kindest/node` image (see docs/upgrades.md)."
       ]
     },
     {
@@ -165,7 +185,88 @@
         "cilium",
         "https://github.com/cilium/cilium.git"
       ],
-      "groupName": "cilium"
+      "groupName": "cilium",
+      "separateMultipleMinor": true,
+      "prBodyNotes": [
+        "⚠️ **Cilium Upgrade Requirement**: Upstream only supports consecutive minor upgrades. Before merging a minor, read its [upgrade notes](https://docs.cilium.io/en/stable/operations/upgrade/) (removed APIs, minimum Gateway API CRD version, which k3s supplies here) and run the [pre-flight check](docs/upgrades.md#cilium-pre-flight-check)."
+      ]
+    },
+    {
+      "description": "External Secrets recommends sequential minor upgrades",
+      "matchPackageNames": [
+        "external-secrets"
+      ],
+      "separateMultipleMinor": true,
+      "prBodyNotes": [
+        "⚠️ **External Secrets Upgrade**: Upstream recommends upgrading one minor at a time. Check the [release notes](https://github.com/external-secrets/external-secrets/releases) for removed API versions before merging."
+      ]
+    },
+    {
+      "description": "CloudNativePG operator upgrades roll every PostgreSQL cluster and can carry required steps",
+      "matchPackageNames": [
+        "cloudnative-pg"
+      ],
+      "prBodyNotes": [
+        "ℹ️ **CloudNativePG Operator Upgrade**: Read the [release notes](https://github.com/cloudnative-pg/cloudnative-pg/releases) for required steps; upstream advises against skipping versions. The sync restarts every PostgreSQL cluster once (`instances: 1`)."
+      ]
+    },
+    {
+      "description": "MariaDB Operator releases publish per-version upgrade guides",
+      "matchPackageNames": [
+        "mariadb-operator"
+      ],
+      "prBodyNotes": [
+        "⚠️ **MariaDB Operator Upgrade**: Read every `UPGRADE_<version>.md` [guide](https://github.com/mariadb-operator/mariadb-operator/tree/main/docs/releases) up to the target. Prerequisites on the `MariaDB` CR must be committed before the chart bump."
+      ]
+    },
+    {
+      "description": "Velero upgrades step from the previous minor and need a compatible AWS plugin",
+      "matchPackageNames": [
+        "velero"
+      ],
+      "prBodyNotes": [
+        "⚠️ **Velero Upgrade**: The chart version does not follow Velero's. Check which Velero release this chart ships, read its `upgrade-to-<minor>` guide (upgrades start from the previous minor only), and bump `velero-plugin-for-aws` per its [compatibility matrix](https://github.com/vmware-tanzu/velero-plugin-for-aws)."
+      ]
+    },
+    {
+      "description": "Argo CD minors and majors carry upgrade notes",
+      "matchPackageNames": [
+        "argo-cd"
+      ],
+      "prBodyNotes": [
+        "ℹ️ **Argo CD Upgrade**: Read the [upgrading notes](https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/overview/) of every Argo CD minor this chart bump crosses, and the chart README for value changes."
+      ]
+    },
+    {
+      "description": "Group the Coder chart and server image: the chart's appVersion and the pinned image move together",
+      "matchPackageNames": [
+        "coder",
+        "ghcr.io/coder/coder"
+      ],
+      "groupName": "coder"
+    },
+    {
+      "description": "Coder minors run irreversible database migrations",
+      "matchPackageNames": [
+        "coder",
+        "ghcr.io/coder/coder"
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor"
+      ],
+      "prBodyNotes": [
+        "ℹ️ **Coder Upgrade**: Read the [release notes](https://github.com/coder/coder/releases) of every minor crossed. Migrations run on startup and cannot be rolled back, so take the CNPG volume-snapshot backup first (docs/upgrades.md §9), then push the repository template again if a provider minimum changed (docs/coder.md)."
+      ]
+    },
+    {
+      "description": "Woodpecker majors carry required admin actions",
+      "matchPackageNames": [
+        "woodpecker"
+      ],
+      "prBodyNotes": [
+        "ℹ️ **Woodpecker Upgrade**: Read the [migration notes](https://woodpecker-ci.org/migrations) for every major crossed and apply the listed admin actions after the sync."
+      ]
     },
     {
       "description": "Group the Prometheus Operator CRD tag bumps (repo pin + e2e hook) so the release and its CRDs stay version-aligned",
@@ -192,11 +293,10 @@
       "groupName": "crowdsec-envoy-bouncer"
     },
     {
-      "description": "Group the Envoy Gateway chart and the Gateway API CRD bundle so the release and its CRDs stay version-aligned",
+      "description": "Group the Envoy Gateway chart and image bumps into one PR",
       "matchPackageNames": [
         "docker.io/envoyproxy/gateway-helm",
-        "gateway-helm",
-        "https://github.com/kubernetes-sigs/gateway-api.git"
+        "gateway-helm"
       ],
       "groupName": "envoy-gateway"
     },
@@ -220,11 +320,28 @@
       "enabled": false
     },
     {
-      "description": "Group every OpenChamber workspace image update (base image digest and all pinned tools, majors included) into one PR; automerge-openchamber.yaml merges it once the PR smoke build passes",
-      "matchFileNames": [
-        "images/openchamber/Dockerfile"
+      "description": "Group the system-upgrade-controller CRD tag, remote base, and image so the release and its CRDs stay version-aligned",
+      "matchPackageNames": [
+        "https://github.com/rancher/system-upgrade-controller.git",
+        "rancher/system-upgrade-controller",
+        "docker.io/rancher/system-upgrade-controller"
       ],
-      "groupName": "openchamber-workspace-image"
+      "groupName": "system-upgrade-controller"
+    },
+    {
+      "description": "Group the VictoriaMetrics single-node and vmalert charts so the query and rule-evaluation sides move together",
+      "matchPackageNames": [
+        "victoria-metrics-single",
+        "victoria-metrics-alert"
+      ],
+      "groupName": "victoria-metrics"
+    },
+    {
+      "description": "Group the agents VM tool pins: one PR rebuilds the VM root once in the nightly window",
+      "matchFileNames": [
+        "host/agents-vm/versions.env"
+      ],
+      "groupName": "agents-vm-tools"
     }
   ],
   "argocd": {
@@ -243,10 +360,6 @@
     ]
   },
   "customDatasources": {
-    "grok-cli": {
-      "defaultRegistryUrlTemplate": "https://x.ai/cli/stable",
-      "format": "plain"
-    },
     "antigravity-cli": {
       "defaultRegistryUrlTemplate": "https://antigravity-cli-auto-updater-974169037036.us-central1.run.app/manifests/linux_amd64.json",
       "format": "json",
@@ -352,7 +465,7 @@
       "customType": "regex",
       "description": "Update CloudNativePG Cluster images",
       "managerFilePatterns": [
-        "/^apps/(?:authelia|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker)/0_postgres\\.yaml$/"
+        "/^apps/(?:authelia|coder|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker)/0_postgres\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^\\s*imageName:\\s*(?<depName>ghcr\\.io/[^:\\s]+):(?<currentValue>[^\\s#]+)\\s*$"
@@ -365,7 +478,7 @@
       "customType": "regex",
       "description": "Move CloudNativePG Cluster images to the newest Debian stable release CNPG publishes for the pinned PostgreSQL version (the docker manager above treats the -system-<debian> suffix as fixed)",
       "managerFilePatterns": [
-        "/^apps/(?:authelia|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker)/0_postgres\\.yaml$/"
+        "/^apps/(?:authelia|coder|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker)/0_postgres\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^\\s*imageName:\\s*(?<packageName>ghcr\\.io/cloudnative-pg/postgresql):(?<pgVersion>\\d+\\.\\d+)-system-(?<currentValue>[a-z]+)\\s*$"
@@ -713,6 +826,19 @@
     },
     {
       "customType": "regex",
+      "description": "Update the Actual Budget server image",
+      "managerFilePatterns": [
+        "/^apps/actual-budget/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>docker\\.io/actualbudget/actual-server):(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
       "description": "Update the Supernote service image (main and nginx-config init containers)",
       "managerFilePatterns": [
         "/^apps/supernote/1_supernote_service\\.yaml$/"
@@ -848,6 +974,58 @@
     },
     {
       "customType": "regex",
+      "description": "Update the Coder Helm chart",
+      "managerFilePatterns": [
+        "/^apps/coder/helm/kustomization\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^\\s+- name:\\s+coder\\s+repo:\\s+https://helm\\.coder\\.com/v2\\s+version:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "depNameTemplate": "coder",
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm",
+      "registryUrlTemplate": "https://helm.coder.com/v2"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Coder server image",
+      "managerFilePatterns": [
+        "/^apps/coder/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^\\s+image:\\s*\\n\\s+repo:\\s*(?<depName>ghcr\\.io/coder/coder)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Coder workspace template image",
+      "managerFilePatterns": [
+        "/^apps/coder/template/main\\.tf$/"
+      ],
+      "matchStrings": [
+        "image\\s*=\\s*\"(?<depName>docker\\.io/codercom/example-base):(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "regex:^ubuntu-(?<major>\\d{8})$",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the mise version installed by the Coder workspace template",
+      "managerFilePatterns": [
+        "/^apps/coder/template/main\\.tf$/"
+      ],
+      "matchStrings": [
+        "mise_version\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "jdx/mise",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
       "description": "Update Kubescape version in validate workflow",
       "managerFilePatterns": [
         "/^\\.github/workflows/validate\\.ya?ml$/"
@@ -896,197 +1074,6 @@
         "yq/releases/download/v(?<currentValue>[\\d.]+)/"
       ],
       "depNameTemplate": "mikefarah/yq",
-      "datasourceTemplate": "github-releases",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the OpenChamber workspace base image digest",
-      "managerFilePatterns": [
-        "/^images/openchamber/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "FROM docker\\.io/library/(?<depName>debian):(?<currentValue>trixie-slim)@(?<currentDigest>sha256:[a-f0-9]{64})"
-      ],
-      "datasourceTemplate": "docker",
-      "registryUrlTemplate": "https://index.docker.io",
-      "versioningTemplate": "docker"
-    },
-    {
-      "customType": "regex",
-      "description": "Update Node.js in the OpenChamber workspace image",
-      "managerFilePatterns": [
-        "/^images/openchamber/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG NODE_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "nodejs/node",
-      "datasourceTemplate": "github-releases"
-    },
-    {
-      "customType": "regex",
-      "description": "Update pnpm in the OpenChamber workspace image",
-      "managerFilePatterns": [
-        "/^images/openchamber/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG PNPM_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "pnpm/pnpm",
-      "datasourceTemplate": "github-releases"
-    },
-    {
-      "customType": "regex",
-      "description": "Update uv in the OpenChamber workspace image",
-      "managerFilePatterns": [
-        "/^images/openchamber/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG UV_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "astral-sh/uv",
-      "datasourceTemplate": "github-releases"
-    },
-    {
-      "customType": "regex",
-      "description": "Update OpenChamber in the workspace image",
-      "managerFilePatterns": [
-        "/^images/openchamber/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG OPENCHAMBER_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "openchamber/openchamber",
-      "datasourceTemplate": "github-releases"
-    },
-    {
-      "customType": "regex",
-      "description": "Update OpenCode in the OpenChamber workspace image",
-      "managerFilePatterns": [
-        "/^images/openchamber/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG OPENCODE_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "anomalyco/opencode",
-      "datasourceTemplate": "github-releases"
-    },
-    {
-      "customType": "regex",
-      "description": "Update Codex CLI in the OpenChamber workspace image",
-      "managerFilePatterns": [
-        "/^images/openchamber/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG CODEX_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "openai/codex",
-      "datasourceTemplate": "github-releases",
-      "extractVersionTemplate": "^rust-v(?<version>.*)$",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Pi coding agent in the OpenChamber workspace image",
-      "managerFilePatterns": [
-        "/^images/openchamber/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG PI_AGENT_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "@earendil-works/pi-coding-agent",
-      "datasourceTemplate": "npm",
-      "registryUrlTemplate": "https://registry.npmjs.org"
-    },
-    {
-      "customType": "regex",
-      "description": "Update Playwright Test in the OpenChamber workspace image",
-      "managerFilePatterns": [
-        "/^images/openchamber/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG PLAYWRIGHT_TEST_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "@playwright/test",
-      "datasourceTemplate": "npm",
-      "registryUrlTemplate": "https://registry.npmjs.org"
-    },
-    {
-      "customType": "regex",
-      "description": "Update Playwright Agent CLI in the OpenChamber workspace image",
-      "managerFilePatterns": [
-        "/^images/openchamber/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG PLAYWRIGHT_CLI_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "@playwright/cli",
-      "datasourceTemplate": "npm",
-      "registryUrlTemplate": "https://registry.npmjs.org"
-    },
-    {
-      "customType": "regex",
-      "description": "Update chrome-devtools-mcp in the OpenChamber workspace image",
-      "managerFilePatterns": [
-        "/^images/openchamber/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG CHROME_DEVTOOLS_MCP_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "chrome-devtools-mcp",
-      "datasourceTemplate": "npm",
-      "registryUrlTemplate": "https://registry.npmjs.org"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the skills CLI in the OpenChamber workspace image",
-      "managerFilePatterns": [
-        "/^images/openchamber/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG SKILLS_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "skills",
-      "datasourceTemplate": "npm",
-      "registryUrlTemplate": "https://registry.npmjs.org"
-    },
-    {
-      "customType": "regex",
-      "description": "Update Grok Build CLI in the OpenChamber workspace image",
-      "managerFilePatterns": [
-        "/^images/openchamber/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG GROK_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "grok-cli",
-      "datasourceTemplate": "custom.grok-cli",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Antigravity CLI in the OpenChamber workspace image",
-      "managerFilePatterns": [
-        "/^images/openchamber/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG ANTIGRAVITY_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "antigravity-cli",
-      "datasourceTemplate": "custom.antigravity-cli",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the GitHub Copilot CLI in the OpenChamber workspace image",
-      "managerFilePatterns": [
-        "/^images/openchamber/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG COPILOT_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "github/copilot-cli",
       "datasourceTemplate": "github-releases",
       "versioningTemplate": "semver"
     },
@@ -1173,19 +1160,6 @@
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the generic-device-plugin image",
-      "managerFilePatterns": [
-        "/^apps/generic-device-plugin/1_daemonset\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?m)^\\s*image:\\s*(?<depName>docker\\.io/squat/generic-device-plugin):(?<currentValue>[^\\s#]+)\\s*$"
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
-      "registryUrlTemplate": "https://index.docker.io"
     },
     {
       "customType": "regex",
@@ -1338,17 +1312,40 @@
     },
     {
       "customType": "regex",
-      "description": "Update the Talos version in the Image Factory schematic links of the bootstrap guide",
+      "description": "Update the host and agents VM version pins annotated with `# renovate:` comments",
       "managerFilePatterns": [
-        "/^docs/talos\\.md$/"
+        "/^host/versions\\.env$/",
+        "/^host/agents-vm/versions\\.env$/"
       ],
       "matchStrings": [
-        "https://factory\\.talos\\.dev/\\?[^)\\s]*&version=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: versioning=(?<versioning>\\S+))?(?: extractVersion=(?<extractVersion>\\S+))?\\n[A-Z0-9_]+=(?<currentValue>\\S+)"
+      ]
+    },
+    {
+      "customType": "regex",
+      "description": "Update the k3s version of the system-upgrade-controller Plans (grouped with host/versions.env K3S_VERSION)",
+      "managerFilePatterns": [
+        "/^apps/system-upgrade-controller/2_plans\\.yaml$/"
       ],
-      "depNameTemplate": "siderolabs/talos",
+      "matchStrings": [
+        "(?m)^  version:\\s*(?<currentValue>v\\S+)\\s*$"
+      ],
+      "depNameTemplate": "k3s-io/k3s",
       "datasourceTemplate": "github-releases",
-      "versioningTemplate": "semver",
-      "extractVersionTemplate": "^v(?<version>\\d+\\.\\d+\\.\\d+)$"
+      "versioningTemplate": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\+k3s(?<build>\\d+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the kubectl image the system-upgrade-controller Jobs use (a kustomize patch value no built-in manager sees)",
+      "managerFilePatterns": [
+        "/^apps/system-upgrade-controller/controller/kustomization\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*value:\\s*(?<depName>docker\\.io/rancher/kubectl):(?<currentValue>v[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
     }
   ]
 }

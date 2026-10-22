@@ -1,0 +1,70 @@
+# The OpenTelemetry Operator's CRDs do not expose a runtimeClassName
+# pod-template field, so mutate the operator-generated pods in the
+# otel-collector namespace at admission to inject gVisor (the pod collector
+# and the Target Allocator it generates). Pods that already name a runtime
+# class are left alone. The operator-owned workloads remain the source of
+# truth for everything else.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: opentelemetry-gvisor
+spec:
+  failurePolicy: Fail
+  reinvocationPolicy: IfNeeded
+  matchConstraints:
+    resourceRules:
+      - apiGroups:
+          - ""
+        apiVersions:
+          - v1
+        operations:
+          - CREATE
+        resources:
+          - pods
+  matchConditions:
+    - name: opentelemetry-operator-pods
+      # CEL's has() macro only accepts field selectors, not map selects:
+      # has(object.metadata.labels['key']) fails compilation ("invalid
+      # argument to has() macro"), which left this policy unable to apply
+      # at all. And map indexing a MISSING key errors in CEL (it does not
+      # select the zero value): with failurePolicy: Fail that error would
+      # reject the pod outright. Guard with `in` and select the key
+      # directly. The binding's objectSelector already pre-filters to pods
+      # carrying the label, so the guard is defense-in-depth for the
+      # policy ever being bound without it.
+      expression: >-
+        request.namespace == "otel-collector" &&
+        has(object.metadata.labels) &&
+        'app.kubernetes.io/managed-by' in object.metadata.labels &&
+        object.metadata.labels['app.kubernetes.io/managed-by'] == 'opentelemetry-operator'
+    - name: runtime-class-not-set
+      expression: "!has(object.spec.runtimeClassName)"
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          Object{spec: Object.spec{runtimeClassName: 'gvisor'}}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: opentelemetry-gvisor
+spec:
+  policyName: opentelemetry-gvisor
+  matchResources:
+    resourceRules:
+      - apiGroups:
+          - ""
+        apiVersions:
+          - v1
+        operations:
+          - CREATE
+        resources:
+          - pods
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: otel-collector
+    objectSelector:
+      matchLabels:
+        app.kubernetes.io/managed-by: opentelemetry-operator

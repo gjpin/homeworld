@@ -28,6 +28,9 @@ patches:
         path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
         value: The pinned upstream collector image writes to its root filesystem; overriding it would break runtime file access.
       - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: k3s writes pod logs 0640 root under /var/log/pods (0750), so the filelog receiver reads them as UID 0 with every capability dropped (docs/pod-security.md).
+      - op: add
         path: /metadata/annotations/ignore-check.kube-linter.io~1readiness-port
         value: The upstream chart probes the collector health endpoint on undeclared port 13133 instead of a declared containerPort.
       - op: add

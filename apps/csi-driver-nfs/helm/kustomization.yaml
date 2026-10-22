@@ -1,0 +1,92 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: csi-driver-nfs
+    repo: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+    version: 4.13.5
+    releaseName: csi-driver-nfs
+    namespace: csi-driver-nfs
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  - target:
+      group: storage.k8s.io
+      version: v1
+      kind: CSIDriver
+      name: ^nfs\.csi\.k8s\.io$
+    patch: |-
+      - op: add
+        path: /spec/fsGroupPolicy
+        value: None
+  # The controller (provisioner, resizer, snapshotter) only serves dynamic
+  # provisioning, which this cluster does not use.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^csi-nfs-controller$
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: csi-nfs-controller
+  - target:
+      version: v1
+      kind: ServiceAccount
+      name: ^csi-nfs-controller-sa$
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: csi-nfs-controller-sa
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: ClusterRole
+      name: ^nfs-external-(provisioner|resizer)-role$
+    patch: |-
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: unused
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: ClusterRoleBinding
+      name: ^nfs-csi-(provisioner-binding|resizer-role)$
+    patch: |-
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: unused
+  - target:
+      group: apps
+      version: v1
+      kind: DaemonSet
+      name: ^csi-nfs-node$
+    patch: |-
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1host-network
+        value: The node plugin mounts NFS shares for kubelet in the host network namespace; pod-network mounts break when the plugin restarts.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1liveness-port
+        value: The upstream chart probes the plugin's host-network health endpoint on port 29653, which it does not declare as a containerPort.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The upstream chart sets no read-only root filesystem on the registrar or the plugin; both are left as upstream ships them.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1privilege-escalation-container
+        value: The privileged mount container (see privileged-container) implies privilege escalation.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1privileged-container
+        value: Mounting NFS into kubelet's pod directories with bidirectional mount propagation requires a privileged container.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: mount(2) for kubelet's volume directories runs as root.

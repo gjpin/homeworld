@@ -1,0 +1,15 @@
+# The only workload is the host-network node plugin (outside Cilium policy
+# scope); it mounts the NAS exports from the node. Nothing else may run on
+# the pod network here.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: csi-driver-nfs
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []

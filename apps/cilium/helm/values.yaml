@@ -1,41 +1,45 @@
 # https://artifacthub.io/packages/helm/cilium/cilium
-# https://docs.siderolabs.com/kubernetes-guides/cni/deploying-cilium#prerequisites
+# https://docs.cilium.io/en/stable/installation/k3s/
 # https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/
 #
-# Talos prerequisites (see docs/cilium.md):
-#   - Kubernetes IPAM: the API server allocates each node's PodCIDR.
-#   - Talos pre-mounts cgroup2 and bpffs; the agent must not remount them.
-#   - Talos forbids workloads loading kernel modules: SYS_MODULE is dropped
-#     from ciliumAgent and cleanCiliumState (SYSLOG is dropped with it).
-#   - KubePrism (Talos default, localhost:7445) is the kube-proxy-free
-#     API endpoint on every node.
-#   - forwardKubeDNSToHost=false in the Talos ResolverConfig, required by
-#     bpf.masquerade (docs.siderolabs.com known issue).
+# k3s prerequisites (see docs/cilium.md):
+#   - k3s runs with flannel-backend: none, disable-network-policy and
+#     disable-kube-proxy (host/files/k3s-config.yaml).
+#   - Cluster-pool IPAM allocates pod CIDRs from the k3s default 10.42.0.0/16.
+#   - systemd pre-mounts cgroup2 and bpffs on Fedora; the agent must not
+#     remount them.
+#   - SYS_MODULE is dropped from ciliumAgent and cleanCiliumState (SYSLOG is
+#     dropped with it); host/apply.sh preloads the kernel modules instead.
+#   - Every node is a k3s server: 127.0.0.1:6444 is the local kube-apiserver
+#     (and the client load balancer on k3s agents) for the kube-proxy-free
+#     API endpoint.
 
 namespaceOverride: cilium
 
 # --- kube-proxy replacement ---
-# Cilium replaces kube-proxy; host-network agents reach the API server
-# through the KubePrism endpoint on every node.
+# Cilium replaces kube-proxy; host-network agents reach the API server on
+# the node itself. Neither local port fails over on a server, but the agent
+# only needs the API while its own node's k3s (and kubelet) is up.
 kubeProxyReplacement: "true"
-k8sServiceHost: localhost
-k8sServicePort: "7445"
+k8sServiceHost: 127.0.0.1
+k8sServicePort: "6444"
 # Explicit (and deliberate): the hostNetwork agent would otherwise default to
 # ClusterFirstWithHostNet, which sends agent DNS through the host resolver
 # before the cluster. ClusterFirst keeps the agent's API discovery consistent
-# with the Cilium DNS proxy on kube-dns (see the SideroLabs Talos guide this
-# values file follows).
+# with the Cilium DNS proxy on kube-dns.
 dnsPolicy: ClusterFirst
 
-# --- IPAM: Kubernetes mode (Talos requirement) ---
+# --- IPAM: cluster pool on the k3s default pod CIDR ---
 ipam:
-  mode: kubernetes
+  mode: cluster-pool
+  operator:
+    clusterPoolIPv4PodCIDRList:
+      - 10.42.0.0/16
 
 # --- datapath ---
 bpf:
-  # BPF masquerading; see the forwardKubeDNSToHost note above.
   masquerade: true
-  # Talos pre-mounts bpffs at /sys/fs/bpf just like cgroup2 below; the agent
+  # systemd pre-mounts bpffs at /sys/fs/bpf just like cgroup2 below; the agent
   # must not remount it. Disabling the auto-mount also drops the privileged
   # mount-bpf-fs init container from the agent DaemonSet, and shifts the
   # remaining init containers down by one index (resource patches in
@@ -48,10 +52,18 @@ localRedirectPolicies:
   # the pinned chart but flagged upstream).
   enabled: true
 rollOutCiliumPods: true
+# gVisor pods run their own network stack, so the socket-level load balancer
+# (cgroup connect/sendmsg hooks) never sees their connections: without this
+# they cannot reach any ClusterIP Service. Pods use per-packet service
+# translation in the tc datapath instead; host-namespace sockets keep the
+# socket-level fast path.
+# https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#socket-loadbalancer-bypass-in-pod-namespace
+socketLB:
+  hostNamespaceOnly: true
 
 # --- Envoy Gateway virtual IP ---
 # Every Gateway publishes the 192.168.8.50 Gateway VIP (reserved on the
-# router, see docs/talos.md) through spec.addresses, which Envoy Gateway
+# router, see docs/openwrt.md) through spec.addresses, which Envoy Gateway
 # renders as the Envoy Service's spec.externalIPs. The kube-proxy replacement always
 # load-balances external IPs (the chart has no separate toggle), and one node
 # at a time answers ARP for it (../2_l2_announcement_policy.yaml). One
@@ -128,9 +140,9 @@ prometheus:
 
 hubble:
   enabled: true
-  # User namespaces for the relay and UI pods (gVisor is patched in via
-  # kustomization.yaml; the chart has no runtimeClassName value).
-  hostUsers: false
+  # The relay and UI pods run on gVisor (patched in via kustomization.yaml;
+  # the chart has no runtimeClassName value), which cannot join a pod user
+  # namespace yet, so they keep the host user namespace (docs/pod-security.md).
   # https://docs.cilium.io/en/stable/observability/metrics/
   # Static flow metrics exporter. The hubble ServiceMonitor scrapes the
   # hubble-metrics service; the cilium-agent ServiceMonitor only covers
@@ -207,7 +219,7 @@ envoy:
       # Modern BPF/PERFMON capabilities instead of SYS_ADMIN; NET_BIND_SERVICE
       # is required for the Envoy process to bind privileged ports. The
       # kernel (>= 5.8) and containerd (>= 1.5) floors for BPF/PERFMON are
-      # satisfied by the Talos release in use.
+      # satisfied by the Fedora kernel and the k3s-bundled containerd.
       keepCapNetBindService: true
       envoy:
         - NET_ADMIN

@@ -1,0 +1,22 @@
+# https://docs.cilium.io/en/stable/configuration/per-node-config/
+#
+# The agents VM hangs off a routed libvirt bridge (virbr-agents) on the node
+# labelled with the ryzen profile; the bridge is not a Cilium device. With
+# eBPF host routing, a pod on that node reaching the VM (Envoy -> OpenChamber,
+# Paseo) is redirected straight onto the bridge without passing netfilter,
+# while the VM's reply comes back through the kernel and firewalld's
+# `ct state invalid drop` discards it: conntrack never saw the SYN. Kernel
+# (legacy) host routing on this node only keeps both directions in netfilter,
+# so firewalld enforces the VM's inbound rules (3000/6767) for local pods as
+# well; every other node keeps eBPF host routing.
+apiVersion: cilium.io/v2
+kind: CiliumNodeConfig
+metadata:
+  name: agents-vm-host
+  namespace: cilium
+spec:
+  nodeSelector:
+    matchLabels:
+      node.homeworld.internal/profile: ryzen
+  defaults:
+    enable-host-legacy-routing: "true"

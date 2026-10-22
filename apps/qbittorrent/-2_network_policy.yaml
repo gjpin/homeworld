@@ -1,9 +1,8 @@
 ---
 # Kill switch layer 3 of 3 (see 1_deployment.yaml for the full picture):
 # gluetun's iptables firewall blocks everything except the tunnel, and this
-# default-deny Cilium policy independently restricts pod egress to the VPN
-# tunnel protocols (WireGuard for ProtonVPN, OpenVPN for Private Internet
-# Access) and gluetun's DNS-over-TLS bootstrap. All BitTorrent traffic is
+# default-deny Cilium policy independently restricts pod egress to the
+# ProtonVPN WireGuard tunnel and gluetun's DNS-over-TLS bootstrap. All BitTorrent traffic is
 # invisible to Cilium while the tunnel is up: it is tunnel-encapsulated to
 # the provider endpoint, the only destination allowed here.
 # TCP egress has no rule at all, so qBittorrent cannot send a single packet
@@ -154,11 +153,8 @@ spec:
   # Egress is scoped by protocol and port, not FQDN: the pod resolves through
   # gluetun's internal resolver over loopback, so Cilium's DNS proxy never
   # observes a query for the provider endpoint and toFQDNs identities would
-  # never populate. The tunnel ports are provider-specific: UDP 51820 for
-  # ProtonVPN's WireGuard, UDP 8080 for Private Internet Access's OpenVPN
-  # (the default strong encryption preset over the default UDP protocol;
-  # a custom OPENVPN_ENDPOINT_PORT or OPENVPN_PROTOCOL=tcp must be reflected
-  # here). qBittorrent's own traffic (TCP to trackers/peers, UDP DHT on
+  # never populate. ProtonVPN's WireGuard endpoints listen on UDP 51820.
+  # qBittorrent's own traffic (TCP to trackers/peers, UDP DHT on
   # arbitrary ports) has no rule here and only exists inside the VPN tunnel.
   #
   # gluetun's built-in DNS resolver bootstraps its DNS-over-TLS upstream
@@ -177,8 +173,6 @@ spec:
       toPorts:
         - ports:
             - port: "51820"
-              protocol: UDP
-            - port: "8080"
               protocol: UDP
     - toCIDR:
         - 1.1.1.1/32

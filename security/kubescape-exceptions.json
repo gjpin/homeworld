@@ -232,6 +232,21 @@
           "kind": "^ClusterRoleBinding$",
           "name": "^mariadb-operator$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^kured$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^coder$",
+          "namespace": "^coder-workspaces$"
+        }
       }
     ],
     "posturePolicies": [
@@ -278,6 +293,14 @@
           "kind": "^ConfigMap$",
           "name": "^cilium-config$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
         }
       }
     ],
@@ -339,23 +362,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^argocd-argocd-dex-server$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^argocd-argocd-notifications-controller$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^argocd-argocd-redis$",
           "namespace": "^argocd$"
         }
       },
@@ -606,6 +613,22 @@
           "name": "^longhorn-global-manager$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
+        }
       }
     ],
     "posturePolicies": [
@@ -754,14 +777,6 @@
         "attributes": {
           "kind": "^RoleBinding$",
           "name": "^argocd-argocd-applicationset-controller$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
-          "name": "^argocd-argocd-dex-server$",
           "namespace": "^argocd$"
         }
       },
@@ -1027,6 +1042,22 @@
           "kind": "^Job$",
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
         }
       }
     ],
@@ -1299,6 +1330,22 @@
           "name": "^longhorn-global-manager$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -1343,23 +1390,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^argocd-argocd-dex-server$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^argocd-argocd-notifications-controller$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^argocd-argocd-redis$",
           "namespace": "^argocd$"
         }
       },
@@ -1474,6 +1505,14 @@
           "name": "^mariadb-operator$",
           "namespace": "^mariadb-operator$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
+        }
       }
     ],
     "posturePolicies": [
@@ -1542,23 +1581,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^argocd-argocd-dex-server$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^argocd-argocd-notifications-controller$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^argocd-argocd-redis$",
           "namespace": "^argocd$"
         }
       },
@@ -1969,6 +1992,38 @@
           "name": "^trust-manager$",
           "namespace": "^trust-manager$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^vmalert$",
+          "namespace": "^victoria-metrics$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2081,23 +2136,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^argocd-argocd-dex-server$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^argocd-argocd-notifications-controller$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^argocd-argocd-redis$",
           "namespace": "^argocd$"
         }
       },
@@ -2460,6 +2499,30 @@
           "name": "^trust-manager$",
           "namespace": "^trust-manager$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2657,6 +2720,29 @@
     ]
   },
   {
+    "name": "homeworld-C-0038",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0038"
+      }
+    ]
+  },
+  {
     "name": "homeworld-C-0041",
     "policyType": "postureExceptionPolicy",
     "actions": [
@@ -2685,6 +2771,14 @@
           "kind": "^Deployment$",
           "name": "^cilium-operator$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
         }
       }
     ],
@@ -2780,6 +2874,14 @@
           "name": "^cilium-envoy$",
           "namespace": "^cilium$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2810,6 +2912,14 @@
           "kind": "^DaemonSet$",
           "name": "^cilium-envoy$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
         }
       }
     ],
@@ -2873,6 +2983,14 @@
           "kind": "^DaemonSet$",
           "name": "^cilium-envoy$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
         }
       }
     ],
@@ -3021,13 +3139,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^ClusterRoleBinding$",
-          "name": "^dragonfly-operator-proxy-clusterrolebinding$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^ClusterRoleBinding$",
           "name": "^envoy-gateway-gateway-helm-certgen:envoy-gateway$"
         }
       },
@@ -3114,14 +3225,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^RoleBinding$",
-          "name": "^argocd-argocd-dex-server$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
           "name": "^argocd-argocd-notifications-controller$",
           "namespace": "^argocd$"
         }
@@ -3140,22 +3243,6 @@
           "kind": "^RoleBinding$",
           "name": "^argocd-argocd-server$",
           "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
-          "name": "^cert-manager-startupapicheck:create-cert$",
-          "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
-          "name": "^cert-manager-tokenrequest$",
-          "namespace": "^cert-manager$"
         }
       },
       {
@@ -3463,6 +3550,29 @@
           "name": "^trust-manager:leaderelection$",
           "namespace": "^trust-manager$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^kured$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^coder$",
+          "namespace": "^coder-workspaces$"
+        }
       }
     ],
     "posturePolicies": [
@@ -3620,6 +3730,14 @@
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
       }
     ],
     "posturePolicies": [
@@ -3664,23 +3782,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^argocd-argocd-dex-server$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^argocd-argocd-notifications-controller$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^argocd-argocd-redis$",
           "namespace": "^argocd$"
         }
       },
@@ -3835,6 +3937,22 @@
           "name": "^trust-manager$",
           "namespace": "^trust-manager$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -3865,6 +3983,22 @@
           "kind": "^DaemonSet$",
           "name": "^cilium$",
           "namespace": "^cilium$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
         }
       }
     ],
@@ -3994,23 +4128,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^argocd-argocd-dex-server$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^argocd-argocd-notifications-controller$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^argocd-argocd-redis$",
           "namespace": "^argocd$"
         }
       },
@@ -4309,6 +4427,38 @@
           "name": "^trust-manager$",
           "namespace": "^trust-manager$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^vmalert$",
+          "namespace": "^victoria-metrics$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4536,14 +4686,6 @@
         "attributes": {
           "kind": "^RoleBinding$",
           "name": "^argocd-argocd-applicationset-controller$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
-          "name": "^argocd-argocd-dex-server$",
           "namespace": "^argocd$"
         }
       },
@@ -4809,6 +4951,14 @@
           "name": "^opentelemetry-operator-leader-election$",
           "namespace": "^opentelemetry-operator$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^coder$",
+          "namespace": "^coder-workspaces$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4891,23 +5041,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^argocd-argocd-dex-server$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^argocd-argocd-notifications-controller$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^argocd-argocd-redis$",
           "namespace": "^argocd$"
         }
       },
@@ -5269,6 +5403,30 @@
           "kind": "^Deployment$",
           "name": "^trust-manager$",
           "namespace": "^trust-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
         }
       }
     ],
@@ -5659,14 +5817,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^argocd-argocd-redis$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^argocd-argocd-repo-server$",
           "namespace": "^argocd$"
         }
@@ -5789,6 +5939,14 @@
           "kind": "^Deployment$",
           "name": "^authelia$",
           "namespace": "^authelia$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
         }
       }
     ],
@@ -5933,6 +6091,14 @@
           "name": "^longhorn-post-upgrade$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
       }
     ],
     "posturePolicies": [
@@ -6001,23 +6167,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^argocd-argocd-dex-server$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^argocd-argocd-notifications-controller$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^argocd-argocd-redis$",
           "namespace": "^argocd$"
         }
       },
@@ -6428,6 +6578,38 @@
           "name": "^trust-manager$",
           "namespace": "^trust-manager$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^vmalert$",
+          "namespace": "^victoria-metrics$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -6488,23 +6670,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^argocd-argocd-dex-server$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^argocd-argocd-notifications-controller$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^argocd-argocd-redis$",
           "namespace": "^argocd$"
         }
       },
@@ -6818,6 +6984,30 @@
           "kind": "^Deployment$",
           "name": "^mariadb-operator-webhook$",
           "namespace": "^mariadb-operator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^vmalert$",
+          "namespace": "^victoria-metrics$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
         }
       }
     ],
@@ -6894,14 +7084,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^argocd-argocd-redis$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^argocd-argocd-repo-server$",
           "namespace": "^argocd$"
         }
@@ -7017,6 +7199,14 @@
           "name": "^velero-ui$",
           "namespace": "^velero-ui$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^vmalert$",
+          "namespace": "^victoria-metrics$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7039,6 +7229,14 @@
           "kind": "^Deployment$",
           "name": "^velero-ui$",
           "namespace": "^velero-ui$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
         }
       }
     ],
@@ -7108,23 +7306,7 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^argocd-argocd-dex-server$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^argocd-argocd-notifications-controller$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^argocd-argocd-redis$",
           "namespace": "^argocd$"
         }
       },
@@ -7535,6 +7717,38 @@
           "name": "^trust-manager$",
           "namespace": "^trust-manager$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^csi-nfs-node$",
+          "namespace": "^csi-driver-nfs$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^vmalert$",
+          "namespace": "^victoria-metrics$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7580,14 +7794,6 @@
         "attributes": {
           "kind": "^Deployment$",
           "name": "^argocd-argocd-applicationset-controller$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^argocd-argocd-dex-server$",
           "namespace": "^argocd$"
         }
       },
@@ -7870,6 +8076,22 @@
           "name": "^trust-manager$",
           "namespace": "^trust-manager$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7907,14 +8129,6 @@
         "attributes": {
           "kind": "^Deployment$",
           "name": "^argocd-argocd-applicationset-controller$",
-          "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^argocd-argocd-dex-server$",
           "namespace": "^argocd$"
         }
       },
@@ -8165,6 +8379,14 @@
           "name": "^trust-manager$",
           "namespace": "^trust-manager$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^coder$",
+          "namespace": "^coder$"
+        }
       }
     ],
     "posturePolicies": [
@@ -8210,6 +8432,29 @@
       {
         "frameworkName": "AllControls",
         "controlID": "C-0272"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0275",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^kured$",
+          "namespace": "^kured$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "frameworkName": "AllControls",
+        "controlID": "C-0275"
       }
     ]
   },
@@ -8430,14 +8675,6 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^external-secrets-controller$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
-          "name": "^cert-manager-tokenrequest$",
-          "namespace": "^cert-manager$"
         }
       },
       {

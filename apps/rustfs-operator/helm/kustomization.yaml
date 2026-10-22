@@ -20,9 +20,6 @@ patches:
       namespace: ^rustfs-operator$
     patch: |-
       - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
-      - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
   - target:

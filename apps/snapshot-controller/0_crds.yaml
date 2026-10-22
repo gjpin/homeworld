@@ -6,7 +6,7 @@
 # (1_deployment.yaml) while the CSI volume snapshot CRDs are applied from
 # the pinned Git tag — the same pattern as prometheus-operator-crd. Velero's
 # CSI snapshot data movement (defaultSnapshotMoveData, EnableCSI) drives
-# volume backups through these CRDs and the snapshot controller; Talos does
+# volume backups through these CRDs and the snapshot controller; k3s does
 # not ship either.
 #
 # Pruning is deliberately disabled on the CRD application: deleting it (or its

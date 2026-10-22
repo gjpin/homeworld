@@ -1,0 +1,13 @@
+#!/bin/sh
+# kured reboot sentinel (--reboot-sentinel-command): exit 0 means "reboot".
+# kured runs it in the host mount namespace.
+state=/var/lib/homeworld
+# A staged Fedora upgrade, or a host change apply.sh could not apply live
+# (k3s or containerd configuration).
+[ -e "$state/fedora-upgrade-staged" ] && exit 0
+[ -e "$state/reboot-required" ] && exit 0
+# dnf5 needs-restarting compares installed packages with the boot time and
+# needs no repository metadata. It exits 1 both when a reboot is recommended
+# and on errors, so require its message as well.
+out=$(LC_ALL=C dnf5 -q --disablerepo='*' needs-restarting 2>&1)
+[ $? -eq 1 ] && printf '%s\n' "$out" | grep -q '^Reboot is required'

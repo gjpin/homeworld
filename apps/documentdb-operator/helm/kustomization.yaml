@@ -20,9 +20,6 @@ patches:
       namespace: ^documentdb-operator$
     patch: |-
       - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
-      - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
   - target:
@@ -32,9 +29,6 @@ patches:
       name: ^sidecar-injector$
       namespace: ^cloudnative-pg$
     patch: |-
-      - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor

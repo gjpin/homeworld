@@ -79,27 +79,6 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-rustfs-s3-opencloud
-  namespace: rustfs
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  endpointSelector:
-    matchLabels:
-      k8s:rustfs.tenant: rustfs
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: opencloud
-            k8s:app.kubernetes.io/name: opencloud
-      toPorts:
-        - ports:
-            - port: "9000"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
   name: allow-rustfs-s3-notesnook
   namespace: rustfs
   annotations:

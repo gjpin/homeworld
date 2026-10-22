@@ -1,0 +1,10 @@
+[Unit]
+Description=Nightly agents VM rebuild window (02:00-02:30, Europe/Lisbon)
+
+[Timer]
+OnCalendar=*-*-* 02:00:00 Europe/Lisbon
+RandomizedDelaySec=10min
+Persistent=false
+
+[Install]
+WantedBy=timers.target

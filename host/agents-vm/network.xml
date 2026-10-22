@@ -1,0 +1,16 @@
+<!-- Routed libvirt network for the agents VM (docs/openchamber.md). No NAT:
+     the router routes 10.20.0.0/24 to the VM host, and firewalld policies
+     (host/apply.sh) decide what the VM may reach. dnsmasq hands out the
+     fixed lease and forwards DNS to the host resolver (the router's
+     AdGuard Home, so *.homeworld.internal resolves). -->
+<network>
+  <name>homeworld-agents</name>
+  <forward mode='route'/>
+  <bridge name='virbr-agents' stp='off' zone='homeworld-agents'/>
+  <ip address='10.20.0.1' prefix='24'>
+    <dhcp>
+      <range start='10.20.0.100' end='10.20.0.199'/>
+      <host mac='52:54:00:20:00:10' name='agents' ip='10.20.0.10'/>
+    </dhcp>
+  </ip>
+</network>

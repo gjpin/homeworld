@@ -1,0 +1,8 @@
+[Unit]
+Description=Rebuild the agents VM root when its pins changed
+Wants=network-online.target
+After=network-online.target libvirtd.service virtqemud.service k3s.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/homeworld/agents-vm-rebuild --if-pending

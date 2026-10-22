@@ -2,12 +2,12 @@ namespaceOverride: longhorn-system # mandatory namespace for this helm chart
 persistence:
   defaultClass: false
   # Inert while createStorageClass: false (the chart's own class is never
-  # created); longhorn-crypto's replica count is set in helm/storage_class.yaml.
-  defaultClassReplicaCount: 1
-  # The chart-generated `longhorn` StorageClass has no SELinux mountOptions
-  # (the chart exposes no mountOptions knob), so its creation is disabled;
-  # `longhorn-crypto` (helm/storage_class.yaml) is the only StorageClass this
-  # repo provisions and every PVC references it explicitly.
+  # created); the classes' replica counts are set in helm/storage_class.yaml.
+  defaultClassReplicaCount: 3
+  # The chart-generated `longhorn` StorageClass is unencrypted, so its
+  # creation is disabled; `longhorn-crypto` and `longhorn-scratch`
+  # (helm/storage_class.yaml) are the only StorageClasses this repo
+  # provisions and every PVC references one explicitly.
   createStorageClass: false
 defaultSettings:
   upgradeChecker: false
@@ -15,14 +15,19 @@ defaultSettings:
   # default; disabled per the AGENTS.md telemetry rule (the namespace's
   # egress policy would block it anyway).
   allowCollectingLonghornUsageMetrics: false
-  defaultReplicaCount: 1
+  # One replica per node: every volume survives the loss (or the kured
+  # reboot) of any node.
+  defaultReplicaCount: 3
   concurrentAutomaticEngineUpgradePerNodeLimit: 2
-  # The dedicated Longhorn disks provisioned by the UserVolumeConfig in
-  # docs/talos.md (longhorn-1/longhorn-2, exposed to the kubelet through
-  # the extraMounts patch); /var/lib/longhorn on the Talos ephemeral disk
-  # would lose all replica data on a node reset. The second disk is added
-  # through the Longhorn node CR after bootstrap (see docs/talos.md).
-  defaultDataPath: /var/mnt/longhorn-1
+  # Each node's single LUKS disk (the root logical volume, grown to the
+  # whole disk by host/bootstrap.sh).
+  defaultDataPath: /var/lib/longhorn
+  # The default disk comes from each node's
+  # node.longhorn.io/default-disks-config annotation (host/apply.sh), whose
+  # storageReserved keeps room for the OS, container images and, on the
+  # agents VM host, the VM's disks (host/nodes/<profile>.env).
+  createDefaultDiskLabeledNodes: true
+  storageOverProvisioningPercentage: 150
 # Helm hook Jobs rendered through kustomize land in the Argo sync path as
 # plain Jobs, where hook annotations are inert and the immutable Job spec
 # breaks every chart bump (the completed Jobs from the first sync reject

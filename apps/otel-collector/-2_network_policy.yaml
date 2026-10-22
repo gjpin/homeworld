@@ -504,9 +504,9 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   # apps/kube-control-plane monitors: the API servers (default/kubernetes
-  # endpoints on 6443), and the host-network kube-scheduler (10259),
-  # kube-controller-manager (10257), and Talos etcd metrics listener (2381)
-  # on every control plane node, local or remote.
+  # endpoints on 6443), and the k3s server process's kube-scheduler (10259),
+  # kube-controller-manager (10257), and etcd metrics listener (2381) on
+  # every control plane node, local or remote.
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -742,7 +742,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-otel-pod-scrape-generic-device-plugin
+  name: allow-otel-pod-scrape-kured
   namespace: otel-collector
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -755,11 +755,35 @@ spec:
   egress:
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kube-system
-            k8s:app.kubernetes.io/name: generic-device-plugin
+            k8s:io.kubernetes.pod.namespace: kured
+            k8s:app.kubernetes.io/name: kured
       toPorts:
         - ports:
             - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-vmalert
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: victoria-metrics
+            k8s:app.kubernetes.io/name: victoria-metrics-alert
+            k8s:app.kubernetes.io/instance: vmalert
+      toPorts:
+        - ports:
+            - port: "8880"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -1195,6 +1219,33 @@ spec:
             k8s:io.kubernetes.pod.namespace: vaultwarden
       toPorts:
         - ports:
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-coder
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Coder's PodMonitor scrapes coderd's Prometheus endpoint (named port
+  # prometheus-http 2112, enabled via CODER_PROMETHEUS_ENABLE) and its
+  # CNPG PodMonitor scrapes the CloudNativePG instance metrics port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: coder
+      toPorts:
+        - ports:
+            - port: "2112"
+              protocol: TCP
             - port: "9187"
               protocol: TCP
 ---

@@ -1,0 +1,15 @@
+#!/bin/sh
+# homeworld-pull.service: fetch the public main branch over HTTPS and run its
+# host/apply.sh. No signature check (accepted in docs/fedora.md).
+set -eu
+. /etc/homeworld/cluster.env
+dest=/var/lib/homeworld/src
+tmp=$(mktemp -d /var/lib/homeworld/src.XXXXXX)
+trap 'rm -rf "$tmp"' EXIT
+curl -fsSL --retry 3 "$REPO_TARBALL" | tar -xz -C "$tmp" --strip-components=1
+rm -rf "$dest.old"
+[ -d "$dest" ] && mv "$dest" "$dest.old"
+mv "$tmp" "$dest"
+trap - EXIT
+rm -rf "$dest.old"
+exec "$dest/host/apply.sh"

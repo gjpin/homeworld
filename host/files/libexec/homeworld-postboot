@@ -1,0 +1,40 @@
+#!/bin/sh
+# Boot-time health check (homeworld-postboot.service), most importantly after
+# an offline Fedora upgrade. Clears the upgrade markers once the node runs the
+# target release. On any failure the node taints and cordons itself: the
+# vmalert NodePostbootFailed rule then fires and kured stops rebooting nodes.
+# (kured uncordons the node it rebooted, but leaves the taint alone.)
+set -u
+state=/var/lib/homeworld
+taint=node.homeworld.internal/postboot-failed
+. /etc/os-release
+fail=
+if [ -e "$state/fedora-upgrade-attempted" ]; then
+  if [ "$(cat "$state/fedora-upgrade-attempted")" = "$VERSION_ID" ]; then
+    rm -f "$state/fedora-upgrade-staged" "$state/fedora-upgrade-attempted"
+  else
+    fail="$fail fedora-upgrade-not-applied"
+  fi
+fi
+[ "$(getenforce)" = Enforcing ] || fail="$fail selinux-not-enforcing"
+semodule -l | grep -qx k3s || fail="$fail k3s-selinux-module-missing"
+ready() {
+  [ "$(k3s kubectl get node "$(hostname)" \
+    -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null)" = True ]
+}
+i=0
+until systemctl is-active -q k3s && ready; do
+  i=$((i + 1))
+  [ "$i" -ge 120 ] && break
+  sleep 5
+done
+systemctl is-active -q k3s || fail="$fail k3s-inactive"
+ready || fail="$fail node-not-ready"
+if [ -n "$fail" ]; then
+  echo "homeworld-postboot: failed:$fail (fedora $VERSION_ID)"
+  k3s kubectl taint node "$(hostname)" "$taint=true:NoSchedule" --overwrite 2>/dev/null || true
+  k3s kubectl cordon "$(hostname)" 2>/dev/null || true
+  exit 1
+fi
+k3s kubectl taint node "$(hostname)" "$taint:NoSchedule-" >/dev/null 2>&1 || true
+echo "homeworld-postboot: ok (fedora $VERSION_ID)"

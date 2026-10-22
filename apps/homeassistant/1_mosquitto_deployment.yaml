@@ -24,7 +24,6 @@ spec:
       serviceAccountName: homeassistant-app
       automountServiceAccountToken: false
       runtimeClassName: gvisor
-      hostUsers: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 1883
@@ -38,7 +37,7 @@ spec:
         # start, so a rotated secret takes effect when the pod restarts. The
         # file lives in a memory-backed emptyDir and never reaches the PVC.
         - name: mosquitto-passwd
-          image: docker.io/library/eclipse-mosquitto:2.1.2
+          image: docker.io/library/eclipse-mosquitto:2.1.2-alpine
           imagePullPolicy: IfNotPresent
           command:
             - sh
@@ -79,7 +78,7 @@ spec:
             - mountPath: /mosquitto/auth
               name: mosquitto-auth
       containers:
-        - image: docker.io/library/eclipse-mosquitto:2.1.2
+        - image: docker.io/library/eclipse-mosquitto:2.1.2-alpine
           imagePullPolicy: IfNotPresent
           name: homeassistant-mosquitto
           ports:

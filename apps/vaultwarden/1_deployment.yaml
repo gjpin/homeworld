@@ -25,7 +25,6 @@ spec:
       serviceAccountName: vaultwarden-app
       automountServiceAccountToken: false
       runtimeClassName: gvisor
-      hostUsers: false
       securityContext:
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch

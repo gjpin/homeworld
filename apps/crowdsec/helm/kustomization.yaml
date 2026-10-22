@@ -37,9 +37,6 @@ patches:
       name: ^crowdsec-lapi$
     patch: |-
       - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
-      - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
   - target:
@@ -48,9 +45,6 @@ patches:
       kind: Deployment
       name: ^crowdsec-appsec$
     patch: |-
-      - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
@@ -145,9 +139,6 @@ patches:
         value: crowdsec
       # hook-delete-policy removes a completed Job so it is re-created —
       # never updated — with the fresh image on every sync.
-      - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor

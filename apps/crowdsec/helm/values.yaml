@@ -107,6 +107,12 @@ config:
 agent:
   enabled: true
   podSecurityContext:
+    # The agent tails /var/log/containers and /var/log/pods (container_log_t)
+    # with inotify watches; container_t (and container_logreader_t) may not
+    # watch those directories under SELinux enforcing, so the agent runs as
+    # spc_t (docs/pod-security.md).
+    seLinuxOptions:
+      type: spc_t
     seccompProfile:
       type: RuntimeDefault
   securityContext:

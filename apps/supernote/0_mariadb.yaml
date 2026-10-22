@@ -29,7 +29,7 @@ spec:
   database: supernotedb
   port: 3306
   storage:
-    size: 5Gi
+    size: 2Gi
     storageClassName: longhorn-crypto
   # skip-name-resolve matches upstream's compose deployment: every
   # operator-managed user is defined for host '%', so reverse DNS lookups

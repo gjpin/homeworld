@@ -8,7 +8,7 @@ metadata:
     io.kompose.service: homeassistant-zigbee2mqtt
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-    security.homeworld/exception-reason: "Zigbee2MQTT requires hostPath access to /dev/serial/by-id and supplemental group 20 to communicate with the physical Zigbee USB coordinator."
+    security.homeworld/exception-reason: "Zigbee2MQTT requires hostPath access to /dev/serial/by-id and supplemental group 20 to communicate with the physical Zigbee USB coordinator. SELinux container_t cannot open the coordinator's tty device (usbtty_device_t, tty_device_t), so the pod runs as spc_t, and it keeps the host user namespace so group 20 matches the device node's dialout group."
 spec:
   replicas: 1
   selector:
@@ -24,10 +24,18 @@ spec:
     spec:
       serviceAccountName: homeassistant-app
       automountServiceAccountToken: false
-      hostUsers: false
+      # The serial device keeps its host owner (root:dialout): inside a pod
+      # user namespace supplemental group 20 would map to another host ID.
+      hostUsers: true
       nodeSelector:
         environment: zigbee
       securityContext:
+        # container_t may not open the coordinator's tty (usbtty_device_t for
+        # /dev/ttyUSB*, tty_device_t for /dev/ttyACM*) without the host-wide
+        # container_use_devices boolean; spc_t scopes the exception to this
+        # pod (docs/pod-security.md).
+        seLinuxOptions:
+          type: spc_t
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 1000

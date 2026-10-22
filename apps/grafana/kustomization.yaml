@@ -34,6 +34,22 @@ configMapGenerator:
   - name: grafana-dashboard-cloudnative-pg
     files:
       - json=dashboards/cloudnative-pg/cloudnative-pg.json
+  # coder
+  - name: grafana-dashboard-coder-coderd
+    files:
+      - json=dashboards/coder/coderd.json
+  - name: grafana-dashboard-coder-provisionerd
+    files:
+      - json=dashboards/coder/provisionerd.json
+  - name: grafana-dashboard-coder-workspaces
+    files:
+      - json=dashboards/coder/workspaces.json
+  - name: grafana-dashboard-coder-workspace-detail
+    files:
+      - json=dashboards/coder/workspace-detail.json
+  - name: grafana-dashboard-coder-derp
+    files:
+      - json=dashboards/coder/derp.json
   # collabora
   - name: grafana-dashboard-collabora-ha-allocation
     files:
@@ -80,10 +96,6 @@ configMapGenerator:
   - name: grafana-dashboard-forgejo
     files:
       - json=dashboards/forgejo/forgejo.json
-  # generic-device-plugin
-  - name: grafana-dashboard-generic-device-plugin
-    files:
-      - json=dashboards/generic-device-plugin/generic-device-plugin.json
   # grafana
   - name: grafana-dashboard-grafana
     files:
@@ -161,6 +173,10 @@ configMapGenerator:
   - name: grafana-dashboard-rustfs-operator
     files:
       - json=dashboards/rustfs-operator/rustfs-operator.json
+  # kured
+  - name: grafana-dashboard-kured
+    files:
+      - json=dashboards/kured/kured.json
   # trust-manager
   - name: grafana-dashboard-trust-manager
     files:
@@ -179,6 +195,9 @@ configMapGenerator:
   - name: grafana-dashboard-victoriatraces
     files:
       - json=dashboards/victoria-metrics/victoriatraces.json
+  - name: grafana-dashboard-vmalert
+    files:
+      - json=dashboards/victoria-metrics/vmalert.json
   # woodpecker
   - name: grafana-dashboard-woodpecker
     files:
@@ -194,6 +213,7 @@ resources:
   - 1_dashboards_cert-manager.yaml
   - 1_dashboards_cilium.yaml
   - 1_dashboards_cloudnative-pg.yaml
+  - 1_dashboards_coder.yaml
   - 1_dashboards_collabora.yaml
   - 1_dashboards_crowdsec.yaml
   - 1_dashboards_crowdsec-envoy-bouncer.yaml
@@ -201,13 +221,13 @@ resources:
   - 1_dashboards_envoy-gateway.yaml
   - 1_dashboards_external-secrets.yaml
   - 1_dashboards_forgejo.yaml
-  - 1_dashboards_generic-device-plugin.yaml
   - 1_dashboards_grafana.yaml
   - 1_dashboards_grafana-operator.yaml
   - 1_dashboards_homeassistant.yaml
   - 1_dashboards_immich.yaml
   - 1_dashboards_kube-control-plane.yaml
   - 1_dashboards_kube-state-metrics.yaml
+  - 1_dashboards_kured.yaml
   - 1_dashboards_kubelet-serving-cert-approver.yaml
   - 1_dashboards_longhorn.yaml
   - 1_dashboards_mariadb-operator.yaml

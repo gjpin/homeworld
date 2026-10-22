@@ -20,6 +20,14 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   their exact Argo CD sync wave (e.g. `-2_network_policy.yaml`, `-1_secrets.yaml`,
   `0_gateway.yaml`, `1_helm.yaml`, `2_http_route.yaml`).
 - `apps/grafana/dashboards/<app>/`: dashboard JSON for the app's Grafana folder.
+- `host/`: the Fedora/k3s hosts, outside Argo CD (docs/k3s.md, docs/fedora.md):
+  `bootstrap.sh` (one-time node bootstrap), `apply.sh` (idempotent converger
+  run hourly from `main` on every node), `cluster.env` and `versions.env`
+  (coordinates and pins), `nodes/<profile>.env` (per-hardware profiles),
+  `files/` (k3s, containerd, firewalld, systemd, kured helpers), and
+  `agents-vm/` (the libvirt agents VM on the Ryzen, docs/openchamber.md).
+- `bootstrap/argocd-values.yaml`: the minimal Argo CD bootstrap.sh installs
+  before `apps/argocd` adopts it.
 - `README.md`: required environment variables, bootstrap notes, and sync-wave documentation.
 
 ## Manifest conventions
@@ -49,8 +57,9 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   actual generated manifests rather than relying on input values alone.
   Confirm that all required resources and configurations are actually emitted,
   including `ServiceMonitor` definitions (with the standard `60s` interval),
-  Pod Security Standards contexts, user namespaces (`hostUsers: false`),
-  container requests and limits, services, and port mappings.
+  Pod Security Standards contexts, `runtimeClassName: gvisor` (or
+  `hostUsers: false` on standard-runtime Pods), container requests and
+  limits, services, and port mappings.
 - Helm installations must use official upstream charts. When no official
   chart exists, do not adopt an unofficial or community chart: review how
   several unofficial charts package the application (deployment structure,
@@ -92,6 +101,12 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   needs a matching per-service `allow-envoy-backend-<service>` egress CiliumNetworkPolicy
   in `apps/envoy-gateway` (one port per rule — Cilium applies `toPorts` to every
   `toServices` entry) plus an ingress rule on the app side, and a `docs/network-policies.md` row.
+- Every browser web UI gets a Homepage entry in `apps/homepage/0_config.yaml`
+  (`services.yaml`, in the fitting group) linking its public hostname, with a
+  `siteMonitor` unless the route sits behind gateway OIDC or the app
+  auto-redirects to Authelia (an unauthenticated probe would measure the portal).
+  List the app in the README's user-facing Apps table or the Platform table
+  (operators, foundations, and supporting services) accordingly.
 - Under default-deny ingress, kubelet readiness/liveness probes are covered by
   Cilium's implicit ALLOW for local-host→local-pod traffic (see
   docs/network-policies.md): explicit `fromEntities: host` probe rules are
@@ -136,24 +151,29 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   resource, with schema seeds as `SqlJob`s); do not deploy application-bundled
   MariaDB/MySQL or standalone `mysqld` StatefulSets. Each instance sets
   `updateStrategy.mariadbAutoUpgradeEnabled`, pins `innodb_fast_shutdown=1`,
-  and ships a daily volume-snapshot `PhysicalBackup` plus a PreSync-hook
-  `PhysicalBackup` (`target: PreferReplica`, class `mariadb-longhorn`) so image
-  upgrades never roll without a fresh backup (Supernote is the reference).
+  and ships a PreSync-hook volume-snapshot `PhysicalBackup`
+  (`target: PreferReplica`, class `mariadb-longhorn`) so image upgrades never
+  roll without a fresh backup (Supernote is the reference); Velero's nightly
+  B2 copy is the scheduled backup.
 - Every S3 or object storage requirement must be satisfied by the cluster's
   RustFS Operator or existing shared RustFS `Tenant` store; do not deploy
   application-bundled object storage engines (e.g. MinIO).
-- Every `StorageClass` provisioning filesystem volumes must declare the Talos
-  SELinux mount option:
-
-  ```yaml
-  mountOptions:
-    - context=system_u:object_r:ephemeral_t:s0
-  ```
-
-  This ensures the CSI driver mounts filesystems with the `ephemeral_t` label
-  required for unprivileged and Restricted pod access under Talos SELinux.
-  Volumes requested as `volumeMode: Block` contain no filesystem, so they need
-  no label.
+- StorageClasses and PersistentVolumes set no SELinux `context=` mount
+  option: the Longhorn and NFS CSI drivers drop it. Longhorn filesystem
+  volumes are relabelled per pod; NFS files stay `nfs_t`, which confined
+  containers reach through the `virt_use_nfs` boolean that `host/apply.sh`
+  keeps on (docs/pod-security.md).
+- Bulk data lives on the NAS over NFS (docs/nas.md), never on Longhorn. Every
+  NFS-backed volume uses its own OpenMediaVault share exported with
+  `rw,sync,no_subtree_check,all_squash,anonuid=<ID>,anongid=<ID>,sec=sys` to
+  the node addresses only (never `no_root_squash`), owned by a dedicated
+  numeric ID (`2000x`); a static `Retain` PersistentVolume on the
+  `nfs.csi.k8s.io` driver, mounted by IP (`192.168.8.20`) with `nfsvers=4.1`
+  and bound to its claim by `volumeName`; Pods that mount it run as the
+  share's ID (`runAsUser`/`runAsGroup`, plus `fsGroup` for their Longhorn
+  volumes) with `hostUsers: true` and a resource-scoped exception (NFS has no
+  idmapped mounts); Velero's volume policy skips it. Add the share to
+  docs/nas.md.
 - Every Argo CD `Application` resource (root in `apps/app-of-apps.yaml` and child
   manifests under `apps/<component>/`) must declare `ServerSideApply=true` under
   `spec.syncPolicy.syncOptions` by default to prevent client-side apply
@@ -248,7 +268,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   redirect cannot complete without a browser. Remove headless consumers of a
   protected route (e.g. Homepage siteMonitors) instead of exempting them.
   Apps that cannot delegate their login at all (Collabora's WOPI route, the
-  RustFS operator console, OpenChamber pairing, the Notesnook stack) keep
+  RustFS operator console, OpenChamber and Paseo pairing, the Notesnook stack) keep
   app-native access control, with the reason documented in `docs/oidc.md`.
 - Apps without native OIDC support may use a pinned community integration
   delivered by a sha256-verified init container (hass-oidc-auth pattern,
@@ -312,24 +332,30 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 
 ## Kubernetes 1.37 user namespaces
 
-- Opt every compatible Pod into user namespaces with `spec.hostUsers: false`.
-  For Helm workloads, use the chart's exact value key (preferred) or a Kustomize
-  patch if not exposed. For handwritten manifests, declare `hostUsers: false`
-  directly in the Pod template spec. For operator-generated Pods, use a supported
-  operator pod-template or patch mechanism (e.g. CNPG `podPatch` or
-  MutatingAdmissionPolicy); do not add unknown fields to a custom resource.
+- gVisor cannot join a pod user namespace (google/gvisor#13303), so gVisor
+  Pods keep the default `hostUsers` (the host user namespace); never set
+  `hostUsers: false` on a Pod with `runtimeClassName: gvisor`. The sandbox
+  kernel is their isolation boundary.
+- Opt every compatible standard-runtime (runc) Pod into user namespaces with
+  `spec.hostUsers: false`. For Helm workloads, use the chart's exact value key
+  (preferred) or a Kustomize patch if not exposed. For handwritten manifests,
+  declare `hostUsers: false` directly in the Pod template spec. For
+  operator-generated Pods, use a supported operator pod-template or patch
+  mechanism (e.g. CNPG `podPatch` or MutatingAdmissionPolicy); do not add
+  unknown fields to a custom resource.
 - For Helm workloads, render the chart with proposed values or patches to
-  verify the final Pod specs actually contain `hostUsers: false`, not only the
-  input values. Also verify every operator-generated operand and handwritten
-  resource.
+  verify the final Pod specs actually contain the intended `hostUsers`, not
+  only the input values. Also verify every operator-generated operand and
+  handwritten resource.
 - Update `docs/pod-security.md` (the User Namespaces table) whenever user
   namespace adoption or exception status changes, or when adding a new
   application.
 - A Pod with `hostUsers: false` must not use `hostNetwork`, `hostIPC`, or
   `hostPID`, and must not use `volumeDevices` or NFS volumes. Preserve
-  `hostUsers: true` or the default only for documented host integration,
-  unsupported operator-generated Pods, or incompatible filesystems, and add a
-  resource-scoped exception explaining the reason.
+  `hostUsers: true` or the default only for gVisor Pods, documented host
+  integration, unsupported operator-generated Pods, or incompatible
+  filesystems (NFS), and add a resource-scoped exception explaining the
+  reason.
 - Recheck existing Pods after changing admission policies or generated Pod
   templates; user-namespace mutations apply when Pods are created or recreated.
 
@@ -337,7 +363,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 
 - Opt every compatible Pod into gVisor runtime sandboxing with `spec.runtimeClassName: gvisor`.
 - For Helm workloads, use the chart's exact value key or a Kustomize patch if not exposed. For handwritten manifests, declare `runtimeClassName: gvisor` directly in the Pod template spec. For operator-generated Pods, use a supported operator pod-template or patch mechanism.
-- A Pod with `runtimeClassName: gvisor` must not use `hostNetwork`, host block devices, or direct node filesystem integration. Preserve standard runtimes only for the documented exceptions (`cilium-agent`, `cilium-envoy`, `cilium-operator`, `crowdsec-agent`, `generic-device-plugin`, `longhorn-manager`, `otel-collector-node`, `velero-node-agent`, the gluetun-based qBittorrent pod, `zigbee2mqtt`, and operator-generated operands whose pod templates the CRD cannot set — CNPG, Dragonfly, DocumentDB, MariaDB Operator, and RustFS Tenant operands). Keep the gVisor table in `docs/pod-security.md` as the source of truth for the exact list. Operator-spawned pods that accept a runtime class per-instance (e.g. Woodpecker pipeline pods) opt in through the operator's allow-from-step flag plus per-pipeline backend options, never a repo-level manifest.
+- A Pod with `runtimeClassName: gvisor` must not use `hostNetwork`, host block devices, or direct node filesystem integration. Preserve standard runtimes only for the documented exceptions (`cilium-agent`, `cilium-envoy`, `cilium-operator`, `crowdsec-agent`, `csi-nfs-node`, `kured`, `longhorn-manager`, `otel-collector-node`, `velero-node-agent`, the k3s upgrade Jobs of system-upgrade-controller, the qBittorrent pod (gluetun's policy routing needs netlink rules gVisor lacks), `zigbee2mqtt`, the k3s-managed `kube-system` components (kube-vip, CoreDNS), and operator-generated operands whose pod templates the CRD cannot set — CNPG, Dragonfly, DocumentDB, MariaDB Operator, and RustFS Tenant operands). Standard-runtime Pods are confined by SELinux (`container_t`); one whose host integration `container_t` denies runs as `spc_t` with a resource-scoped exception (docs/pod-security.md). Keep the gVisor table in `docs/pod-security.md` as the source of truth for the exact list. Operator-spawned pods that accept a runtime class per-instance (e.g. Woodpecker pipeline pods) opt in through the operator's allow-from-step flag plus per-pipeline backend options, never a repo-level manifest.
 
 ## In-cluster trust of the Homeworld CA
 
@@ -386,14 +412,16 @@ default. When onboarding or changing an app:
 ## New component checklist
 
 - `fullnameOverride`
-- `runtimeClassName: gvisor` (where supported)
+- `runtimeClassName: gvisor` (where supported; otherwise `hostUsers: false`)
 - Gateway listener and `HTTPRoute` (if applicable)
+- Homepage entry for every browser web UI (`apps/homepage/0_config.yaml`)
+- README Apps (user-facing) or Platform table row
 - `ServiceMonitor`
 - Grafana dashboard in the app's Grafana folder (Grafana dashboard conventions above; docs/grafana-dashboards.md)
 - `ServerSideApply=true` in `spec.syncPolicy.syncOptions` for all `Application` resources
 - Standard intra-component sync waves (-2 network policy, -1 secrets, 0 datastore/gateway, 1 workload, 2 routes)
   with manifest filenames strictly matching `<wave>_<descriptor>.yaml`.
-- StorageClass SELinux mount options (`context=system_u:object_r:ephemeral_t:s0`) for CSI filesystem volumes
+- Bulk data on a per-app NAS share following the NFS rule above, never on Longhorn
 - CRD ordering: newly added apps with CRDs must install CRDs before workloads (and support declarative upgrades via `ServerSideApply=true`), with `docs/argocd.md` updated within the existing text.
 - Document Pod Security Standards compliance and User Namespaces status in `docs/pod-security.md`.
 - Document Authelia OIDC integration status or sign-in behavior in `docs/oidc.md`.
@@ -413,6 +441,30 @@ default. When onboarding or changing an app:
 
 - Check the upstream chart/image documentation before changing a version or
   values schema.
+- Every application upgrade, including reviewing or merging Renovate PRs,
+  starts with the upstream release notes (changelog, upgrade guide, chart
+  README *Upgrading* section) for every version between the current pin and
+  the target, not only the PR body. Majors always need this, and so do
+  operator and CNI minors. When a chart bump ships a new application version,
+  read the application's notes as well as the chart's. Look for removed or
+  renamed config keys and values, new prerequisites (CRD, Gateway API,
+  Kubernetes, or dependency minimums), required version stepping, and
+  one-time manual steps. Then re-verify this repository's own inputs against
+  the target version: every Helm values key still exists in the new chart's
+  `values.yaml`/`values.schema.json` and keeps its meaning (unknown keys are
+  silently ignored); Kustomize patches still match their targets and fields;
+  application configuration (config templates, ConfigMaps, environment
+  variables, CLI flags, CRD fields) uses no removed, renamed, or deprecated
+  option and adopts the documented replacement. Render the chart before and
+  after the bump and diff the output to confirm the intended resources and
+  fields are still emitted. Apply declarative changes in the same PR. Before
+  merging, report any manual step, or an upgrade that crosses an unsupported
+  jump, to the user instead of merging. Follow `docs/upgrades.md` (version
+  stepping in §4, per-app procedures in §9); `scripts/upgrade-report.sh`
+  gathers the release notes, values drift, render diff, and convention
+  findings for a range, and the `/upgrade` skill works Renovate PRs end to
+  end. When a release introduces a new
+  standing procedure, add it to §9 and to the app's Renovate `prBodyNotes`.
 - Before modifying an existing Helm installation or adding a new one, render
   the exact pinned chart with the proposed values and patches, and inspect all
   generated resources. Ground chart versions, value keys, resource names,
@@ -420,8 +472,8 @@ default. When onboarding or changing an app:
   that render rather than assumptions from defaults or documentation alone.
   Specifically inspect the rendered output to confirm all required resources
   and fields are actually emitted (e.g. `ServiceMonitor` with `60s` interval,
-  Pod Security Standards contexts, `hostUsers: false`, and container
-  resource requests/limits).
+  Pod Security Standards contexts, `runtimeClassName`/`hostUsers`, and
+  container resource requests/limits).
 - For a new component, create `apps/<component>/` and prefix every manifest with
   its exact Argo CD sync wave number (`<wave>_<descriptor>.yaml`).
 - Add the component to `apps/app-of-apps.yaml` with the correct destination
@@ -449,6 +501,12 @@ default. When onboarding or changing an app:
   `docs/argocd.md` must be updated within the existing text.
 - Do not run `kubectl apply`, `helm install/upgrade` or Argo CD sync
   unless the user explicitly asks to change a live system.
+- Host changes go through `host/` and reach the nodes on their hourly pull;
+  keep `apply.sh` idempotent (change only what differs) and leave the
+  `reboot-required` marker for files k3s or containerd read only at start
+  instead of restarting them. Never change the k3s version in `apply.sh`:
+  `K3S_VERSION` and the system-upgrade-controller Plans move together
+  through the `kubernetes-version` Renovate group.
 
 ## Validation
 
@@ -477,6 +535,10 @@ scripts/check-yaml-duplicates.sh
 # External Secrets' template rules: templated targets hold only templated
 # keys unless mergePolicy is Merge).
 scripts/check-secret-refs.sh
+
+# Shell syntax of the host scripts (shellcheck as well when it is installed).
+for f in host/*.sh host/agents-vm/*.sh; do bash -n "$f"; done
+for f in host/files/libexec/*; do sh -n "$f"; done
 ```
 
 Helm inflation requires an explicit flag in every local render: use

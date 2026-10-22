@@ -1,0 +1,7 @@
+# Written by host/apply.sh to /etc/ssh/sshd_config.d/10-homeworld.conf.
+# Key-only SSH on the node address: the Gateway VIP's port 22 (Forgejo SSH
+# through Envoy) must never land on sshd.
+ListenAddress @NODE_IP@
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin no

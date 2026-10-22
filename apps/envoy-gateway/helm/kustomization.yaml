@@ -12,13 +12,12 @@ helmCharts:
     skipTests: true
     valuesFile: values.yaml
 patches:
-  # --- Gateway API CRDs are owned by the dedicated `gateway-api-crd`
-  # application (apps/envoy-gateway/0_crds.yaml, experimental v1.6.2, wave 0
-  # ahead of every consumer). The chart bundles its own copy (v1.6.1); both
-  # Applications run with ServerSideApply and self-heal, so leaving the
-  # bundled copies in this render would give every CRD two competing owners
-  # fighting over fields. Patch-delete them here and keep only the
-  # envoyproxy.io CRDs from the chart.
+  # --- Gateway API CRDs come from k3s: its gateway-api-crd addon installs
+  # the standard channel on every server start and moves with each k3s
+  # upgrade (docs/k3s.md). The chart bundles its own copy; applying it too
+  # would give every CRD two competing owners fighting over fields.
+  # Patch-delete them here and keep only the envoyproxy.io CRDs from the
+  # chart.
   - target:
       group: apiextensions.k8s.io
       version: v1
@@ -137,9 +136,6 @@ patches:
       namespace: ^envoy-gateway$
     patch: |-
       - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
-      - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
   # The controller's metrics are scraped through the handwritten ServiceMonitor
@@ -230,9 +226,6 @@ patches:
       name: ^envoy-gateway-gateway-helm-certgen$
       namespace: ^envoy-gateway$
     patch: |-
-      - op: add
-        path: /spec/template/spec/hostUsers
-        value: false
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
