@@ -122,4 +122,4 @@ config:
     tag: v0.20.0
   exporterMaxscaleImage:
     repository: docker.io/mariadb/maxscale-prometheus-exporter-ubi
-    tag: 1.2.1
+    tag: 1.2.2
