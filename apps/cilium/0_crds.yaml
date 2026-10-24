@@ -34,5 +34,5 @@ spec:
       - ServerSideApply=true
   source:
     repoURL: https://github.com/cilium/cilium.git
-    targetRevision: v1.20.2
+    targetRevision: v1.20.4
     path: pkg/k8s/apis/cilium.io/client/crds/v2
