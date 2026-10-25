@@ -178,7 +178,7 @@ spec:
             - mountPath: /config
               name: homeassistant-claim0
       containers:
-        - image: ghcr.io/home-assistant/home-assistant:2026.10.1
+        - image: ghcr.io/home-assistant/home-assistant:2026.10.4
           imagePullPolicy: IfNotPresent
           name: homeassistant
           ports:
