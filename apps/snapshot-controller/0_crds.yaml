@@ -36,5 +36,5 @@ spec:
       - ServerSideApply=true
   source:
     repoURL: https://github.com/kubernetes-csi/external-snapshotter.git
-    targetRevision: v8.6.0
+    targetRevision: v8.7.0
     path: client/config/crd
