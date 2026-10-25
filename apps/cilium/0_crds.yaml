@@ -1,4 +1,4 @@
-# https://github.com/cilium/cilium/tree/v1.20.2/pkg/k8s/apis/cilium.io/client/crds/v2
+# https://github.com/cilium/cilium/tree/v1.20.4/pkg/k8s/apis/cilium.io/client/crds/v2
 # The Cilium Helm chart ships no CRDs, so the policy and datapath CRDs are
 # applied from the matching Git tag. The CiliumNetworkPolicy CRDs are
 # required by every component's -2_network_policy.yaml, and are installed
