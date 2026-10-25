@@ -208,7 +208,7 @@ The Homepage dashboard's live widgets authenticate to four services with dedicat
 Homepage reads its dashboard configuration (`apps/homepage/0_config.yaml`) at startup; after changing it, restart the pod with `kubectl -n homepage rollout restart deploy/homepage`.
 
 ### 12. Set Up Coder
-Sign in to `https://coder.homeworld.internal` with a `coder-user` account; the first sign-in becomes the deployment Owner. Then push the workspace template from `apps/coder/template/` and configure an LLM provider for Coder Agents, following [docs/coder.md](docs/coder.md).
+Sign in to `https://coder.homeworld.internal` with a `coder-user` account; the first sign-in becomes the deployment Owner. Then make the `coder-workspace` package on GitHub public after the image workflow's first push, push the workspace template from `apps/coder/template/`, and configure an LLM provider for Coder Agents, following [docs/coder.md](docs/coder.md).
 
 ### 13. Use the Agents VM
 The Ryzen node builds the agents VM during its bootstrap ([docs/openchamber.md](docs/openchamber.md)):
