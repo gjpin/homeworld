@@ -79,6 +79,16 @@ work="$out_dir/.work"
 rm -rf "$work"
 mkdir -p "$work/cache"
 
+# Every chart and image here is public: query registries anonymously. With
+# no credentials configured, Helm and crane fall back to the platform's
+# native credential helper, which can block indefinitely (the macOS keychain
+# waiting on an access prompt). A non-empty auths map turns that detection
+# off.
+mkdir -p "$work/registry"
+echo '{"auths": {"anonymous.invalid": {}}}' >"$work/registry/config.json"
+export DOCKER_CONFIG="$work/registry"
+export HELM_REGISTRY_CONFIG="$work/registry/config.json"
+
 base_tree="$work/base"
 head_tree="$work/head"
 
@@ -484,7 +494,8 @@ for component in "${components[@]}"; do
         cp "$rdir/head.yaml" "$rdir/base.yaml"
         cp "$rdir/head.render.err" "$rdir/base.render.err"
       elif [[ -f "$tree/$kust" ]]; then
-        if ! kubectl kustomize --enable-helm "$tree/$kdir" >"$rdir/$side.yaml" 2>"$rdir/$side.render.err"; then
+        # A stalled chart pull would otherwise hang the report indefinitely.
+        if ! timeout 300 kubectl kustomize --enable-helm "$tree/$kdir" >"$rdir/$side.yaml" 2>"$rdir/$side.render.err"; then
           render_failed=true
           : >"$rdir/$side.yaml"
         fi
