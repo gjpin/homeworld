@@ -12,15 +12,6 @@ helmCharts:
     skipTests: true
     valuesFile: values.yaml
 patches:
-  - target:
-      group: storage.k8s.io
-      version: v1
-      kind: CSIDriver
-      name: ^nfs\.csi\.k8s\.io$
-    patch: |-
-      - op: add
-        path: /spec/fsGroupPolicy
-        value: None
   # The controller (provisioner, resizer, snapshotter) only serves dynamic
   # provisioning, which this cluster does not use.
   - target:
