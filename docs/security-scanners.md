@@ -27,7 +27,7 @@ Scanner tool versions are pinned in `.github/workflows/validate.yaml` and update
 Kubescape exceptions live in two files that must stay in sync:
 
 - `security/exceptions.yaml` — the human-maintained registry. Each entry records the Kubescape control ID (`check`), the control name, the scanner, the target profile, an owner, and the reason the finding is accepted.
-- `security/kubescape-exceptions.json` — the same exceptions in Kubescape's `postureExceptionPolicy` format, which `scan-security.sh` passes to the scanner. Every policy uses the `alertOnly` action: matching resources still appear in the report but no longer count as control failures.
+- `security/kubescape-exceptions.json` — the same exceptions in Kubescape's `postureExceptionPolicy` format, which `scan-security.sh` passes to the scanner. Every policy uses the `alertOnly` action: matching resources still appear in the report but no longer count as control failures. Policies select by `controlID` only and set no `frameworkName`: Kubescape evaluates the JSON report's exception status without a framework filter, so a framework-scoped policy matches the resource but never marks its failure `w/exceptions`.
 
 `scripts/validate-security-exceptions.sh` enforces the contract between the two files and the shape of every entry:
 
