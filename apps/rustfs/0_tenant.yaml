@@ -8,12 +8,13 @@ metadata:
   annotations:
     security.homeworld/exception-reason: Pinned RustFS Operator does not emit all Restricted pod and container security fields for Tenant pods.
 spec:
-  image: docker.io/rustfs/rustfs:1.0.3
+  image: docker.io/rustfs/rustfs:1.0.4
   imagePullPolicy: IfNotPresent
   credsSecret:
     name: rustfs-admin-credentials
-  # Discovery runs once at process start. Authelia is a later sync wave, so
-  # console SSO appears after this pod is restarted once Authelia is up.
+  # Authelia is a later sync wave: when startup discovery fails, RustFS keeps
+  # the provider and retries discovery in the background, so console SSO
+  # appears once Authelia is up without a restart.
   env:
     - name: RUSTFS_IDENTITY_OPENID_ENABLE
       value: "on"
