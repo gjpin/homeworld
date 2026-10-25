@@ -1,4 +1,4 @@
-# https://github.com/kubernetes-csi/external-snapshotter/blob/v8.6.0/deploy/kubernetes/snapshot-controller/
+# https://github.com/kubernetes-csi/external-snapshotter/blob/v8.7.0/deploy/kubernetes/snapshot-controller/
 #
 # Handwritten transcription of the upstream deploy manifests: the upstream
 # files hardcode the kube-system namespace, run 2 replicas, ship no security
@@ -46,9 +46,9 @@ rules:
   - apiGroups: ["snapshot.storage.k8s.io"]
     resources: ["volumesnapshots/status"]
     verbs: ["update", "patch"]
-  # Group snapshot RBAC kept verbatim from upstream v8.6.0 (the feature is
-  # gated off by default, but the reflector otherwise errors on the
-  # forbidden list calls and spams the log with every reconcile).
+  # Group snapshot RBAC kept verbatim from upstream v8.7.0: the
+  # VolumeGroupSnapshot feature is GA and on by default, so the controller
+  # runs informers for the group snapshot CRDs the CRD application installs.
   - apiGroups: ["groupsnapshot.storage.k8s.io"]
     resources: ["volumegroupsnapshotclasses"]
     verbs: ["get", "list", "watch"]
