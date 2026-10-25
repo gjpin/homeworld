@@ -247,12 +247,13 @@ over a generated CloudNativePG `Cluster`.
 
 Renovate tracks all four fields via `customManagers` in `renovate.json`.
 The engine managers use the docker datasource against
-`ghcr.io/documentdb/documentdb/documentdb-local`, whose tags carry the
-PostgreSQL base as a prefix (`pg17-0.117.0`, `pg18-0.117.0`, ...); a custom
-`versioningTemplate` regex strips the `pgNN-` prefix, so the bare `X.Y.0`
-values above compare directly against the per-base image tags. (The
-`vX.Y-0` form above is the GitHub *release* tag — a human-facing alias of
-the same version; Renovate tracks the image tags, not the releases.)
+`ghcr.io/documentdb/documentdb-kubernetes-operator/documentdb`, the extension
+image the operator mounts (the gateway image shares its tags), with `semver`
+versioning: the bare `X.Y.Z` tags are the releases, while the
+`-build-...` and release-candidate tags are never proposed. Release-candidate
+engines are not upgradable in place, so never pin one on a cluster that holds
+data. (The `vX.Y-0` form above is the GitHub *release* tag — a human-facing
+alias of the same version; Renovate tracks the image tags, not the releases.)
 
 ### Schema Upgrades Are Two-Phase
 
