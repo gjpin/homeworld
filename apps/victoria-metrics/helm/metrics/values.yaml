@@ -4,7 +4,6 @@ rbac:
 serviceAccount:
   create: false
 server:
-  enabled: true
   fullnameOverride: victoria-metrics
   image:
     registry: docker.io
