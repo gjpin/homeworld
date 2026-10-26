@@ -2,7 +2,7 @@
 
 All Helm-rendered manifests are scanned by two security tools in CI. **Kubescape** checks the offline render of every pinned Helm chart against the `AllControls` framework, and **kube-linter** evaluates the same render for manifest best practices.
 
-Every intentionally accepted finding is registered as an explicit, resource-scoped exception with a written reason. There are no blanket, namespace-wide, or cluster-wide suppressions: an exception names the exact rendered resource and the exact check it waives, and CI fails if the exception registry and the scanner inputs drift apart.
+Every intentionally accepted finding is registered as an explicit, resource-scoped exception with a written reason. There are no blanket, namespace-wide, or cluster-wide suppressions: an exception names the exact rendered resource and the exact check it waives, and CI fails if the exception registry and the scanner inputs drift apart. The one exception to this rule is Kubescape control `C-0236` (verify image signature), excluded from the scan with `--exclude-controls`: it accepts only static cosign public keys, while most pinned images are signed keyless (Sigstore certificates tied to a CI identity) or not signed at all, so it would fail or need waiving on nearly every workload. Image provenance is reviewed when a pinned dependency is updated.
 
 ---
 
@@ -14,7 +14,7 @@ The `validate` job in `.github/workflows/validate.yaml` runs `scripts/scan-secur
 2. Renders every pinned Helm chart under `apps/` through its kustomization into an offline manifest tree (`scripts/render-helm-profiles.sh`).
 3. Validates the kube-linter exceptions: annotations naming an unknown check, and annotations whose finding has disappeared from an annotation-stripped copy of the render, both fail the job.
 4. Runs kube-linter (default checks) over the render; any diagnostic not ignored on the specific resource fails the job.
-5. Runs Kubescape with the `AllControls` framework and `--fail-on-degraded-config`; the job fails if the report contains any failed control that is not covered by an exception.
+5. Runs Kubescape with the `AllControls` framework minus `C-0236` and with `--fail-on-degraded-config`; the job fails if the report contains any failed control that is not covered by an exception.
 
 Scanner tool versions are pinned in `.github/workflows/validate.yaml` and updated by Renovate. The offline render covers only the Helm installations; handwritten manifests under `apps/<component>/` are deployed through Argo CD and governed by the Pod Security conventions in [pod-security.md](pod-security.md) and live cluster admission instead.
 
