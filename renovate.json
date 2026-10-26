@@ -192,6 +192,16 @@
       ]
     },
     {
+      "description": "Grafana VictoriaMetrics datasource plugins: the init container pins each release tarball's sha256, which Renovate cannot compute",
+      "matchPackageNames": [
+        "VictoriaMetrics/victoriametrics-datasource",
+        "VictoriaMetrics/victorialogs-datasource"
+      ],
+      "prBodyNotes": [
+        "⚠️ **Plugin Checksum**: Renovate moves the release tag and tarball name only. Replace the tarball's `sha256sum -c` value in `apps/grafana/0_grafana.yaml` with the digest from the release assets page before merging, or the plugin-loader init container fails (see [docs/upgrades.md](docs/upgrades.md#9-upstream-upgrade-procedures))."
+      ]
+    },
+    {
       "description": "External Secrets recommends sequential minor upgrades",
       "matchPackageNames": [
         "external-secrets"
@@ -699,7 +709,7 @@
         "/^apps/grafana/0_grafana\\.yaml$/"
       ],
       "matchStrings": [
-        "victoriametrics-datasource/releases/download/(?<currentValue>v[^/]+)/victoriametrics-metrics-datasource"
+        "victoriametrics-datasource/releases/download/(?<currentValue>v[^/]+)/victoriametrics-metrics-datasource-v[^/]+\\.tar\\.gz"
       ],
       "depNameTemplate": "VictoriaMetrics/victoriametrics-datasource",
       "datasourceTemplate": "github-releases"
@@ -711,7 +721,7 @@
         "/^apps/grafana/0_grafana\\.yaml$/"
       ],
       "matchStrings": [
-        "victorialogs-datasource/releases/download/(?<currentValue>v[^/]+)/victoriametrics-logs-datasource"
+        "victorialogs-datasource/releases/download/(?<currentValue>v[^/]+)/victoriametrics-logs-datasource-v[^/]+\\.tar\\.gz"
       ],
       "depNameTemplate": "VictoriaMetrics/victorialogs-datasource",
       "datasourceTemplate": "github-releases"
