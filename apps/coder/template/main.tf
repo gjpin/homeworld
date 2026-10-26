@@ -30,16 +30,13 @@ provider "kubernetes" {}
 
 locals {
   namespace = "coder-workspaces"
-  image     = "docker.io/codercom/example-base:ubuntu-20261025"
-  home      = "/home/coder"
+  # The agents VM's toolset on Debian (apps/coder/image), built by
+  # .github/workflows/coder-workspace-image.yaml.
+  image = "ghcr.io/gjpin/homeworld/coder-workspace:20261026.1"
+  home  = "/home/coder"
   # Public roots plus the Homeworld CA, assembled at container start; see
   # the dev container's command.
   ca_bundle = "/tmp/ca-certificates.crt"
-  # Language toolchains come from mise in the home volume, so one image
-  # serves every project (docs/coder.md). Renovate bumps the version and
-  # scripts/refresh-mise-sha.sh the matching linux-x64 binary hash.
-  mise_version = "2026.10.19"
-  mise_sha256  = "3162760f40b6b5f706c60641e4ef5ee7322bc6c54f72fc26a7111b337aa18d9d"
 
   labels = {
     "app.kubernetes.io/name"     = "coder-workspace"
@@ -144,50 +141,19 @@ resource "coder_agent" "main" {
   }
 }
 
-# Seeds the home volume on first start and installs the pinned mise binary.
-# Project toolchains come from each repository's mise.toml or
-# .tool-versions; the shims directory is on the container PATH, so
-# terminals, code-server extensions, and Coder Agents tool calls all resolve
-# the project's versions.
-resource "coder_script" "mise" {
+# Seeds the home volume and the coding agents' telemetry and update switches
+# (homeworld-workspace-init, apps/coder/image/workspace-init.sh). Toolchains
+# come from the image's mise system install; a repository's mise.toml or
+# .tool-versions overrides them, installed into the home volume. The image
+# puts mise's shims on PATH, so terminals, code-server extensions, and Coder
+# Agents tool calls all resolve the project's versions.
+resource "coder_script" "init" {
   agent_id           = coder_agent.main.id
-  display_name       = "mise"
+  display_name       = "Home setup"
   icon               = "/icon/terminal.svg"
   run_on_start       = true
   start_blocks_login = true
-  script             = <<-EOT
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    # The home volume hides the image's /home/coder: copy the skeleton
-    # dotfiles once.
-    if [ ! -f ~/.init_done ]; then
-      cp -rT /etc/skel ~
-      touch ~/.init_done
-    fi
-
-    mise=~/.local/bin/mise
-    if ! "$mise" --version 2>/dev/null | grep -q '^${local.mise_version} '; then
-      echo "Installing mise ${local.mise_version}"
-      mkdir -p ~/.local/bin
-      tmp="$(mktemp)"
-      curl -fsSL -o "$tmp" \
-        https://github.com/jdx/mise/releases/download/v${local.mise_version}/mise-v${local.mise_version}-linux-x64
-      echo "${local.mise_sha256}  $tmp" | sha256sum -c -
-      install -m 0755 "$tmp" "$mise"
-      rm -f "$tmp"
-    fi
-
-    # Interactive shells also load each project's [env] and tasks.
-    if ! grep -qF 'mise activate bash' ~/.bashrc; then
-      echo 'eval "$(~/.local/bin/mise activate bash)"' >>~/.bashrc
-    fi
-
-    # Tools pinned in the global config (~/.config/mise/config.toml).
-    cd ~
-    "$mise" install --yes || echo "mise install failed; run it again from a terminal"
-    "$mise" reshim
-  EOT
+  script             = "homeworld-workspace-init"
 }
 
 # https://registry.coder.com/modules/coder/code-server
@@ -316,8 +282,8 @@ resource "kubernetes_deployment_v1" "main" {
             name  = "CODER_AGENT_TOKEN"
             value = coder_agent.main.token
           }
-          # curl (the init script), git (Forgejo over HTTPS), and OpenSSL
-          # clients read the combined bundle; the Go agent adds the CA
+          # curl (the init script), git (Forgejo over HTTPS), cargo, and
+          # OpenSSL clients read the combined bundle; the Go agent adds the CA
           # directory to its system roots; Node.js appends the CA.
           env {
             name  = "CURL_CA_BUNDLE"
@@ -325,6 +291,10 @@ resource "kubernetes_deployment_v1" "main" {
           }
           env {
             name  = "GIT_SSL_CAINFO"
+            value = local.ca_bundle
+          }
+          env {
+            name  = "CARGO_HTTP_CAINFO"
             value = local.ca_bundle
           }
           env {
@@ -338,22 +308,6 @@ resource "kubernetes_deployment_v1" "main" {
           env {
             name  = "NODE_EXTRA_CA_CERTS"
             value = "/etc/homeworld-ca/ca.crt"
-          }
-          # mise and its shims ahead of the image's default PATH, for every
-          # process the agent starts.
-          env {
-            name  = "PATH"
-            value = "${local.home}/.local/bin:${local.home}/.local/share/mise/shims:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-          }
-          # Download statistics sent to mise-versions after each install,
-          # and the release check behind `mise version`.
-          env {
-            name  = "MISE_USE_VERSIONS_HOST_TRACK"
-            value = "false"
-          }
-          env {
-            name  = "MISE_DISABLE_UPDATE_WARNING"
-            value = "true"
           }
           resources {
             requests = {

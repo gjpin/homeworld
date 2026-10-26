@@ -112,10 +112,14 @@ sync_instructions() {
 
 mkdir -p "$home_dir/projects" "$home_dir/.local/bin"
 
-# Playwright agent skills, seeded once into HOME (playwright-cli installs
-# into the current directory).
+# Playwright agent skills, seeded once into HOME. --global skips the
+# workspace setup, whose browser check never exits against the read-only
+# /opt/ms-playwright.
 if [ ! -f "$home_dir/.claude/skills/playwright-cli/SKILL.md" ]; then
-  (cd "$home_dir" && playwright-cli install --skills && playwright-cli install --skills=agents)
+  playwright-cli install --skills --global </dev/null
+fi
+if [ ! -f "$home_dir/.agents/skills/playwright-cli/SKILL.md" ]; then
+  playwright-cli install --skills=agents --global </dev/null
 fi
 
 # Codex: never ask for approval, full access; never check for updates and

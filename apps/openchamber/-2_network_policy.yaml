@@ -1,5 +1,6 @@
-# No pod runs in this namespace: it only holds the Gateway listeners, routes
-# and selectorless Services for the agents VM (0_services.yaml).
+# No pod runs in this namespace: it only holds the Gateway listeners, routes,
+# ThinkRail's gateway sign-in and selectorless Services for the agents VM
+# (0_services.yaml).
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
