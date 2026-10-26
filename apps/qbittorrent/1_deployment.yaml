@@ -376,7 +376,7 @@ spec:
           # Renovate tracks the image tag below. Authenticates with the
           # stateless WebAPI key (qBittorrent >= 5.2) — no WebUI password in
           # this container — and serves Prometheus metrics on :17871.
-          image: ghcr.io/martabal/qbittorrent-exporter:v2.0.3
+          image: ghcr.io/martabal/qbittorrent-exporter:v2.0.4
           imagePullPolicy: IfNotPresent
           ports:
             - name: metrics
