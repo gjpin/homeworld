@@ -11,6 +11,7 @@
     "gomod",
     "kustomize",
     "kubernetes",
+    "mise",
     "terraform"
   ],
   "ignorePaths": [
@@ -154,16 +155,17 @@
       }
     },
     {
-      "description": "Refresh the mise binary sha256 in the Coder workspace template on version bumps",
+      "description": "Refresh the mise and rustup-init sha256 hashes in the Coder workspace image on version bumps",
       "matchPackageNames": [
-        "jdx/mise"
+        "jdx/mise",
+        "rust-lang/rustup"
       ],
       "postUpgradeTasks": {
         "commands": [
-          "bash scripts/refresh-mise-sha.sh"
+          "bash scripts/refresh-coder-image-shas.sh"
         ],
         "fileFilters": [
-          "apps/coder/template/main.tf"
+          "apps/coder/image/Dockerfile"
         ],
         "executionMode": "update"
       }
@@ -255,6 +257,13 @@
         "ghcr.io/coder/coder"
       ],
       "groupName": "coder"
+    },
+    {
+      "description": "Group every Coder workspace image input (Debian base, mise, rustup, Rust, the mise.toml toolset) into one PR: each merge rebuilds the image once",
+      "matchFileNames": [
+        "apps/coder/image/**"
+      ],
+      "groupName": "coder-workspace-image"
     },
     {
       "description": "Coder minors run irreversible database migrations",
@@ -1024,29 +1033,65 @@
     },
     {
       "customType": "regex",
-      "description": "Update the Coder workspace template image",
+      "description": "Update the Coder workspace image in the template; tags are <build date>.<workflow run number>",
       "managerFilePatterns": [
         "/^apps/coder/template/main\\.tf$/"
       ],
       "matchStrings": [
-        "image\\s*=\\s*\"(?<depName>docker\\.io/codercom/example-base):(?<currentValue>[^\"]+)\""
+        "image\\s*=\\s*\"(?<depName>ghcr\\.io/gjpin/homeworld/coder-workspace):(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "docker",
-      "versioningTemplate": "regex:^ubuntu-(?<major>\\d{8})$",
+      "versioningTemplate": "regex:^(?<major>\\d{8})\\.(?<minor>\\d+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Debian base of the Coder workspace image",
+      "managerFilePatterns": [
+        "/^apps/coder/image/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "FROM (?<depName>docker\\.io/library/debian):(?<currentValue>trixie-[\\d.]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "regex:^trixie-(?<major>\\d{8})(\\.(?<minor>\\d+))?$",
       "registryUrlTemplate": "https://index.docker.io"
     },
     {
       "customType": "regex",
-      "description": "Update the mise version installed by the Coder workspace template",
+      "description": "Update the mise binary in the Coder workspace image",
       "managerFilePatterns": [
-        "/^apps/coder/template/main\\.tf$/"
+        "/^apps/coder/image/Dockerfile$/"
       ],
       "matchStrings": [
-        "mise_version\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+        "ARG MISE_VERSION=(?<currentValue>[\\d.]+)"
       ],
       "depNameTemplate": "jdx/mise",
       "datasourceTemplate": "github-releases",
       "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Update rustup in the Coder workspace image",
+      "managerFilePatterns": [
+        "/^apps/coder/image/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG RUSTUP_VERSION=(?<currentValue>[\\d.]+)"
+      ],
+      "depNameTemplate": "rust-lang/rustup",
+      "datasourceTemplate": "github-tags"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Rust toolchain in the Coder workspace image",
+      "managerFilePatterns": [
+        "/^apps/coder/image/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG RUST_VERSION=(?<currentValue>[\\d.]+)"
+      ],
+      "depNameTemplate": "rust-lang/rust",
+      "datasourceTemplate": "github-releases"
     },
     {
       "customType": "regex",

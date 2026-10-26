@@ -158,12 +158,14 @@ if [ "$AGENTS_VM" = 1 ]; then
   for cidr in fc00::/7 fe80::/10 ff00::/8; do
     fw --policy=agents-out --query-rich-rule --add-rich-rule "rule priority=-10 family=ipv6 destination address=$cidr reject"
   done
-  # LAN and WireGuard clients -> VM: any port.
+  # LAN and WireGuard clients -> VM: any port, except ThinkRail, which has
+  # no login of its own and is reached only through the Gateway's sign-in.
   fw_policy lan-to-agents
   fw --policy=lan-to-agents --query-ingress-zone --add-ingress-zone homeworld-lan
   fw --policy=lan-to-agents --query-egress-zone --add-egress-zone homeworld-agents
   fw_target --policy=lan-to-agents ACCEPT
-  # Node IPs and pods (Envoy) -> VM: OpenChamber and Paseo only.
+  fw --policy=lan-to-agents --query-rich-rule --add-rich-rule 'rule priority=-10 port port=24242 protocol=tcp reject'
+  # Node IPs and pods (Envoy) -> VM: OpenChamber, Paseo and ThinkRail only.
   fw_policy nodes-to-agents
   fw --policy=nodes-to-agents --query-ingress-zone --add-ingress-zone homeworld-nodes
   fw --policy=nodes-to-agents --query-ingress-zone --add-ingress-zone trusted
@@ -179,6 +181,7 @@ if [ "$AGENTS_VM" = 1 ]; then
   for policy in nodes-to-agents host-to-agents; do
     fw --policy=$policy --query-port --add-port 3000/tcp
     fw --policy=$policy --query-port --add-port 6767/tcp
+    fw --policy=$policy --query-port --add-port 24242/tcp
   done
 fi
 if [ "$fw_changed" = 1 ]; then
