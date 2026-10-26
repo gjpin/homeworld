@@ -27,3 +27,52 @@ spec:
           namespace: envoy-gateway
           port: 8080
           weight: 1
+---
+# Gateway OIDC for ThinkRail. Authelia is the only login: ThinkRail has no
+# accounts of its own, and the route requires the platform group
+# (docs/oidc.md). The VM host's firewall keeps LAN and WireGuard clients off
+# the VM's port, so this route is the only way in. StrategicMerge keeps this
+# policy from overriding the Gateway-level CrowdSec extAuth above.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authelia-oidc-thinkrail
+  namespace: openchamber
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  mergeType: StrategicMerge
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: thinkrail
+  oidc:
+    provider:
+      # Token requests go through the authelia Backend so Envoy validates
+      # Authelia's certificate against the homeworld CA
+      # (2_authelia_backend.yaml).
+      backendRefs:
+        - group: gateway.envoyproxy.io
+          kind: Backend
+          name: authelia
+          port: 443
+          weight: 1
+      issuer: https://auth.homeworld.internal
+      authorizationEndpoint: https://auth.homeworld.internal/api/oidc/authorization
+      tokenEndpoint: https://auth.homeworld.internal/api/oidc/token
+    clientID: envoy
+    clientSecret:
+      name: envoy-oidc-client-secret
+    scopes:
+      - openid
+      - offline_access
+    redirectURL: https://thinkrail.homeworld.internal/oauth2/callback
+    logoutPath: /logout
+    cookieDomain: thinkrail.homeworld.internal
+    # ThinkRail's /ws upgrade checks no Origin: Lax keeps a browser from
+    # sending the session to a WebSocket opened by another site.
+    cookieConfig:
+      sameSite: Lax
+    forwardAccessToken: false
+    refreshToken: true
+    passThroughAuthHeader: false
