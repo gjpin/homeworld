@@ -1,5 +1,12 @@
 replicaCount: 1
 
+image:
+  registry: code.forgejo.org
+  repository: forgejo/forgejo
+  # Pinned ahead of the chart's appVersion, which follows the LTS line;
+  # the chart appends -rootless.
+  tag: 17.0.0
+
 # Pin the shared-storage PVC to the repo StorageClass explicitly instead of
 # relying on the cluster default (the chart defaults storageClass to '').
 # The claim name is pinned so a chart default change never orphans the data.

@@ -30,7 +30,8 @@
       "description": "Forgejo majors: one PR per major with the upstream backup, queue-flush, and doctor steps",
       "matchPackageNames": [
         "code.forgejo.org/forgejo-helm/forgejo",
-        "forgejo"
+        "forgejo",
+        "forgejo/forgejo"
       ],
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
@@ -675,6 +676,19 @@
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://docker.dragonflydb.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Forgejo image (pinned ahead of the chart appVersion)",
+      "managerFilePatterns": [
+        "/^apps/forgejo/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^image:\\s*\\n\\s+registry:\\s*code\\.forgejo\\.org\\s*\\n\\s+repository:\\s*(?<depName>forgejo/forgejo)\\s*\\n(?:\\s+#[^\\n]*\\n)*\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://code.forgejo.org"
     },
     {
       "customType": "regex",
