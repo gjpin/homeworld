@@ -534,10 +534,10 @@
       "matchStrings": [
         "(?m)^documentDbVersion:\\s*\"(?<currentValue>[^\"]+)\""
       ],
-      "depNameTemplate": "ghcr.io/documentdb/documentdb/documentdb-local",
+      "depNameTemplate": "ghcr.io/documentdb/documentdb-kubernetes-operator/documentdb",
       "datasourceTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io",
-      "versioningTemplate": "regex:^(?:pg\\d+-)?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
+      "versioningTemplate": "semver"
     },
     {
       "customType": "regex",
@@ -548,10 +548,10 @@
       "matchStrings": [
         "(?m)^\\s*documentDBVersion:\\s*\"(?<currentValue>[^\"]+)\""
       ],
-      "depNameTemplate": "ghcr.io/documentdb/documentdb/documentdb-local",
+      "depNameTemplate": "ghcr.io/documentdb/documentdb-kubernetes-operator/documentdb",
       "datasourceTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io",
-      "versioningTemplate": "regex:^(?:pg\\d+-)?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
+      "versioningTemplate": "semver"
     },
     {
       "customType": "regex",
