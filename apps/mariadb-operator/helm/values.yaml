@@ -6,9 +6,6 @@ fullnameOverride: mariadb-operator
 crds:
   enabled: true
 
-image:
-  pullPolicy: IfNotPresent
-
 metrics:
   enabled: true
   serviceMonitor:
@@ -42,8 +39,6 @@ resources:
     ephemeral-storage: 1Gi
 
 webhook:
-  image:
-    pullPolicy: IfNotPresent
   # Serving certificates are issued by the chart's cert-controller (below),
   # which also injects the CA into the ValidatingWebhookConfiguration.
   serviceMonitor:
@@ -75,8 +70,6 @@ webhook:
       ephemeral-storage: 1Gi
 
 certController:
-  image:
-    pullPolicy: IfNotPresent
   serviceMonitor:
     enabled: true
     interval: 60s
@@ -119,7 +112,7 @@ config:
     tag: 24.02.9-2
   exporterImage:
     repository: docker.io/prom/mysqld-exporter
-    tag: v0.20.0
+    tag: v0.21.0
   exporterMaxscaleImage:
     repository: docker.io/mariadb/maxscale-prometheus-exporter-ubi
-    tag: 1.2.1
+    tag: 1.2.2
