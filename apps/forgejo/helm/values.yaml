@@ -5,7 +5,7 @@ image:
   repository: forgejo/forgejo
   # Pinned ahead of the chart's appVersion, which follows the LTS line;
   # the chart appends -rootless.
-  tag: 17.0.0
+  tag: 16.0.7
 
 # Pin the shared-storage PVC to the repo StorageClass explicitly instead of
 # relying on the cluster default (the chart defaults storageClass to '').
