@@ -30,7 +30,7 @@ provider "kubernetes" {}
 
 locals {
   namespace = "coder-workspaces"
-  image     = "docker.io/codercom/example-base:ubuntu-20261019"
+  image     = "docker.io/codercom/example-base:ubuntu-20261025"
   home      = "/home/coder"
   # Public roots plus the Homeworld CA, assembled at container start; see
   # the dev container's command.
@@ -38,8 +38,8 @@ locals {
   # Language toolchains come from mise in the home volume, so one image
   # serves every project (docs/coder.md). Renovate bumps the version and
   # scripts/refresh-mise-sha.sh the matching linux-x64 binary hash.
-  mise_version = "2026.10.17"
-  mise_sha256  = "fe6dd17e68e09682b31d2e7bb7bb755d22636ac1af5d94621e300f2ca9e9fe8a"
+  mise_version = "2026.10.19"
+  mise_sha256  = "3162760f40b6b5f706c60641e4ef5ee7322bc6c54f72fc26a7111b337aa18d9d"
 
   labels = {
     "app.kubernetes.io/name"     = "coder-workspace"
