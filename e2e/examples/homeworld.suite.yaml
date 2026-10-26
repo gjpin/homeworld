@@ -48,7 +48,7 @@ spec:
         # (see e2e/README.md "Kind → Infisical reachability").
         extraPortMappings: []
     cilium:
-      chartVersion: "1.20.2"
+      chartVersion: "1.20.4"
       namespace: kube-system
       values:
         agent: "false"
@@ -89,7 +89,7 @@ spec:
         command: ["./e2e/examples/hooks/apply-cilium-crds.sh"]
         timeout: 2m
         env:
-          CILIUM_VERSION: "1.20.2"
+          CILIUM_VERSION: "1.20.4"
       - name: raise-inotify-limits
         command: ["./e2e/examples/hooks/raise-inotify-limits.sh"]
         timeout: 1m
