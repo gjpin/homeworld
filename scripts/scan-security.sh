@@ -70,7 +70,7 @@ kube-linter lint "$render_dir" \
 # C-0236 verifies cosign signatures against static public keys only; most
 # pinned images are signed keyless or not at all (docs/security-scanners.md).
 kubescape scan framework AllControls "$render_dir" \
-  --controls-version v2.0.38 \
+  --controls-version v2.0.39 \
   --exclude-controls C-0236 \
   --exceptions="$repo_root/security/kubescape-exceptions.json" \
   --fail-on-degraded-config \
