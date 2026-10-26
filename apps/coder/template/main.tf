@@ -30,7 +30,7 @@ provider "kubernetes" {}
 
 locals {
   namespace = "coder-workspaces"
-  image     = "docker.io/codercom/example-base:ubuntu-20261025"
+  image     = "docker.io/codercom/example-base:ubuntu-20261026"
   home      = "/home/coder"
   # Public roots plus the Homeworld CA, assembled at container start; see
   # the dev container's command.
