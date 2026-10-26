@@ -586,7 +586,7 @@ spec:
             - name: opencloud-apps
               mountPath: /var/lib/opencloud/web/assets/apps
         - name: yjs
-          image: docker.io/opencloudeu/yjs:1.1.0
+          image: docker.io/opencloudeu/yjs:1.1.1
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
