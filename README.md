@@ -26,7 +26,7 @@
 - Declarative dashboards and monitoring via Grafana Operator, with Prometheus Operator ServiceMonitors and PodMonitors consumed by the OpenTelemetry Operator's Target Allocator
 - Automated dependency updates and [upgrade procedures](docs/upgrades.md) via Renovate
 - [Coder](docs/coder.md) cloud development workspaces on Kubernetes, with Coder Agents running AI coding agents from the control plane
-- AI agent [virtual machine](docs/openchamber.md) (OpenChamber, Paseo, OpenCode, Claude Code, Codex CLI, Pi agent, Antigravity CLI, Copilot CLI on Fedora) with a rebuildable root and pinned tools
+- AI agent [virtual machine](docs/openchamber.md) (OpenChamber, Paseo, ThinkRail, OpenCode, Claude Code, Codex CLI, Pi agent, Antigravity CLI, Copilot CLI on Fedora) with a rebuildable root and pinned tools
 
 ## Apps
 User-facing applications:
@@ -40,7 +40,7 @@ User-facing applications:
 | Homepage | `homepage.homeworld.internal` | Application dashboard aggregating links, status, and live service widgets. |
 | Immich | `photos.homeworld.internal` | Photo and video management. |
 | Notesnook | `notes.homeworld.internal`<br>`auth.notes.homeworld.internal`<br>`sse.notes.homeworld.internal`<br>`monograph.notes.homeworld.internal` | End-to-end encrypted note-taking sync server with auth, SSE, and Monograph. |
-| OpenChamber | `openchamber.homeworld.internal`<br>`paseo.homeworld.internal` | Routes to the AI agent VM on the Ryzen node: the OpenChamber web server and the Paseo daemon. |
+| OpenChamber | `openchamber.homeworld.internal`<br>`paseo.homeworld.internal`<br>`thinkrail.homeworld.internal` | Routes to the AI agent VM on the Ryzen node: the OpenChamber web server, the Paseo daemon, and ThinkRail (behind the Gateway's Authelia sign-in). |
 | OpenCloud | `cloud.homeworld.internal` | Files, sharing, search, collaboration, CalDAV, and CardDAV. |
 | qBittorrent | `qbittorrent.homeworld.internal` | Torrent client with a gluetun VPN sidecar, a three-layer kill switch (gluetun firewall, Cilium egress allowlist, readiness gate), and VPN port-forwarding (see [qbittorrent.md](docs/qbittorrent.md)). |
 | Supernote | `supernote.homeworld.internal` | Supernote Private Cloud: device sync, web file manager, and note conversion (amd64 nodes only). |
@@ -208,12 +208,12 @@ The Homepage dashboard's live widgets authenticate to four services with dedicat
 Homepage reads its dashboard configuration (`apps/homepage/0_config.yaml`) at startup; after changing it, restart the pod with `kubectl -n homepage rollout restart deploy/homepage`.
 
 ### 12. Set Up Coder
-Sign in to `https://coder.homeworld.internal` with a `coder-user` account; the first sign-in becomes the deployment Owner. Then push the workspace template from `apps/coder/template/` and configure an LLM provider for Coder Agents, following [docs/coder.md](docs/coder.md).
+Sign in to `https://coder.homeworld.internal` with a `coder-user` account; the first sign-in becomes the deployment Owner. Then make the `coder-workspace` package on GitHub public after the image workflow's first push, push the workspace template from `apps/coder/template/`, and configure an LLM provider for Coder Agents, following [docs/coder.md](docs/coder.md).
 
 ### 13. Use the Agents VM
 The Ryzen node builds the agents VM during its bootstrap ([docs/openchamber.md](docs/openchamber.md)):
 
-- **Browser**: `https://openchamber.homeworld.internal` (sign in with `/agents/OPENCHAMBER_UI_PASSWORD`) and `https://paseo.homeworld.internal` (`/agents/PASEO_PASSWORD`), from the Pixel network or over WireGuard.
+- **Browser**: `https://openchamber.homeworld.internal` (sign in with `/agents/OPENCHAMBER_UI_PASSWORD`), `https://paseo.homeworld.internal` (`/agents/PASEO_PASSWORD`) and `https://thinkrail.homeworld.internal` (Authelia, `platform` group), from the Pixel network or over WireGuard.
 - **Apps**: pair the Paseo and OpenChamber desktop and mobile apps directly with the VM (`10.20.0.10`) or through the same hostnames; no relay is used.
 - **SSH and editors**: `ssh agent@10.20.0.10` with the keys entered at bootstrap.
 - **Coding agent logins**: once, over SSH; the credentials persist on the VM's `/home` across rebuilds:

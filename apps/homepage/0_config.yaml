@@ -45,6 +45,11 @@ data:
             href: https://openchamber.homeworld.internal
             description: AI agent workspace
             siteMonitor: https://openchamber.homeworld.internal
+        # No siteMonitor: the route is behind the Gateway's Authelia sign-in.
+        - ThinkRail:
+            icon: /icons/thinkrail.svg
+            href: https://thinkrail.homeworld.internal
+            description: Agentic IDE for the Pi agent
     - Media:
         - Immich:
             icon: immich

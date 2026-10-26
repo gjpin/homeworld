@@ -2,7 +2,8 @@
 # Agents VM provisioning (docs/openchamber.md), run once by cloud-init as
 # root on every freshly rebuilt root disk. Installs the Fedora toolset, the
 # pinned agent tools into /usr/local (read-only to `agent`, so nothing can
-# self-update), the secrets loader and the OpenChamber/Paseo user services.
+# self-update), the secrets loader and the OpenChamber, Paseo and ThinkRail
+# user services.
 set -euxo pipefail
 
 . /usr/local/share/agents/versions.env
@@ -151,6 +152,20 @@ mkdir "$work/copilot"
   install -m 0755 copilot /usr/local/bin/copilot
 )
 
+# ThinkRail, SHA-256-verified release binary. Outside a bin/ directory its
+# background release check stays off (it only runs in the installer's
+# <prefix>/bin layout); the wrapper puts it on PATH.
+mkdir "$work/thinkrail"
+(
+  cd "$work/thinkrail"
+  curl -fsSLO "https://github.com/JetBrains/thinkrail/releases/download/v$THINKRAIL_VERSION/thinkrail-linux-$npm_arch"
+  curl -fsSLO "https://github.com/JetBrains/thinkrail/releases/download/v$THINKRAIL_VERSION/SHA256SUMS"
+  sha256sum -c --ignore-missing SHA256SUMS
+  install -D -m 0755 "thinkrail-linux-$npm_arch" /usr/local/libexec/thinkrail/thinkrail
+)
+printf '#!/bin/sh\nexec /usr/local/libexec/thinkrail/thinkrail "$@"\n' >/usr/local/bin/thinkrail
+chmod 0755 /usr/local/bin/thinkrail
+
 # Infisical CLI (secrets loader below), SHA-256-verified release tarball.
 mkdir "$work/infisical"
 (
@@ -169,17 +184,20 @@ GOBIN=/usr/local/bin GOPATH=$work/go GOCACHE=$work/gocache GOFLAGS=-modcacherw \
   go install "mvdan.cc/sh/v3/cmd/shfmt@$SHFMT_VERSION"
 
 for tool in openchamber pi paseo playwright playwright-cli chrome-devtools-mcp skills \
-  opencode codex claude agy copilot infisical shfmt node kubectl kind terraform tofu google-chrome-stable; do
+  opencode codex claude agy copilot thinkrail infisical shfmt node kubectl kind terraform tofu google-chrome-stable; do
   command -v "$tool"
 done
 
 # --- environment ----------------------------------------------------------
 # Self-update and telemetry switches (docs/openchamber.md). OpenChamber has
-# no switch for its update check, so it points at an unreachable port.
+# no switch for its update check, and ThinkRail none for its basic usage
+# events, so both point at an unreachable port.
 cat >/etc/profile.d/agents.sh <<'EOF'
 export PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 export PI_SKIP_VERSION_CHECK=1
 export OPENCHAMBER_UPDATE_API_URL=http://127.0.0.1:9/
+export THINKRAIL_NO_ANALYTICS=1
+export THINKRAIL_POSTHOG_HOST=http://127.0.0.1:9
 export DISABLE_UPDATES=1
 export DISABLE_TELEMETRY=1
 export NPM_CONFIG_PREFIX=$HOME/.local
@@ -189,7 +207,7 @@ EOF
 install -d -m 0755 /etc/systemd/user.conf.d
 cat >/etc/systemd/user.conf.d/agents.conf <<'EOF'
 [Manager]
-DefaultEnvironment=PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright PI_SKIP_VERSION_CHECK=1 OPENCHAMBER_UPDATE_API_URL=http://127.0.0.1:9/ DISABLE_UPDATES=1 DISABLE_TELEMETRY=1 "PATH=/home/agent/.local/bin:/usr/local/bin:/usr/bin"
+DefaultEnvironment=PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright PI_SKIP_VERSION_CHECK=1 OPENCHAMBER_UPDATE_API_URL=http://127.0.0.1:9/ THINKRAIL_NO_ANALYTICS=1 THINKRAIL_POSTHOG_HOST=http://127.0.0.1:9 DISABLE_UPDATES=1 DISABLE_TELEMETRY=1 "PATH=/home/agent/.local/bin:/usr/local/bin:/usr/bin"
 EOF
 
 # --- secrets: Infisical /agents/* into tmpfs ---------------------------------
@@ -277,6 +295,23 @@ Restart=on-failure
 [Install]
 WantedBy=default.target
 EOF
+# ThinkRail has no login of its own: Envoy Gateway's Authelia sign-in
+# fronts thinkrail.homeworld.internal, and the VM host's firewall keeps
+# LAN and WireGuard clients off this port (docs/openchamber.md).
+cat >$units/thinkrail.service <<'EOF'
+[Unit]
+Description=ThinkRail web server
+After=agents-config.service
+
+[Service]
+EnvironmentFile=/run/agents/secrets.env
+WorkingDirectory=%h
+ExecStart=/usr/local/libexec/thinkrail/thinkrail --host 0.0.0.0 --port 24242 --no-open
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+EOF
 cat >$units/claude-remote-control.service <<'EOF'
 [Unit]
 Description=Claude Code Remote Control (optional; needs a claude.ai login)
@@ -289,5 +324,5 @@ Restart=on-failure
 [Install]
 WantedBy=default.target
 EOF
-systemctl --global enable agents-config.service openchamber.service paseo.service
+systemctl --global enable agents-config.service openchamber.service paseo.service thinkrail.service
 loginctl enable-linger agent
