@@ -19,7 +19,7 @@ services:
       - infisical
 
   redis:
-    image: docker.io/library/redis:8.10.2-alpine
+    image: docker.io/library/redis:8.10.3-alpine
     container_name: e2e-infisical-redis
     env_file: .env.e2e
     restart: unless-stopped
