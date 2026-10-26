@@ -1,6 +1,5 @@
 # https://docs.victoriametrics.com/helm/victoria-traces-single/
 server:
-  enabled: true
   fullnameOverride: victoria-traces
   image:
     registry: docker.io
