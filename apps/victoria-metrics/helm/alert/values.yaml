@@ -5,8 +5,6 @@
 # through VictoriaMetrics' Prometheus API (apps/kured): any firing alert
 # blocks the next node reboot. There is no Alertmanager; notifications go to
 # the blackhole notifier.
-rbac:
-  create: false
 serviceAccount:
   create: false
 serviceMonitor:

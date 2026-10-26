@@ -1,8 +1,6 @@
 deployment:
   replicas: 1
   envoyGateway:
-    image:
-      pullPolicy: IfNotPresent
     resources:
       requests:
         cpu: 100m
