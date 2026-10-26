@@ -87,7 +87,7 @@ spec:
         # afterwards; later git changes to the seeded settings must be
         # applied by editing the file directly.
         - name: qbittorrent-config-bootstrap
-          image: docker.io/library/python:3.14-alpine3.24
+          image: docker.io/library/python:3.15-alpine3.24
           imagePullPolicy: IfNotPresent
           command:
             - python3
@@ -197,7 +197,7 @@ spec:
           # rootless (nobody:nogroup) and contains no update-check or
           # phone-home mechanism (the update check only exists in the
           # Windows and macOS builds).
-          image: ghcr.io/home-operations/qbittorrent:5.2.4
+          image: ghcr.io/home-operations/qbittorrent:5.3.0
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

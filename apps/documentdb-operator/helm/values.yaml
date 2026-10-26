@@ -1,15 +1,10 @@
-# Pinned DocumentDB engine/gateway version (extension + gateway images).
-# Chart 0.3.0 defaults to 0.110.0, which segfaults on writes under PostgreSQL
-# 18.6; 0.117.0 is the latest stable (upstream tag v0.117-0).
-# https://github.com/documentdb/documentdb/releases
 certManager:
   preflightCheck: false
-# Authoritative engine version: the vendored local chart's built-in default
-# (0.110.0 in helm/local-charts/documentdb-operator/values.yaml) is older
-# and must stay overridden here; the vendor script refreshes it on chart
-# bumps, but this override always wins.
-documentDbVersion: "0.117.0"
-walReplica: false
+# Authoritative engine/gateway version (tag of the operator's documentdb
+# extension and gateway images). Pinned here, not inherited from the vendored
+# chart's default, so a chart bump never changes the engine on its own.
+# https://github.com/documentdb/documentdb/releases (tag vX.Y-0 ↔ X.Y.0)
+documentDbVersion: "1.0.0"
 # CNPG-I only discovers plugin Services in the CloudNativePG operator's own
 # namespace, so the sidecar injector must live in `cloudnative-pg`.
 pluginNamespace: cloudnative-pg
