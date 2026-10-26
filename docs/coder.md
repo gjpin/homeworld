@@ -11,6 +11,7 @@ the control plane. The deployment uses the official Helm chart
 | Database | CloudNativePG `Cluster` `coder` (`apps/coder/0_postgres.yaml`) |
 | Workspaces | `coder-workspaces` namespace, `apps/coder/workspaces/` (network policies, LimitRange), created by the wave-0 `coder-workspaces` Application |
 | Workspace template | `apps/coder/template/` (pushed by hand, see [below](#workspace-template)) |
+| Workspace image | `apps/coder/image/`, built by `.github/workflows/coder-workspace-image.yaml` into `ghcr.io/gjpin/homeworld/coder-workspace` (see [below](#workspace-image)) |
 
 `https://coder.homeworld.internal` serves the dashboard, the API, and the
 agents' WebSockets. Workspace apps (code-server, forwarded ports) get their
@@ -39,9 +40,10 @@ refresh token.
 ## Workspace template
 
 Templates live in Coder's database. Argo CD does not manage them. The
-repository template is a general-purpose Ubuntu workspace with code-server
-and a persistent home volume (Longhorn `longhorn-crypto`). One template serves
-every language: toolchains come from mise per project ([below](#toolchains)). Its pod spec meets
+repository template is a general-purpose workspace with code-server and a
+persistent home volume (Longhorn `longhorn-crypto`), running the homeworld
+workspace image ([below](#workspace-image)), which carries the agents VM's
+toolset. One template serves every language. Its pod spec meets
 the `coder-workspaces` namespace rules: Restricted security context, gVisor,
 UID/GID `1000`, resources from workspace parameters, and the Homeworld CA in
 the trust bundle for curl, git, OpenSSL, Go, and Node.js. Push it from a
@@ -52,12 +54,12 @@ coder login https://coder.homeworld.internal
 coder templates push kubernetes -d apps/coder/template --yes
 coder templates edit kubernetes \
   --display-name "Kubernetes (homeworld)" \
-  --description "General-purpose development workspace for any language: per-project toolchains via mise, git, and code-server; persistent home directory."
+  --description "General-purpose development workspace for any language: Node.js, Go, Python, Rust, Java, and C/C++ toolchains, Kubernetes and infrastructure CLIs, coding-agent CLIs, Playwright, per-project versions via mise, and code-server; persistent home directory."
 ```
 
 Push again after changing `apps/coder/template/` (Renovate bumps the
 providers with their `.terraform.lock.hcl` hashes, the code-server module,
-the base image, and mise with its binary hash there). The lockfile covers `linux_amd64` and
+and the workspace image tag there). The lockfile covers `linux_amd64` and
 `linux_arm64`, the platforms coderd can be scheduled on, so the provisioners
 cache providers instead of downloading them on every build. Workspace Pods
 are pinned to amd64 nodes to match the agent binary. Pushing creates a new
@@ -71,16 +73,60 @@ enforces the Restricted Pod Security Standard, so a template that needs root,
 admission rule. The coder service account can create only Pods, PVCs, and
 Deployments, and only in `coder-workspaces`.
 
+### Workspace image
+
+`apps/coder/image/Dockerfile` builds the agents VM's toolset
+([openchamber.md](openchamber.md)) on Debian:
+
+- **apt**: the C/C++ toolchain (gcc, clang, llvm, lld, lldb, clangd, gdb,
+  valgrind), Python 3 with headers,
+  pip, pipx, and venv, autotools, cmake, meson, ninja, mold, ccache, just,
+  git and git-lfs, skopeo, and the VM's shell utilities (ripgrep, fzf, jq,
+  shellcheck, tmux, direnv, sqlite3, and more), with man pages.
+- **rustup**: the pinned stable Rust toolchain with rustfmt, clippy,
+  rust-analyzer, and rust-src, under a read-only `RUSTUP_HOME`
+  (`/usr/local/share/rustup`). `CARGO_HOME` is `~/.cargo` on the home volume
+  (registry cache, `cargo install`). A project that needs another toolchain
+  (`rust-toolchain.toml`) sets `RUSTUP_HOME = "{{env.HOME}}/.rustup"` in its
+  mise `[env]` and runs `rustup toolchain install`.
+- **mise** (`apps/coder/image/mise.toml`): Node.js, pnpm, Go and gopls,
+  Java (Temurin), uv, fd, bat, yq, tree-sitter, shfmt, gh, glab, kubectl,
+  helm, kustomize, terraform, opentofu, infisical, the coding agents (Claude
+  Code, Codex, OpenCode, Copilot CLI, Pi, Antigravity), and Playwright with
+  its CLI, Chromium, chrome-devtools-mcp, and skills. They install with
+  `mise install --system` into `/usr/local/share/mise` and are selected by
+  `/etc/mise/config.toml`, the lowest-precedence config.
+
+The VM tools that cannot run in a Restricted gVisor Pod are left out: Podman,
+Buildah, kind, strace, perf, tcpdump, and traceroute. OpenChamber and Paseo
+have no role next to Coder.
+
+`.github/workflows/coder-workspace-image.yaml` builds `linux/amd64` on
+changes to `apps/coder/image/` and weekly (Debian security updates), and
+pushes `ghcr.io/gjpin/homeworld/coder-workspace:<UTC date>.<run number>`.
+Pull requests build without pushing. The package is public, so nodes pull it
+without credentials; after its first push, set **Package settings → Change
+visibility → Public** on GitHub once. Renovate groups the image inputs
+(Debian base, mise and rustup with their binary hashes, the Rust toolchain,
+every `mise.toml` pin) into one
+`coder-workspace-image` PR, then bumps the new tag in the template; push the
+template after merging that bump.
+
+Everything in the image is root-owned and read-only to the workspace user,
+so no tool updates itself. The image switches off the same telemetry and
+update checks as the agents VM (Claude Code `DISABLE_TELEMETRY` and
+`DISABLE_UPDATES`, `PI_SKIP_VERSION_CHECK`), and the template's startup
+script, `homeworld-workspace-init`, sets the file-based ones in the home
+volume on every start: Codex `check_for_update_on_startup` and analytics and
+feedback, OpenCode `autoupdate` and sharing, Pi install telemetry,
+Antigravity telemetry and feedback survey, and Copilot `autoUpdate`. It also copies the skeleton dotfiles on first start
+and seeds the Playwright agent skills. Agent permission and approval
+settings are left at each CLI's defaults.
+
 ### Toolchains
 
-The image carries only the OS layer: git, `build-essential`, curl, jq,
-Python 3, and pipx. Language runtimes come from [mise](https://mise.jdx.dev),
-which the template's `mise` startup script installs as a checksum-verified,
-pinned binary in `~/.local/bin`. Toolchains install under
-`~/.local/share/mise` on the home volume, so they survive restarts and need
-no root.
-
-Each repository declares its versions in `mise.toml` or `.tool-versions`:
+The image's mise versions apply wherever a project sets none. A repository
+pins its own in `mise.toml` or `.tool-versions`:
 
 ```toml
 [tools]
@@ -90,14 +136,17 @@ python = "3"
 ```
 
 Run `mise install` once in the repository (or `mise use node@lts` to add a
-tool and write the file). mise's shims directory is on the container `PATH`,
-so every process resolves the versions of its working directory: terminals,
-code-server extensions (the `hverlin.mise-vscode` extension points the Go,
-Python, and ESLint extensions at them), and Coder Agents tool calls.
-Interactive bash shells also run `mise activate`, which loads a project's
-`[env]` section. Defaults for directories without a config go in
-`~/.config/mise/config.toml` (`mise use --global node@lts`); the startup
-script installs them on every start.
+tool and write the file). Versions the image lacks install under
+`~/.local/share/mise` on the home volume, so they survive restarts and need
+no root. mise's shim directories (the user's ahead of the image's) are on the
+container `PATH`, so every process resolves the versions of its working
+directory: terminals, code-server extensions (the `hverlin.mise-vscode`
+extension points the Go, Python, and ESLint extensions at them), and Coder
+Agents tool calls. Interactive bash shells also run `mise activate`, which
+loads a project's `[env]` section. Personal defaults go in
+`~/.config/mise/config.toml` (`mise use --global <tool>@<version>`); the
+startup script installs them on every start. `npm install -g` and `pipx`
+install into `~/.local`.
 
 code-server installs the Go, Python, ESLint, Prettier, and mise extensions
 from Open VSX and keeps them updated. Add more in the code-server module's
@@ -151,6 +200,7 @@ already permits.
 | code-server machine setting `telemetry.telemetryLevel: off` | No extension telemetry (extension updates stay on) |
 | `MISE_USE_VERSIONS_HOST_TRACK=false` | No install statistics to mise-versions |
 | `MISE_DISABLE_UPDATE_WARNING=true` | No mise release check |
+| Coding-agent switches in the image and `homeworld-workspace-init` | No agent telemetry or self-updates ([above](#workspace-image)) |
 
 ## Observability
 

@@ -1,9 +1,10 @@
-# Agents VM (OpenChamber and Paseo)
+# Agents VM (OpenChamber, Paseo and ThinkRail)
 
 The AI agent workspace is a libvirt/KVM virtual machine on the Ryzen node,
 outside Kubernetes. It runs [OpenChamber](https://github.com/openchamber/openchamber)
-and the [Paseo](https://paseo.sh/) daemon as `agent` (UID 1000) user
-services, with pinned coding agents: OpenCode, Claude Code, Codex CLI, the
+the [Paseo](https://paseo.sh/) daemon and
+[ThinkRail](https://github.com/JetBrains/thinkrail) as `agent` (UID 1000)
+user services, with pinned coding agents: OpenCode, Claude Code, Codex CLI, the
 Pi agent, the Antigravity CLI and the GitHub Copilot CLI, plus Node.js,
 pnpm, uv, Google Chrome with Playwright and chrome-devtools-mcp, the skills
 CLI, kind, kubectl and rootless Podman on Fedora.
@@ -14,8 +15,8 @@ CLI, kind, kubectl and rootless Podman on Fedora.
 | Definition | `host/agents-vm/` (applied by `host/apply.sh` through `host.sh`) |
 | Size | 8 vCPU, 16 GiB RAM, 40 GiB root and 160 GiB `/home` (thin qcow2 on the encrypted root) |
 | Address | `10.20.0.10` on the routed network `10.20.0.0/24` (`virbr-agents`) |
-| Domains | `openchamber.homeworld.internal` (port `3000`), `paseo.homeworld.internal` (port `6767`) |
-| Cluster side | `apps/openchamber`: Gateway listeners, HTTPRoutes and selectorless Services with EndpointSlices to `10.20.0.10` |
+| Domains | `openchamber.homeworld.internal` (port `3000`), `paseo.homeworld.internal` (port `6767`), `thinkrail.homeworld.internal` (port `24242`) |
+| Cluster side | `apps/openchamber`: Gateway listeners, HTTPRoutes, ThinkRail's gateway sign-in and selectorless Services with EndpointSlices to `10.20.0.10` |
 
 The Ryzen's kubelet reserves the VM's 16 GiB (`system-reserved`), the VM runs
 with a lower CPU weight than the host's own services, and `libvirt-guests`
@@ -60,9 +61,9 @@ crosses `virbr-agents`:
 | VM → internet | Everything |
 | VM → Gateway VIP `192.168.8.50` | TCP `443` and `22` (Forgejo, its registry, every web app) |
 | VM → anything else private | Rejected: RFC 1918, CGNAT, link-local, multicast and their IPv6 counterparts, so no node, pod, Service, NAS or LAN host |
-| LAN and WireGuard clients → VM | Every port (SSH, OpenChamber, Paseo, dev servers) |
-| Nodes and pods → VM | `3000` and `6767` only (Envoy Gateway's backends) |
-| Ryzen → VM | `3000`, `6767`, DHCP replies and ICMP |
+| LAN and WireGuard clients → VM | Every port (SSH, OpenChamber, Paseo, dev servers) except ThinkRail's `24242`, which has no login of its own |
+| Nodes and pods → VM | `3000`, `6767` and `24242` only (Envoy Gateway's backends) |
+| Ryzen → VM | `3000`, `6767`, `24242`, DHCP replies and ICMP |
 
 The Gateway VIP is never announced from the Ryzen ([docs/cilium.md](cilium.md)),
 so the VM's HTTPS and SSH traffic to it leaves through the LAN like any
@@ -75,6 +76,13 @@ reason Envoy on it can reach the VM.
   `https://paseo.homeworld.internal` through Envoy Gateway (Homeworld CA
   certificates, CrowdSec bouncer). Both apps authenticate on their own: the
   OpenChamber UI password and Paseo's bearer password ([docs/oidc.md](oidc.md)).
+- **ThinkRail**: `https://thinkrail.homeworld.internal`, behind Envoy
+  Gateway's Authelia sign-in (the `platform` group): ThinkRail has no
+  accounts of its own, so the VM's port is closed to LAN and WireGuard
+  clients and the Gateway is the only way in. It runs the Pi agent
+  in-process and shares Pi's logins (`/login` inside `pi`) or signs in
+  to JetBrains AI from its own settings; app state lives in
+  `~/.thinkrail`.
 - **Paseo apps**: pair the desktop or mobile app with the daemon, directly at
   `10.20.0.10:6767` or through `paseo.homeworld.internal`. The relay is
   disabled (`PASEO_RELAY_ENABLED=false`), and `PASEO_HOSTNAMES` allows the
@@ -117,7 +125,13 @@ everything else the agents or you add:
   OpenCode `autoupdate`, Pi `PI_SKIP_VERSION_CHECK`, Copilot `autoUpdate`,
   Claude Code `DISABLE_UPDATES`. OpenChamber has no switch for its update
   check, so `OPENCHAMBER_UPDATE_API_URL` points at an unreachable local port.
+  ThinkRail's release check only runs from an installer layout
+  (`<prefix>/bin/thinkrail`), so the binary lives in
+  `/usr/local/libexec/thinkrail` behind a wrapper.
 - Telemetry is off where the vendor allows it: Codex analytics and feedback,
   OpenCode sharing, Pi install telemetry, Antigravity telemetry, Claude Code
   `DISABLE_TELEMETRY` (its error reporting stays on). Copilot CLI has no telemetry switch short of offline mode, which
   also disables GitHub sign-in; that is an accepted upstream limitation.
+  ThinkRail's additional analytics are off (`THINKRAIL_NO_ANALYTICS`), and
+  its basic usage events have no switch outside CI, so
+  `THINKRAIL_POSTHOG_HOST` points them at an unreachable local port.

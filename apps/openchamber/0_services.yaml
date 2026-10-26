@@ -1,7 +1,8 @@
-# OpenChamber and Paseo run in the agents VM on the VM host's routed libvirt
-# network (docs/openchamber.md), not in the cluster. These selectorless
-# Services and their EndpointSlices point Envoy at the VM's fixed address;
-# the VM host's firewall lets node and pod sources reach only these two ports.
+# OpenChamber, Paseo and ThinkRail run in the agents VM on the VM host's
+# routed libvirt network (docs/openchamber.md), not in the cluster. These
+# selectorless Services and their EndpointSlices point Envoy at the VM's fixed
+# address; the VM host's firewall lets node and pod sources reach only these
+# three ports.
 ---
 apiVersion: v1
 kind: Service
@@ -60,6 +61,37 @@ addressType: IPv4
 ports:
   - name: http
     port: 6767
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 10.20.0.10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thinkrail
+  namespace: openchamber
+  labels:
+    app.kubernetes.io/name: thinkrail
+spec:
+  ports:
+    - name: http
+      port: 24242
+      protocol: TCP
+      targetPort: 24242
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: thinkrail-agents-vm
+  namespace: openchamber
+  labels:
+    kubernetes.io/service-name: thinkrail
+    endpointslice.kubernetes.io/managed-by: homeworld
+addressType: IPv4
+ports:
+  - name: http
+    port: 24242
     protocol: TCP
 endpoints:
   - addresses:

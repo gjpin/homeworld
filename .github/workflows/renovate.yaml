@@ -33,7 +33,7 @@ jobs:
           RENOVATE_PLATFORM: github
           RENOVATE_REPOSITORIES: ${{ github.repository }}
           # Self-hosted-only option (cannot live in renovate.json): allow the
-          # DocumentDB chart re-vendor script and the hass-oidc-auth and mise
-          # sha256 refresh scripts to run as postUpgradeTasks commands.
+          # DocumentDB chart re-vendor script and the hass-oidc-auth and Coder
+          # image sha256 refresh scripts to run as postUpgradeTasks commands.
           # Regexes match the resolved command string.
-          RENOVATE_ALLOWED_COMMANDS: '["^bash scripts/vendor-documentdb-operator\\.sh$", "^bash scripts/refresh-hass-oidc-auth-sha\\.sh$", "^bash scripts/refresh-mise-sha\\.sh$"]'
+          RENOVATE_ALLOWED_COMMANDS: '["^bash scripts/vendor-documentdb-operator\\.sh$", "^bash scripts/refresh-hass-oidc-auth-sha\\.sh$", "^bash scripts/refresh-coder-image-shas\\.sh$"]'

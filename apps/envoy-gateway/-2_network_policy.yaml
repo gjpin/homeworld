@@ -966,6 +966,28 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: allow-envoy-backend-thinkrail
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: thinkrail
+            namespace: openchamber
+      toPorts:
+        - ports:
+            - port: "24242"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   # Both the coder.homeworld.internal and *.coder.homeworld.internal
   # (workspace apps) routes back onto this Service.
   name: allow-envoy-backend-coder
