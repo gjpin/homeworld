@@ -247,12 +247,13 @@ over a generated CloudNativePG `Cluster`.
 
 Renovate tracks all four fields via `customManagers` in `renovate.json`.
 The engine managers use the docker datasource against
-`ghcr.io/documentdb/documentdb/documentdb-local`, whose tags carry the
-PostgreSQL base as a prefix (`pg17-0.117.0`, `pg18-0.117.0`, ...); a custom
-`versioningTemplate` regex strips the `pgNN-` prefix, so the bare `X.Y.0`
-values above compare directly against the per-base image tags. (The
-`vX.Y-0` form above is the GitHub *release* tag — a human-facing alias of
-the same version; Renovate tracks the image tags, not the releases.)
+`ghcr.io/documentdb/documentdb-kubernetes-operator/documentdb`, the extension
+image the operator mounts (the gateway image shares its tags), with `semver`
+versioning: the bare `X.Y.Z` tags are the releases, while the
+`-build-...` and release-candidate tags are never proposed. Release-candidate
+engines are not upgradable in place, so never pin one on a cluster that holds
+data. (The `vX.Y-0` form above is the GitHub *release* tag — a human-facing
+alias of the same version; Renovate tracks the image tags, not the releases.)
 
 ### Schema Upgrades Are Two-Phase
 
@@ -416,6 +417,7 @@ The applications below document procedures beyond that review.
 | **Coder** | [Upgrade](https://coder.com/docs/install/operate/upgrade) and [best practices](https://coder.com/docs/install/operate/upgrade/best-practices): rollbacks are unsupported, so snapshot the database first; migrations run at startup and take longer the more minors are crossed. Read the [release notes](https://github.com/coder/coder/releases) of every minor crossed — Coder Agents settings and APIs can change between releases. | Take a CNPG on-demand `Backup` ([§1](#before-merging-a-major-upgrade)) before a minor bump and roll back by restoring it, not by reverting the image. The chart and image move together in one Renovate PR. When the bump raises a Terraform or provider minimum, push the repository template again ([coder.md](coder.md#workspace-template)). |
 | **Home Assistant** | [Updating](https://www.home-assistant.io/common-tasks/container/#updating): back up first and read the backward-incompatible changes of every release crossed; check repairs and logs afterwards. | Confirm the latest [Velero backup](velero.md) and take a CNPG on-demand `Backup` ([§1](#before-merging-a-major-upgrade)) before a bump. |
 | **RustFS** | [Upgrade runbook](https://docs.rustfs.com/upgrade-scale/upgrade): never upgrade with offline nodes or degraded erasure sets; the on-disk format never changes. The operator chart needs its CRDs first. | CRDs sync with the render. |
+| **Grafana VictoriaMetrics datasource plugins** | Read the plugin release notes ([metrics](https://github.com/VictoriaMetrics/victoriametrics-datasource/blob/main/CHANGELOG.md), [logs](https://github.com/VictoriaMetrics/victorialogs-datasource/blob/main/CHANGELOG.md)) and check the `grafanaDependency` in the release's `plugin.json` against the Grafana image. | The plugin-loader init container in `apps/grafana/0_grafana.yaml` verifies each tarball's sha256. Renovate moves the tag and tarball name but not the checksum: copy the new digest from the release assets page into the same PR. |
 | **Longhorn** | See [§2](#2-automated-storage-engine-upgrades-longhorn). | |
 | **OpenCloud, DocumentDB, MariaDB, CloudNativePG operands** | See [§3](#3-automated-post-upgrade-tasks-opencloud), [§7](#7-documentdb-engine-upgrades), [§8](#8-mariadb-engine-upgrades-mariadb-operator), [§1](#1-automated-major-database-upgrades-cloudnativepg). | |
 
