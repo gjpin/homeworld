@@ -1,7 +1,7 @@
 coder:
   image:
     repo: ghcr.io/coder/coder
-    tag: v2.38.1
+    tag: v2.38.2
     pullPolicy: IfNotPresent
 
   # The access URL is set explicitly below; the chart's in-cluster fallback

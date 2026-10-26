@@ -14,7 +14,6 @@ image:
   repository: kube-state-metrics/kube-state-metrics
   # Pinned instead of floating on the chart's appVersion (AGENTS.md).
   tag: "v2.20.0"
-  pullPolicy: IfNotPresent
 
 # Single replica; automated sharding stays off (autoscaling is intentionally
 # disabled across the repo).
