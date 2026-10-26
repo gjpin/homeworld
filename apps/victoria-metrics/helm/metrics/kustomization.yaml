@@ -5,7 +5,7 @@ commonAnnotations:
 helmCharts:
   - name: victoria-metrics-single
     repo: https://victoriametrics.github.io/helm-charts/
-    version: 0.49.0
+    version: 0.50.0
     releaseName: victoria-metrics
     namespace: victoria-metrics
     includeCRDs: true
