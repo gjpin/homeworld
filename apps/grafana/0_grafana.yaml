@@ -22,6 +22,8 @@ spec:
       # read-only /usr/share/grafana/data/plugins-bundled.
       plugin_admin_enabled: "false"
       preinstall_disabled: "true"
+      # public_key_retrieval_disabled stays at its default (false): plugin
+      # signature verification needs the signing keys from grafana.com.
     auth:
       disable_login_form: "true"
     auth.basic:
