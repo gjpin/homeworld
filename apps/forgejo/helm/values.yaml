@@ -1,20 +1,16 @@
 replicaCount: 1
 
-# Disable inbuilt databases
-postgresql-ha:
-  enabled: false
-postgresql:
-  enabled: false
-redis-cluster:
-  enabled: false
-
 image:
-  pullPolicy: IfNotPresent
+  registry: code.forgejo.org
+  repository: forgejo/forgejo
+  # Pinned ahead of the chart's appVersion, which follows the LTS line;
+  # the chart appends -rootless.
+  tag: 17.0.1
 
 # Pin the shared-storage PVC to the repo StorageClass explicitly instead of
 # relying on the cluster default (the chart defaults storageClass to '').
+# The claim name is pinned so a chart default change never orphans the data.
 persistence:
-  enabled: true
   claimName: gitea-shared-storage
   storageClass: longhorn-crypto
   # Repositories, LFS and the container registry (the agents VM pushes there).
@@ -47,7 +43,6 @@ gitea:
   # intended for this single-operator instance (docs/oidc.md).
   admin:
     username: ""
-    password: ""
     existingSecret: ""
   oauth:
     - name: Authelia

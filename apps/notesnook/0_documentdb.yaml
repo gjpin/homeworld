@@ -14,10 +14,10 @@ metadata:
 spec:
   nodeCount: 1
   instancesPerNode: 1
-  # Pinned engine/gateway version (extension + gateway images). Chart 0.3.0
-  # defaults to 0.110.0, which segfaults on writes under PostgreSQL 18.6.
+  # Pinned engine/gateway version (extension + gateway images), so an
+  # operator chart bump cannot change the engine on its own.
   # https://github.com/documentdb/documentdb/releases (tag vX.Y-0 ↔ X.Y.0)
-  documentDBVersion: "0.117.0"
+  documentDBVersion: "1.0.0"
   documentDbCredentialSecret: notesnook-documentdb-credentials
   image:
     # Must stay trixie-based to match the extension's GLIBC requirements.

@@ -1,0 +1,48 @@
+# Toolchains and CLIs baked into the Coder workspace image (Dockerfile):
+# installed with `mise install --system` into /usr/local/share/mise and
+# selected for every user through this file at /etc/mise/config.toml, the
+# lowest-precedence config. A project's own mise.toml or .tool-versions
+# overrides any of them, and mise installs the override into the home volume.
+# Renovate's mise manager bumps each pin; the image workflow rebuilds on every
+# change (docs/coder.md).
+
+[tools]
+# Languages. Rust comes from rustup in the Dockerfile.
+node = "26.12.1"
+pnpm = "12.15.0"
+go = "1.27.3"
+"go:golang.org/x/tools/gopls" = "0.24.0"
+java = "temurin-25.0.4+101.0.LTS"
+uv = "0.13.4"
+
+# CLIs that Debian ships under other names (fdfind, batcat), only in older
+# releases, or not at all.
+fd = "10.5.0"
+bat = "0.26.1"
+yq = "4.54.1"
+tree-sitter = "0.27.1"
+shfmt = "3.14.1"
+gh = "2.103.0"
+glab = "1.124.0"
+
+# Kubernetes and infrastructure.
+kubectl = "1.37.1"
+helm = "4.3.1"
+kustomize = "5.8.3"
+terraform = "1.17.0"
+opentofu = "1.13.2"
+infisical = "0.44.5"
+
+# Coding agents.
+claude = "2.1.306"
+codex = "0.163.0"
+opencode = "2.1.2"
+copilot = "1.0.101"
+pi = "1.3.0"
+antigravity-cli = "1.4.4"
+
+# Browser automation; the Dockerfile installs Playwright's Chromium.
+"npm:@playwright/test" = "1.64.1"
+"npm:@playwright/cli" = "0.1.22"
+"npm:chrome-devtools-mcp" = "1.11.0"
+"npm:skills" = "1.7.4"

@@ -4,7 +4,7 @@
 # tag so Argo Validate=true can admit CiliumNetworkPolicy objects.
 set -euo pipefail
 
-VERSION="${CILIUM_VERSION:-1.20.2}"
+VERSION="${CILIUM_VERSION:-1.20.4}"
 BASE="https://raw.githubusercontent.com/cilium/cilium/v${VERSION}/pkg/k8s/apis/cilium.io/client/crds/v2"
 
 kubectl apply --server-side --force-conflicts \

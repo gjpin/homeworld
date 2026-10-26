@@ -11,6 +11,7 @@
     "gomod",
     "kustomize",
     "kubernetes",
+    "mise",
     "terraform"
   ],
   "ignorePaths": [
@@ -30,7 +31,8 @@
       "description": "Forgejo majors: one PR per major with the upstream backup, queue-flush, and doctor steps",
       "matchPackageNames": [
         "code.forgejo.org/forgejo-helm/forgejo",
-        "forgejo"
+        "forgejo",
+        "forgejo/forgejo"
       ],
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
@@ -153,16 +155,17 @@
       }
     },
     {
-      "description": "Refresh the mise binary sha256 in the Coder workspace template on version bumps",
+      "description": "Refresh the mise and rustup-init sha256 hashes in the Coder workspace image on version bumps",
       "matchPackageNames": [
-        "jdx/mise"
+        "jdx/mise",
+        "rust-lang/rustup"
       ],
       "postUpgradeTasks": {
         "commands": [
-          "bash scripts/refresh-mise-sha.sh"
+          "bash scripts/refresh-coder-image-shas.sh"
         ],
         "fileFilters": [
-          "apps/coder/template/main.tf"
+          "apps/coder/image/Dockerfile"
         ],
         "executionMode": "update"
       }
@@ -189,6 +192,16 @@
       "separateMultipleMinor": true,
       "prBodyNotes": [
         "⚠️ **Cilium Upgrade Requirement**: Upstream only supports consecutive minor upgrades. Before merging a minor, read its [upgrade notes](https://docs.cilium.io/en/stable/operations/upgrade/) (removed APIs, minimum Gateway API CRD version, which k3s supplies here) and run the [pre-flight check](docs/upgrades.md#cilium-pre-flight-check)."
+      ]
+    },
+    {
+      "description": "Grafana VictoriaMetrics datasource plugins: the init container pins each release tarball's sha256, which Renovate cannot compute",
+      "matchPackageNames": [
+        "VictoriaMetrics/victoriametrics-datasource",
+        "VictoriaMetrics/victorialogs-datasource"
+      ],
+      "prBodyNotes": [
+        "⚠️ **Plugin Checksum**: Renovate moves the release tag and tarball name only. Replace the tarball's `sha256sum -c` value in `apps/grafana/0_grafana.yaml` with the digest from the release assets page before merging, or the plugin-loader init container fails (see [docs/upgrades.md](docs/upgrades.md#9-upstream-upgrade-procedures))."
       ]
     },
     {
@@ -244,6 +257,13 @@
         "ghcr.io/coder/coder"
       ],
       "groupName": "coder"
+    },
+    {
+      "description": "Group every Coder workspace image input (Debian base, mise, rustup, Rust, the mise.toml toolset) into one PR: each merge rebuilds the image once",
+      "matchFileNames": [
+        "apps/coder/image/**"
+      ],
+      "groupName": "coder-workspace-image"
     },
     {
       "description": "Coder minors run irreversible database migrations",
@@ -524,10 +544,10 @@
       "matchStrings": [
         "(?m)^documentDbVersion:\\s*\"(?<currentValue>[^\"]+)\""
       ],
-      "depNameTemplate": "ghcr.io/documentdb/documentdb/documentdb-local",
+      "depNameTemplate": "ghcr.io/documentdb/documentdb-kubernetes-operator/documentdb",
       "datasourceTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io",
-      "versioningTemplate": "regex:^(?:pg\\d+-)?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
+      "versioningTemplate": "semver"
     },
     {
       "customType": "regex",
@@ -538,10 +558,10 @@
       "matchStrings": [
         "(?m)^\\s*documentDBVersion:\\s*\"(?<currentValue>[^\"]+)\""
       ],
-      "depNameTemplate": "ghcr.io/documentdb/documentdb/documentdb-local",
+      "depNameTemplate": "ghcr.io/documentdb/documentdb-kubernetes-operator/documentdb",
       "datasourceTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io",
-      "versioningTemplate": "regex:^(?:pg\\d+-)?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
+      "versioningTemplate": "semver"
     },
     {
       "customType": "regex",
@@ -668,6 +688,19 @@
     },
     {
       "customType": "regex",
+      "description": "Update the Forgejo image (pinned ahead of the chart appVersion)",
+      "managerFilePatterns": [
+        "/^apps/forgejo/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^image:\\s*\\n\\s+registry:\\s*code\\.forgejo\\.org\\s*\\n\\s+repository:\\s*(?<depName>forgejo/forgejo)\\s*\\n(?:\\s+#[^\\n]*\\n)*\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://code.forgejo.org"
+    },
+    {
+      "customType": "regex",
       "description": "Update the Authelia image",
       "managerFilePatterns": [
         "/^apps/authelia/helm/values\\.yaml$/"
@@ -699,7 +732,7 @@
         "/^apps/grafana/0_grafana\\.yaml$/"
       ],
       "matchStrings": [
-        "victoriametrics-datasource/releases/download/(?<currentValue>v[^/]+)/victoriametrics-metrics-datasource"
+        "victoriametrics-datasource/releases/download/(?<currentValue>v[^/]+)/victoriametrics-metrics-datasource-v[^/]+\\.tar\\.gz"
       ],
       "depNameTemplate": "VictoriaMetrics/victoriametrics-datasource",
       "datasourceTemplate": "github-releases"
@@ -711,7 +744,7 @@
         "/^apps/grafana/0_grafana\\.yaml$/"
       ],
       "matchStrings": [
-        "victorialogs-datasource/releases/download/(?<currentValue>v[^/]+)/victoriametrics-logs-datasource"
+        "victorialogs-datasource/releases/download/(?<currentValue>v[^/]+)/victoriametrics-logs-datasource-v[^/]+\\.tar\\.gz"
       ],
       "depNameTemplate": "VictoriaMetrics/victorialogs-datasource",
       "datasourceTemplate": "github-releases"
@@ -1000,29 +1033,65 @@
     },
     {
       "customType": "regex",
-      "description": "Update the Coder workspace template image",
+      "description": "Update the Coder workspace image in the template; tags are <build date>.<workflow run number>",
       "managerFilePatterns": [
         "/^apps/coder/template/main\\.tf$/"
       ],
       "matchStrings": [
-        "image\\s*=\\s*\"(?<depName>docker\\.io/codercom/example-base):(?<currentValue>[^\"]+)\""
+        "image\\s*=\\s*\"(?<depName>ghcr\\.io/gjpin/homeworld/coder-workspace):(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "docker",
-      "versioningTemplate": "regex:^ubuntu-(?<major>\\d{8})$",
+      "versioningTemplate": "regex:^(?<major>\\d{8})\\.(?<minor>\\d+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Debian base of the Coder workspace image",
+      "managerFilePatterns": [
+        "/^apps/coder/image/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "FROM (?<depName>docker\\.io/library/debian):(?<currentValue>trixie-[\\d.]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "regex:^trixie-(?<major>\\d{8})(\\.(?<minor>\\d+))?$",
       "registryUrlTemplate": "https://index.docker.io"
     },
     {
       "customType": "regex",
-      "description": "Update the mise version installed by the Coder workspace template",
+      "description": "Update the mise binary in the Coder workspace image",
       "managerFilePatterns": [
-        "/^apps/coder/template/main\\.tf$/"
+        "/^apps/coder/image/Dockerfile$/"
       ],
       "matchStrings": [
-        "mise_version\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+        "ARG MISE_VERSION=(?<currentValue>[\\d.]+)"
       ],
       "depNameTemplate": "jdx/mise",
       "datasourceTemplate": "github-releases",
       "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Update rustup in the Coder workspace image",
+      "managerFilePatterns": [
+        "/^apps/coder/image/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG RUSTUP_VERSION=(?<currentValue>[\\d.]+)"
+      ],
+      "depNameTemplate": "rust-lang/rustup",
+      "datasourceTemplate": "github-tags"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Rust toolchain in the Coder workspace image",
+      "managerFilePatterns": [
+        "/^apps/coder/image/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG RUST_VERSION=(?<currentValue>[\\d.]+)"
+      ],
+      "depNameTemplate": "rust-lang/rust",
+      "datasourceTemplate": "github-releases"
     },
     {
       "customType": "regex",

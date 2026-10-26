@@ -38,7 +38,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0002"
       }
     ]
@@ -251,7 +250,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0007"
       }
     ]
@@ -306,7 +304,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0012"
       }
     ]
@@ -633,7 +630,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0013"
       }
     ]
@@ -920,7 +916,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0015"
       }
     ]
@@ -1063,7 +1058,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0016"
       }
     ]
@@ -1350,7 +1344,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0017"
       }
     ]
@@ -1517,7 +1510,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0018"
       }
     ]
@@ -2028,7 +2020,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0030"
       }
     ]
@@ -2080,7 +2071,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0031"
       }
     ]
@@ -2527,7 +2517,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0034"
       }
     ]
@@ -2557,7 +2546,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0035"
       }
     ]
@@ -2714,7 +2702,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0037"
       }
     ]
@@ -2737,7 +2724,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0038"
       }
     ]
@@ -2784,7 +2770,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0041"
       }
     ]
@@ -2831,7 +2816,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0044"
       }
     ]
@@ -2886,7 +2870,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0045"
       }
     ]
@@ -2925,7 +2908,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0046"
       }
     ]
@@ -2996,7 +2978,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0048"
       }
     ]
@@ -3018,7 +2999,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0049"
       }
     ]
@@ -3577,7 +3557,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0053"
       }
     ]
@@ -3599,7 +3578,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0054"
       }
     ]
@@ -3742,7 +3720,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0055"
       }
     ]
@@ -3957,7 +3934,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0056"
       }
     ]
@@ -4004,7 +3980,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0057"
       }
     ]
@@ -4034,7 +4009,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0063"
       }
     ]
@@ -4072,7 +4046,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0065"
       }
     ]
@@ -4463,7 +4436,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0076"
       }
     ]
@@ -4542,7 +4514,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0077"
       }
     ]
@@ -4829,7 +4800,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0186"
       }
     ]
@@ -4859,7 +4829,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0187"
       }
     ]
@@ -4963,7 +4932,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0188"
       }
     ]
@@ -4985,7 +4953,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0189"
       }
     ]
@@ -5432,7 +5399,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0190"
       }
     ]
@@ -5477,7 +5443,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0191"
       }
     ]
@@ -5499,7 +5464,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0192"
       }
     ]
@@ -5521,7 +5485,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0193"
       }
     ]
@@ -5543,7 +5506,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0194"
       }
     ]
@@ -5565,7 +5527,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0195"
       }
     ]
@@ -5587,7 +5548,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0196"
       }
     ]
@@ -5609,7 +5569,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0197"
       }
     ]
@@ -5631,7 +5590,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0198"
       }
     ]
@@ -5653,7 +5611,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0199"
       }
     ]
@@ -5675,7 +5632,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0200"
       }
     ]
@@ -5697,7 +5653,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0201"
       }
     ]
@@ -5719,7 +5674,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0202"
       }
     ]
@@ -5741,7 +5695,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0203"
       }
     ]
@@ -5763,7 +5716,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0204"
       }
     ]
@@ -5785,7 +5737,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0206"
       }
     ]
@@ -5952,7 +5903,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0207"
       }
     ]
@@ -6103,7 +6053,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0210"
       }
     ]
@@ -6614,7 +6563,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0211"
       }
     ]
@@ -7013,7 +6961,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0237"
       }
     ]
@@ -7036,7 +6983,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0255"
       }
     ]
@@ -7211,7 +7157,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0258"
       }
     ]
@@ -7242,7 +7187,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0259"
       }
     ]
@@ -7753,7 +7697,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0260"
       }
     ]
@@ -8096,7 +8039,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0261"
       }
     ]
@@ -8391,7 +8333,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0267"
       }
     ]
@@ -8430,7 +8371,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0272"
       }
     ]
@@ -8453,7 +8393,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0275"
       }
     ]
@@ -8512,7 +8451,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0278"
       }
     ]
@@ -8549,7 +8487,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0279"
       }
     ]
@@ -8579,7 +8516,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0280"
       }
     ]
@@ -8651,7 +8587,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0281"
       }
     ]
@@ -8688,7 +8623,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0282"
       }
     ]
@@ -8719,7 +8653,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0293"
       }
     ]
@@ -8774,7 +8707,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0299"
       }
     ]
@@ -8829,7 +8761,6 @@
     ],
     "posturePolicies": [
       {
-        "frameworkName": "AllControls",
         "controlID": "C-0305"
       }
     ]

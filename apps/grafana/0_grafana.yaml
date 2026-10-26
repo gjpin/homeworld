@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: grafana
     dashboards: grafana
 spec:
-  version: docker.io/grafana/grafana:13.2.3
+  version: docker.io/grafana/grafana:13.2.4
   disableDefaultAdminSecret: true
   config:
     server:
@@ -22,6 +22,8 @@ spec:
       # read-only /usr/share/grafana/data/plugins-bundled.
       plugin_admin_enabled: "false"
       preinstall_disabled: "true"
+      # public_key_retrieval_disabled stays at its default (false): plugin
+      # signature verification needs the signing keys from grafana.com.
     auth:
       disable_login_form: "true"
     auth.basic:
@@ -100,8 +102,8 @@ spec:
                   rm /var/lib/grafana/plugins/vm-metrics.tar.gz
 
                   wget -O /var/lib/grafana/plugins/vm-logs.tar.gz \
-                    https://github.com/VictoriaMetrics/victorialogs-datasource/releases/download/v0.32.0/victoriametrics-logs-datasource-v0.32.0.tar.gz
-                  echo 'e100b767f19cd614ac8ac3860458a3fb33f5aa7a876e924d0340010e40d1c0d4  /var/lib/grafana/plugins/vm-logs.tar.gz' | sha256sum -c -
+                    https://github.com/VictoriaMetrics/victorialogs-datasource/releases/download/v0.33.1/victoriametrics-logs-datasource-v0.33.1.tar.gz
+                  echo '849edf4d86a6555bbf3fdbe1c53ed719a6c51c3d69965dcc0384e2c129ad991a  /var/lib/grafana/plugins/vm-logs.tar.gz' | sha256sum -c -
                   tar -xzf /var/lib/grafana/plugins/vm-logs.tar.gz -C /var/lib/grafana/plugins
                   rm /var/lib/grafana/plugins/vm-logs.tar.gz
               securityContext:
