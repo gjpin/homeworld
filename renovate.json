@@ -362,6 +362,16 @@
         "host/agents-vm/versions.env"
       ],
       "groupName": "agents-vm-tools"
+    },
+    {
+      "description": "OpenCode and OpenChamber: OpenChamber supports one OpenCode major from a minimum version",
+      "matchPackageNames": [
+        "anomalyco/opencode",
+        "@openchamber/web"
+      ],
+      "prBodyNotes": [
+        "⚠️ **OpenCode / OpenChamber Upgrade**: OpenChamber runs only on the OpenCode major it targets, from `MINIMUM_OPENCODE_VERSION` in its `packages/web/server/lib/opencode/compatibility.js`. Before merging, confirm the pinned OpenChamber accepts the pinned OpenCode. On an OpenCode major, check the installer URL in `host/agents-vm/provision.sh` and the managed `opencode.json` keys against the [migration guide](https://opencode.ai/v2/docs/migrate-v1/) (see [docs/upgrades.md](docs/upgrades.md#9-upstream-upgrade-procedures))."
+      ]
     }
   ],
   "argocd": {
