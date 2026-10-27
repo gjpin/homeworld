@@ -33,9 +33,9 @@ RUN apt-get update \
 # linux/amd64 only; the arm64 hashes keep local builds on arm64 machines
 # working.
 ARG TARGETARCH
-ARG MISE_VERSION=2026.10.17
-ARG MISE_SHA256_AMD64=fe6dd17e68e09682b31d2e7bb7bb755d22636ac1af5d94621e300f2ca9e9fe8a
-ARG MISE_SHA256_ARM64=e90904144ba4377c5fbe385f429830282c68f3b4f9c690bf6c5a2ae9b74a809b
+ARG MISE_VERSION=2026.10.20
+ARG MISE_SHA256_AMD64=2eb27467b6f369915ee76f18d66a0696cdb5c20e7ecc8cb49c2bfaca60f0fc9c
+ARG MISE_SHA256_ARM64=81047ebf136016297f4515132265c3e5fc052f2c4090130a4e8d68fd64b96b57
 ARG RUSTUP_VERSION=1.29.2
 ARG RUSTUP_SHA256_AMD64=5be191e8c70a5007074254cb74d78dbfdd25cd5a61c27de7b8e5410122ec24f4
 ARG RUSTUP_SHA256_ARM64=a9c168dbea81a84671c6b7a5c1795cb0eb699020110d107ddfca427bd797e697
@@ -68,13 +68,15 @@ RUN case "${TARGETARCH}" in \
 
 # No install statistics to mise-versions and no mise release check; no update
 # checks or telemetry from the coding agents (the same switches as the agents
-# VM, docs/openchamber.md). The init script sets the agents' file-based
-# switches in the home volume.
+# VM, docs/openchamber.md) or chrome-devtools-mcp. The init script sets the
+# agents' file-based switches in the home volume.
 ENV MISE_USE_VERSIONS_HOST_TRACK=false \
     MISE_DISABLE_UPDATE_WARNING=true \
     DISABLE_UPDATES=1 \
     DISABLE_TELEMETRY=1 \
     PI_SKIP_VERSION_CHECK=1 \
+    CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS=1 \
+    CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS=1 \
     PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 
 COPY mise.toml /etc/mise/config.toml
