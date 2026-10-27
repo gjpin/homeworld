@@ -115,7 +115,9 @@ template after merging that bump.
 Everything in the image is root-owned and read-only to the workspace user,
 so no tool updates itself. The image switches off the same telemetry and
 update checks as the agents VM (Claude Code `DISABLE_TELEMETRY` and
-`DISABLE_UPDATES`, `PI_SKIP_VERSION_CHECK`), and the template's startup
+`DISABLE_UPDATES`, `PI_SKIP_VERSION_CHECK`) and chrome-devtools-mcp's usage
+statistics and update check (`CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS`,
+`CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS`), and the template's startup
 script, `homeworld-workspace-init`, sets the file-based ones in the home
 volume on every start: Codex `check_for_update_on_startup` and analytics and
 feedback, OpenCode `autoupdate` and sharing, Pi install telemetry,
