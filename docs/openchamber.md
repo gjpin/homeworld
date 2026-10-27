@@ -122,7 +122,7 @@ everything else the agents or you add:
   the VM itself is the sandbox.
 - Self-update and update checks are off for every agent (and inert anyway,
   `/usr/local` being read-only): Codex `check_for_update_on_startup`,
-  OpenCode `autoupdate`, Pi `PI_SKIP_VERSION_CHECK`, Copilot `autoUpdate`,
+  OpenCode `update: "disable"`, Pi `PI_SKIP_VERSION_CHECK`, Copilot `autoUpdate`,
   Claude Code `DISABLE_UPDATES`. OpenChamber has no switch for its update
   check, so `OPENCHAMBER_UPDATE_API_URL` points at an unreachable local port.
   ThinkRail's release check only runs from an installer layout

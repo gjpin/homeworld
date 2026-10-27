@@ -103,9 +103,11 @@ export PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 playwright install chromium
 playwright-cli install-browser chromium
 
-# OpenCode, through the official installer with the version pinned.
+# OpenCode, through the official OpenCode 2 installer with the version
+# pinned (the unversioned /install path is OpenCode 1's and refuses 2.x).
 mkdir "$work/opencode"
-curl -fsSL https://opencode.ai/install | HOME="$work/opencode" bash -s -- --version "$OPENCODE_VERSION"
+curl -fsSL https://opencode.ai/v2/install |
+  HOME="$work/opencode" bash -s -- --version "$OPENCODE_VERSION" --no-modify-path
 install -m 0755 "$work/opencode/.opencode/bin/opencode" /usr/local/bin/opencode
 
 # Codex CLI: the installer links into HOME, so copy the standalone binary.
