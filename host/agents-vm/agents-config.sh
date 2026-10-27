@@ -131,10 +131,11 @@ set_toml_section_key "$home_dir/.codex/config.toml" analytics enabled 'false'
 set_toml_section_key "$home_dir/.codex/config.toml" feedback enabled 'false'
 
 # OpenCode: allow all tool permissions; never self-update and never share
-# conversations.
+# conversations. The deprecated V1 keys (permission, autoupdate) are dropped
+# in favour of their native V2 replacements.
 merge_json "$home_dir/.config/opencode/opencode.json" \
-  '.permission = "allow" | .autoupdate = false | .share = "disabled"' \
-  '{"$schema":"https://opencode.ai/config.json","permission":"allow","autoupdate":false,"share":"disabled"}'
+  'del(.permission, .autoupdate) | .permissions = [{"action":"*","resource":"*","effect":"allow"}] | .update = "disable" | .share = "disabled"' \
+  '{"$schema":"https://opencode.ai/config.json","permissions":[{"action":"*","resource":"*","effect":"allow"}],"update":"disable","share":"disabled"}'
 
 # Pi: always trust projects; never send install telemetry (the version check
 # is disabled by PI_SKIP_VERSION_CHECK).
