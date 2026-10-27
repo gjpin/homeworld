@@ -32,7 +32,7 @@ locals {
   namespace = "coder-workspaces"
   # The agents VM's toolset on Debian (apps/coder/image), built by
   # .github/workflows/coder-workspace-image.yaml.
-  image = "ghcr.io/gjpin/homeworld/coder-workspace:20261026.1"
+  image = "ghcr.io/gjpin/homeworld/coder-workspace:20261027.8"
   home  = "/home/coder"
   # Public roots plus the Homeworld CA, assembled at container start; see
   # the dev container's command.
