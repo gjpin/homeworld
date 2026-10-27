@@ -238,27 +238,8 @@
         "velero"
       ],
       "prBodyNotes": [
-        "⚠️ **Velero Upgrade**: The chart version does not follow Velero's, and the Velero image is pinned in `apps/velero/helm/values.yaml`. When a chart bump ships a new Velero minor (its `appVersion`), move the image pin to it in the same PR so the server matches the CRDs the chart ships, read that minor's `upgrade-to-<minor>` guide (upgrades start from the previous minor only), and bump `velero-plugin-for-aws` per its [compatibility matrix](https://github.com/vmware-tanzu/velero-plugin-for-aws)."
+        "⚠️ **Velero Upgrade**: The chart version does not follow Velero's. Check which Velero release this chart ships, read its `upgrade-to-<minor>` guide (upgrades start from the previous minor only), and bump `velero-plugin-for-aws` per its [compatibility matrix](https://github.com/vmware-tanzu/velero-plugin-for-aws)."
       ]
-    },
-    {
-      "description": "The Velero image follows the CRDs of the chart's Velero minor: only patches move on their own, minors arrive with the chart bump that targets them",
-      "matchPackageNames": [
-        "velero/velero"
-      ],
-      "matchUpdateTypes": [
-        "major",
-        "minor"
-      ],
-      "enabled": false
-    },
-    {
-      "description": "Group the CSI NFS node plugin's sidecar images into one PR",
-      "matchPackageNames": [
-        "registry.k8s.io/sig-storage/livenessprobe",
-        "registry.k8s.io/sig-storage/csi-node-driver-registrar"
-      ],
-      "groupName": "csi-driver-nfs-sidecars"
     },
     {
       "description": "Argo CD minors and majors carry upgrade notes",
@@ -1008,19 +989,6 @@
     },
     {
       "customType": "regex",
-      "description": "Update the Velero server and node-agent image",
-      "managerFilePatterns": [
-        "/^apps/velero/helm/values\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^image:\\s*\\n\\s+repository:\\s*docker\\.io/(?<depName>velero/velero)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
-      "registryUrlTemplate": "https://index.docker.io"
-    },
-    {
-      "customType": "regex",
       "description": "Update the Velero-UI Helm chart",
       "managerFilePatterns": [
         "/^apps/velero-ui/helm/kustomization\\.yaml$/"
@@ -1347,19 +1315,6 @@
       ],
       "matchStrings": [
         "(?m)^\\s+image:\\s*(?<depName>registry\\.k8s\\.io/sig-storage/snapshot-controller):(?<currentValue>[^\\s#]+)\\s*$"
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
-      "registryUrlTemplate": "https://registry.k8s.io"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the CSI NFS node plugin's sidecar images",
-      "managerFilePatterns": [
-        "/^apps/csi-driver-nfs/helm/values\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^\\s+(?:livenessProbe|nodeDriverRegistrar):\\s*\\n\\s+repository:\\s*(?<depName>registry\\.k8s\\.io/sig-storage/[^\\s#]+)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
