@@ -106,8 +106,30 @@ scripts/upgrade-report.sh --base origin/main --head origin/<branch> --out <work>
 The report must not warn that head is behind `origin/main`; if it does,
 update the branch again.
 
-Then dispatch one subagent per PR, all in one message so they run in
-parallel, each with `isolation: "worktree"` and the prompt in
+**Patch fast path.** A PR qualifies when every row of the PR body's
+Renovate table has Update `patch`, `digest`, or `pinDigest`, and the body
+carries no `prBodyNotes` warning (⚠️). Triage it yourself from the report
+instead of dispatching a reviewer:
+
+- `summary.json`: `render_failed` false and `convention_regressions` empty.
+- Render: 0 resources added or removed, and `render.diff` changes only
+  image tags, chart/version labels, and checksum annotations. Default-values
+  diff empty, or only image tags and appVersion.
+- Release notes: `release-notes.md` (or the PR body when the report found
+  none) exists for every release in range. Read it, paying particular
+  attention to anything matching
+  `breaking|deprecat|remov|renam|migrat|manual|action required|CRD|telemetry|analytics|usage stat|tracking|update check`.
+  None of them may touch a setting, resource, or behavior this repository
+  uses.
+- The target artifact exists: the report's image table, `crane digest`, or
+  the chart repository index.
+
+If every check holds, the PR goes straight to step 4 with no commit. If
+any check fails, or you are unsure, send it to a full reviewer like any
+other PR. Fast-path PRs can start merging while the full reviews run.
+
+Dispatch one subagent for each remaining PR, all in one message so they run in
+parallel. Give each `isolation: "worktree"` and the prompt in
 [Reviewer prompt](#reviewer-prompt). Fill in the PR number, branch, report
 directory, the flags, and the stepping constraint for that component from
 docs/upgrades.md §4.
@@ -149,8 +171,10 @@ diff and findings.
 
 End with one table, one row per PR:
 
-| PR | Component | From → To | Changes made | Result | Follow-up |
-| :--- | :--- | :--- | :--- | :--- | :--- |
+| PR | Component | From → To | Review | Changes made | Result | Follow-up |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+
+Review is `fast path` or `full`.
 
 Result is merged, blocked (with the reason), or closed (superseded). Follow-up
 lists post-merge steps from docs/upgrades.md §9 (e.g. `forgejo doctor check
