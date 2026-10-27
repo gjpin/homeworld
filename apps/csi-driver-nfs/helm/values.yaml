@@ -2,6 +2,15 @@
 # provisioned dynamically, so only the node plugin runs (kustomization.yaml
 # deletes the controller). The CSIDriver renders fsGroupPolicy None so
 # kubelet never chowns a share.
+image:
+  # The node plugin's CSI sidecars, pinned here rather than inherited from
+  # the chart so Renovate tracks them.
+  livenessProbe:
+    repository: registry.k8s.io/sig-storage/livenessprobe
+    tag: v2.19.0
+  nodeDriverRegistrar:
+    repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
+    tag: v2.17.0
 feature:
   enableFSGroupPolicy: true
   fsGroupPolicy: None

@@ -1,4 +1,10 @@
 fullnameOverride: velero
+# Pinned here rather than inherited from the chart so Renovate tracks it.
+# The chart ships the CRDs of one Velero minor, so Renovate only moves this
+# pin by patch; a new minor arrives with the chart major that targets it.
+image:
+  repository: docker.io/velero/velero
+  tag: v1.18.2
 # Prefer the chart-native keys over kustomize patches (AGENTS.md): the
 # Velero deployment runs under the gVisor runtime. The node-agent DaemonSet
 # is a documented gVisor exception (kubelet hostPath integration — see
