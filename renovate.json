@@ -330,6 +330,18 @@
       "groupName": "opencloud"
     },
     {
+      "description": "OpenCloud majors link a per-major upgrade page with required actions",
+      "matchPackageNames": [
+        "docker.io/opencloudeu/opencloud-rolling"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "prBodyNotes": [
+        "⚠️ **OpenCloud Upgrade**: Follow the release's *Action required* link to the per-major upgrade page (`docs.opencloud.eu/docs/next/admin/maintenance/upgrade/upgrade-<major>.x.x`) and rename the variables and keys `apps/opencloud` sets in this PR. The config patch and search re-index run on startup (docs/upgrades.md §3 and §9)."
+      ]
+    },
+    {
       "description": "The variant-aware regex manager owns the web-extension tags; the kubernetes manager cannot parse variant-prefixed tags",
       "matchManagers": [
         "kubernetes"
