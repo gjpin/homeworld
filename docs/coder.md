@@ -117,7 +117,11 @@ so no tool updates itself. The image switches off the same telemetry and
 update checks as the agents VM (Claude Code `DISABLE_TELEMETRY` and
 `DISABLE_UPDATES`, `PI_SKIP_VERSION_CHECK`) and chrome-devtools-mcp's usage
 statistics and update check (`CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS`,
-`CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS`), and the template's startup
+`CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS`), glab's usage data and release
+check (`GLAB_SEND_TELEMETRY`, `GLAB_CHECK_UPDATE`, which also gates its
+remote skill-update check), and the Infisical CLI's telemetry and release
+check (`INFISICAL_DISABLE_TELEMETRY`, `INFISICAL_DISABLE_UPDATE_CHECK`),
+and the template's startup
 script, `homeworld-workspace-init`, sets the file-based ones in the home
 volume on every start: Codex `check_for_update_on_startup` and analytics and
 feedback, OpenCode `autoupdate` and sharing, Pi install telemetry,
@@ -203,6 +207,8 @@ already permits.
 | `MISE_USE_VERSIONS_HOST_TRACK=false` | No install statistics to mise-versions |
 | `MISE_DISABLE_UPDATE_WARNING=true` | No mise release check |
 | Coding-agent switches in the image and `homeworld-workspace-init` | No agent telemetry or self-updates ([above](#workspace-image)) |
+| `GLAB_SEND_TELEMETRY=false`, `GLAB_CHECK_UPDATE=false` | No glab usage data to the GitLab instance, no glab release or skill-update check |
+| `INFISICAL_DISABLE_TELEMETRY=1`, `INFISICAL_DISABLE_UPDATE_CHECK=true` | No Infisical CLI telemetry to PostHog, no release check |
 
 ## Observability
 

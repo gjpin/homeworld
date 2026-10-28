@@ -68,8 +68,9 @@ RUN case "${TARGETARCH}" in \
 
 # No install statistics to mise-versions and no mise release check; no update
 # checks or telemetry from the coding agents (the same switches as the agents
-# VM, docs/openchamber.md) or chrome-devtools-mcp. The init script sets the
-# agents' file-based switches in the home volume.
+# VM, docs/openchamber.md) or chrome-devtools-mcp; no usage data or release
+# check from glab and the Infisical CLI. The init script sets the agents'
+# file-based switches in the home volume.
 ENV MISE_USE_VERSIONS_HOST_TRACK=false \
     MISE_DISABLE_UPDATE_WARNING=true \
     DISABLE_UPDATES=1 \
@@ -77,6 +78,10 @@ ENV MISE_USE_VERSIONS_HOST_TRACK=false \
     PI_SKIP_VERSION_CHECK=1 \
     CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS=1 \
     CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS=1 \
+    GLAB_SEND_TELEMETRY=false \
+    GLAB_CHECK_UPDATE=false \
+    INFISICAL_DISABLE_TELEMETRY=1 \
+    INFISICAL_DISABLE_UPDATE_CHECK=true \
     PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 
 COPY mise.toml /etc/mise/config.toml
