@@ -367,7 +367,7 @@ spec:
               mountPath: /apps
       containers:
         - name: opencloud
-          image: docker.io/opencloudeu/opencloud-rolling:8.1.0
+          image: docker.io/opencloudeu/opencloud-rolling:9.0.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
