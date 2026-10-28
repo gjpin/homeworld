@@ -36,7 +36,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: external-sites
-          image: docker.io/opencloudeu/web-extensions:external-sites-2.1.0
+          image: docker.io/opencloudeu/web-extensions:external-sites-2.2.0
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
