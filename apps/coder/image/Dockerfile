@@ -8,7 +8,7 @@
 # toolchains, cloud CLIs, and coding agents from mise (mise.toml). Everything
 # installs as root and is read-only to the workspace user, so nothing updates
 # itself.
-FROM docker.io/library/debian:trixie-20261020
+FROM docker.io/library/debian:trixie-20261027
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -33,9 +33,9 @@ RUN apt-get update \
 # linux/amd64 only; the arm64 hashes keep local builds on arm64 machines
 # working.
 ARG TARGETARCH
-ARG MISE_VERSION=2026.10.20
-ARG MISE_SHA256_AMD64=2eb27467b6f369915ee76f18d66a0696cdb5c20e7ecc8cb49c2bfaca60f0fc9c
-ARG MISE_SHA256_ARM64=81047ebf136016297f4515132265c3e5fc052f2c4090130a4e8d68fd64b96b57
+ARG MISE_VERSION=2026.10.21
+ARG MISE_SHA256_AMD64=ccfe12d7a62c6fb9def2a20db1f210f13a51de881f21fd8c85db4b6312405d07
+ARG MISE_SHA256_ARM64=a7c96627e56c075543fe1c1aafeb289d2588d6ddfd4d705fce4ae140c57e190c
 ARG RUSTUP_VERSION=1.29.2
 ARG RUSTUP_SHA256_AMD64=5be191e8c70a5007074254cb74d78dbfdd25cd5a61c27de7b8e5410122ec24f4
 ARG RUSTUP_SHA256_ARM64=a9c168dbea81a84671c6b7a5c1795cb0eb699020110d107ddfca427bd797e697
@@ -68,8 +68,9 @@ RUN case "${TARGETARCH}" in \
 
 # No install statistics to mise-versions and no mise release check; no update
 # checks or telemetry from the coding agents (the same switches as the agents
-# VM, docs/openchamber.md) or chrome-devtools-mcp. The init script sets the
-# agents' file-based switches in the home volume.
+# VM, docs/openchamber.md) or chrome-devtools-mcp; no usage data or release
+# check from glab and the Infisical CLI. The init script sets the agents'
+# file-based switches in the home volume.
 ENV MISE_USE_VERSIONS_HOST_TRACK=false \
     MISE_DISABLE_UPDATE_WARNING=true \
     DISABLE_UPDATES=1 \
@@ -77,6 +78,10 @@ ENV MISE_USE_VERSIONS_HOST_TRACK=false \
     PI_SKIP_VERSION_CHECK=1 \
     CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS=1 \
     CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS=1 \
+    GLAB_SEND_TELEMETRY=false \
+    GLAB_CHECK_UPDATE=false \
+    INFISICAL_DISABLE_TELEMETRY=1 \
+    INFISICAL_DISABLE_UPDATE_CHECK=true \
     PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 
 COPY mise.toml /etc/mise/config.toml
