@@ -202,6 +202,8 @@ export THINKRAIL_NO_ANALYTICS=1
 export THINKRAIL_POSTHOG_HOST=http://127.0.0.1:9
 export DISABLE_UPDATES=1
 export DISABLE_TELEMETRY=1
+export INFISICAL_DISABLE_TELEMETRY=1
+export INFISICAL_DISABLE_UPDATE_CHECK=1
 export NPM_CONFIG_PREFIX=$HOME/.local
 case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) PATH=$HOME/.local/bin:$PATH ;; esac
 export PATH
@@ -209,7 +211,7 @@ EOF
 install -d -m 0755 /etc/systemd/user.conf.d
 cat >/etc/systemd/user.conf.d/agents.conf <<'EOF'
 [Manager]
-DefaultEnvironment=PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright PI_SKIP_VERSION_CHECK=1 OPENCHAMBER_UPDATE_API_URL=http://127.0.0.1:9/ THINKRAIL_NO_ANALYTICS=1 THINKRAIL_POSTHOG_HOST=http://127.0.0.1:9 DISABLE_UPDATES=1 DISABLE_TELEMETRY=1 "PATH=/home/agent/.local/bin:/usr/local/bin:/usr/bin"
+DefaultEnvironment=PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright PI_SKIP_VERSION_CHECK=1 OPENCHAMBER_UPDATE_API_URL=http://127.0.0.1:9/ THINKRAIL_NO_ANALYTICS=1 THINKRAIL_POSTHOG_HOST=http://127.0.0.1:9 DISABLE_UPDATES=1 DISABLE_TELEMETRY=1 INFISICAL_DISABLE_TELEMETRY=1 INFISICAL_DISABLE_UPDATE_CHECK=1 "PATH=/home/agent/.local/bin:/usr/local/bin:/usr/bin"
 EOF
 
 # --- secrets: Infisical /agents/* into tmpfs ---------------------------------
@@ -219,6 +221,7 @@ cat >/usr/local/libexec/agents-secrets <<'EOF'
 # identity) into /run/agents/secrets.env, readable by `agent` only.
 set -eu
 . /etc/agents/infisical.env
+export INFISICAL_DISABLE_TELEMETRY=1 INFISICAL_DISABLE_UPDATE_CHECK=1
 domain=https://eu.infisical.com
 token=$(infisical login --domain "$domain" --method=universal-auth \
   --client-id "$AGENTS_INFISICAL_CLIENT_ID" \
