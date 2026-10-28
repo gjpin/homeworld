@@ -21,7 +21,6 @@ securityContext:
     type: RuntimeDefault
 service:
   enabled: true
-  type: ClusterIP
 presets:
   # k8scluster receiver
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8sclusterreceiver
@@ -52,18 +51,6 @@ config:
             static_configs:
               - targets:
                   - ${env:MY_POD_IP}:8888
-    otlp:
-      protocols:
-        grpc:
-          endpoint: ${env:MY_POD_IP}:4317
-        http:
-          endpoint: ${env:MY_POD_IP}:4318
-  processors:
-    batch: {}
-    memory_limiter:
-      check_interval: 5s
-      limit_percentage: 80
-      spike_limit_percentage: 25
   exporters:
     debug: null
     otlp_http/victoriametrics:
@@ -78,9 +65,6 @@ config:
       compression: gzip
       encoding: proto
       traces_endpoint: http://victoria-traces.victoria-metrics.svc.cluster.local:10428/insert/opentelemetry/v1/traces
-  extensions:
-    health_check:
-      endpoint: ${env:MY_POD_IP}:13133
   service:
     telemetry:
       metrics:
@@ -90,31 +74,15 @@ config:
                 prometheus:
                   host: ${env:MY_POD_IP}
                   port: 8888
-    extensions:
-      - health_check
     pipelines:
       logs:
-        receivers:
-          - otlp
-        processors:
-          - memory_limiter
-          - batch
         exporters:
           - otlp_http/victorialogs
       metrics:
-        receivers:
-          - otlp
-          - prometheus
-        processors:
-          - memory_limiter
-          - batch
         exporters:
           - otlp_http/victoriametrics
       traces:
         receivers:
           - otlp
-        processors:
-          - memory_limiter
-          - batch
         exporters:
           - otlp_http/victoriatraces
