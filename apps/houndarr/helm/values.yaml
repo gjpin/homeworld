@@ -1,0 +1,18 @@
+# https://github.com/av1155/houndarr/tree/main/charts/houndarr
+fullnameOverride: houndarr
+
+timezone: UTC
+
+# Kubernetes sets the non-root identity (1000:1000); the entrypoint skips
+# its gosu PUID/PGID handling.
+securityMode: nonroot
+
+env:
+  # The route is HTTPS at the gateway.
+  secureCookies: true
+
+persistence:
+  # SQLite and houndarr.masterkey, which encrypts the stored *arr API keys:
+  # both must be restored together.
+  storageClassName: longhorn-crypto
+  size: 1Gi

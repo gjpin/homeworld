@@ -1,0 +1,291 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bazarr
+  namespace: bazarr
+  labels:
+    app.kubernetes.io/name: bazarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bazarr
+  # One writer of config.yaml and the scheduled tasks at a time.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bazarr
+    spec:
+      serviceAccountName: bazarr-app
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
+      # The shared media volume is NFS (docs/nas.md), which squashes every
+      # access to the share's owner, 20004: the containers run as that ID,
+      # and gVisor keeps the host user namespace NFS needs (no idmapped
+      # mounts). kubelet applies the fsGroup to the Longhorn config volume
+      # only (NFS CSI fsGroupPolicy None).
+      securityContext:
+        fsGroup: 20004
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        runAsUser: 20004
+        runAsGroup: 20004
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        # Seeds config.yaml on the first start of an empty PVC. Bazarr fills
+        # every missing key with its default and writes UI changes back to
+        # the file, so the seed applies once; later git changes to these
+        # values must be applied in the UI or by editing
+        # /config/config/config.yaml directly.
+        - name: bazarr-config-bootstrap
+          # The application image's Python. Bazarr vendors PyYAML under
+          # /app/bin/libs, so the seed is written as JSON, which YAML
+          # parsers read as a flow mapping; Bazarr rewrites it as block YAML
+          # on its first save.
+          image: ghcr.io/home-operations/bazarr:1.6.2
+          imagePullPolicy: IfNotPresent
+          command:
+            - /usr/local/bin/python
+            - -c
+            - |
+              import json, os, pathlib
+
+              conf = pathlib.Path("/config/config/config.yaml")
+              if not conf.exists() or conf.stat().st_size == 0:
+                  conf.parent.mkdir(parents=True, exist_ok=True)
+                  conf.write_text(json.dumps({
+                      "general": {
+                          # No self-updater (the image also passes
+                          # --no-update).
+                          "auto_update": False,
+                          "use_sonarr": True,
+                          "use_radarr": True,
+                      },
+                      # The gateway OIDC SecurityPolicy is the login; the API
+                      # still requires the key, shared with exportarr and
+                      # the Homepage widget.
+                      "auth": {
+                          "type": None,
+                          "apikey": os.environ["BAZARR_API_KEY"],
+                      },
+                      # Google Analytics 4 events (utilities/analytics.py),
+                      # on by default.
+                      "analytics": {"enabled": False},
+                      # The POSTGRES_* environment overrides the connection
+                      # settings, but the built-in backup reads this key
+                      # (utilities/backup.py) and would otherwise look for
+                      # a SQLite file.
+                      "postgresql": {"enabled": True},
+                      # In-cluster Services; the hostnames are in the *arrs'
+                      # SERVER__ALLOWEDHOSTS. Media paths match theirs
+                      # (/data/media), so no path mappings are needed.
+                      "sonarr": {
+                          "ip": "sonarr.sonarr.svc.cluster.local",
+                          "port": 8989,
+                          "base_url": "/",
+                          "ssl": False,
+                          "apikey": os.environ["SONARR_API_KEY"],
+                      },
+                      "radarr": {
+                          "ip": "radarr.radarr.svc.cluster.local",
+                          "port": 7878,
+                          "base_url": "/",
+                          "ssl": False,
+                          "apikey": os.environ["RADARR_API_KEY"],
+                      },
+                  }, indent=2) + "\n")
+          env:
+            - name: BAZARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: bazarr-secrets
+                  key: apiKey
+            - name: SONARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: bazarr-secrets
+                  key: sonarrApiKey
+            - name: RADARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: bazarr-secrets
+                  key: radarrApiKey
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 20004
+            runAsGroup: 20004
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+              ephemeral-storage: 16Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: 64Mi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      containers:
+        - name: bazarr
+          # Renovate tracks the image tag below. home-operations builds the
+          # upstream release rootless and starts it with --no-update.
+          image: ghcr.io/home-operations/bazarr:1.6.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 6767
+              protocol: TCP
+          env:
+            - name: TZ
+              value: UTC
+            # https://wiki.bazarr.media/Additional-Configuration/PostgreSQL-Database/
+            - name: POSTGRES_ENABLED
+              value: "true"
+            - name: POSTGRES_HOST
+              value: bazarr-rw.bazarr.svc.cluster.local
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DATABASE
+              value: bazarr
+            - name: POSTGRES_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 20004
+            runAsGroup: 20004
+            seccompProfile:
+              type: RuntimeDefault
+          # /api/system/ping is the one endpoint that needs no API key.
+          startupProbe:
+            httpGet:
+              path: /api/system/ping
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /api/system/ping
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/system/ping
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          # Subtitle sync (ffsubsync) decodes audio and spikes memory.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: tmp
+              mountPath: /tmp
+            # Subtitles are written next to the media files, at the same
+            # /data/media paths Sonarr and Radarr report.
+            - name: media
+              mountPath: /data/media
+              subPath: media
+        - name: exportarr
+          # Renovate tracks the image tag below. Prometheus exporter for the
+          # Bazarr API; it calls Bazarr over the pod's loopback interface.
+          # Bazarr scrapes take tens of seconds (exportarr README), well
+          # inside the 60s interval.
+          image: ghcr.io/onedr0p/exportarr:v2.3.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - bazarr
+          ports:
+            - name: metrics
+              containerPort: 9707
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "9707"
+            - name: URL
+              value: http://localhost:6767
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: bazarr-secrets
+                  key: apiKey
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 20004
+            runAsGroup: 20004
+            seccompProfile:
+              type: RuntimeDefault
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+              ephemeral-storage: 16Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: bazarr-config
+        - name: tmp
+          emptyDir: {}
+        - name: media
+          persistentVolumeClaim:
+            claimName: media

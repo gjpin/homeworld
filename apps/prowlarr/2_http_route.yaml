@@ -1,0 +1,24 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: prowlarr
+  namespace: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: prowlarr
+      group: gateway.networking.k8s.io
+      kind: Gateway
+  hostnames:
+    - "prowlarr.homeworld.internal"
+  rules:
+    - backendRefs:
+        - name: prowlarr
+          namespace: prowlarr
+          kind: Service
+          port: 9696
+          group: ""
+          weight: 1

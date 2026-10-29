@@ -1,0 +1,84 @@
+# https://github.com/cloudnative-pg/postgres-containers/pkgs/container/postgresql/versions?filters%5Bversion_type%5D=tagged
+# https://cloudnative-pg.io/docs/1.28/bootstrap/
+# https://docs.seerr.dev/extending-seerr/database-config
+#
+# initdb bootstraps the seerr database (DB_NAME).
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: seerr
+  namespace: seerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+    cnpg.io/podPatch: '[{"op":"add","path":"/spec/hostUsers","value":false}]'
+spec:
+  instances: 1
+  # A single instance has no failover target: a PodDisruptionBudget would
+  # block every node drain (kured reboots) forever.
+  enablePDB: false
+  postgresql:
+    parameters:
+      # Bounds WAL on the small volume (PostgreSQL defaults max_wal_size to 1GB).
+      max_wal_size: 512MB
+      min_wal_size: 80MB
+      wal_keep_size: 128MB
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie
+  # Replaces CNPG's default pod security context, so keep its fsGroup: the
+  # postgres user (26) must own the data volume, or initdb fails.
+  podSecurityContext:
+    runAsNonRoot: true
+    fsGroup: 26
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  # Memory requests equal limits so the database is the last pod the
+  # kernel or kubelet reclaims under node memory pressure (CNPG's resource
+  # management guidance).
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+      ephemeral-storage: 128Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+      ephemeral-storage: 2Gi
+  storage:
+    storageClass: longhorn-crypto
+    size: 2Gi
+  backup:
+    # On-demand volume-snapshot backups before a major upgrade
+    # (docs/upgrades.md); the cnpg-longhorn class is provisioned by
+    # apps/cloudnative-pg. Ownership by the Backup CR makes deleting it
+    # garbage-collect its snapshot (the class uses deletionPolicy: Delete).
+    volumeSnapshot:
+      className: cnpg-longhorn
+      snapshotOwnerReference: backup
+  bootstrap:
+    initdb:
+      database: seerr
+      owner: seerr
+      secret:
+        name: postgres-credentials
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: seerr-postgres
+  namespace: seerr
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: seerr
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 60s

@@ -1,0 +1,127 @@
+# qbit_manage owns the torrent lifecycle in qBittorrent: tracker tags,
+# no-hardlink tagging, share limits, removal of unregistered torrents (to
+# the recycle bin) and orphaned files. Cleanuparr owns the queue cleaner and
+# the malware blocker, with its Download Cleaner (seeding rules, unlinked,
+# orphaned and dead torrents) off, so the two never delete the same thing
+# (docs/media-stack.md). Categories are set by the *arrs, so cat_update and
+# cat_change stay off.
+#
+# dry_run is off: the stack started empty, so there were no existing
+# torrents to protect. Deletions go through the recycle bin and the
+# orphaned folder first (emptied after 30 days). The seeding limits are a
+# starting point; private trackers' own rules take precedence.
+#
+# Schema: config/config.yml.sample of the pinned release
+# (https://github.com/StuffAnThings/qbit_manage/wiki/Config-Setup).
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qbit-manage-config
+  namespace: qbit-manage
+  labels:
+    app.kubernetes.io/name: qbit-manage
+data:
+  config.yml: |
+    commands:
+      dry_run: False
+      recheck: False
+      cat_update: False
+      tag_update: True
+      rem_unregistered: True
+      tag_tracker_error: True
+      rem_orphaned: True
+      tag_nohardlinks: True
+      share_limits: True
+      skip_qb_version_check: False
+      skip_cleanup: False
+
+    qbt:
+      # In-cluster Service; the name is in qBittorrent's
+      # WebUI\ServerDomains (apps/qbittorrent).
+      host: "http://qbittorrent.qbittorrent.svc.cluster.local:8080"
+      apikey: !ENV QBT_APIKEY
+
+    settings:
+      force_auto_tmm: False
+      tracker_error_tag: issue
+      nohardlinks_tag: noHL
+      stalled_tag: stalledDL
+      private_tag: null
+      share_limits_tag: ~share_limit
+      share_limits_min_seeding_time_tag: MinSeedTimeNotReached
+      share_limits_min_num_seeds_tag: MinSeedsNotMet
+      share_limits_last_active_tag: LastActiveLimitNotReached
+      cat_filter_completed: True
+      share_limits_filter_completed: True
+      tag_nohardlinks_filter_completed: True
+      rem_unregistered_filter_completed: False
+      cat_update_all: True
+      disable_qbt_default_share_limits: True
+      tag_stalled_torrents: True
+      rem_unregistered_ignore_list: []
+      rem_unregistered_grace_minutes: 10
+      rem_unregistered_max_torrents: 10
+
+    # The same /data paths qBittorrent reports; the recycle bin and the
+    # orphaned folder sit on the same share, so moves are renames.
+    directory:
+      root_dir: "/data/torrents/"
+      recycle_bin: "/data/torrents/.RecycleBin"
+      orphaned_dir: "/data/torrents/orphaned_data"
+
+    # The qBittorrent categories (apps/qbittorrent categories.json).
+    cat:
+      tv: "/data/torrents/tv"
+      movies: "/data/torrents/movies"
+      music: "/data/torrents/music"
+      books: "/data/torrents/books"
+      audiobooks: "/data/torrents/audiobooks"
+
+    # Add one entry per tracker (URL keyword: tag) as indexers are added.
+    tracker:
+      other:
+        tag: other
+
+    nohardlinks:
+      tv:
+      movies:
+      music:
+      books:
+      audiobooks:
+
+    share_limits:
+      # Torrents no longer hardlinked into the library (deleted or upgraded
+      # there, and every music torrent: Lidarr copies so beets can retag):
+      # seed a week, then clean up after a 2.0 ratio or 30 days.
+      noHL:
+        priority: 1
+        include_all_tags:
+          - noHL
+        max_ratio: 2.0
+        max_seeding_time: 30d
+        min_seeding_time: 7d
+        cleanup: true
+      default:
+        priority: 999
+        max_ratio: -1
+        max_seeding_time: -1
+        cleanup: false
+
+    recyclebin:
+      enabled: true
+      empty_after_x_days: 30
+      # Needs qBittorrent's BT_backup directory, which lives on its own
+      # config volume.
+      save_torrents: false
+      split_by_category: false
+
+    orphaned:
+      empty_after_x_days: 30
+      min_file_age_minutes: 60
+      exclude_patterns:
+        - "**/.DS_Store"
+        - "**/Thumbs.db"
+        - "**/*.!qB"
+        - "**/*_unpackerred"
+      max_orphaned_files_to_delete: 50

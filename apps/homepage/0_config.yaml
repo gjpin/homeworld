@@ -6,7 +6,9 @@
 # Services without a siteMonitor sit behind the Envoy Gateway OIDC
 # SecurityPolicy (Longhorn, Envoy control-plane metrics route,
 # VictoriaMetrics,
-# VictoriaLogs, VictoriaTraces, Zigbee2MQTT): an unauthenticated probe is
+# VictoriaLogs, VictoriaTraces, Zigbee2MQTT, and the media apps Prowlarr,
+# Sonarr, Radarr, Lidarr, Bazarr, Maintainerr, Houndarr, AudioMuse-AI): an
+# unauthenticated probe is
 # redirected to the Authelia portal, so a siteMonitor would measure the
 # portal instead of the app. The href links keep working for signed-in
 # browsers (docs/oidc.md).
@@ -60,6 +62,62 @@ data:
               type: immich
               url: https://photos.homeworld.internal
               key: "{{HOMEPAGE_VAR_IMMICH_API_KEY}}"
+    # The media stack (the README's *arr Stack table). Widgets call the
+    # in-cluster Services with each app's API key; the gateway-OIDC routes
+    # (Prowlarr, Sonarr, Radarr, Lidarr, Bazarr, Maintainerr, Houndarr,
+    # AudioMuse-AI) carry no siteMonitor.
+    - "*arr":
+        - Jellyfin:
+            icon: jellyfin
+            href: https://jellyfin.homeworld.internal
+            description: Movies, TV and music streaming
+            siteMonitor: https://jellyfin.homeworld.internal
+            widget:
+              type: jellyfin
+              url: http://jellyfin.jellyfin.svc.cluster.local:8096
+              key: "{{HOMEPAGE_VAR_JELLYFIN_API_KEY}}"
+              version: 2
+              enableBlocks: true
+              enableNowPlaying: true
+        - Seerr:
+            icon: seerr
+            href: https://seerr.homeworld.internal
+            description: Movie and series requests
+            siteMonitor: https://seerr.homeworld.internal
+            widget:
+              type: seerr
+              url: http://seerr.seerr.svc.cluster.local:5055
+              key: "{{HOMEPAGE_VAR_SEERR_API_KEY}}"
+        - Audiobookshelf:
+            icon: audiobookshelf
+            href: https://audiobookshelf.homeworld.internal
+            description: Audiobooks and podcasts
+            siteMonitor: https://audiobookshelf.homeworld.internal
+            widget:
+              type: audiobookshelf
+              url: http://audiobookshelf.audiobookshelf.svc.cluster.local:13378
+              key: "{{HOMEPAGE_VAR_AUDIOBOOKSHELF_API_KEY}}"
+        - Navidrome:
+            icon: navidrome
+            href: https://navidrome.homeworld.internal
+            description: Music streaming
+            siteMonitor: https://navidrome.homeworld.internal
+            widget:
+              type: navidrome
+              url: http://navidrome.navidrome.svc.cluster.local:4533
+              user: "{{HOMEPAGE_VAR_NAVIDROME_USER}}"
+              token: "{{HOMEPAGE_VAR_NAVIDROME_TOKEN}}"
+              salt: "{{HOMEPAGE_VAR_NAVIDROME_SALT}}"
+        - Feishin:
+            icon: feishin
+            href: https://feishin.homeworld.internal
+            description: Navidrome web player
+            siteMonitor: https://feishin.homeworld.internal
+        - Streamystats:
+            icon: streamystats
+            href: https://streamystats.homeworld.internal
+            description: Jellyfin statistics
+            siteMonitor: https://streamystats.homeworld.internal
         - qBittorrent:
             icon: qbittorrent
             href: https://qbittorrent.homeworld.internal
@@ -70,6 +128,73 @@ data:
               url: https://qbittorrent.homeworld.internal
               username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
               password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
+        - Prowlarr:
+            icon: prowlarr
+            href: https://prowlarr.homeworld.internal
+            description: Indexer manager
+            widget:
+              type: prowlarr
+              url: http://prowlarr.prowlarr.svc.cluster.local:9696
+              key: "{{HOMEPAGE_VAR_PROWLARR_API_KEY}}"
+        - Sonarr:
+            icon: sonarr
+            href: https://sonarr.homeworld.internal
+            description: TV series
+            widget:
+              type: sonarr
+              url: http://sonarr.sonarr.svc.cluster.local:8989
+              key: "{{HOMEPAGE_VAR_SONARR_API_KEY}}"
+              enableQueue: true
+        - Radarr:
+            icon: radarr
+            href: https://radarr.homeworld.internal
+            description: Movies
+            widget:
+              type: radarr
+              url: http://radarr.radarr.svc.cluster.local:7878
+              key: "{{HOMEPAGE_VAR_RADARR_API_KEY}}"
+              enableQueue: true
+        - Lidarr:
+            icon: lidarr
+            href: https://lidarr.homeworld.internal
+            description: Music
+            widget:
+              type: lidarr
+              url: http://lidarr.lidarr.svc.cluster.local:8686
+              key: "{{HOMEPAGE_VAR_LIDARR_API_KEY}}"
+        - Bindery:
+            icon: bindery
+            href: https://bindery.homeworld.internal
+            description: Books and audiobooks
+            siteMonitor: https://bindery.homeworld.internal
+        - Bazarr:
+            icon: bazarr
+            href: https://bazarr.homeworld.internal
+            description: Subtitles
+            widget:
+              type: bazarr
+              url: http://bazarr.bazarr.svc.cluster.local:6767
+              key: "{{HOMEPAGE_VAR_BAZARR_API_KEY}}"
+        - Cleanuparr:
+            icon: cleanuparr
+            href: https://cleanuparr.homeworld.internal
+            description: Download queue cleaning and malware blocking
+            siteMonitor: https://cleanuparr.homeworld.internal
+        - Houndarr:
+            icon: houndarr
+            href: https://houndarr.homeworld.internal
+            description: Missing-item searches
+        - Maintainerr:
+            icon: maintainerr
+            href: https://maintainerr.homeworld.internal
+            description: Library cleanup rules
+            widget:
+              type: maintainerr
+              url: http://maintainerr.maintainerr.svc.cluster.local:6246
+        - AudioMuse-AI:
+            icon: audiomuse-ai
+            href: https://audiomuse.homeworld.internal
+            description: Sonic analysis and playlists
     - Home:
         - Home Assistant:
             icon: home-assistant

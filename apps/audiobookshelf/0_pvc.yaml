@@ -1,0 +1,80 @@
+---
+# absdatabase.sqlite. The upstream docs require /config to be local to the
+# node: SQLite over a network filesystem eventually corrupts.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: audiobookshelf-config
+  namespace: audiobookshelf
+  labels:
+    app.kubernetes.io/name: audiobookshelf
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-crypto
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Covers, item metadata, logs, Audiobookshelf's own daily backups and the
+# HLS transcode cache.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: audiobookshelf-metadata
+  namespace: audiobookshelf
+  labels:
+    app.kubernetes.io/name: audiobookshelf
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-crypto
+  resources:
+    requests:
+      storage: 10Gi
+---
+# The shared media library on the NAS (docs/nas.md): the homeworld-media
+# share, exported with all_squash to its owner 20004. Audiobookshelf reads
+# the audiobooks Bindery imports and downloads podcast episodes into its own
+# folder. Each consuming namespace binds its own static PersistentVolume to
+# the same export (a PersistentVolume binds one claim); Retain keeps the
+# data if the claim is deleted. Velero skips NFS volumes.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homeworld-media-audiobookshelf
+  labels:
+    app.kubernetes.io/name: audiobookshelf
+spec:
+  capacity:
+    storage: 20Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.1
+  csi:
+    driver: nfs.csi.k8s.io
+    # Unique per PersistentVolume; the node plugin mounts the export named
+    # in volumeAttributes.
+    volumeHandle: 192.168.8.20#homeworld-media##audiobookshelf
+    volumeAttributes:
+      server: 192.168.8.20
+      share: /homeworld-media
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media
+  namespace: audiobookshelf
+  labels:
+    app.kubernetes.io/name: audiobookshelf
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: homeworld-media-audiobookshelf
+  resources:
+    requests:
+      storage: 20Ti

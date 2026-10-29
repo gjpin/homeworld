@@ -1,0 +1,301 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: sonarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: sonarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-sonarr-gateway
+  namespace: sonarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: sonarr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+      toPorts:
+        - ports:
+            - port: "8989"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-sonarr-clients
+  namespace: sonarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # In-cluster API clients, each with Sonarr's API key. With
+  # Authentication Method External the web UI hands the API key to anyone
+  # who loads it, so ingress stays limited to Envoy (behind the gateway
+  # OIDC) and these named clients:
+  # prowlarr: indexer sync.
+  # seerr: series requests.
+  # bazarr: series and episode sync.
+  # recyclarr: TRaSH quality profile sync.
+  # cleanuparr: queue cleaning and malware blocking.
+  # houndarr: missing searches.
+  # maintainerr: library cleanup.
+  # homepage: service widget.
+  # media-config: download client, root folder, Jellyfin connection and
+  #   delay profile; the quality profile ids for Seerr's servers.
+  # unpackerr: queue polling for packed downloads.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: sonarr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: prowlarr
+            k8s:app.kubernetes.io/name: prowlarr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: seerr
+            k8s:app.kubernetes.io/name: seerr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: bazarr
+            k8s:app.kubernetes.io/name: bazarr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: recyclarr
+            k8s:app.kubernetes.io/name: recyclarr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: cleanuparr
+            k8s:app.kubernetes.io/name: cleanuparr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: houndarr
+            k8s:app.kubernetes.io/name: houndarr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: maintainerr
+            k8s:app.kubernetes.io/name: maintainerr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: homepage
+            k8s:app.kubernetes.io/name: homepage
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media-config
+            k8s:app.kubernetes.io/name: media-config
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: unpackerr
+            k8s:app.kubernetes.io/name: unpackerr
+      toPorts:
+        - ports:
+            - port: "8989"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-sonarr-metrics
+  namespace: sonarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The ServiceMonitor scrapes the exportarr sidecar.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: sonarr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9707"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-sonarr-postgres
+  namespace: sonarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: sonarr
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: sonarr-rw
+            namespace: sonarr
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-sonarr-postgres-ingress
+  namespace: sonarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: sonarr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sonarr
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-sonarr-postgres-metrics-ingress
+  namespace: sonarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The handwritten PodMonitor scrapes the CloudNativePG instance metrics
+  # port.
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: sonarr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-sonarr-prowlarr
+  namespace: sonarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Torznab searches through the Prowlarr indexer proxies.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: sonarr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: prowlarr
+            k8s:app.kubernetes.io/name: prowlarr
+      toPorts:
+        - ports:
+            - port: "9696"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-sonarr-qbittorrent
+  namespace: sonarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Download client.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: sonarr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: qbittorrent
+            k8s:app.kubernetes.io/name: qbittorrent
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-sonarr-jellyfin
+  namespace: sonarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Library refresh (Connect > Emby / Jellyfin).
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: sonarr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: jellyfin
+            k8s:app.kubernetes.io/name: jellyfin
+      toPorts:
+        - ports:
+            - port: "8096"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-sonarr-metadata
+  namespace: sonarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Metadata and artwork:
+  #   skyhook.sonarr.tv: series metadata
+  #   services.sonarr.tv: scene mappings (also serves the update check; there is no switch for it)
+  #   artworks.thetvdb.com: posters and fan art
+  # Indexers are reached through Prowlarr; the Servarr update and Sentry
+  # endpoints (*.servarr.com, sentry.*) are not allowed.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: sonarr
+  egress:
+    - toFQDNs:
+        - matchName: "skyhook.sonarr.tv"
+        - matchName: "services.sonarr.tv"
+        - matchName: "artworks.thetvdb.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

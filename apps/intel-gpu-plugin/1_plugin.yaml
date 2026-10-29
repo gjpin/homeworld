@@ -1,0 +1,29 @@
+# https://intel.github.io/intel-device-plugins-for-kubernetes/cmd/gpu_plugin/README.html
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: intel-gpu-plugin
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: intel-gpu-plugin
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/intel-gpu-plugin/plugin
+    targetRevision: HEAD

@@ -1,0 +1,99 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: seerr-chart
+    repo: oci://ghcr.io/seerr-team/seerr
+    version: 3.10.1
+    releaseName: seerr
+    namespace: seerr
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  # The chart sets no metadata.namespace (Argo CD's destination supplies
+  # it); setting it here keeps the scanned render namespaced.
+  - target:
+      name: .*
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: seerr
+  # gVisor sandboxing (the chart has no runtimeClassName value) and a
+  # create-if-missing seed of settings.json (the chart has no init-container
+  # value). Seerr merges the file over its defaults and writes UI changes
+  # back, so the seed applies once; later git changes must be made in
+  # Settings or by editing /app/config/settings.json directly.
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: ^seerr$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+      - op: add
+        path: /spec/template/spec/automountServiceAccountToken
+        value: false
+      - op: add
+        path: /spec/template/spec/initContainers
+        value:
+          - name: seerr-config-bootstrap
+            image: ghcr.io/seerr-team/seerr:v3.5.1
+            imagePullPolicy: IfNotPresent
+            command:
+              - node
+              - -e
+              - |
+                const fs = require("fs");
+                const path = "/app/config/settings.json";
+                if (!fs.existsSync(path)) {
+                  fs.writeFileSync(path, JSON.stringify({
+                    main: {
+                      applicationUrl: "https://seerr.homeworld.internal",
+                      // GitHub release check (/api/v1/status); the only
+                      // phone-home Seerr has.
+                      versionCheck: false,
+                    },
+                    network: {
+                      // Envoy appends the client address to
+                      // X-Forwarded-For.
+                      trustProxy: true,
+                    },
+                  }, null, 2));
+                }
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              runAsUser: 1000
+              runAsGroup: 1000
+              seccompProfile:
+                type: RuntimeDefault
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+                ephemeral-storage: 16Mi
+              limits:
+                cpu: 200m
+                memory: 128Mi
+                ephemeral-storage: 64Mi
+            volumeMounts:
+              - name: config
+                mountPath: /app/config
+      - op: add
+        path: /spec/template/spec/securityContext/runAsNonRoot
+        value: true
+      - op: add
+        path: /spec/template/spec/securityContext/seccompProfile
+        value:
+          type: RuntimeDefault
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The upstream image writes Next.js runtime files outside /app/config; its chart keeps the root filesystem writable.

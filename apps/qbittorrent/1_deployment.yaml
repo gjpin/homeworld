@@ -32,9 +32,9 @@
 # runtime, where SELinux confines every container as container_t with its
 # own MCS categories, and gluetun's NET_ADMIN only reaches the pod's own
 # network namespace. The kernel WireGuard implementation needs no
-# /dev/net/tun. The downloads live on the NAS (NFS), which has no idmapped
-# mounts, so the pod keeps the host user namespace and runs as the share's
-# owner, 20003 (docs/nas.md).
+# /dev/net/tun. The downloads live on the NAS's shared media volume (NFS),
+# which has no idmapped mounts, so the pod keeps the host user namespace
+# and runs as the share's owner, 20004 (docs/nas.md).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -44,7 +44,7 @@ metadata:
     app.kubernetes.io/name: qbittorrent
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-    security.homeworld/exception-reason: "The gluetun VPN sidecar requires the NET_ADMIN and NET_RAW capabilities to bring up the WireGuard tunnel and its kill-switch firewall in the pod's network namespace; PSS baseline forbids added capabilities. SELinux confines it as container_t, and the pod keeps the host user namespace because its NFS downloads volume has no idmapped mounts."
+    security.homeworld/exception-reason: "The gluetun VPN sidecar requires the NET_ADMIN and NET_RAW capabilities to bring up the WireGuard tunnel and its kill-switch firewall in the pod's network namespace; PSS baseline forbids added capabilities. SELinux confines it as container_t, and the pod keeps the host user namespace because its NFS media volume has no idmapped mounts."
 spec:
   replicas: 1
   selector:
@@ -64,11 +64,10 @@ spec:
       # Exception: NFS volumes cannot be ID-mapped into a user namespace.
       hostUsers: true
       securityContext:
-        # The NAS squashes every access to the qbittorrent share's owner
-        # (20003), so the containers run as that ID; kubelet applies the
-        # fsGroup to the Longhorn config volume only (NFS CSI fsGroupPolicy
-        # None).
-        fsGroup: 20003
+        # The NAS squashes every access to the media share's owner (20004),
+        # so the containers run as that ID; kubelet applies the fsGroup to
+        # the Longhorn config volume only (NFS CSI fsGroupPolicy None).
+        fsGroup: 20004
         fsGroupChangePolicy: OnRootMismatch
         seccompProfile:
           type: RuntimeDefault
@@ -109,11 +108,27 @@ spec:
               pbkdf2 = "@ByteArray(" + base64.b64encode(salt).decode() + ":" + base64.b64encode(key).decode() + ")"
 
               conf = pathlib.Path("/config/qBittorrent/qBittorrent.conf")
+              # One category per *arr, each saving under /data/torrents on
+              # the shared media volume (TRaSH-guides layout), so imports
+              # into /data/media hardlink instead of copying.
+              categories = pathlib.Path("/config/qBittorrent/categories.json")
+              if not categories.exists():
+                  categories.parent.mkdir(parents=True, exist_ok=True)
+                  categories.write_text(
+                      '{"tv": {"save_path": "/data/torrents/tv"},'
+                      ' "movies": {"save_path": "/data/torrents/movies"},'
+                      ' "music": {"save_path": "/data/torrents/music"},'
+                      ' "books": {"save_path": "/data/torrents/books"},'
+                      ' "audiobooks": {"save_path": "/data/torrents/audiobooks"}}\n'
+                  )
               if not conf.exists():
                   conf.parent.mkdir(parents=True, exist_ok=True)
                   conf.write_text(
                       "[BitTorrent]\n"
-                      "Session\\DefaultSavePath=/downloads\n"
+                      "Session\\DefaultSavePath=/data/torrents\n"
+                      # Automatic torrent management: a torrent's category
+                      # decides its save path (categories.json above).
+                      "Session\\DisableAutoTMMByDefault=false\n"
                       # Initial listening port; the port-forward sync job
                       # owns this setting once the VPN is up.
                       "Session\\Port=6881\n"
@@ -140,15 +155,20 @@ spec:
                       "WebUI\\Password_PBKDF2=" + pbkdf2 + "\n"
                       "WebUI\\Port=8080\n"
                       # Host header whitelist (DNS-rebinding defense).
-                      # Semicolon-separated (src/webui/webapplication.cpp).
-                      # The second entry is the in-cluster Service name: the
-                      # port-forward sync job and one-off scripts reach the
-                      # WebUI as http://qbittorrent:8080, and qBittorrent's
+                      # Semicolon-separated (src/webui/webapplication.cpp)
+                      # and quoted: QSettings' INI parser treats an unquoted
+                      # ';' as the start of a comment and keeps only the
+                      # first name.
+                      # The other entries are the in-cluster Service names:
+                      # the port-forward sync job reaches the WebUI as
+                      # http://qbittorrent:8080, and the media stack (the
+                      # *arrs, Bindery, Cleanuparr, qbit_manage) from other
+                      # namespaces by its namespaced names. qBittorrent's
                       # Host validation 401s any Host that is neither the
                       # listener's own address (loopback/pod IP, which
                       # covers the exporter and kubelet probes) nor a
                       # listed domain.
-                      "WebUI\\ServerDomains=qbittorrent.homeworld.internal;qbittorrent\n"
+                      "WebUI\\ServerDomains=\"qbittorrent.homeworld.internal;qbittorrent;qbittorrent.qbittorrent;qbittorrent.qbittorrent.svc;qbittorrent.qbittorrent.svc.cluster.local\"\n"
                       "WebUI\\UseUPnP=false\n"
                       "WebUI\\Username=" + username + "\n"
                       # Stateless WebAPI key for the exporter and the sync
@@ -177,8 +197,8 @@ spec:
               drop:
                 - ALL
             runAsNonRoot: true
-            runAsUser: 20003
-            runAsGroup: 20003
+            runAsUser: 20004
+            runAsGroup: 20004
           resources:
             requests:
               cpu: 10m
@@ -212,8 +232,8 @@ spec:
               drop:
                 - ALL
             runAsNonRoot: true
-            runAsUser: 20003
-            runAsGroup: 20003
+            runAsUser: 20004
+            runAsGroup: 20004
           startupProbe:
             httpGet:
               path: /
@@ -250,8 +270,8 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
-            - name: downloads
-              mountPath: /downloads
+            - name: media
+              mountPath: /data
         - name: gluetun
           # Renovate tracks the image tag below. Runs as container UID 0;
           # NET_ADMIN and NET_RAW act on the pod's own network namespace, and
@@ -427,8 +447,8 @@ spec:
         - name: config
           persistentVolumeClaim:
             claimName: qbittorrent-config
-        - name: downloads
+        - name: media
           persistentVolumeClaim:
-            claimName: qbittorrent-downloads
+            claimName: media
         - name: gluetun
           emptyDir: {}

@@ -1,0 +1,230 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+  namespace: sonarr
+  labels:
+    app.kubernetes.io/name: sonarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sonarr
+  # One writer of config.xml and the scheduled tasks at a time.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sonarr
+    spec:
+      serviceAccountName: sonarr-app
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
+      # The shared media volume is NFS (docs/nas.md), which squashes every
+      # access to the share's owner, 20004: the containers run as that ID,
+      # and gVisor keeps the host user namespace NFS needs (no idmapped
+      # mounts). kubelet applies the fsGroup to the Longhorn config volume
+      # only (NFS CSI fsGroupPolicy None).
+      securityContext:
+        fsGroup: 20004
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        runAsUser: 20004
+        runAsGroup: 20004
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: sonarr
+          # Renovate tracks the image tag below. home-operations builds the
+          # upstream release rootless, with the in-app updater removed.
+          image: ghcr.io/home-operations/sonarr:5.0.0.2800
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8989
+              protocol: TCP
+          env:
+            - name: TZ
+              value: UTC
+            # config.xml settings as environment overrides
+            # (https://wiki.servarr.com/sonarr/environment-variables).
+            - name: SONARR__APP__INSTANCENAME
+              value: Sonarr
+            - name: SONARR__SERVER__PORT
+              value: "8989"
+            # Host-header allowlist (DNS-rebinding defense): the public
+            # hostname and the in-cluster Service names. Loopback and the
+            # pod hostname are always accepted, so the probes send
+            # Host: localhost.
+            - name: SONARR__SERVER__ALLOWEDHOSTS
+              value: sonarr.homeworld.internal,sonarr,sonarr.sonarr,sonarr.sonarr.svc,sonarr.sonarr.svc.cluster.local
+            # The gateway OIDC SecurityPolicy (2_security_policy.yaml) is
+            # the login: External skips Sonarr's own form. The API
+            # still requires the key; ingress is limited to Envoy and the
+            # named in-cluster clients (-2_network_policy.yaml).
+            # DisabledForLocalAddresses is never used: every Envoy and pod
+            # address counts as local.
+            - name: SONARR__AUTH__METHOD
+              value: External
+            - name: SONARR__AUTH__REQUIRED
+              value: Enabled
+            - name: SONARR__AUTH__APIKEY
+              valueFrom:
+                secretKeyRef:
+                  name: sonarr-secrets
+                  key: apiKey
+            # Sentry and the anonymous usage analytics sent with update
+            # checks are off; the image's updater is removed, and
+            # Mechanism Docker only reports new versions.
+            - name: SONARR__LOG__ANALYTICSENABLED
+              value: "False"
+            - name: SONARR__UPDATE__MECHANISM
+              value: Docker
+            - name: SONARR__UPDATE__AUTOMATICALLY
+              value: "False"
+            - name: SONARR__POSTGRES__HOST
+              value: sonarr-rw.sonarr.svc.cluster.local
+            - name: SONARR__POSTGRES__PORT
+              value: "5432"
+            - name: SONARR__POSTGRES__MAINDB
+              value: sonarr-main
+            - name: SONARR__POSTGRES__LOGDB
+              value: sonarr-log
+            - name: SONARR__POSTGRES__USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: username
+            - name: SONARR__POSTGRES__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 20004
+            runAsGroup: 20004
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            httpGet:
+              path: /ping
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: localhost
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: localhost
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: localhost
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+              ephemeral-storage: 1Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: tmp
+              mountPath: /tmp
+            # Mounted once at /data: torrents and the library must be one
+            # mount for hardlinks (two mounts of the share are two
+            # filesystems to the kernel and fail with EXDEV).
+            - name: media
+              mountPath: /data
+        - name: exportarr
+          # Renovate tracks the image tag below. Prometheus exporter for the
+          # *arr APIs; it calls Sonarr over the pod's loopback
+          # interface.
+          image: ghcr.io/onedr0p/exportarr:v2.3.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - sonarr
+          ports:
+            - name: metrics
+              containerPort: 9707
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "9707"
+            - name: URL
+              value: http://localhost:8989
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sonarr-secrets
+                  key: apiKey
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 20004
+            runAsGroup: 20004
+            seccompProfile:
+              type: RuntimeDefault
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+              ephemeral-storage: 16Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: sonarr-config
+        - name: tmp
+          emptyDir: {}
+        - name: media
+          persistentVolumeClaim:
+            claimName: media

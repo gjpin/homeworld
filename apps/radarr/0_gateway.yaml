@@ -1,0 +1,31 @@
+# TODO: each application has a gateway, which are merged into a single one till
+# cert-manager supports http routes for automatic certificates
+# https://github.com/cert-manager/cert-manager/issues/6051
+# https://gateway.envoyproxy.io/docs/tasks/security/tls-cert-manager/
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy
+  namespace: radarr
+  annotations:
+    cert-manager.io/cluster-issuer: homeworld-ca
+spec:
+  gatewayClassName: envoy-merged
+  addresses:
+    - type: IPAddress
+      value: 192.168.8.50
+  listeners:
+    - name: radarr-https
+      protocol: HTTPS
+      port: 443
+      hostname: "radarr.homeworld.internal"
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: radarr-tls-cert
+            kind: Secret
+            group: ""

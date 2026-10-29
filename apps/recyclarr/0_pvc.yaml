@@ -1,0 +1,17 @@
+---
+# Recyclarr's state (the custom-format IDs it manages) and its git caches of
+# the TRaSH Guides, so a run neither re-clones nor re-adopts formats.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: recyclarr
+  namespace: recyclarr
+  labels:
+    app.kubernetes.io/name: recyclarr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-crypto
+  resources:
+    requests:
+      storage: 1Gi

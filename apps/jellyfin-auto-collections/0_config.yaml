@@ -1,0 +1,36 @@
+# Jellyfin-Auto-Collections builds Jellyfin collections from external lists
+# (the role Kometa plays for Plex; released Kometa supports Plex only).
+# Schema: config.yaml.example of the pinned commit
+# (https://github.com/ghomasHudson/Jellyfin-Auto-Collections). With no
+# crontab key the script runs once and exits; the CronJob schedules it.
+# Enabling another plugin needs its hosts in -2_network_policy.yaml.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jellyfin-auto-collections-config
+  namespace: jellyfin-auto-collections
+  labels:
+    app.kubernetes.io/name: jellyfin-auto-collections
+data:
+  config.yaml: |
+    jellyfin:
+      # In-cluster Service: plain HTTP, no Homeworld CA needed.
+      server_url: http://jellyfin.jellyfin.svc.cluster.local:8096
+      api_key: !ENV ${JELLYFIN_API_KEY}
+      user_id: !ENV ${JELLYFIN_USER_ID}
+    # No jellyseerr block: it would request every unmatched list item.
+    plugins:
+      imdb_chart:
+        enabled: true
+        list_ids:
+          - top
+          - moviemeter
+          - tvmeter
+        # The charts change often.
+        clear_collection: true
+      letterboxd:
+        enabled: true
+        imdb_id_filter: true
+        list_ids:
+          - dave/list/official-top-250-narrative-feature-films

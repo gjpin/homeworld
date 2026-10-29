@@ -1,18 +1,20 @@
-# Downloads live on the NAS (docs/nas.md): the homeworld-qbittorrent share,
-# exported with all_squash to its owner 20003, mounted through the NFS CSI
-# node plugin. A static PersistentVolume binds the claim to that one share;
+# Downloads live on the NAS (docs/nas.md): the homeworld-media share,
+# exported with all_squash to its owner 20004 and shared with the media
+# stack, so the *arr imports hardlink from /data/torrents into /data/media
+# instead of copying. Each consuming namespace binds its own static
+# PersistentVolume to the same export (a PersistentVolume binds one claim);
 # Retain keeps the data if the claim is ever deleted. Velero skips NFS
 # volumes (its volume policy); the share has no snapshots on the NAS.
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: homeworld-qbittorrent
+  name: homeworld-media-qbittorrent
   labels:
     app.kubernetes.io/name: qbittorrent
 spec:
   capacity:
-    storage: 10Ti
+    storage: 20Ti
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
@@ -21,15 +23,17 @@ spec:
     - nfsvers=4.1
   csi:
     driver: nfs.csi.k8s.io
-    volumeHandle: 192.168.8.20#homeworld-qbittorrent##
+    # Unique per PersistentVolume; the node plugin mounts the export named
+    # in volumeAttributes.
+    volumeHandle: 192.168.8.20#homeworld-media##qbittorrent
     volumeAttributes:
       server: 192.168.8.20
-      share: /homeworld-qbittorrent
+      share: /homeworld-media
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: qbittorrent-downloads
+  name: media
   namespace: qbittorrent
   labels:
     app.kubernetes.io/name: qbittorrent
@@ -37,7 +41,7 @@ spec:
   accessModes:
     - ReadWriteMany
   storageClassName: ""
-  volumeName: homeworld-qbittorrent
+  volumeName: homeworld-media-qbittorrent
   resources:
     requests:
-      storage: 10Ti
+      storage: 20Ti

@@ -39,6 +39,12 @@ OMIT_APPS = {
     # Supernote publishes amd64-only images, and the kind node follows the
     # host architecture (arm64 on Apple-silicon Lima / Docker Desktop).
     "supernote-app",
+    # The Intel GPU device plugin image is amd64-only and kind nodes have no
+    # Intel GPU to advertise.
+    "intel-gpu-plugin-app",
+    # qbit_manage manages qBittorrent, which is omitted above; its CronJob
+    # would fail every run.
+    "qbit-manage-app",
 }
 
 GIT_REPO_URL = "git://host.docker.internal:9418/homeworld.git"
@@ -819,11 +825,29 @@ def rewrite_kind_nfs_volumes(root: pathlib.Path) -> None:
                 doc = re.sub(r"(?m)^  volumeName: homeworld-\S+\n", "", doc)
                 doc = doc.replace('storageClassName: ""', "storageClassName: longhorn-crypto")
                 doc = doc.replace("- ReadWriteMany", "- ReadWriteOnce")
+                doc = doc.replace("- ReadOnlyMany", "- ReadWriteOnce")
                 doc = re.sub(r"(?m)^(\s*storage:) \S+$", r"\1 1Gi", doc)
             docs.append(doc)
         path.write_text(join_docs(docs))
         count += 1
     print(f"[rewrite-staging] NFS volumes -> local-path claims in {count} files")
+
+
+def rewrite_jellyfin_kind_gpu(root: pathlib.Path) -> None:
+    """Kind has no Intel GPU device plugin (intel-gpu-plugin-app is omitted),
+    so Jellyfin's gpu.intel.com/i915 request would never schedule; it runs
+    with software transcoding instead."""
+    path = root / "apps" / "jellyfin" / "helm" / "values.yaml"
+    if not path.is_file():
+        print("[rewrite-staging] jellyfin values missing; skipping GPU rewrite")
+        return
+    text = path.read_text()
+    new = re.sub(r'(?m)^\s*gpu\.intel\.com/i915:\s*"1"\n', "", text)
+    if new != text:
+        path.write_text(new)
+        print("[rewrite-staging] jellyfin GPU request removed")
+    else:
+        print("[rewrite-staging] jellyfin GPU rewrite unchanged")
 
 
 def rewrite_immich_memory(root: pathlib.Path) -> None:
@@ -1262,6 +1286,7 @@ def main() -> int:
     rewrite_collabora_kind_jail(root)
     rewrite_immich_kind_storage(root)
     rewrite_kind_nfs_volumes(root)
+    rewrite_jellyfin_kind_gpu(root)
     rewrite_rustfs_map_hostusers(root)
     rewrite_route_sync_wave(root)
     rewrite_crowdsec_disable_agent(root)

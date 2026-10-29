@@ -1,0 +1,110 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: feishin
+  namespace: feishin
+  labels:
+    app.kubernetes.io/name: feishin
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: feishin
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: feishin
+    spec:
+      serviceAccountName: feishin
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
+      # The image's nginx-unprivileged user (UID/GID 101).
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: feishin
+          # Renovate tracks the image tag below.
+          image: ghcr.io/jeffvli/feishin:1.17.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 9180
+              protocol: TCP
+          # The web build of the client; the browser signs in to Navidrome
+          # and calls its API directly (Navidrome allows any origin).
+          # nginx renders these into settings.js at startup.
+          # https://github.com/jeffvli/feishin#docker
+          env:
+            - name: SERVER_NAME
+              value: Navidrome
+            - name: SERVER_TYPE
+              value: navidrome
+            - name: SERVER_URL
+              value: https://navidrome.homeworld.internal
+            # Only the username and password can be changed in the login
+            # form.
+            - name: SERVER_LOCK
+              value: "true"
+            - name: LEGACY_AUTHENTICATION
+              value: "false"
+            # Umami page-view analytics, loaded by the browser.
+            - name: ANALYTICS_DISABLED
+              value: "true"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 101
+            runAsGroup: 101
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 5
+            failureThreshold: 12
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+              ephemeral-storage: 16Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+          volumeMounts:
+            # The entrypoint renders default.conf and settings.js from
+            # /etc/nginx/templates into conf.d; nginx keeps its pid and
+            # temp files in /tmp.
+            - name: conf
+              mountPath: /etc/nginx/conf.d
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: conf
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

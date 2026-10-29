@@ -1,0 +1,212 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: navidrome
+  namespace: navidrome
+  labels:
+    app.kubernetes.io/name: navidrome
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: navidrome
+  # SQLite: one writer at a time.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: navidrome
+    spec:
+      serviceAccountName: navidrome
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
+      # The shared media volume is NFS (docs/nas.md), which squashes every
+      # access to the share's owner, 20004: the container runs as that ID
+      # (the image sets no USER), and gVisor keeps the host user namespace
+      # NFS needs (no idmapped mounts). kubelet applies the fsGroup to the
+      # Longhorn data volume only (NFS CSI fsGroupPolicy None).
+      securityContext:
+        fsGroup: 20004
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        runAsUser: 20004
+        runAsGroup: 20004
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        # Installs the pinned AudioMuse-AI plugin (Instant Mix, artist radio
+        # and similar artists from AudioMuse-AI's sonic analysis,
+        # https://github.com/NeptuneHub/AudioMuse-AI-NV-plugin). The loader
+        # writes only to the emptyDir that holds the plugins folder, so the
+        # git-pinned version is the only plugin Navidrome loads.
+        - name: audiomuse-ai-plugin-loader
+          image: docker.io/library/alpine:3.24.3
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -ec
+            - |
+              # Renovate tracks the plugin version below (github-releases) and
+              # refreshes the sha256 on bumps via postUpgradeTasks
+              # (scripts/refresh-navidrome-audiomuse-plugin-sha.sh).
+              wget -O /tmp/audiomuseai.ndp \
+                https://github.com/NeptuneHub/AudioMuse-AI-NV-plugin/releases/download/v10/audiomuseai.ndp
+              echo 'c138e9af16f097d8cd07ac957fb8a49d91a7da066e5b4a1457cadbd479aa10a7  /tmp/audiomuseai.ndp' | sha256sum -c -
+              mv /tmp/audiomuseai.ndp /plugins/audiomuseai.ndp
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 20004
+            runAsGroup: 20004
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+              ephemeral-storage: 16Mi
+            limits:
+              cpu: 200m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+            - name: tmp
+              mountPath: /tmp
+      containers:
+        - name: navidrome
+          # Renovate tracks the image tag below.
+          image: ghcr.io/navidrome/navidrome:0.64.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 4533
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: navidrome-secrets
+          # https://www.navidrome.org/docs/usage/configuration/options/
+          env:
+            - name: TZ
+              value: UTC
+            - name: ND_PORT
+              value: "4533"
+            - name: ND_BASEURL
+              value: https://navidrome.homeworld.internal
+            # The database and caches stay on Longhorn; the library is the
+            # same /data/media/music path Lidarr imports into.
+            - name: ND_DATAFOLDER
+              value: /navidrome
+            - name: ND_CONFIGFILE
+              value: /navidrome/navidrome.toml
+            - name: ND_MUSICFOLDER
+              value: /data/media/music
+            # fsnotify never sees writes made on the NAS from other pods, so
+            # the watcher is off; an hourly scan picks up new music.
+            - name: ND_SCANNER_WATCHERWAIT
+              value: "0"
+            - name: ND_SCANNER_SCHEDULE
+              value: "@every 1h"
+            # Anonymous usage statistics to insights.navidrome.org, on by
+            # default.
+            - name: ND_ENABLEINSIGHTSCOLLECTOR
+              value: "false"
+            # Share links are served without authentication.
+            - name: ND_ENABLESHARING
+              value: "false"
+            # Plugins: only the git-pinned AudioMuse-AI plugin is installed
+            # (the loader above), and its HTTP reach is bounded by the
+            # egress policies (AudioMuse-AI's in-cluster Service). Its API
+            # URL and token are set once under Plugins in the UI (README).
+            - name: ND_PLUGINS_ENABLED
+              value: "true"
+            - name: ND_PLUGINS_FOLDER
+              value: /navidrome/plugins
+            # AudioMuse-AI first: Navidrome asks the first agent that
+            # supports similar songs and artists, and falls back to the
+            # others for bios and images.
+            - name: ND_AGENTS
+              value: audiomuseai,deezer,lastfm,listenbrainz
+            - name: ND_PROMETHEUS_ENABLED
+              value: "true"
+            # Consistent SQLite copies inside the backed-up volume.
+            - name: ND_BACKUP_PATH
+              value: /navidrome/backup
+            - name: ND_BACKUP_SCHEDULE
+              value: "0 4 * * *"
+            - name: ND_BACKUP_COUNT
+              value: "7"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 20004
+            runAsGroup: 20004
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          # Scans and transcodes spike CPU and memory.
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+          volumeMounts:
+            - name: data
+              mountPath: /navidrome
+            - name: tmp
+              mountPath: /tmp
+            - name: plugins
+              mountPath: /navidrome/plugins
+              readOnly: true
+            - name: media
+              mountPath: /data/media/music
+              subPath: media/music
+              readOnly: true
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: navidrome
+        - name: tmp
+          emptyDir: {}
+        - name: plugins
+          emptyDir: {}
+        - name: media
+          persistentVolumeClaim:
+            claimName: media
+            readOnly: true

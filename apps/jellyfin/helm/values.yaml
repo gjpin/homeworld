@@ -1,0 +1,206 @@
+# https://github.com/jellyfin/jellyfin-helm/tree/master/charts/jellyfin
+fullnameOverride: jellyfin
+
+serviceAccount:
+  # Token hygiene only: Jellyfin never talks to the Kubernetes API.
+  automount: false
+
+# One transcoder on the single iGPU; the config volume is ReadWriteOnce.
+deploymentStrategy:
+  type: Recreate
+
+# The shared media library is NFS (docs/nas.md), which squashes every access
+# to the share's owner, 20004: Jellyfin runs as that ID. kubelet applies the
+# fsGroup to the Longhorn config volume only (NFS CSI fsGroupPolicy None).
+# The containerd device_ownership_from_security_context setting
+# (host/files/containerd) hands the allocated /dev/dri render node to this
+# UID/GID, so no host render group is needed.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 20004
+  runAsGroup: 20004
+  fsGroup: 20004
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  runAsNonRoot: true
+  runAsUser: 20004
+  runAsGroup: 20004
+  seccompProfile:
+    type: RuntimeDefault
+
+service:
+  # The chart's ServiceMonitor targets the port named http.
+  portName: http
+
+jellyfin:
+  # DLNA would force hostNetwork and UDP 1900; it stays off.
+  enableDLNA: false
+  env:
+    - name: TZ
+      value: UTC
+    - name: JELLYFIN_PublishedServerUrl
+      value: https://jellyfin.homeworld.internal
+
+# Intel QuickSync (corebox's UHD 730). The device plugin
+# (apps/intel-gpu-plugin) runs on corebox only and advertises
+# gpu.intel.com/i915 there, so the request also places the pod there.
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+    ephemeral-storage: 256Mi
+    gpu.intel.com/i915: "1"
+  # QuickSync does the heavy lifting; software fallbacks (subtitle burn-in,
+  # audio) may use every corebox core. The ephemeral-storage limit covers
+  # the 32Gi transcode cache emptyDir: emptyDir usage counts against the
+  # pod's limit, and exceeding it evicts the pod.
+  limits:
+    cpu: "4"
+    memory: 4Gi
+    ephemeral-storage: 34Gi
+    gpu.intel.com/i915: "1"
+
+persistence:
+  config:
+    storageClass: longhorn-crypto
+    size: 10Gi
+  # The library is mounted below at the same /data/media paths Sonarr,
+  # Radarr and Lidarr report, so their library refresh requests resolve.
+  media:
+    enabled: false
+  cache:
+    enabled: false
+
+volumes:
+  - name: library
+    persistentVolumeClaim:
+      claimName: media
+
+volumeMounts:
+  # Read-only: Jellyfin keeps artwork, NFOs and trickplay in its own
+  # metadata directory (/metadata below; the library options "Save artwork
+  # into media folders",
+  # "Save trickplay with media" and "Save subtitles with media" stay off;
+  # Bazarr writes the subtitles).
+  - name: library
+    mountPath: /data/media
+    subPath: media
+    readOnly: true
+  # Artwork, people images, trickplay and chapter images (system.xml
+  # MetadataPath, seeded below) on the NAS instead of the Longhorn config
+  # volume: they grow with the library, need no backup (Jellyfin rebuilds
+  # them from the media and its metadata providers), and the database stays
+  # on Longhorn.
+  - name: library
+    mountPath: /metadata
+    subPath: jellyfin/metadata
+
+# Seeds the server, network and encoding settings on the first start of an
+# empty config volume. Jellyfin fills every missing element with its default
+# and rewrites the files on save, so the seed applies once; later git
+# changes must be made in the dashboard or by editing the files under
+# /config/config directly.
+extraInitContainers:
+  - name: jellyfin-config-bootstrap
+    image: docker.io/jellyfin/jellyfin:12.4
+    imagePullPolicy: IfNotPresent
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        dir=/config/config
+        mkdir -p "$dir"
+        ns='xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"'
+        # The /metrics endpoint is read at startup only (Startup.cs).
+        # MetadataPath points the internal metadata (artwork, trickplay,
+        # chapter images) at the NAS mount.
+        [ -e "$dir/system.xml" ] || cat >"$dir/system.xml" <<XML
+        <?xml version="1.0" encoding="utf-8"?>
+        <ServerConfiguration $ns>
+          <EnableMetrics>true</EnableMetrics>
+          <MetadataPath>/metadata</MetadataPath>
+        </ServerConfiguration>
+        XML
+        # No client auto-discovery (UDP 7359) or UPnP; X-Forwarded-For is
+        # trusted from the pod network (the Envoy pods), so client
+        # addresses and the LAN/remote split are real.
+        [ -e "$dir/network.xml" ] || cat >"$dir/network.xml" <<XML
+        <?xml version="1.0" encoding="utf-8"?>
+        <NetworkConfiguration $ns>
+          <AutoDiscovery>false</AutoDiscovery>
+          <EnableUPnP>false</EnableUPnP>
+          <EnableIPv6>false</EnableIPv6>
+          <KnownProxies>
+            <string>10.42.0.0/16</string>
+          </KnownProxies>
+        </NetworkConfiguration>
+        XML
+        # Intel QuickSync on the Alder Lake iGPU: hardware decode of every
+        # codec it supports (AV1 decode only), low-power H.264/HEVC
+        # encoding, and HDR tone mapping
+        # (https://jellyfin.org/docs/general/post-install/transcoding/hardware-acceleration/intel/).
+        [ -e "$dir/encoding.xml" ] || cat >"$dir/encoding.xml" <<XML
+        <?xml version="1.0" encoding="utf-8"?>
+        <EncodingOptions $ns>
+          <HardwareAccelerationType>qsv</HardwareAccelerationType>
+          <QsvDevice>/dev/dri/renderD128</QsvDevice>
+          <EnableHardwareEncoding>true</EnableHardwareEncoding>
+          <EnableIntelLowPowerH264HwEncoder>true</EnableIntelLowPowerH264HwEncoder>
+          <EnableIntelLowPowerHevcHwEncoder>true</EnableIntelLowPowerHevcHwEncoder>
+          <EnableTonemapping>true</EnableTonemapping>
+          <!-- Transcode only a few minutes ahead of the player and delete
+               played segments, so concurrent 4K transcodes stay inside the
+               cache emptyDir (kustomization.yaml). -->
+          <EnableThrottling>true</EnableThrottling>
+          <EnableSegmentDeletion>true</EnableSegmentDeletion>
+          <EnableDecodingColorDepth10Hevc>true</EnableDecodingColorDepth10Hevc>
+          <EnableDecodingColorDepth10Vp9>true</EnableDecodingColorDepth10Vp9>
+          <HardwareDecodingCodecs>
+            <string>h264</string>
+            <string>hevc</string>
+            <string>mpeg2video</string>
+            <string>vc1</string>
+            <string>vp8</string>
+            <string>vp9</string>
+            <string>av1</string>
+          </HardwareDecodingCodecs>
+        </EncodingOptions>
+        XML
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 20004
+      runAsGroup: 20004
+      seccompProfile:
+        type: RuntimeDefault
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+        ephemeral-storage: 16Mi
+      limits:
+        cpu: 200m
+        memory: 64Mi
+        ephemeral-storage: 64Mi
+    volumeMounts:
+      - name: config
+        mountPath: /config
+
+metrics:
+  # Seeded EnableMetrics above; the chart's postStart check then finds it
+  # already on.
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 60s

@@ -16,6 +16,7 @@ metadata:
 # Target Allocator over its mTLS channel and require per-namespace Roles
 # where they are used (e.g. apps/collabora/0_monitor_secret_rbac.yaml,
 # apps/woodpecker/0_monitor_secret_rbac.yaml,
+# apps/unpackerr/0_monitor_secret_rbac.yaml,
 # apps/kube-control-plane/0_rbac.yaml).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

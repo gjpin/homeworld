@@ -239,6 +239,27 @@ spec:
             - affine
             - actual-budget
             - homepage
+            # The media stack (docs/media-stack.md); the Intel GPU plugin and
+            # qbit_manage are omitted on kind, and Recyclarr, media-config,
+            # beets and Jellyfin-Auto-Collections run only as CronJobs.
+            - prowlarr
+            - flaresolverr
+            - sonarr
+            - radarr
+            - lidarr
+            - bindery
+            - bazarr
+            - jellyfin
+            - navidrome
+            - feishin
+            - audiomuse-ai
+            - audiobookshelf
+            - seerr
+            - streamystats
+            - maintainerr
+            - cleanuparr
+            - houndarr
+            - unpackerr
             - opentelemetry-operator
             # metrics-server and the kubelet-serving-cert approver run in
             # their own dedicated namespaces (apps/app-of-apps.yaml

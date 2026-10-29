@@ -1,0 +1,22 @@
+# Unpackerr's /metrics requires an API key with system:metrics:read; the
+# Target Allocator hands the bearer token to the collector
+# (0_monitor_secret_rbac.yaml).
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: unpackerr
+  namespace: unpackerr
+  labels:
+    app.kubernetes.io/name: unpackerr
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: unpackerr
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 60s
+      bearerTokenSecret:
+        name: unpackerr-secrets
+        key: metricsApiKey

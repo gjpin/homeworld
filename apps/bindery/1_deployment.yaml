@@ -1,0 +1,165 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bindery
+  namespace: bindery
+  labels:
+    app.kubernetes.io/name: bindery
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bindery
+  # SQLite: one writer at a time.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bindery
+    spec:
+      serviceAccountName: bindery
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
+      # The shared media volume is NFS (docs/nas.md), which squashes every
+      # access to the share's owner, 20004: the container runs as that ID
+      # (the distroless image cannot switch users itself), and gVisor keeps
+      # the host user namespace NFS needs (no idmapped mounts). kubelet
+      # applies the fsGroup to the Longhorn config volume only (NFS CSI
+      # fsGroupPolicy None).
+      securityContext:
+        fsGroup: 20004
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        runAsUser: 20004
+        runAsGroup: 20004
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: bindery
+          # Renovate tracks the image tag below.
+          image: ghcr.io/vavallee/bindery:1.46.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8787
+              protocol: TCP
+          env:
+            - name: TZ
+              value: UTC
+            - name: BINDERY_PORT
+              value: "8787"
+            - name: BINDERY_LOG_LEVEL
+              value: info
+            - name: BINDERY_DB_PATH
+              value: /config/bindery.db
+            - name: BINDERY_DATA_DIR
+              value: /config
+            # TRaSH-guides layout on the one shared media mount: the
+            # download directories are the qBittorrent category paths, and
+            # imports hardlink into the libraries (import mode auto).
+            - name: BINDERY_DOWNLOAD_DIR
+              value: /data/torrents/books
+            - name: BINDERY_AUDIOBOOK_DOWNLOAD_DIR
+              value: /data/torrents/audiobooks
+            - name: BINDERY_LIBRARY_DIR
+              value: /data/media/books
+            # Audiobookshelf reads this directory from the same share.
+            - name: BINDERY_AUDIOBOOK_DIR
+              value: /data/media/audiobooks
+            # Days a finished download row is kept (the chart default).
+            - name: BINDERY_DOWNLOAD_RETENTION_DAYS
+              value: "90"
+            # Fixed API key, shared with the Homepage widget.
+            - name: BINDERY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: bindery-secrets
+                  key: apiKey
+            # Daily install ping to api.getbindery.dev (also drives the
+            # update badge); works before the first run.
+            - name: BINDERY_TELEMETRY_DISABLED
+              value: "true"
+            # Authelia sign-in (docs/auth-oidc.md). The provider itself
+            # (id authelia, issuer, client ID and secret) is entered once
+            # in Settings > General > Security; Bindery keeps it in its
+            # database. The callback is pinned to the public hostname, and
+            # X-Forwarded-* is trusted only from the pod network (the Envoy
+            # pods). The bindery-admin group maps to the admin role on
+            # every login; everyone else is a user. Local password login
+            # stays as the fallback for the first admin.
+            - name: BINDERY_OIDC_REDIRECT_BASE_URL
+              value: https://bindery.homeworld.internal
+            - name: BINDERY_TRUSTED_PROXY
+              value: 10.42.0.0/16
+            - name: BINDERY_OIDC_ADMIN_GROUP
+              value: bindery-admin
+            # OIDC discovery, token and UserInfo calls to Authelia: Go adds
+            # this directory to the image's CA bundle.
+            - name: SSL_CERT_DIR
+              value: /etc/homeworld-ca
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 20004
+            runAsGroup: 20004
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+            periodSeconds: 10
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 1Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: tmp
+              mountPath: /tmp
+            # Mounted once at /data: torrents and the library must be one
+            # mount for hardlinks (two mounts of the share are two
+            # filesystems to the kernel and fail with EXDEV).
+            - name: media
+              mountPath: /data
+            - name: homeworld-ca
+              mountPath: /etc/homeworld-ca
+              readOnly: true
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: bindery-config
+        - name: tmp
+          emptyDir: {}
+        - name: media
+          persistentVolumeClaim:
+            claimName: media
+        - name: homeworld-ca
+          configMap:
+            name: homeworld-ca

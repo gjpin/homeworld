@@ -157,7 +157,8 @@ spec:
 ---
 # The Target Allocator watches ServiceMonitors, PodMonitors, and their
 # target workloads through the Kubernetes API; it also resolves the
-# credential secrets referenced by the collabora and woodpecker monitors.
+# credential secrets referenced by the collabora, woodpecker and unpackerr
+# monitors.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -1156,7 +1157,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  # The MariaDB operator's generated ServiceMonitor scrapes the mysqld-exporter
+  # The MariaDB operator's generated ServiceMonitor scrapes the mysqld-
+  # exporter
   # (9104), and the handwritten PodMonitor scrapes the Dragonfly operand
   # admin metrics port (9999).
   endpointSelector:
@@ -1306,5 +1308,343 @@ spec:
         - ports:
             - port: "9001"
               protocol: TCP
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-prowlarr
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Prowlarr's ServiceMonitor scrapes the exportarr sidecar (9707); its
+  # PodMonitor scrapes the CloudNativePG instance metrics port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: prowlarr
+      toPorts:
+        - ports:
+            - port: "9707"
+              protocol: TCP
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-sonarr
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Sonarr's ServiceMonitor scrapes the exportarr sidecar (9707); its
+  # PodMonitor scrapes the CloudNativePG instance metrics port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: sonarr
+      toPorts:
+        - ports:
+            - port: "9707"
+              protocol: TCP
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-radarr
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Radarr's ServiceMonitor scrapes the exportarr sidecar (9707); its
+  # PodMonitor scrapes the CloudNativePG instance metrics port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: radarr
+      toPorts:
+        - ports:
+            - port: "9707"
+              protocol: TCP
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-lidarr
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Lidarr's ServiceMonitor scrapes the exportarr sidecar (9707); its
+  # PodMonitor scrapes the CloudNativePG instance metrics port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: lidarr
+      toPorts:
+        - ports:
+            - port: "9707"
+              protocol: TCP
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-bazarr
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Bazarr's ServiceMonitor scrapes the exportarr sidecar (9707); its
+  # PodMonitor scrapes the CloudNativePG instance metrics port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: bazarr
+      toPorts:
+        - ports:
+            - port: "9707"
+              protocol: TCP
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-flaresolverr
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # FlareSolverr's ServiceMonitor scrapes its native metrics port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: flaresolverr
+      toPorts:
+        - ports:
+            - port: "8192"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-bindery
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Bindery's ServiceMonitor scrapes /metrics on the application port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: bindery
+      toPorts:
+        - ports:
+            - port: "8787"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-unpackerr
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Unpackerr's ServiceMonitor scrapes /metrics on the web server port,
+  # with the bearer token the Target Allocator resolves.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: unpackerr
+      toPorts:
+        - ports:
+            - port: "5656"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-jellyfin
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Jellyfin's ServiceMonitor scrapes /metrics on the application port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: jellyfin
+      toPorts:
+        - ports:
+            - port: "8096"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-navidrome
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Navidrome's ServiceMonitor scrapes /metrics on the application port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: navidrome
+      toPorts:
+        - ports:
+            - port: "4533"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-seerr
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Seerr's PodMonitor scrapes the CloudNativePG instance metrics port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: seerr
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-cleanuparr
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Cleanuparr's PodMonitor scrapes the CloudNativePG instance metrics port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: cleanuparr
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-streamystats
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Streamystats' PodMonitor scrapes the CloudNativePG instance metrics port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: streamystats
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otel-pod-scrape-audiomuse-ai
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # AudioMuse-AI's PodMonitor scrapes the CloudNativePG instance metrics port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: audiomuse-ai
+      toPorts:
+        - ports:
             - port: "9187"
               protocol: TCP

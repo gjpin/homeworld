@@ -1,0 +1,76 @@
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: crowdsec-ext-auth
+  namespace: sonarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy
+  extAuth:
+    failOpen: false
+    # Envoy Gateway only forwards request bodies to the ext-auth service when
+    # bodyToExtAuth is set; without it CrowdSec AppSec never sees request
+    # bodies (in-band virtual patching) and the gap is silent — path and
+    # header bans keep working.
+    bodyToExtAuth:
+      maxRequestBytes: 65536
+    grpc:
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: crowdsec-envoy-bouncer
+          namespace: envoy-gateway
+          port: 8080
+          weight: 1
+---
+# Gateway OIDC for the Sonarr UI: Sonarr runs with
+# Authentication Method External, so Authelia is the only login and the
+# route requires the platform group (docs/oidc.md). API clients (the other
+# *arrs, Homepage, exportarr) call the in-cluster Service and never pass
+# through this route; mobile apps on the public hostname cannot complete
+# the OIDC redirect. StrategicMerge keeps this policy from overriding the
+# Gateway-level CrowdSec extAuth above.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authelia-oidc
+  namespace: sonarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  mergeType: StrategicMerge
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: sonarr
+  oidc:
+    provider:
+      # Token requests go through the authelia Backend so Envoy validates
+      # Authelia's certificate against the homeworld CA
+      # (2_authelia_backend.yaml).
+      backendRefs:
+        - group: gateway.envoyproxy.io
+          kind: Backend
+          name: authelia
+          port: 443
+          weight: 1
+      issuer: https://auth.homeworld.internal
+      authorizationEndpoint: https://auth.homeworld.internal/api/oidc/authorization
+      tokenEndpoint: https://auth.homeworld.internal/api/oidc/token
+    clientID: envoy
+    clientSecret:
+      name: envoy-oidc-client-secret
+    scopes:
+      - openid
+      - offline_access
+    redirectURL: https://sonarr.homeworld.internal/oauth2/callback
+    logoutPath: /logout
+    cookieDomain: sonarr.homeworld.internal
+    forwardAccessToken: false
+    refreshToken: true
+    passThroughAuthHeader: false

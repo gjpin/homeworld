@@ -78,9 +78,9 @@ spec:
     allocationStrategy: consistent-hashing
     serviceAccount: otel-collector-pod-targetallocator
     # mTLS secures the collector-to-allocator channel so the allocator can
-    # serve the credential secrets referenced by the collabora and woodpecker
-    # ServiceMonitors (basicAuth and bearerTokenSecret); cert-manager
-    # provisions the CA and certificates.
+    # serve the credential secrets referenced by the collabora, woodpecker
+    # and unpackerr ServiceMonitors (basicAuth and bearerTokenSecret);
+    # cert-manager provisions the CA and certificates.
     mtls:
       enabled: true
     resources:

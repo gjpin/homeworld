@@ -1,0 +1,30 @@
+# https://github.com/NeptuneHub/AudioMuse-AI-helm
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: audiomuse-ai
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: audiomuse-ai
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/audiomuse-ai/helm
+    targetRevision: HEAD

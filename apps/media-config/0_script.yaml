@@ -1,0 +1,608 @@
+# The reconciler the CronJob runs (1_cronjob.yaml): plain Python standard
+# library against each app's own REST API.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: media-config-script
+  namespace: media-config
+  labels:
+    app.kubernetes.io/name: media-config
+data:
+  reconcile.py: |
+    """Keeps the media stack's cross-app wiring in place through the apps' own
+    APIs (README "Set Up the Media Stack"). Every step reads the current state
+    first and writes only what differs, so an unchanged run makes no changes.
+    Steps that wait on a one-time UI setup (Seerr's first sign-in, the Jellyfin
+    API key) are skipped until it exists; any other error fails the run after
+    the remaining steps have been tried."""
+
+    import json
+    import os
+    import sys
+    import urllib.error
+    import urllib.parse
+    import urllib.request
+
+
+    def svc(app, port):
+        return f"http://{app}.{app}.svc.cluster.local:{port}"
+
+
+    SONARR = svc("sonarr", 8989)
+    RADARR = svc("radarr", 7878)
+    LIDARR = svc("lidarr", 8686)
+    PROWLARR = svc("prowlarr", 9696)
+    SEERR = svc("seerr", 5055)
+    MAINTAINERR = svc("maintainerr", 6246)
+    BAZARR = svc("bazarr", 6767)
+    BINDERY = svc("bindery", 8787)
+    QBITTORRENT_HOST = "qbittorrent.qbittorrent.svc.cluster.local"
+    JELLYFIN_HOST = "jellyfin.jellyfin.svc.cluster.local"
+    FLARESOLVERR = "http://flaresolverr.flaresolverr.svc.cluster.local:8191/"
+    JELLYFIN = f"http://{JELLYFIN_HOST}:8096"
+
+    # A fresh release waits this long, then the best release seen in the window
+    # is grabbed (at once if it is the profile's highest quality). With
+    # upgrades off the first grab is final.
+    DELAY_MINUTES = 360
+    # Servarr masks stored secrets in its responses.
+    MASK = "********"
+
+    failures = []
+
+
+    class Skip(Exception):
+        """A prerequisite that only a one-time UI step creates is missing."""
+
+
+    class Api:
+        def __init__(self, name, base, headers):
+            self.name, self.base, self.headers = name, base.rstrip("/"), headers
+
+        def call(self, method, path, body=None, form=None):
+            if form is not None:
+                data, ctype = urllib.parse.urlencode(form).encode(), "application/x-www-form-urlencoded"
+            else:
+                data, ctype = None if body is None else json.dumps(body).encode(), "application/json"
+            req = urllib.request.Request(
+                self.base + path,
+                data=data,
+                method=method,
+                headers={**self.headers, "Content-Type": ctype, "Accept": "application/json"},
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=60) as resp:
+                    raw = resp.read()
+            except urllib.error.HTTPError as err:
+                detail = err.read().decode(errors="replace")[:500]
+                raise RuntimeError(f"{method} {path}: HTTP {err.code}: {detail}") from None
+            return json.loads(raw) if raw.strip() else None
+
+        def get(self, path):
+            return self.call("GET", path)
+
+        def post(self, path, body):
+            return self.call("POST", path, body)
+
+        def put(self, path, body):
+            return self.call("PUT", path, body)
+
+
+    def log(api, msg):
+        print(f"[{api}] {msg}", flush=True)
+
+
+    def step(app, what, fn, *args):
+        try:
+            fn(*args)
+        except Skip as err:
+            log(app, f"{what}: skipped ({err})")
+        except Exception as err:  # noqa: BLE001 - every failure is reported, the rest still run
+            log(app, f"{what}: FAILED: {err}")
+            failures.append(f"{app}: {what}")
+
+
+    def enum(current, camel, number):
+        """Servarr serialises enums as camelCase strings (or numbers in older
+        APIs); answer in the form the server used."""
+        return number if isinstance(current, int) and not isinstance(current, bool) else camel
+
+
+    # --- Servarr providers (download clients, notifications, Prowlarr apps) ---
+
+
+    def field_values(resource):
+        return {f["name"]: f.get("value") for f in resource.get("fields", [])}
+
+
+    def provider_differs(resource, fields, top):
+        current = field_values(resource)
+        for name, want in fields.items():
+            have = current.get(name)
+            if have == MASK:
+                continue
+            if have != want and not (have in (None, "") and want in (None, "")):
+                return True
+        return any(resource.get(k) != v for k, v in top.items())
+
+
+    def apply_provider(resource, fields, top):
+        for f in resource.get("fields", []):
+            if f["name"] in fields:
+                f["value"] = fields[f["name"]]
+        missing = set(fields) - {f["name"] for f in resource.get("fields", [])}
+        if missing:
+            raise RuntimeError(f"schema has no fields {sorted(missing)}")
+        resource.update(top)
+
+
+    def ensure_provider(api, path, name, implementation, fields, top=None, top_fn=None):
+        """Create or update the provider called `name` of `implementation`.
+        The app tests the connection before saving, so a target that is still
+        starting fails this step until a later run."""
+        top = dict(top or {})
+        existing = [r for r in api.get(path) if r.get("name") == name]
+        if existing:
+            res = existing[0]
+            want = dict(top, **(top_fn(res) if top_fn else {}))
+            if res.get("implementation") != implementation:
+                raise RuntimeError(f"'{name}' exists as {res.get('implementation')}")
+            if not provider_differs(res, fields, want):
+                log(api.name, f"{path} '{name}' up to date")
+                return
+            apply_provider(res, fields, want)
+            api.put(f"{path}/{res['id']}", res)
+            log(api.name, f"{path} '{name}' updated")
+            return
+        schema = [s for s in api.get(f"{path}/schema") if s.get("implementation") == implementation]
+        if not schema:
+            raise RuntimeError(f"no {implementation} in {path}/schema")
+        res = schema[0]
+        res.pop("presets", None)
+        res["name"] = name
+        want = dict(top, **(top_fn(res) if top_fn else {}))
+        apply_provider(res, fields, want)
+        api.post(path, res)
+        log(api.name, f"{path} '{name}' created")
+
+
+    def on_events(res):
+        """Every library-changing event the notification supports."""
+        skip = {"Grab", "HealthIssue", "HealthRestored", "ApplicationUpdate", "ManualInteractionRequired"}
+        out = {}
+        for key, supported in res.items():
+            if key.startswith("supportsOn") and supported is True:
+                event = key[len("supportsOn"):]
+                if event not in skip and f"on{event}" in res:
+                    out[f"on{event}"] = True
+        return out
+
+
+    # --- Sonarr, Radarr, Lidarr ---
+
+
+    def qbittorrent_client(api, ver, category_field, category):
+        ensure_provider(
+            api,
+            f"/api/{ver}/downloadclient",
+            "qBittorrent",
+            "QBittorrent",
+            {
+                "host": QBITTORRENT_HOST,
+                "port": 8080,
+                "useSsl": False,
+                "urlBase": "",
+                # qBittorrent's WebAPI key; no username or password needed.
+                "apiKey": os.environ["QBT_API_KEY"],
+                category_field: category,
+            },
+            {"enable": True},
+        )
+
+
+    def root_folder(api, ver, path, extra_fn=None):
+        if any((r.get("path") or "").rstrip("/") == path for r in api.get(f"/api/{ver}/rootfolder")):
+            log(api.name, f"root folder {path} up to date")
+            return
+        body = {"path": path}
+        if extra_fn:
+            body.update(extra_fn())
+        api.post(f"/api/{ver}/rootfolder", body)
+        log(api.name, f"root folder {path} created")
+
+
+    def jellyfin_notification(api, ver):
+        key = os.environ.get("JELLYFIN_API_KEY")
+        if not key:
+            raise Skip("no Jellyfin API key yet")
+        ensure_provider(
+            api,
+            f"/api/{ver}/notification",
+            "Jellyfin",
+            "MediaBrowser",
+            {
+                "host": JELLYFIN_HOST,
+                "port": 8096,
+                "useSsl": False,
+                "apiKey": key,
+                # A library refresh after imports, renames and deletes; no
+                # pop-up notifications in Jellyfin clients.
+                "notify": False,
+                "updateLibrary": True,
+            },
+            top_fn=on_events,
+        )
+
+
+    def delay_profile(api, ver):
+        """The global delay profile (id 1) applies to every untagged item."""
+        cur = api.get(f"/api/{ver}/delayprofile/1")
+        want = json.loads(json.dumps(cur))
+        if "items" in want:
+            # Lidarr: one item per protocol, the first is the preferred one.
+            items = sorted(want["items"], key=lambda i: 0 if "torrent" in i["protocol"].lower() else 1)
+            for item in items:
+                if "torrent" in item["protocol"].lower():
+                    item.update(allowed=True, delay=DELAY_MINUTES)
+            want["items"] = items
+        else:
+            want.update(
+                enableTorrent=True,
+                preferredProtocol=enum(cur.get("preferredProtocol"), "torrent", 2),
+                torrentDelay=DELAY_MINUTES,
+            )
+        # The bypass needs torrent as the preferred protocol.
+        want["bypassIfHighestQuality"] = True
+        if want == cur:
+            log(api.name, "delay profile up to date")
+            return
+        api.put(f"/api/{ver}/delayprofile/1", want)
+        log(api.name, "delay profile updated")
+
+
+    def config_value(api, path, key, value_fn):
+        cur = api.get(path)
+        want = value_fn(cur.get(key))
+        if cur.get(key) == want:
+            log(api.name, f"{path} {key} up to date")
+            return
+        cur[key] = want
+        api.put(f"{path}/{cur['id']}", cur)
+        log(api.name, f"{path} {key} set")
+
+
+    def lidarr_no_upgrades(api):
+        """Recyclarr does not cover Lidarr: every profile takes the best release
+        available and keeps the first file, as Sonarr and Radarr do."""
+        for profile in api.get("/api/v1/qualityprofile"):
+            if profile.get("upgradeAllowed"):
+                profile["upgradeAllowed"] = False
+                api.put(f"/api/v1/qualityprofile/{profile['id']}", profile)
+                log(api.name, f"quality profile '{profile['name']}' upgrades off")
+            else:
+                log(api.name, f"quality profile '{profile['name']}' up to date")
+
+
+    def lidarr_root_extra(api):
+        def extra():
+            quality = {p["name"]: p["id"] for p in api.get("/api/v1/qualityprofile")}
+            metadata = {p["name"]: p["id"] for p in api.get("/api/v1/metadataprofile")}
+            if "Any" not in quality or "Standard" not in metadata:
+                raise RuntimeError("Lidarr's default 'Any' or 'Standard' profile is missing")
+            return {
+                "name": "Music",
+                # "Any" ranks lossless first and falls back to lossy, the music
+                # counterpart of the 2160p-then-lower video profiles.
+                "defaultQualityProfileId": quality["Any"],
+                "defaultMetadataProfileId": metadata["Standard"],
+                "defaultMonitorOption": "all",
+                "defaultNewItemMonitorOption": "all",
+                "defaultTags": [],
+            }
+
+        return extra
+
+
+    def servarr(name, base, key, ver, category_field, category, root):
+        api = Api(name, base, {"X-Api-Key": key})
+        step(name, "qBittorrent download client", qbittorrent_client, api, ver, category_field, category)
+        extra = lidarr_root_extra(api) if name == "lidarr" else None
+        step(name, "root folder", root_folder, api, ver, root, extra)
+        step(name, "Jellyfin connection", jellyfin_notification, api, ver)
+        step(name, "delay profile", delay_profile, api, ver)
+        if name == "lidarr":
+            step(name, "upgrades off", lidarr_no_upgrades, api)
+            # Recyclarr sets this for Sonarr and Radarr.
+            step(name, "propers and repacks", config_value, api, "/api/v1/config/mediamanagement",
+                 "downloadPropersAndRepacks", lambda cur: enum(cur, "doNotPrefer", 2))
+            # Music is copied, not hardlinked, into the library: beets and
+            # Lidarr retag the library files, and retagging a hardlink would
+            # change the data the torrent seeds. Lidarr writes its
+            # MusicBrainz IDs into new imports, which beets matches on.
+            step(name, "copy instead of hardlink", config_value, api, "/api/v1/config/mediamanagement",
+                 "copyUsingHardlinks", lambda cur: False)
+            step(name, "write audio tags", config_value, api, "/api/v1/config/metadataprovider",
+                 "writeAudioTags", lambda cur: enum(cur, "newFiles", 1))
+
+
+    # --- Prowlarr ---
+
+
+    def prowlarr_app(api, implementation, base, key):
+        ensure_provider(
+            api,
+            "/api/v1/applications",
+            implementation,
+            implementation,
+            {"prowlarrUrl": PROWLARR, "baseUrl": base, "apiKey": key},
+            {"syncLevel": "fullSync", "enable": True},
+        )
+
+
+    def prowlarr_flaresolverr(api):
+        tags = {t["label"]: t["id"] for t in api.get("/api/v1/tag")}
+        if "flaresolverr" not in tags:
+            tags["flaresolverr"] = api.post("/api/v1/tag", {"label": "flaresolverr"})["id"]
+            log(api.name, "tag 'flaresolverr' created")
+        # Only indexers carrying the tag go through FlareSolverr.
+        ensure_provider(
+            api,
+            "/api/v1/indexerproxy",
+            "FlareSolverr",
+            "FlareSolverr",
+            {"host": FLARESOLVERR, "requestTimeout": 60},
+            {"tags": [tags["flaresolverr"]]},
+        )
+
+
+    def prowlarr():
+        api = Api("prowlarr", PROWLARR, {"X-Api-Key": os.environ["PROWLARR_API_KEY"]})
+        step("prowlarr", "Sonarr app", prowlarr_app, api, "Sonarr", SONARR, os.environ["SONARR_API_KEY"])
+        step("prowlarr", "Radarr app", prowlarr_app, api, "Radarr", RADARR, os.environ["RADARR_API_KEY"])
+        step("prowlarr", "Lidarr app", prowlarr_app, api, "Lidarr", LIDARR, os.environ["LIDARR_API_KEY"])
+        step("prowlarr", "FlareSolverr proxy", prowlarr_flaresolverr, api)
+
+
+    # --- Seerr ---
+
+
+    def seerr_server(api, kind, base, key, profile_name, directory, extra):
+        if not api.get("/api/v1/settings/public").get("initialized"):
+            raise Skip("Seerr's first sign-in has not happened")
+        host = base.split("//", 1)[1].rsplit(":", 1)[0]
+        if any(s.get("hostname") == host for s in api.get(f"/api/v1/settings/{kind}")):
+            log(api.name, f"{kind} server up to date")
+            return
+        app = Api(kind, base, {"X-Api-Key": key})
+        profiles = {p["name"]: p["id"] for p in app.get("/api/v3/qualityprofile")}
+        if profile_name not in profiles:
+            raise Skip(f"{kind} has no '{profile_name}' profile yet (Recyclarr)")
+        body = {
+            "name": kind.capitalize(),
+            "hostname": host,
+            "port": int(base.rsplit(":", 1)[1]),
+            "apiKey": key,
+            "useSsl": False,
+            "baseUrl": "",
+            "activeProfileId": profiles[profile_name],
+            "activeProfileName": profile_name,
+            "activeDirectory": directory,
+            "tags": [],
+            # One server per app for every request: no separate 4K server.
+            "is4k": False,
+            "isDefault": True,
+            "externalUrl": f"https://{kind}.homeworld.internal",
+            "syncEnabled": True,
+            "preventSearch": False,
+            "tagRequests": False,
+            "overrideRule": [],
+            **extra(profiles[profile_name]),
+        }
+        api.post(f"/api/v1/settings/{kind}", body)
+        log(api.name, f"{kind} server created")
+
+
+    def seerr():
+        api = Api("seerr", SEERR, {"X-Api-Key": os.environ["SEERR_API_KEY"]})
+        step("seerr", "Sonarr server", seerr_server, api, "sonarr", SONARR, os.environ["SONARR_API_KEY"],
+             "WEB-2160p (Combined)", "/data/media/tv",
+             lambda pid: {"seriesType": "standard", "animeSeriesType": "anime", "activeAnimeProfileId": pid,
+                          "activeAnimeProfileName": "WEB-2160p (Combined)", "activeAnimeDirectory": "/data/media/tv",
+                          "animeTags": [], "enableSeasonFolders": True, "monitorNewItems": "all"})
+        step("seerr", "Radarr server", seerr_server, api, "radarr", RADARR, os.environ["RADARR_API_KEY"],
+             "WEBDL 2160p (Combined)", "/data/media/movies", lambda pid: {"minimumAvailability": "released"})
+
+
+    # --- Maintainerr ---
+
+
+    def maintainerr_ok(result, what):
+        if isinstance(result, dict) and result.get("code") == 0:
+            raise RuntimeError(f"{what}: {result.get('message')}")
+
+
+    def maintainerr_servarr(api, kind, base, key):
+        if any((s.get("url") or "").rstrip("/") == base for s in api.get(f"/api/settings/{kind}")):
+            log(api.name, f"{kind} server up to date")
+            return
+        result = api.post(f"/api/settings/{kind}", {"serverName": kind.capitalize(), "url": base, "apiKey": key})
+        maintainerr_ok(result, kind)
+        log(api.name, f"{kind} server created")
+
+
+    def maintainerr_seerr(api):
+        cur = api.get("/api/settings/seerr")
+        if ((cur or {}).get("url") or "").rstrip("/") == SEERR:
+            log(api.name, "seerr up to date")
+            return
+        maintainerr_ok(api.post("/api/settings/seerr", {"url": SEERR, "api_key": os.environ["SEERR_API_KEY"]}), "seerr")
+        log(api.name, "seerr set")
+
+
+    def maintainerr_jellyfin(api):
+        key = os.environ.get("JELLYFIN_API_KEY")
+        if not key:
+            raise Skip("no Jellyfin API key yet")
+        cur = api.get("/api/settings/jellyfin")
+        if ((cur or {}).get("jellyfin_url") or "").rstrip("/") == JELLYFIN:
+            log(api.name, "jellyfin up to date")
+            return
+        # Maintainerr picks the first Jellyfin administrator itself.
+        maintainerr_ok(api.post("/api/settings/jellyfin", {"jellyfin_url": JELLYFIN, "jellyfin_api_key": key}), "jellyfin")
+        log(api.name, "jellyfin set")
+
+
+    def maintainerr():
+        # Maintainerr has no login of its own: the gateway OIDC guards its
+        # route, and in-cluster ingress is limited to named clients.
+        api = Api("maintainerr", MAINTAINERR, {})
+        step("maintainerr", "Sonarr server", maintainerr_servarr, api, "sonarr", SONARR, os.environ["SONARR_API_KEY"])
+        step("maintainerr", "Radarr server", maintainerr_servarr, api, "radarr", RADARR, os.environ["RADARR_API_KEY"])
+        step("maintainerr", "Seerr", maintainerr_seerr, api)
+        step("maintainerr", "Jellyfin", maintainerr_jellyfin, api)
+
+
+    # --- Bazarr ---
+
+
+    def bazarr_english(api):
+        """English subtitles for every new series and film: an "English" language
+        profile (created once, later edits in the UI are kept) set as the default
+        for both. Bazarr's settings form replaces the enabled languages and the
+        whole profile list, so both are sent back complete."""
+        enabled = [lang["code2"] for lang in api.get("/api/system/languages") if lang["enabled"]]
+        profiles = api.get("/api/system/languages/profiles")
+        general = api.get("/api/system/settings")["general"]
+        form = []
+        if "en" not in enabled:
+            form += [("languages-enabled", code) for code in enabled + ["en"]]
+        english = next((p for p in profiles if p["name"] == "English"), None)
+        if english is None:
+            english = {
+                "profileId": max((p["profileId"] for p in profiles), default=0) + 1,
+                "name": "English",
+                "cutoff": None,
+                "items": [{
+                    "id": 1,
+                    "language": "en",
+                    "audio_exclude": "False",
+                    "audio_only_include": "False",
+                    "hi": "False",
+                    "forced": "False",
+                }],
+                "mustContain": [],
+                "mustNotContain": [],
+                "originalFormat": None,
+                "tag": None,
+            }
+            form.append(("languages-profiles", json.dumps(profiles + [english])))
+        for kind in ("serie", "movie"):
+            if general.get(f"{kind}_default_enabled") is not True:
+                form.append((f"settings-general-{kind}_default_enabled", "true"))
+            if str(general.get(f"{kind}_default_profile")) != str(english["profileId"]):
+                form.append((f"settings-general-{kind}_default_profile", str(english["profileId"])))
+        if not form:
+            log(api.name, "English language profile up to date")
+            return
+        api.call("POST", "/api/system/settings", form=form)
+        log(api.name, "English language profile set")
+
+
+    def bazarr():
+        api = Api("bazarr", BAZARR, {"X-API-KEY": os.environ["BAZARR_API_KEY"]})
+        step("bazarr", "English language profile", bazarr_english, api)
+
+
+    # --- Bindery ---
+
+
+    def bindery_prowlarr(api):
+        servers = [s for s in api.get("/api/v1/prowlarr") if (s.get("url") or "").rstrip("/") == PROWLARR]
+        if servers:
+            log(api.name, "Prowlarr server up to date")
+            server = servers[0]
+        else:
+            server = api.post("/api/v1/prowlarr", {
+                "name": "Prowlarr",
+                "url": PROWLARR,
+                "apiKey": os.environ["PROWLARR_API_KEY"],
+                "syncOnStartup": True,
+                "enabled": True,
+            })
+            log(api.name, "Prowlarr server created")
+        # Imports the indexers added in Prowlarr since the last run.
+        api.post(f"/api/v1/prowlarr/{server['id']}/sync", {})
+        log(api.name, "Prowlarr indexers synced")
+
+
+    def bindery_qbittorrent(api):
+        if any(c.get("name") == "qBittorrent" for c in api.get("/api/v1/downloadclient")):
+            log(api.name, "qBittorrent download client up to date")
+            return
+        api.post("/api/v1/downloadclient", {
+            "name": "qBittorrent",
+            "type": "qbittorrent",
+            "host": QBITTORRENT_HOST,
+            "port": 8080,
+            "useSsl": False,
+            "urlBase": "",
+            # Bindery's qBittorrent client signs in with the WebUI credentials.
+            "username": os.environ["QBT_USERNAME"],
+            "password": os.environ["QBT_PASSWORD"],
+            "category": "books",
+            "categoryAudiobook": "audiobooks",
+            "enabled": True,
+            # qbit_manage owns the torrents after import.
+            "removeOnImport": False,
+        })
+        log(api.name, "qBittorrent download client created")
+
+
+    def bindery_oidc(api):
+        want = {
+            "id": "authelia",
+            "name": "Authelia",
+            "issuer": "https://auth.homeworld.internal",
+            "client_id": "bindery",
+            "scopes": ["openid", "profile", "email", "groups"],
+        }
+        current = api.get("/api/v1/auth/oidc/providers") or []
+        if isinstance(current, dict):
+            current = current.get("providers", [])
+        mine = [p for p in current if p.get("id") == "authelia"]
+        if mine and all(mine[0].get(k) == v for k, v in want.items()):
+            log(api.name, "OIDC provider up to date")
+            return
+        # An empty client_secret keeps the stored secret of the other providers.
+        others = [{k: p.get(k) for k in ("id", "name", "issuer", "client_id", "scopes")} | {"client_secret": ""}
+                  for p in current if p.get("id") != "authelia"]
+        api.put("/api/v1/auth/oidc/providers",
+                others + [want | {"client_secret": os.environ["BINDERY_OIDC_CLIENT_SECRET"]}])
+        log(api.name, "OIDC provider set")
+
+
+    def bindery():
+        api = Api("bindery", BINDERY, {"X-Api-Key": os.environ["BINDERY_API_KEY"]})
+        step("bindery", "Prowlarr server", bindery_prowlarr, api)
+        step("bindery", "qBittorrent download client", bindery_qbittorrent, api)
+        step("bindery", "OIDC provider", bindery_oidc, api)
+
+
+    def main():
+        servarr("sonarr", SONARR, os.environ["SONARR_API_KEY"], "v3", "tvCategory", "tv", "/data/media/tv")
+        servarr("radarr", RADARR, os.environ["RADARR_API_KEY"], "v3", "movieCategory", "movies", "/data/media/movies")
+        servarr("lidarr", LIDARR, os.environ["LIDARR_API_KEY"], "v1", "musicCategory", "music", "/data/media/music")
+        prowlarr()
+        seerr()
+        maintainerr()
+        bazarr()
+        bindery()
+        if failures:
+            print(f"{len(failures)} step(s) failed: {', '.join(failures)}", flush=True)
+            sys.exit(1)
+        print("all steps done", flush=True)
+
+
+    if __name__ == "__main__":
+        main()

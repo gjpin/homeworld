@@ -1,0 +1,120 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flaresolverr
+  namespace: flaresolverr
+  labels:
+    app.kubernetes.io/name: flaresolverr
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flaresolverr
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: flaresolverr
+    spec:
+      serviceAccountName: flaresolverr
+      automountServiceAccountToken: false
+      # Chromium starts with --no-sandbox (src/utils.py), so it needs no
+      # user namespaces or capabilities; verified under the cluster's gVisor
+      # release on amd64 and arm64 (docs/media-stack.md).
+      runtimeClassName: gvisor
+      # The image's flaresolverr user (UID/GID 1000); the Dockerfile names
+      # the user, not its number, so runAsNonRoot needs it pinned here.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: flaresolverr
+          # Renovate tracks the image tag below.
+          image: ghcr.io/flaresolverr/flaresolverr:v3.5.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8191
+              protocol: TCP
+            - name: metrics
+              containerPort: 8192
+              protocol: TCP
+          env:
+            - name: TZ
+              value: UTC
+            - name: LOG_LEVEL
+              value: info
+            # Request logs would carry indexer cookies; info logs only the
+            # request line.
+            - name: LOG_HTML
+              value: "false"
+            - name: HEADLESS
+              value: "true"
+            - name: CAPTCHA_SOLVER
+              value: none
+            - name: PROMETHEUS_ENABLED
+              value: "true"
+            - name: PROMETHEUS_PORT
+              value: "8192"
+          # The root filesystem stays writable: undetected-chromedriver
+          # patches the chromedriver binary under /app in place on every
+          # browser start.
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          # The first start launches a browser to read its user agent
+          # before the API listens.
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "2"
+              memory: 1536Mi
+              ephemeral-storage: 1Gi
+          volumeMounts:
+            # Xvfb socket and the per-request browser profiles (the upstream
+            # README recommends a 256M tmpfs); counted against the memory
+            # limit.
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi

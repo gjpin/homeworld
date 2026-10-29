@@ -1,0 +1,230 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr
+  namespace: radarr
+  labels:
+    app.kubernetes.io/name: radarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: radarr
+  # One writer of config.xml and the scheduled tasks at a time.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: radarr
+    spec:
+      serviceAccountName: radarr-app
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
+      # The shared media volume is NFS (docs/nas.md), which squashes every
+      # access to the share's owner, 20004: the containers run as that ID,
+      # and gVisor keeps the host user namespace NFS needs (no idmapped
+      # mounts). kubelet applies the fsGroup to the Longhorn config volume
+      # only (NFS CSI fsGroupPolicy None).
+      securityContext:
+        fsGroup: 20004
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        runAsUser: 20004
+        runAsGroup: 20004
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: radarr
+          # Renovate tracks the image tag below. home-operations builds the
+          # upstream release rootless, with the in-app updater removed.
+          image: ghcr.io/home-operations/radarr:6.4.4.10685
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7878
+              protocol: TCP
+          env:
+            - name: TZ
+              value: UTC
+            # config.xml settings as environment overrides
+            # (https://wiki.servarr.com/radarr/environment-variables).
+            - name: RADARR__APP__INSTANCENAME
+              value: Radarr
+            - name: RADARR__SERVER__PORT
+              value: "7878"
+            # Host-header allowlist (DNS-rebinding defense): the public
+            # hostname and the in-cluster Service names. Loopback and the
+            # pod hostname are always accepted, so the probes send
+            # Host: localhost.
+            - name: RADARR__SERVER__ALLOWEDHOSTS
+              value: radarr.homeworld.internal,radarr,radarr.radarr,radarr.radarr.svc,radarr.radarr.svc.cluster.local
+            # The gateway OIDC SecurityPolicy (2_security_policy.yaml) is
+            # the login: External skips Radarr's own form. The API
+            # still requires the key; ingress is limited to Envoy and the
+            # named in-cluster clients (-2_network_policy.yaml).
+            # DisabledForLocalAddresses is never used: every Envoy and pod
+            # address counts as local.
+            - name: RADARR__AUTH__METHOD
+              value: External
+            - name: RADARR__AUTH__REQUIRED
+              value: Enabled
+            - name: RADARR__AUTH__APIKEY
+              valueFrom:
+                secretKeyRef:
+                  name: radarr-secrets
+                  key: apiKey
+            # Sentry and the anonymous usage analytics sent with update
+            # checks are off; the image's updater is removed, and
+            # Mechanism Docker only reports new versions.
+            - name: RADARR__LOG__ANALYTICSENABLED
+              value: "False"
+            - name: RADARR__UPDATE__MECHANISM
+              value: Docker
+            - name: RADARR__UPDATE__AUTOMATICALLY
+              value: "False"
+            - name: RADARR__POSTGRES__HOST
+              value: radarr-rw.radarr.svc.cluster.local
+            - name: RADARR__POSTGRES__PORT
+              value: "5432"
+            - name: RADARR__POSTGRES__MAINDB
+              value: radarr-main
+            - name: RADARR__POSTGRES__LOGDB
+              value: radarr-log
+            - name: RADARR__POSTGRES__USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: username
+            - name: RADARR__POSTGRES__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 20004
+            runAsGroup: 20004
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            httpGet:
+              path: /ping
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: localhost
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: localhost
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: localhost
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+              ephemeral-storage: 1Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: tmp
+              mountPath: /tmp
+            # Mounted once at /data: torrents and the library must be one
+            # mount for hardlinks (two mounts of the share are two
+            # filesystems to the kernel and fail with EXDEV).
+            - name: media
+              mountPath: /data
+        - name: exportarr
+          # Renovate tracks the image tag below. Prometheus exporter for the
+          # *arr APIs; it calls Radarr over the pod's loopback
+          # interface.
+          image: ghcr.io/onedr0p/exportarr:v2.3.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - radarr
+          ports:
+            - name: metrics
+              containerPort: 9707
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "9707"
+            - name: URL
+              value: http://localhost:7878
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: radarr-secrets
+                  key: apiKey
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 20004
+            runAsGroup: 20004
+            seccompProfile:
+              type: RuntimeDefault
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+              ephemeral-storage: 16Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: radarr-config
+        - name: tmp
+          emptyDir: {}
+        - name: media
+          persistentVolumeClaim:
+            claimName: media

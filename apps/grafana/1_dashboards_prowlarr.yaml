@@ -1,0 +1,16 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: prowlarr
+  namespace: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  folderRef: folder-prowlarr
+  configMapRef:
+    name: grafana-dashboard-prowlarr
+    key: json

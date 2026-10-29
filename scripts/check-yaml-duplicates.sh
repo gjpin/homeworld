@@ -14,8 +14,11 @@ cd "$repo_root"
 failures=0
 
 while IFS= read -r -d '' file; do
-  if yq '[.. | select(tag == "!!map") | (keys | length) - (keys | unique | length)] | any_c(. > 0)' \
-    "$file" 2>/dev/null | grep -qx true; then
+  # Captured first: under pipefail, grep -q exiting on the first match
+  # kills yq with SIGPIPE on multi-document files and fails the pipeline.
+  result="$(yq '[.. | select(tag == "!!map") | (keys | length) - (keys | unique | length)] | any_c(. > 0)' \
+    "$file" 2>/dev/null || true)"
+  if grep -qx true <<<"$result"; then
     echo "check-yaml-duplicates: $file repeats a mapping key (missing '---' between documents?)" >&2
     failures=$((failures + 1))
   fi

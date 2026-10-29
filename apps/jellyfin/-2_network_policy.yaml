@@ -1,0 +1,138 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: jellyfin
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: jellyfin
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-jellyfin-gateway
+  namespace: jellyfin
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: jellyfin
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+      toPorts:
+        - ports:
+            - port: "8096"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # In-cluster API clients, each with its own Jellyfin API key or user
+  # login: Seerr (requests and library sync), Streamystats (statistics
+  # sync), Maintainerr (library rules), Jellyfin-Auto-Collections
+  # (collections), Sonarr, Radarr and Lidarr (library refresh), Homepage
+  # (widget), and the collector scraping /metrics.
+  name: allow-jellyfin-clients
+  namespace: jellyfin
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: jellyfin
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: seerr
+            k8s:app.kubernetes.io/name: seerr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: streamystats
+            k8s:app.kubernetes.io/name: streamystats
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: maintainerr
+            k8s:app.kubernetes.io/name: maintainerr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: jellyfin-auto-collections
+            k8s:app.kubernetes.io/name: jellyfin-auto-collections
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: sonarr
+            k8s:app.kubernetes.io/name: sonarr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: radarr
+            k8s:app.kubernetes.io/name: radarr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: homepage
+            k8s:app.kubernetes.io/name: homepage
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: lidarr
+            k8s:app.kubernetes.io/name: lidarr
+      toPorts:
+        - ports:
+            - port: "8096"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Metadata and artwork from the bundled providers (TMDb, MusicBrainz and
+  # the Cover Art Archive, TheAudioDB, OMDb) and the official plugin
+  # catalog (repo.jellyfin.org; plugins such as TMDb Box Sets). Jellyfin has
+  # no telemetry; UPnP and client discovery are off (seeded network.xml).
+  name: allow-jellyfin-metadata
+  namespace: jellyfin
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: jellyfin
+  egress:
+    - toFQDNs:
+        - matchName: "api.themoviedb.org"
+        - matchName: "image.tmdb.org"
+        - matchName: "musicbrainz.org"
+        - matchName: "coverartarchive.org"
+        - matchPattern: "*.archive.org"
+        - matchName: "www.theaudiodb.com"
+        - matchPattern: "*.theaudiodb.com"
+        - matchName: "www.omdbapi.com"
+        - matchName: "repo.jellyfin.org"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

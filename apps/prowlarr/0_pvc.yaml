@@ -1,0 +1,17 @@
+---
+# config.xml, logs, the MediaCover image cache, and Prowlarr's own
+# scheduled backups. The databases live in PostgreSQL (0_postgres.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prowlarr-config
+  namespace: prowlarr
+  labels:
+    app.kubernetes.io/name: prowlarr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-crypto
+  resources:
+    requests:
+      storage: 2Gi

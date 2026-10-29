@@ -1,0 +1,177 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: maintainerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: maintainerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Maintainerr has no login and serves its stored credentials to anyone who
+  # reaches the API: only Envoy (behind the gateway OIDC), the Homepage
+  # widget and media-config (its Sonarr, Radarr, Seerr and Jellyfin
+  # settings) may connect.
+  name: allow-maintainerr-ingress
+  namespace: maintainerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: maintainerr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: homepage
+            k8s:app.kubernetes.io/name: homepage
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media-config
+            k8s:app.kubernetes.io/name: media-config
+      toPorts:
+        - ports:
+            - port: "6246"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The media server: library contents, watch state and collections.
+  name: allow-maintainerr-jellyfin
+  namespace: maintainerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: maintainerr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: jellyfin
+            k8s:app.kubernetes.io/name: jellyfin
+      toPorts:
+        - ports:
+            - port: "8096"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Deletes and unmonitors series through Sonarr.
+  name: allow-maintainerr-sonarr
+  namespace: maintainerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: maintainerr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: sonarr
+            k8s:app.kubernetes.io/name: sonarr
+      toPorts:
+        - ports:
+            - port: "8989"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Deletes and unmonitors movies through Radarr.
+  name: allow-maintainerr-radarr
+  namespace: maintainerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: maintainerr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: radarr
+            k8s:app.kubernetes.io/name: radarr
+      toPorts:
+        - ports:
+            - port: "7878"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Request data for rules and request cleanup after a deletion.
+  name: allow-maintainerr-seerr
+  namespace: maintainerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: maintainerr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: seerr
+            k8s:app.kubernetes.io/name: seerr
+      toPorts:
+        - ports:
+            - port: "5055"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # TMDb metadata and posters (a bundled key is used unless one is set).
+  # The weekly anonymous usage report is disabled (TELEMETRY=off) and
+  # telemetry.maintainerr.info is not allowed, nor is the GitHub release
+  # check (api.github.com).
+  name: allow-maintainerr-metadata
+  namespace: maintainerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: maintainerr
+  egress:
+    - toFQDNs:
+        - matchName: "api.themoviedb.org"
+        - matchName: "image.tmdb.org"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

@@ -1,0 +1,219 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prowlarr
+  namespace: prowlarr
+  labels:
+    app.kubernetes.io/name: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prowlarr
+  # One writer of config.xml and the scheduled tasks at a time.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: prowlarr
+    spec:
+      serviceAccountName: prowlarr-app
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
+      # The image runs as nobody (65534); a fixed non-root ID owns the config
+      # volume instead.
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: prowlarr
+          # Renovate tracks the image tag below. home-operations builds the
+          # upstream release rootless, with the in-app updater removed.
+          image: ghcr.io/home-operations/prowlarr:2.7.0.5723
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 9696
+              protocol: TCP
+          env:
+            - name: TZ
+              value: UTC
+            # config.xml settings as environment overrides
+            # (https://wiki.servarr.com/prowlarr/environment-variables).
+            - name: PROWLARR__APP__INSTANCENAME
+              value: Prowlarr
+            - name: PROWLARR__SERVER__PORT
+              value: "9696"
+            # Host-header allowlist (DNS-rebinding defense): the public
+            # hostname and the in-cluster Service names. Loopback and the
+            # pod hostname are always accepted, so the probes send
+            # Host: localhost.
+            - name: PROWLARR__SERVER__ALLOWEDHOSTS
+              value: prowlarr.homeworld.internal,prowlarr,prowlarr.prowlarr,prowlarr.prowlarr.svc,prowlarr.prowlarr.svc.cluster.local
+            # The gateway OIDC SecurityPolicy (2_security_policy.yaml) is
+            # the login: External skips Prowlarr's own form. The API
+            # still requires the key; ingress is limited to Envoy and the
+            # named in-cluster clients (-2_network_policy.yaml).
+            # DisabledForLocalAddresses is never used: every Envoy and pod
+            # address counts as local.
+            - name: PROWLARR__AUTH__METHOD
+              value: External
+            - name: PROWLARR__AUTH__REQUIRED
+              value: Enabled
+            - name: PROWLARR__AUTH__APIKEY
+              valueFrom:
+                secretKeyRef:
+                  name: prowlarr-secrets
+                  key: apiKey
+            # Sentry and the anonymous usage analytics sent with update
+            # checks are off; the image's updater is removed, and
+            # Mechanism Docker only reports new versions.
+            - name: PROWLARR__LOG__ANALYTICSENABLED
+              value: "False"
+            - name: PROWLARR__UPDATE__MECHANISM
+              value: Docker
+            - name: PROWLARR__UPDATE__AUTOMATICALLY
+              value: "False"
+            - name: PROWLARR__POSTGRES__HOST
+              value: prowlarr-rw.prowlarr.svc.cluster.local
+            - name: PROWLARR__POSTGRES__PORT
+              value: "5432"
+            - name: PROWLARR__POSTGRES__MAINDB
+              value: prowlarr-main
+            - name: PROWLARR__POSTGRES__LOGDB
+              value: prowlarr-log
+            - name: PROWLARR__POSTGRES__USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: username
+            - name: PROWLARR__POSTGRES__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            httpGet:
+              path: /ping
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: localhost
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: localhost
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: localhost
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: tmp
+              mountPath: /tmp
+        - name: exportarr
+          # Renovate tracks the image tag below. Prometheus exporter for the
+          # *arr APIs; it calls Prowlarr over the pod's loopback
+          # interface.
+          image: ghcr.io/onedr0p/exportarr:v2.3.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - prowlarr
+          ports:
+            - name: metrics
+              containerPort: 9707
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "9707"
+            - name: URL
+              value: http://localhost:9696
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: prowlarr-secrets
+                  key: apiKey
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+              ephemeral-storage: 16Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: prowlarr-config
+        - name: tmp
+          emptyDir: {}

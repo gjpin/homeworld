@@ -1,0 +1,141 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: qbit-manage
+  namespace: qbit-manage
+  labels:
+    app.kubernetes.io/name: qbit-manage
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  # Every 30 minutes: a single run (QBT_RUN) per job, without the web UI
+  # (it would add an auth surface that can edit config and trigger
+  # deletions), so the configuration stays owned by git.
+  schedule: "*/30 * * * *"
+  timeZone: UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 3600
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: qbit-manage
+        spec:
+          restartPolicy: Never
+          serviceAccountName: qbit-manage
+          automountServiceAccountToken: false
+          runtimeClassName: gvisor
+          # The shared media volume is NFS (docs/nas.md), which squashes
+          # every access to the share's owner, 20004: the job runs as that
+          # ID (the entrypoint skips its PUID/PGID handling when started
+          # non-root), and gVisor keeps the host user namespace NFS needs
+          # (no idmapped mounts).
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 20004
+            runAsGroup: 20004
+            seccompProfile:
+              type: RuntimeDefault
+          initContainers:
+            # qbit_manage writes defaults back into config.yml, so it gets a
+            # writable copy of the ConfigMap on every run.
+            - name: config
+              image: ghcr.io/stuffanthings/qbit_manage:v4.14.0
+              imagePullPolicy: IfNotPresent
+              command:
+                - cp
+                - /seed/config.yml
+                - /config/config.yml
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                runAsUser: 20004
+                runAsGroup: 20004
+                seccompProfile:
+                  type: RuntimeDefault
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 16Mi
+                  ephemeral-storage: 16Mi
+                limits:
+                  cpu: 100m
+                  memory: 64Mi
+                  ephemeral-storage: 64Mi
+              volumeMounts:
+                - name: seed
+                  mountPath: /seed
+                  readOnly: true
+                - name: config
+                  mountPath: /config
+          containers:
+            - name: qbit-manage
+              # Renovate tracks the image tag below. Deploy only a release
+              # that supports the pinned qBittorrent (SUPPORTED_VERSIONS.json):
+              # v4.14.0 stops at qBittorrent 5.2.4.
+              image: ghcr.io/stuffanthings/qbit_manage:v4.14.0
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: TZ
+                  value: UTC
+                - name: QBT_RUN
+                  value: "true"
+                - name: QBT_WEB_SERVER
+                  value: "false"
+                - name: QBT_CONFIG_DIR
+                  value: /config
+                - name: QBT_LOG_LEVEL
+                  value: INFO
+              envFrom:
+                - secretRef:
+                    name: qbit-manage-secrets
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                runAsUser: 20004
+                runAsGroup: 20004
+                seccompProfile:
+                  type: RuntimeDefault
+              # Orphan scans of a large tree grow memory.
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                  ephemeral-storage: 16Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+                  ephemeral-storage: 256Mi
+              volumeMounts:
+                - name: config
+                  mountPath: /config
+                - name: tmp
+                  mountPath: /tmp
+                # Mounted once at qBittorrent's /data, so the reported save
+                # paths resolve and recycle-bin moves stay on one filesystem.
+                - name: media
+                  mountPath: /data
+          volumes:
+            - name: seed
+              configMap:
+                name: qbit-manage-config
+            - name: config
+              emptyDir: {}
+            - name: tmp
+              emptyDir: {}
+            - name: media
+              persistentVolumeClaim:
+                claimName: media

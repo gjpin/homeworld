@@ -1052,4 +1052,355 @@ spec:
         - ports:
             - port: "80"
               protocol: TCP
-
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-prowlarr
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: prowlarr
+            namespace: prowlarr
+      toPorts:
+        - ports:
+            - port: "9696"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-sonarr
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: sonarr
+            namespace: sonarr
+      toPorts:
+        - ports:
+            - port: "8989"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-radarr
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: radarr
+            namespace: radarr
+      toPorts:
+        - ports:
+            - port: "7878"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-lidarr
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: lidarr
+            namespace: lidarr
+      toPorts:
+        - ports:
+            - port: "8686"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-bindery
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: bindery
+            namespace: bindery
+      toPorts:
+        - ports:
+            - port: "8787"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-bazarr
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: bazarr
+            namespace: bazarr
+      toPorts:
+        - ports:
+            - port: "6767"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-jellyfin
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: jellyfin
+            namespace: jellyfin
+      toPorts:
+        - ports:
+            - port: "8096"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-navidrome
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: navidrome
+            namespace: navidrome
+      toPorts:
+        - ports:
+            - port: "4533"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-feishin
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: feishin
+            namespace: feishin
+      toPorts:
+        - ports:
+            - port: "9180"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-audiomuse-ai
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: audiomuse-ai-flask-service
+            namespace: audiomuse-ai
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-audiobookshelf
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: audiobookshelf
+            namespace: audiobookshelf
+      toPorts:
+        - ports:
+            - port: "13378"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-seerr
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: seerr
+            namespace: seerr
+      toPorts:
+        - ports:
+            - port: "5055"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-streamystats
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: streamystats
+            namespace: streamystats
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-maintainerr
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: maintainerr
+            namespace: maintainerr
+      toPorts:
+        - ports:
+            - port: "6246"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-cleanuparr
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: cleanuparr
+            namespace: cleanuparr
+      toPorts:
+        - ports:
+            - port: "11011"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-houndarr-web
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: houndarr-web
+            namespace: houndarr
+      toPorts:
+        - ports:
+            - port: "8877"
+              protocol: TCP

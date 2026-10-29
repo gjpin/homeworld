@@ -70,6 +70,11 @@ k3s runs with `selinux: true`, so runc containers are confined as
 SELinux-labelled (runsc rejects the label; gVisor's own kernel is their
 boundary). The host-integrated workloads that need `spc_t` and the NFS
 labelling are documented in [docs/pod-security.md](pod-security.md).
+Jellyfin's QuickSync transcoding reaches the iGPU render node through the
+`container_use_dri_devices` boolean, which `host/apply.sh` keeps on, and
+containerd hands CRI-allocated device nodes to the container's own
+UID/GID (`device_ownership_from_security_context`,
+`host/files/containerd/devices.toml`).
 
 ## Updates and reboots
 

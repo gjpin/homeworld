@@ -1,0 +1,9 @@
+# Device nodes a container receives through the CRI (device-plugin
+# allocations, such as the Intel GPU plugin's /dev/dri render node for
+# Jellyfin) are owned by the container's runAsUser/runAsGroup instead of
+# root, so a non-root consumer needs no host group membership (Fedora
+# assigns the render GID dynamically). hostPath device mounts are
+# unaffected. k3s's generated containerd config imports
+# config-v3.toml.d/*.toml.
+[plugins.'io.containerd.cri.v1.runtime']
+  device_ownership_from_security_context = true

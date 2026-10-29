@@ -208,3 +208,43 @@ spec:
               protocol: TCP
             - port: "8080"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-qbittorrent-media-stack
+  namespace: qbittorrent
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # WebAPI clients of the media stack: the *arrs and Bindery send and
+  # import downloads, Cleanuparr cleans the queue, qbit_manage tags and
+  # sets share limits. Responses ride the established connections; the
+  # pod's egress stays limited to the VPN tunnel.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: qbittorrent
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: sonarr
+            k8s:app.kubernetes.io/name: sonarr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: radarr
+            k8s:app.kubernetes.io/name: radarr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: lidarr
+            k8s:app.kubernetes.io/name: lidarr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: bindery
+            k8s:app.kubernetes.io/name: bindery
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: cleanuparr
+            k8s:app.kubernetes.io/name: cleanuparr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: qbit-manage
+            k8s:app.kubernetes.io/name: qbit-manage
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP

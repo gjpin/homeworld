@@ -1,0 +1,289 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: lidarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: lidarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-lidarr-gateway
+  namespace: lidarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: lidarr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+      toPorts:
+        - ports:
+            - port: "8686"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-lidarr-clients
+  namespace: lidarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # In-cluster API clients, each with Lidarr's API key. With
+  # Authentication Method External the web UI hands the API key to anyone
+  # who loads it, so ingress stays limited to Envoy (behind the gateway
+  # OIDC) and these named clients:
+  # prowlarr: indexer sync.
+  # cleanuparr: queue cleaning and malware blocking.
+  # houndarr: missing searches.
+  # homepage: service widget.
+  # media-config: download client, root folder, Jellyfin connection,
+  #   delay profile and media management settings.
+  # unpackerr: queue polling for packed downloads.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: lidarr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: prowlarr
+            k8s:app.kubernetes.io/name: prowlarr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: cleanuparr
+            k8s:app.kubernetes.io/name: cleanuparr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: houndarr
+            k8s:app.kubernetes.io/name: houndarr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: homepage
+            k8s:app.kubernetes.io/name: homepage
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media-config
+            k8s:app.kubernetes.io/name: media-config
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: unpackerr
+            k8s:app.kubernetes.io/name: unpackerr
+      toPorts:
+        - ports:
+            - port: "8686"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-lidarr-metrics
+  namespace: lidarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The ServiceMonitor scrapes the exportarr sidecar.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: lidarr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9707"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-lidarr-postgres
+  namespace: lidarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: lidarr
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: lidarr-rw
+            namespace: lidarr
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-lidarr-postgres-ingress
+  namespace: lidarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: lidarr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: lidarr
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-lidarr-postgres-metrics-ingress
+  namespace: lidarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The handwritten PodMonitor scrapes the CloudNativePG instance metrics
+  # port.
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: lidarr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-lidarr-prowlarr
+  namespace: lidarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Torznab searches through the Prowlarr indexer proxies.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: lidarr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: prowlarr
+            k8s:app.kubernetes.io/name: prowlarr
+      toPorts:
+        - ports:
+            - port: "9696"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-lidarr-qbittorrent
+  namespace: lidarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Download client.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: lidarr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: qbittorrent
+            k8s:app.kubernetes.io/name: qbittorrent
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-lidarr-metadata
+  namespace: lidarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Metadata and artwork:
+  #   api.lidarr.audio: MusicBrainz-backed metadata server
+  #   coverartarchive.org: album art
+  #   assets.fanart.tv: artist images
+  #   *.archive.org: Cover Art Archive images (served from Internet Archive hosts)
+  #   *.theaudiodb.com: artist images
+  # Indexers are reached through Prowlarr; the Servarr update and Sentry
+  # endpoints (*.servarr.com, sentry.*) are not allowed.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: lidarr
+  egress:
+    - toFQDNs:
+        - matchName: "api.lidarr.audio"
+        - matchName: "coverartarchive.org"
+        - matchName: "assets.fanart.tv"
+        - matchPattern: "*.archive.org"
+        - matchPattern: "*.theaudiodb.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-lidarr-jellyfin
+  namespace: lidarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Library refresh (Connect > Emby / Jellyfin).
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: lidarr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: jellyfin
+            k8s:app.kubernetes.io/name: jellyfin
+      toPorts:
+        - ports:
+            - port: "8096"
+              protocol: TCP

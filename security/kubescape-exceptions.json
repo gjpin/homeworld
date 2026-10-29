@@ -1348,6 +1348,30 @@
           "name": "^manticore-worker$",
           "namespace": "^affine$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^houndarr$",
+          "namespace": "^houndarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^jellyfin$",
+          "namespace": "^jellyfin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^seerr$",
+          "namespace": "^seerr$"
+        }
       }
     ],
     "posturePolicies": [
@@ -1513,6 +1537,14 @@
           "kind": "^DaemonSet$",
           "name": "^csi-nfs-node$",
           "namespace": "^csi-driver-nfs$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiomuse-ai-worker$",
+          "namespace": "^audiomuse-ai$"
         }
       }
     ],
@@ -2031,6 +2063,46 @@
           "kind": "^StatefulSet$",
           "name": "^manticore-worker$",
           "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^houndarr$",
+          "namespace": "^houndarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^jellyfin$",
+          "namespace": "^jellyfin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^seerr$",
+          "namespace": "^seerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiomuse-ai-flask$",
+          "namespace": "^audiomuse-ai$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiomuse-ai-worker$",
+          "namespace": "^audiomuse-ai$"
         }
       }
     ],
@@ -3962,6 +4034,14 @@
           "name": "^coder$",
           "namespace": "^coder$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiomuse-ai-worker$",
+          "namespace": "^audiomuse-ai$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4471,6 +4551,46 @@
           "kind": "^StatefulSet$",
           "name": "^manticore-worker$",
           "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^houndarr$",
+          "namespace": "^houndarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^jellyfin$",
+          "namespace": "^jellyfin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^seerr$",
+          "namespace": "^seerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiomuse-ai-flask$",
+          "namespace": "^audiomuse-ai$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiomuse-ai-worker$",
+          "namespace": "^audiomuse-ai$"
         }
       }
     ],
@@ -5947,6 +6067,30 @@
           "name": "^coder$",
           "namespace": "^coder$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^seerr$",
+          "namespace": "^seerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiomuse-ai-flask$",
+          "namespace": "^audiomuse-ai$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiomuse-ai-worker$",
+          "namespace": "^audiomuse-ai$"
+        }
       }
     ],
     "posturePolicies": [
@@ -6615,6 +6759,46 @@
           "name": "^manticore-worker$",
           "namespace": "^affine$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^houndarr$",
+          "namespace": "^houndarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^jellyfin$",
+          "namespace": "^jellyfin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^seerr$",
+          "namespace": "^seerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiomuse-ai-flask$",
+          "namespace": "^audiomuse-ai$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiomuse-ai-worker$",
+          "namespace": "^audiomuse-ai$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7020,6 +7204,46 @@
           "kind": "^StatefulSet$",
           "name": "^manticore-worker$",
           "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^houndarr$",
+          "namespace": "^houndarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^jellyfin$",
+          "namespace": "^jellyfin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^seerr$",
+          "namespace": "^seerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiomuse-ai-flask$",
+          "namespace": "^audiomuse-ai$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiomuse-ai-worker$",
+          "namespace": "^audiomuse-ai$"
         }
       }
     ],
@@ -7772,6 +7996,46 @@
           "kind": "^StatefulSet$",
           "name": "^manticore-worker$",
           "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^houndarr$",
+          "namespace": "^houndarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^jellyfin$",
+          "namespace": "^jellyfin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^seerr$",
+          "namespace": "^seerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiomuse-ai-flask$",
+          "namespace": "^audiomuse-ai$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiomuse-ai-worker$",
+          "namespace": "^audiomuse-ai$"
         }
       }
     ],
@@ -8844,6 +9108,14 @@
           "kind": "^Deployment$",
           "name": "^velero$",
           "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^jellyfin$",
+          "namespace": "^jellyfin$"
         }
       }
     ],

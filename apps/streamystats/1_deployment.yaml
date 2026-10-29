@@ -1,0 +1,214 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: streamystats
+  namespace: streamystats
+  labels:
+    app.kubernetes.io/name: streamystats
+    app.kubernetes.io/component: frontend
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: streamystats
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: streamystats
+        app.kubernetes.io/component: frontend
+    spec:
+      serviceAccountName: streamystats-app
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
+      # The image's nextjs user (UID/GID 1001).
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: streamystats
+          # Renovate tracks the image tag below.
+          image: ghcr.io/fredrikburmester/streamystats-nextjs:v2.20.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: streamystats-secrets
+          env:
+            - name: TZ
+              value: UTC
+            - name: NODE_ENV
+              value: production
+            - name: HOSTNAME
+              value: 0.0.0.0
+            - name: JOB_SERVER_URL
+              value: http://streamystats-job-server.streamystats.svc.cluster.local:3005
+            # Next.js anonymous telemetry (also baked into the image).
+            - name: NEXT_TELEMETRY_DISABLED
+              value: "1"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 192Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+              ephemeral-storage: 1Gi
+          volumeMounts:
+            # The Next.js fetch and ISR cache.
+            - name: next-cache
+              mountPath: /app/apps/nextjs-app/.next/cache
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: next-cache
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: streamystats-job-server
+  namespace: streamystats
+  labels:
+    app.kubernetes.io/name: streamystats
+    app.kubernetes.io/component: job-server
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: streamystats
+      app.kubernetes.io/component: job-server
+  # One scheduler of the sync jobs, which also runs the database migrations
+  # on start.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: streamystats
+        app.kubernetes.io/component: job-server
+    spec:
+      serviceAccountName: streamystats-app
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
+      # The image declares no USER; it runs as the frontend's non-root ID.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: job-server
+          # Renovate tracks the image tag below.
+          image: ghcr.io/fredrikburmester/streamystats-job-server:v2.20.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3005
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: streamystats-secrets
+          env:
+            - name: TZ
+              value: UTC
+            - name: NODE_ENV
+              value: production
+            - name: HOST
+              value: 0.0.0.0
+            - name: PORT
+              value: "3005"
+            - name: NEXTJS_URL
+              value: http://streamystats.streamystats.svc.cluster.local:3000
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 320Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

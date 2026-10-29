@@ -1,0 +1,15 @@
+# https://cloudnative-pg.io/docs/1.28/declarative_database_management/
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: prowlarr-log
+  namespace: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  name: prowlarr-log
+  owner: prowlarr
+  databaseReclaimPolicy: retain
+  cluster:
+    name: prowlarr

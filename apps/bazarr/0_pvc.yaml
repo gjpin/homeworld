@@ -1,0 +1,63 @@
+---
+# config.yaml, logs, the subliminal cache and Bazarr's backups. The
+# database lives in PostgreSQL (0_postgres.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bazarr-config
+  namespace: bazarr
+  labels:
+    app.kubernetes.io/name: bazarr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-crypto
+  resources:
+    requests:
+      storage: 1Gi
+---
+# The shared media library on the NAS (docs/nas.md): the homeworld-media
+# share, exported with all_squash to its owner 20004. Bazarr writes
+# subtitles next to the media files, so it mounts the library read-write.
+# Each consuming namespace binds its own static PersistentVolume to the same
+# export (a PersistentVolume binds one claim); Retain keeps the data if the
+# claim is deleted. Velero skips NFS volumes.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homeworld-media-bazarr
+  labels:
+    app.kubernetes.io/name: bazarr
+spec:
+  capacity:
+    storage: 20Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.1
+  csi:
+    driver: nfs.csi.k8s.io
+    # Unique per PersistentVolume; the node plugin mounts the export named
+    # in volumeAttributes.
+    volumeHandle: 192.168.8.20#homeworld-media##bazarr
+    volumeAttributes:
+      server: 192.168.8.20
+      share: /homeworld-media
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media
+  namespace: bazarr
+  labels:
+    app.kubernetes.io/name: bazarr
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: homeworld-media-bazarr
+  resources:
+    requests:
+      storage: 20Ti

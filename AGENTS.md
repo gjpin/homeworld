@@ -105,7 +105,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   (`services.yaml`, in the fitting group) linking its public hostname, with a
   `siteMonitor` unless the route sits behind gateway OIDC or the app
   auto-redirects to Authelia (an unauthenticated probe would measure the portal).
-  List the app in the README's user-facing Apps table or the Platform table
+  List the app in the README's user-facing Apps table, the *arr Stack table
+  (media automation, download and streaming apps), or the Platform table
   (operators, foundations, and supporting services) accordingly.
 - Under default-deny ingress, kubelet readiness/liveness probes are covered by
   Cilium's implicit ALLOW for local-host→local-pod traffic (see
@@ -173,7 +174,11 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   share's ID (`runAsUser`/`runAsGroup`, plus `fsGroup` for their Longhorn
   volumes) with `hostUsers: true` and a resource-scoped exception (NFS has no
   idmapped mounts); Velero's volume policy skips it. Add the share to
-  docs/nas.md.
+  docs/nas.md. The one exception is `homeworld-media` (`20004`), shared by
+  the media stack so imports hardlink: every consumer runs as its ID,
+  binds its own static PV to it (one PV binds one claim; unique
+  `volumeHandle` per PV), and writers mount it once at `/data`
+  (docs/nas.md, "Media share").
 - Every Argo CD `Application` resource (root in `apps/app-of-apps.yaml` and child
   manifests under `apps/<component>/`) must declare `ServerSideApply=true` under
   `spec.syncPolicy.syncOptions` by default to prevent client-side apply
@@ -363,7 +368,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 
 - Opt every compatible Pod into gVisor runtime sandboxing with `spec.runtimeClassName: gvisor`.
 - For Helm workloads, use the chart's exact value key or a Kustomize patch if not exposed. For handwritten manifests, declare `runtimeClassName: gvisor` directly in the Pod template spec. For operator-generated Pods, use a supported operator pod-template or patch mechanism.
-- A Pod with `runtimeClassName: gvisor` must not use `hostNetwork`, host block devices, or direct node filesystem integration. Preserve standard runtimes only for the documented exceptions (`cilium-agent`, `cilium-envoy`, `cilium-operator`, `crowdsec-agent`, `csi-nfs-node`, `kured`, `longhorn-manager`, `otel-collector-node`, `velero-node-agent`, the k3s upgrade Jobs of system-upgrade-controller, the qBittorrent pod (gluetun's policy routing needs netlink rules gVisor lacks), `zigbee2mqtt`, the k3s-managed `kube-system` components (kube-vip, CoreDNS), and operator-generated operands whose pod templates the CRD cannot set — CNPG, Dragonfly, DocumentDB, MariaDB Operator, and RustFS Tenant operands). Standard-runtime Pods are confined by SELinux (`container_t`); one whose host integration `container_t` denies runs as `spc_t` with a resource-scoped exception (docs/pod-security.md). Keep the gVisor table in `docs/pod-security.md` as the source of truth for the exact list. Operator-spawned pods that accept a runtime class per-instance (e.g. Woodpecker pipeline pods) opt in through the operator's allow-from-step flag plus per-pipeline backend options, never a repo-level manifest.
+- A Pod with `runtimeClassName: gvisor` must not use `hostNetwork`, host block devices, or direct node filesystem integration. Preserve standard runtimes only for the documented exceptions (`cilium-agent`, `cilium-envoy`, `cilium-operator`, `crowdsec-agent`, `csi-nfs-node`, `kured`, `longhorn-manager`, `otel-collector-node`, `velero-node-agent`, the k3s upgrade Jobs of system-upgrade-controller, the qBittorrent pod (gluetun's policy routing needs netlink rules gVisor lacks), `jellyfin` (Intel iGPU transcoding), `intel-gpu-plugin`, `zigbee2mqtt`, the k3s-managed `kube-system` components (kube-vip, CoreDNS), and operator-generated operands whose pod templates the CRD cannot set — CNPG, Dragonfly, DocumentDB, MariaDB Operator, and RustFS Tenant operands). Standard-runtime Pods are confined by SELinux (`container_t`); one whose host integration `container_t` denies runs as `spc_t` with a resource-scoped exception (docs/pod-security.md). Keep the gVisor table in `docs/pod-security.md` as the source of truth for the exact list. Operator-spawned pods that accept a runtime class per-instance (e.g. Woodpecker pipeline pods) opt in through the operator's allow-from-step flag plus per-pipeline backend options, never a repo-level manifest.
 
 ## In-cluster trust of the Homeworld CA
 
@@ -415,7 +420,7 @@ default. When onboarding or changing an app:
 - `runtimeClassName: gvisor` (where supported; otherwise `hostUsers: false`)
 - Gateway listener and `HTTPRoute` (if applicable)
 - Homepage entry for every browser web UI (`apps/homepage/0_config.yaml`)
-- README Apps (user-facing) or Platform table row
+- README Apps (user-facing), *arr Stack (media) or Platform table row
 - `ServiceMonitor`
 - Grafana dashboard in the app's Grafana folder (Grafana dashboard conventions above; docs/grafana-dashboards.md)
 - `ServerSideApply=true` in `spec.syncPolicy.syncOptions` for all `Application` resources

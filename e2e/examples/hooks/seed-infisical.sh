@@ -324,7 +324,7 @@ seed_secrets() {
   token=$(cat "${OUT_DIR}/token")
   project_id=$(cat "${OUT_DIR}/project_id")
 
-  for folder in grafana homepage authelia cert-manager immich forgejo rustfs rustfs-operator opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker vaultwarden qbittorrent homeassistant coder affine; do
+  for folder in grafana homepage authelia cert-manager immich forgejo rustfs rustfs-operator opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker vaultwarden qbittorrent homeassistant coder prowlarr sonarr radarr lidarr bazarr bindery seerr cleanuparr streamystats audiobookshelf navidrome jellyfin-auto-collections unpackerr audiomuse-ai affine; do
     ensure_folder "${token}" "${project_id}" "${folder}"
   done
 
@@ -470,6 +470,43 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/affine/RUSTFS_SECRET_KEY" "e2esecretkey-affine"
   put_secret "${token}" "${project_id}" "/affine/EXA_API_KEY" "e2e-affine-exa"
   put_secret "${token}" "${project_id}" "/affine/UNSPLASH_API_KEY" "e2e-affine-unsplash"
+  # Media stack (docs/media-stack.md). The Servarr keys are 32 hex characters.
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_AUDIOBOOKSHELF" "e2e-oidc-audiobookshelf"
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_BINDERY" "e2e-oidc-bindery"
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_CLEANUPARR" "e2e-oidc-cleanuparr"
+  for app in prowlarr sonarr radarr lidarr bazarr; do
+    put_secret "${token}" "${project_id}" "/${app}/API_KEY" "$(openssl rand -hex 16)"
+  done
+  for app in prowlarr sonarr radarr lidarr bazarr seerr cleanuparr streamystats; do
+    put_secret "${token}" "${project_id}" "/${app}/POSTGRES_USERNAME" "${app}"
+    put_secret "${token}" "${project_id}" "/${app}/POSTGRES_PASSWORD" "e2e-${app}-db"
+  done
+  put_secret "${token}" "${project_id}" "/bindery/API_KEY" "e2e-bindery-api-key"
+  put_secret "${token}" "${project_id}" "/seerr/API_KEY" "e2e-seerr-api-key"
+  # 60-150 characters (Unpackerr API key rules).
+  put_secret "${token}" "${project_id}" "/unpackerr/METRICS_API_KEY" "$(openssl rand -hex 40)"
+  put_secret "${token}" "${project_id}" "/unpackerr/UI_PASSWORD" "e2e-unpackerr-ui"
+  put_secret "${token}" "${project_id}" "/streamystats/SESSION_SECRET" "e2e-streamystats-session-secret-0123456789"
+  put_secret "${token}" "${project_id}" "/streamystats/INTERNAL_API_KEY" "e2e-streamystats-internal-api-key"
+  put_secret "${token}" "${project_id}" "/streamystats/NEXT_SERVER_ACTIONS_ENCRYPTION_KEY" "$(openssl rand -base64 32)"
+  put_secret "${token}" "${project_id}" "/audiobookshelf/JWT_SECRET_KEY" "e2e-audiobookshelf-jwt"
+  put_secret "${token}" "${project_id}" "/navidrome/PASSWORD_ENCRYPTION_KEY" "e2e-navidrome-encryption-key"
+  put_secret "${token}" "${project_id}" "/navidrome/LASTFM_API_KEY" "e2e-navidrome-lastfm"
+  put_secret "${token}" "${project_id}" "/navidrome/LASTFM_SECRET" "e2e-navidrome-lastfm-secret"
+  put_secret "${token}" "${project_id}" "/jellyfin-auto-collections/JELLYFIN_API_KEY" "e2e-jellyfin-api-key"
+  put_secret "${token}" "${project_id}" "/jellyfin-auto-collections/JELLYFIN_USER_ID" "e2e-jellyfin-user"
+  put_secret "${token}" "${project_id}" "/homepage/JELLYFIN_API_KEY" "e2e-homepage-jellyfin"
+  put_secret "${token}" "${project_id}" "/homepage/AUDIOBOOKSHELF_API_KEY" "e2e-homepage-audiobookshelf"
+  put_secret "${token}" "${project_id}" "/homepage/NAVIDROME_USER" "e2e"
+  put_secret "${token}" "${project_id}" "/homepage/NAVIDROME_TOKEN" "e2e-homepage-navidrome-token"
+  put_secret "${token}" "${project_id}" "/homepage/NAVIDROME_SALT" "e2e-salt"
+  put_secret "${token}" "${project_id}" "/audiomuse-ai/POSTGRES_USERNAME" "audiomuse"
+  put_secret "${token}" "${project_id}" "/audiomuse-ai/POSTGRES_PASSWORD" "e2e-audiomuse-db"
+  put_secret "${token}" "${project_id}" "/audiomuse-ai/ADMIN_USERNAME" "e2e"
+  put_secret "${token}" "${project_id}" "/audiomuse-ai/ADMIN_PASSWORD" "e2e-audiomuse-admin"
+  put_secret "${token}" "${project_id}" "/audiomuse-ai/API_TOKEN" "e2e-audiomuse-api-token"
+  put_secret "${token}" "${project_id}" "/audiomuse-ai/NAVIDROME_USER" "e2e"
+  put_secret "${token}" "${project_id}" "/audiomuse-ai/NAVIDROME_PASSWORD" "e2e-navidrome-password"
   log "secret seed completed"
 }
 

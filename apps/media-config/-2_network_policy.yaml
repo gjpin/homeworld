@@ -1,0 +1,214 @@
+# The reconciler only talks to the media apps' in-cluster Services: no
+# ingress, no internet egress.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: media-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: media-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-media-config-sonarr
+  namespace: media-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Download client, root folder, Jellyfin connection, delay profile;
+  # the quality profile ids for Seerr's servers.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: media-config
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: sonarr
+            k8s:app.kubernetes.io/name: sonarr
+      toPorts:
+        - ports:
+            - port: "8989"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-media-config-radarr
+  namespace: media-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Download client, root folder, Jellyfin connection, delay profile;
+  # the quality profile ids for Seerr's servers.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: media-config
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: radarr
+            k8s:app.kubernetes.io/name: radarr
+      toPorts:
+        - ports:
+            - port: "7878"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-media-config-lidarr
+  namespace: media-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Download client, root folder, Jellyfin connection, delay profile,
+  # quality profiles and media management settings.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: media-config
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: lidarr
+            k8s:app.kubernetes.io/name: lidarr
+      toPorts:
+        - ports:
+            - port: "8686"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-media-config-prowlarr
+  namespace: media-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Sonarr, Radarr and Lidarr app sync links; the FlareSolverr proxy.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: media-config
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: prowlarr
+            k8s:app.kubernetes.io/name: prowlarr
+      toPorts:
+        - ports:
+            - port: "9696"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-media-config-seerr
+  namespace: media-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The default Sonarr and Radarr servers.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: media-config
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: seerr
+            k8s:app.kubernetes.io/name: seerr
+      toPorts:
+        - ports:
+            - port: "5055"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-media-config-maintainerr
+  namespace: media-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The Sonarr, Radarr, Seerr and Jellyfin settings.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: media-config
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: maintainerr
+            k8s:app.kubernetes.io/name: maintainerr
+      toPorts:
+        - ports:
+            - port: "6246"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-media-config-bazarr
+  namespace: media-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The English language profile and its default for series and films.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: media-config
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: bazarr
+            k8s:app.kubernetes.io/name: bazarr
+      toPorts:
+        - ports:
+            - port: "6767"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-media-config-bindery
+  namespace: media-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The Prowlarr server, the qBittorrent client and the Authelia provider.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: media-config
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: bindery
+            k8s:app.kubernetes.io/name: bindery
+      toPorts:
+        - ports:
+            - port: "8787"
+              protocol: TCP

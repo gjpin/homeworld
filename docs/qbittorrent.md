@@ -8,11 +8,11 @@ Torrent client whose traffic is routed through a [gluetun](https://github.com/qd
 | :--- | :--- |
 | Component | `apps/qbittorrent` |
 | Domain | `qbittorrent.homeworld.internal` |
-| Data | `qbittorrent-config` PVC (256Mi, Longhorn) mounted at `/config`; `qbittorrent-downloads` (the NAS share `homeworld-qbittorrent`, NFS, [nas.md](nas.md)) mounted at `/downloads` |
+| Data | `qbittorrent-config` PVC (256Mi, Longhorn) mounted at `/config`; `media` (the shared NAS share `homeworld-media`, NFS, [nas.md](nas.md#media-share)) mounted at `/data`, downloads under `/data/torrents/<category>` |
 | Dependencies | csi-driver-nfs, External Secrets, Envoy Gateway, CrowdSec bouncer, OpenTelemetry operator |
 | Secrets | `/qbittorrent/*` Infisical keys (see [secrets.md](secrets.md)) |
 
-A single Deployment runs one pod with a shared network namespace containing three containers — qBittorrent, gluetun, and the Prometheus exporter — plus a rootless `qbittorrent-config-bootstrap` init container that seeds `qBittorrent.conf` on the first start of an empty PVC (see [Configuration seeding](#configuration-seeding)). The pod runs on the standard runtime (runc): gluetun sets up policy routing (`ip rule`), which gVisor's netlink does not implement, so it cannot run under gVisor. SELinux confines every container as `container_t` with the pod's own MCS categories, and gluetun's `NET_ADMIN`/`NET_RAW` act only on the pod's network namespace. gluetun uses the kernel WireGuard module (loaded on every node), so the pod needs no `/dev/net/tun`. qBittorrent and its init container run as the downloads share's owner, UID/GID `20003`, the exporter as its image's non-root user and gluetun as root (to manage the namespace's firewall and routes), and the pod keeps the host user namespace because NFS has no idmapped mounts. The `Recreate` strategy keeps two pods from ever owning the same tunnel routing state on a node.
+A single Deployment runs one pod with a shared network namespace containing three containers — qBittorrent, gluetun, and the Prometheus exporter — plus a rootless `qbittorrent-config-bootstrap` init container that seeds `qBittorrent.conf` on the first start of an empty PVC (see [Configuration seeding](#configuration-seeding)). The pod runs on the standard runtime (runc): gluetun sets up policy routing (`ip rule`), which gVisor's netlink does not implement, so it cannot run under gVisor. SELinux confines every container as `container_t` with the pod's own MCS categories, and gluetun's `NET_ADMIN`/`NET_RAW` act only on the pod's network namespace. gluetun uses the kernel WireGuard module (loaded on every node), so the pod needs no `/dev/net/tun`. qBittorrent and its init container run as the media share's owner, UID/GID `20004`, the exporter as its image's non-root user and gluetun as root (to manage the namespace's firewall and routes), and the pod keeps the host user namespace because NFS has no idmapped mounts. The `Recreate` strategy keeps two pods from ever owning the same tunnel routing state on a node.
 
 ## The kill switch
 
@@ -71,7 +71,7 @@ Containers start in parallel, so qBittorrent may boot before the tunnel exists. 
 
 | Port | Serves | Reachable from (CiliumNetworkPolicy) |
 | :--- | :--- | :--- |
-| `8080` | qBittorrent WebUI / WebAPI | Envoy Gateway, port-forward sync job, kubelet probes; loopback from the exporter |
+| `8080` | qBittorrent WebUI / WebAPI | Envoy Gateway, port-forward sync job, the media stack (Sonarr, Radarr, Lidarr, Bindery, Cleanuparr, qbit_manage), kubelet probes; loopback from the exporter |
 | `8000` | gluetun HTTP control server | port-forward sync job only (API-key authenticated) |
 | `9999` | gluetun health server | kubelet probes (gluetun liveness/startup, qbittorrent readiness) |
 | `17871` | exporter metrics (`/metrics`), health (`/healthz`) | OpenTelemetry collector, kubelet probes |
@@ -89,7 +89,7 @@ The WebUI keeps its own username/password login behind the Gateway-level CrowdSe
 
 ## Configuration seeding
 
-The `qbittorrent-config-bootstrap` init container seeds `/config/qBittorrent/qBittorrent.conf` only when it does not exist (qBittorrent never overwrites an existing config), so the seed applies once on an empty PVC and the config stays user-owned state afterwards. Seeded settings: the WebUI port, username, PBKDF2-hashed password, and API key; the Host-header whitelist (`WebUI\ServerDomains`, holding the cluster domain plus the in-cluster Service name so the sync job and scripts reach the WebUI as `http://qbittorrent:8080` without failing qBittorrent's DNS-rebinding defense — loopback and pod-IP requests pass it by matching the listener address); loopback auth stays enabled — the metrics exporter authenticates with the stateless WebAPI key over the pod's loopback interface; the save path; the initial listening port; and UPnP/port-forwarding off. Later git changes to these values must be applied by editing the file directly (Home Assistant bootstrap convention). Everything TRaSH-guides classifies as personal preference — rate limits, queueing, seeding goals, anonymous mode, `*.rar` exclusions — is deliberately left to the WebUI.
+The `qbittorrent-config-bootstrap` init container seeds `/config/qBittorrent/qBittorrent.conf` and `categories.json` only when they do not exist (qBittorrent never overwrites an existing config), so the seed applies once on an empty PVC and the config stays user-owned state afterwards. Seeded settings: the WebUI port, username, PBKDF2-hashed password, and API key; the Host-header whitelist (`WebUI\ServerDomains`, a quoted semicolon-separated list, since Qt's INI parser reads an unquoted `;` as the start of a comment, holding the cluster domain plus the in-cluster Service names — the short `qbittorrent` for the sync job, and `qbittorrent.qbittorrent[.svc[.cluster.local]]` for the media stack's clients in other namespaces — so they pass qBittorrent's DNS-rebinding defense; loopback and pod-IP requests pass it by matching the listener address); loopback auth disabled (`WebUI\LocalHostAuth=false`), so the metrics exporter's requests over the pod's loopback interface need no credentials (it still sends the stateless WebAPI key); the save path `/data/torrents` with automatic torrent management on, and one category per *arr (`tv`, `movies`, `music`, `books`, `audiobooks`) saving under `/data/torrents/<category>` on the shared media volume, so imports into `/data/media` hardlink instead of copying ([nas.md](nas.md#media-share)); the initial listening port; and UPnP/port-forwarding off. Later git changes to these values must be applied by editing the files directly (Home Assistant bootstrap convention). Everything TRaSH-guides classifies as personal preference — rate limits, queueing, seeding goals, anonymous mode — is deliberately left to the WebUI (leave `*.rar` unexcluded: Unpackerr extracts packed downloads), where qbit_manage's share limits and Cleanuparr's blacklist sync also act.
 
 ## Monitoring
 
@@ -99,7 +99,7 @@ The exporter serves Prometheus metrics on `:17871`, scraped by the OpenTelemetry
 
 Items that can only be confirmed on the live cluster:
 
-1. **Volumes and tunnel interface** — both volumes mount read-write (files on the NAS share appear as `20003:20003`), and gluetun brings up the kernel WireGuard interface without SELinux denials (`ausearch -m avc` on the node); check gluetun's logs and the init container on first boot.
+1. **Volumes and tunnel interface** — both volumes mount read-write (files on the NAS share appear as `20004:20004`), and gluetun brings up the kernel WireGuard interface without SELinux denials (`ausearch -m avc` on the node); check gluetun's logs and the init container on first boot.
 2. **Seeded credentials** — the exporter logs in with the API key and the sync job's first run authenticates (proves the conf-seeded `WebUI\APIKey` was accepted).
 3. **Tunnel bootstrap** — the tunnel establishes with the pod's DNS pointed at `127.0.0.1` (gluetun's DoT resolver chain working end to end).
 4. **Egress scope** — gluetun traffic goes only to the VPN tunnel endpoint and the DoT bootstrap (hubble flows or gluetun's firewall debug).

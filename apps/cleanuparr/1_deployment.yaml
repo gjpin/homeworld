@@ -1,0 +1,140 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cleanuparr
+  namespace: cleanuparr
+  labels:
+    app.kubernetes.io/name: cleanuparr
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cleanuparr
+  # One scheduler of the cleaning jobs at a time.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cleanuparr
+    spec:
+      serviceAccountName: cleanuparr-app
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
+      # The image's default PUID/PGID (1000); started non-root, the
+      # entrypoint skips its user handling and only needs /config writable.
+      # Cleanuparr needs no media access: its queue cleaner, malware blocker
+      # and blacklist sync work through the qBittorrent and *arr APIs, and
+      # the filesystem jobs (hardlink checks, orphans) belong to
+      # qbit_manage.
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: cleanuparr
+          # Renovate tracks the image tag below.
+          image: ghcr.io/cleanuparr/cleanuparr:2.10.12
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 11011
+              protocol: TCP
+          env:
+            - name: TZ
+              value: UTC
+            - name: PORT
+              value: "11011"
+            # Every feature setting (the *arr and qBittorrent connections,
+            # blocklists, strikes, schedules, OIDC) lives in the database
+            # and is set in the UI. Do the first-run setup over kubectl
+            # port-forward before relying on the route: the setup endpoints
+            # are anonymous until the first account exists.
+            - name: DATABASE_PROVIDER
+              value: postgres
+            - name: POSTGRES_HOST
+              value: cleanuparr-rw.cleanuparr.svc.cluster.local
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: cleanuparr
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: username
+            - name: POSTGRES_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+            # Authelia sign-in: .NET reads every certificate in these
+            # directories into its trust store (the image's bundle plus the
+            # Homeworld CA).
+            - name: SSL_CERT_DIR
+              value: /etc/ssl/certs:/etc/homeworld-ca
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          # /health only; /health/ready includes the download client, which
+          # flips whenever qBittorrent's VPN gate drops it.
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+              ephemeral-storage: 1Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: tmp
+              mountPath: /tmp
+            - name: homeworld-ca
+              mountPath: /etc/homeworld-ca
+              readOnly: true
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: cleanuparr-config
+        - name: tmp
+          emptyDir: {}
+        - name: homeworld-ca
+          configMap:
+            name: homeworld-ca

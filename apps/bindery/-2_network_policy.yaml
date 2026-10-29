@@ -1,0 +1,224 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: bindery
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: bindery
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-bindery-gateway
+  namespace: bindery
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: bindery
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+      toPorts:
+        - ports:
+            - port: "8787"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # media-config, with Bindery's API key: the Prowlarr server, the
+  # qBittorrent client and the Authelia provider.
+  name: allow-bindery-clients
+  namespace: bindery
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: bindery
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media-config
+            k8s:app.kubernetes.io/name: media-config
+      toPorts:
+        - ports:
+            - port: "8787"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The ServiceMonitor scraping the native /metrics endpoint on the app
+  # port.
+  name: allow-bindery-metrics
+  namespace: bindery
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: bindery
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "8787"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Indexers: Bindery pulls the Prowlarr indexers and searches them through
+  # Prowlarr's Torznab proxies (Prowlarr has no Bindery app sync target).
+  name: allow-bindery-prowlarr
+  namespace: bindery
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: bindery
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: prowlarr
+            k8s:app.kubernetes.io/name: prowlarr
+      toPorts:
+        - ports:
+            - port: "9696"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Download client.
+  name: allow-bindery-qbittorrent
+  namespace: bindery
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: bindery
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: qbittorrent
+            k8s:app.kubernetes.io/name: qbittorrent
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Library scan after every audiobook import.
+  name: allow-bindery-audiobookshelf
+  namespace: bindery
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: bindery
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: audiobookshelf
+            k8s:app.kubernetes.io/name: audiobookshelf
+      toPorts:
+        - ports:
+            - port: "13378"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # OIDC discovery, token and UserInfo calls to Authelia.
+  name: allow-bindery-authelia
+  namespace: bindery
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: bindery
+  egress:
+    - toFQDNs:
+        - matchName: "auth.homeworld.internal"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Book metadata and covers: OpenLibrary (the primary source; covers
+  # redirect to Internet Archive hosts), Google Books, Hardcover (needs a
+  # token), and Audnex/Audible for audiobook narrators. The optional
+  # national-library and Wikidata enrichers are not allowed. Telemetry
+  # (api.getbindery.dev) is disabled and not allowed. Indexer traffic goes
+  # through Prowlarr.
+  name: allow-bindery-metadata
+  namespace: bindery
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: bindery
+  egress:
+    - toFQDNs:
+        - matchName: "openlibrary.org"
+        - matchName: "covers.openlibrary.org"
+        - matchName: "archive.org"
+        - matchPattern: "*.archive.org"
+        - matchName: "www.googleapis.com"
+        - matchName: "books.google.com"
+        - matchName: "api.hardcover.app"
+        - matchName: "assets.hardcover.app"
+        - matchName: "api.audnex.us"
+        - matchName: "api.audible.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

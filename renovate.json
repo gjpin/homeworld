@@ -155,6 +155,29 @@
       }
     },
     {
+      "description": "Refresh the AudioMuse-AI Navidrome plugin sha256 on version bumps so the PR never ships a stale hash",
+      "matchPackageNames": [
+        "NeptuneHub/AudioMuse-AI-NV-plugin"
+      ],
+      "postUpgradeTasks": {
+        "commands": [
+          "bash scripts/refresh-navidrome-audiomuse-plugin-sha.sh"
+        ],
+        "fileFilters": [
+          "apps/navidrome/1_deployment.yaml"
+        ],
+        "executionMode": "update"
+      }
+    },
+    {
+      "description": "AudioMuse-AI asks to keep the core image and its Navidrome plugin on matching releases: one PR",
+      "matchPackageNames": [
+        "ghcr.io/neptunehub/audiomuse-ai",
+        "NeptuneHub/AudioMuse-AI-NV-plugin"
+      ],
+      "groupName": "audiomuse-ai"
+    },
+    {
       "description": "Refresh the mise and rustup-init sha256 hashes in the Coder workspace image on version bumps",
       "matchPackageNames": [
         "jdx/mise",
@@ -397,6 +420,67 @@
       "prBodyNotes": [
         "⚠️ **OpenCode / OpenChamber Upgrade**: OpenChamber runs only on the OpenCode major it targets, from `MINIMUM_OPENCODE_VERSION` in its `packages/web/server/lib/opencode/compatibility.js`. Before merging, confirm the pinned OpenChamber accepts the pinned OpenCode. On an OpenCode major, check the installer URL in `host/agents-vm/provision.sh` and the managed `opencode.json` keys against the [migration guide](https://opencode.ai/v2/docs/migrate-v1/) (see [docs/upgrades.md](docs/upgrades.md#9-upstream-upgrade-procedures))."
       ]
+    },
+    {
+      "description": "Group the exportarr sidecar across the *arr Deployments so one release lands in a single PR",
+      "matchPackageNames": [
+        "ghcr.io/onedr0p/exportarr"
+      ],
+      "groupName": "exportarr",
+      "prBodyNotes": [
+        "⚠️ **exportarr**: v3 (unreleased at the time of writing) removes `CONFIG` and `ENABLE_ADDITIONAL_METRICS` and changes some metric families; check the release notes and the exportarr-derived dashboards (apps/grafana/dashboards/{prowlarr,sonarr,radarr,lidarr,bazarr})."
+      ]
+    },
+    {
+      "description": "Group the Jellyfin chart and its config-seed init image so they stay on the same Jellyfin release",
+      "matchPackageNames": [
+        "jellyfin",
+        "docker.io/jellyfin/jellyfin"
+      ],
+      "groupName": "jellyfin",
+      "prBodyNotes": [
+        "⚠️ **Jellyfin Upgrade**: Database migrations are one-way. Read the [Jellyfin release notes](https://github.com/jellyfin/jellyfin/releases) and take a Velero backup of the `jellyfin` namespace (scripts/pre-upgrade-backup.sh) before merging a minor."
+      ]
+    },
+    {
+      "description": "Group the Seerr chart and its config-seed init image",
+      "matchPackageNames": [
+        "ghcr.io/seerr-team/seerr/seerr-chart",
+        "seerr-chart",
+        "ghcr.io/seerr-team/seerr"
+      ],
+      "groupName": "seerr"
+    },
+    {
+      "description": "Group the Intel GPU device plugin remote base and image",
+      "matchPackageNames": [
+        "intel/intel-device-plugins-for-kubernetes",
+        "docker.io/intel/intel-gpu-plugin"
+      ],
+      "groupName": "intel-gpu-plugin"
+    },
+    {
+      "description": "qBittorrent and qbit_manage: qbit_manage refuses qBittorrent releases its pinned qbittorrent-api does not list",
+      "matchPackageNames": [
+        "ghcr.io/home-operations/qbittorrent",
+        "ghcr.io/stuffanthings/qbit_manage"
+      ],
+      "prBodyNotes": [
+        "⚠️ **qBittorrent / qbit_manage**: qbit_manage stops with `UnsupportedVersion` against a qBittorrent release missing from its `SUPPORTED_VERSIONS.json`. Before merging either side, confirm the pinned qbit_manage release lists the pinned qBittorrent version."
+      ]
+    },
+    {
+      "description": "Servarr apps (home-operations images track the develop branch): read the release notes and back up the CNPG cluster before a major",
+      "matchPackageNames": [
+        "ghcr.io/home-operations/prowlarr",
+        "ghcr.io/home-operations/sonarr",
+        "ghcr.io/home-operations/radarr",
+        "ghcr.io/home-operations/lidarr"
+      ],
+      "separateMajorMinor": true,
+      "prBodyNotes": [
+        "⚠️ **Servarr Upgrade**: home-operations builds the develop branch. Database migrations are one-way: take a CNPG on-demand `Backup` (docs/upgrades.md) before a major, and read the release notes for removed settings or environment variables."
+      ]
     }
   ],
   "argocd": {
@@ -520,7 +604,7 @@
       "customType": "regex",
       "description": "Update CloudNativePG Cluster images",
       "managerFilePatterns": [
-        "/^apps/(?:authelia|coder|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker)/0_postgres\\.yaml$/"
+        "/^apps/(?:authelia|coder|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker|bazarr|cleanuparr|lidarr|prowlarr|radarr|seerr|sonarr|streamystats)/0_postgres\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^\\s*imageName:\\s*(?<depName>ghcr\\.io/[^:\\s]+):(?<currentValue>[^\\s#]+)\\s*$"
@@ -533,7 +617,7 @@
       "customType": "regex",
       "description": "Move CloudNativePG Cluster images to the newest Debian stable release CNPG publishes for the pinned PostgreSQL version (the docker manager above treats the -system-<debian> suffix as fixed)",
       "managerFilePatterns": [
-        "/^apps/(?:authelia|coder|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker)/0_postgres\\.yaml$/"
+        "/^apps/(?:authelia|coder|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker|bazarr|cleanuparr|lidarr|prowlarr|radarr|seerr|sonarr|streamystats)/0_postgres\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^\\s*imageName:\\s*(?<packageName>ghcr\\.io/cloudnative-pg/postgresql):(?<pgVersion>\\d+\\.\\d+)-system-(?<currentValue>[a-z]+)\\s*$"
@@ -1264,6 +1348,324 @@
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Prowlarr image and its exportarr sidecar",
+      "managerFilePatterns": [
+        "/^apps/prowlarr/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/home-operations/prowlarr):(?<currentValue>[^\\s#@]+)\\s*$",
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/onedr0p/exportarr):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Sonarr image and its exportarr sidecar",
+      "managerFilePatterns": [
+        "/^apps/sonarr/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/home-operations/sonarr):(?<currentValue>[^\\s#@]+)\\s*$",
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/onedr0p/exportarr):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Radarr image and its exportarr sidecar",
+      "managerFilePatterns": [
+        "/^apps/radarr/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/home-operations/radarr):(?<currentValue>[^\\s#@]+)\\s*$",
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/onedr0p/exportarr):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Lidarr image and its exportarr sidecar",
+      "managerFilePatterns": [
+        "/^apps/lidarr/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/home-operations/lidarr):(?<currentValue>[^\\s#@]+)\\s*$",
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/onedr0p/exportarr):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Bazarr image (main and config-seed init containers) and its exportarr sidecar",
+      "managerFilePatterns": [
+        "/^apps/bazarr/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/home-operations/bazarr):(?<currentValue>[^\\s#@]+)\\s*$",
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/onedr0p/exportarr):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the FlareSolverr image",
+      "managerFilePatterns": [
+        "/^apps/flaresolverr/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/flaresolverr/flaresolverr):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Bindery image",
+      "managerFilePatterns": [
+        "/^apps/bindery/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/vavallee/bindery):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Recyclarr image",
+      "managerFilePatterns": [
+        "/^apps/recyclarr/1_cronjob\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/recyclarr/recyclarr):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Maintainerr image",
+      "managerFilePatterns": [
+        "/^apps/maintainerr/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/maintainerr/maintainerr):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Cleanuparr image",
+      "managerFilePatterns": [
+        "/^apps/cleanuparr/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/cleanuparr/cleanuparr):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Unpackerr image",
+      "managerFilePatterns": [
+        "/^apps/unpackerr/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/unpackerr/unpackerr):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the qbit_manage image (main and config-copy init containers)",
+      "managerFilePatterns": [
+        "/^apps/qbit-manage/1_cronjob\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/stuffanthings/qbit_manage):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Audiobookshelf image",
+      "managerFilePatterns": [
+        "/^apps/audiobookshelf/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/advplyr/audiobookshelf):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Navidrome image",
+      "managerFilePatterns": [
+        "/^apps/navidrome/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/navidrome/navidrome):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the AudioMuse-AI Navidrome plugin version",
+      "managerFilePatterns": [
+        "/^apps/navidrome/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "AudioMuse-AI-NV-plugin/releases/download/(?<currentValue>v[^/]+)/audiomuseai\\.ndp"
+      ],
+      "depNameTemplate": "NeptuneHub/AudioMuse-AI-NV-plugin",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "loose"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Feishin image",
+      "managerFilePatterns": [
+        "/^apps/feishin/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/jeffvli/feishin):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the AudioMuse-AI image (the chart's appVersion is latest, so the tag is pinned in values)",
+      "managerFilePatterns": [
+        "/^apps/audiomuse-ai/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^image:\\s*\\n\\s+repository:\\s*(?<depName>ghcr\\.io/neptunehub/audiomuse-ai)\\s*\\n(?:\\s+[^\\n]*\\n)*?\\s+tag:\\s*[\"']?(?<currentValue>[^\"'\\s#]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the beets image (LinuxServer build tags: <beets version>-ls<build>)",
+      "managerFilePatterns": [
+        "/^apps/beets/1_cronjob\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/linuxserver/beets):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-ls(?<build>\\d+)$",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Streamystats frontend and job-server images",
+      "managerFilePatterns": [
+        "/^apps/streamystats/1_deployment\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/fredrikburmester/streamystats-(?:nextjs|job-server)):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Jellyfin-Auto-Collections image to the newest master commit (no releases upstream; CI tags every image with its commit SHA)",
+      "managerFilePatterns": [
+        "/^apps/jellyfin-auto-collections/1_cronjob\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*ghcr\\.io/ghomashudson/jellyfin-auto-collections:(?<currentDigest>[0-9a-f]{40})\\s*$"
+      ],
+      "depNameTemplate": "ghomasHudson/Jellyfin-Auto-Collections",
+      "packageNameTemplate": "https://github.com/ghomasHudson/Jellyfin-Auto-Collections",
+      "currentValueTemplate": "master",
+      "datasourceTemplate": "git-refs"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Jellyfin config-seed init image (pinned beside the chart appVersion; grouped with the chart)",
+      "managerFilePatterns": [
+        "/^apps/jellyfin/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>docker\\.io/jellyfin/jellyfin):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Seerr config-seed init image (a kustomize patch value; grouped with the chart)",
+      "managerFilePatterns": [
+        "/^apps/seerr/helm/kustomization\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*image:\\s*(?<depName>ghcr\\.io/seerr-team/seerr):(?<currentValue>[^\\s#@]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Intel GPU device plugin remote base and image (outside the helm/ kustomize pattern)",
+      "managerFilePatterns": [
+        "/^apps/intel-gpu-plugin/plugin/kustomization\\.yaml$/"
+      ],
+      "matchStrings": [
+        "intel-device-plugins-for-kubernetes//deployments/gpu_plugin\\?ref=v(?<currentValue>[^\\s#]+)"
+      ],
+      "depNameTemplate": "intel/intel-device-plugins-for-kubernetes",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Intel GPU device plugin image tag (kustomize images newTag)",
+      "managerFilePatterns": [
+        "/^apps/intel-gpu-plugin/plugin/kustomization\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*newName:\\s*(?<depName>docker\\.io/intel/intel-gpu-plugin)\\s*\\n\\s*newTag:\\s*(?<currentValue>[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://index.docker.io"
     },
     {
       "customType": "regex",

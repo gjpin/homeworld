@@ -3,19 +3,20 @@
 The NAS (`192.168.8.20`, a Raspberry Pi running Raspberry Pi OS and
 OpenMediaVault on a btrfs RAID10 filesystem) is the cluster's only bulk
 storage. Node disks hold Longhorn's small application volumes; the photo
-library, the OpenCloud users' files and the torrent downloads live on the NAS
+library, the OpenCloud users' files and the media library with its torrents live on the NAS
 over NFSv4.1 through [csi-driver-nfs](https://github.com/kubernetes-csi/csi-driver-nfs).
 
 ## Shares
 
 One shared folder and one NFS export per app, each owned by a dedicated
-numeric ID:
+numeric ID. The exception is `homeworld-media`, shared by the whole media
+stack ([Media share](#media-share)):
 
 | Share | Owner (UID:GID) | Snapshots | Claim |
 | --- | --- | --- | --- |
 | `homeworld-immich` | `20001:20001` | yes | `immich/photos` |
 | `homeworld-opencloud` | `20002:20002` | yes | `opencloud/opencloud-users` |
-| `homeworld-qbittorrent` | `20003:20003` | no | `qbittorrent/qbittorrent-downloads` |
+| `homeworld-media` | `20004:20004` | no (restic copies `media/books` and `media/audiobooks`) | `media` in each media-stack namespace ([Media share](#media-share)) |
 
 In OpenMediaVault:
 
@@ -53,7 +54,9 @@ share.
 Snapshot the Immich and OpenCloud shares on the NAS (btrfs read-only
 snapshots of the shared folder, on a schedule): Velero skips NFS volumes, so
 these snapshots and the restic backups below are their only point-in-time
-copies. The downloads share is not snapshotted.
+copies. The media share is not snapshotted: films, series and music can
+be fetched again, and snapshots of a churning torrent tree would pin
+deleted data.
 
 ## Off-site backups
 
@@ -61,7 +64,8 @@ The btrfs snapshots share the NAS's disks; restic copies the Immich and
 OpenCloud shares nightly to Backblaze B2, encrypted on the NAS before upload
 (restic encrypts every repository with AES-256 under its password). The NAS
 backs itself up rather than going through the cluster, so a restore needs
-neither a running cluster nor Velero. The downloads share is not backed up.
+neither a running cluster nor Velero. Of the media share only the books
+and audiobooks are backed up: they are small and hard to fetch again.
 
 ### B2 bucket and key
 
@@ -114,12 +118,17 @@ set -eu
 POOL=/srv/dev-disk-by-uuid-<UUID>
 STAGE="$POOL/.restic"
 mkdir -p "$STAGE"
-for share in homeworld-immich homeworld-opencloud; do
+for share in homeworld-immich homeworld-opencloud homeworld-media; do
   snap="$STAGE/$share"
   # A run that failed midway leaves its snapshot behind.
   if [ -d "$snap" ]; then btrfs subvolume delete "$snap"; fi
   btrfs subvolume snapshot -r "$POOL/$share" "$snap"
-  restic backup --host nas --tag "$share" --exclude-file /etc/restic/excludes "$snap"
+  if [ "$share" = homeworld-media ]; then
+    # Only the books and audiobooks; the rest can be fetched again.
+    restic backup --host nas --tag "$share" "$snap/media/books" "$snap/media/audiobooks"
+  else
+    restic backup --host nas --tag "$share" --exclude-file /etc/restic/excludes "$snap"
+  fi
   btrfs subvolume delete "$snap"
 done
 restic forget --host nas --group-by host,tags \
@@ -199,6 +208,59 @@ Snapshots hold the staging path, so the files land under
 them into the share and restore its ownership (`chown -R 20001:20001`, the
 share's ID from the table above). Immich regenerates the excluded
 thumbnails and videos from its admin jobs page.
+
+## Media share
+
+`homeworld-media` holds the whole media stack's data in one filesystem, in
+the TRaSH-guides layout:
+
+```
+/data/torrents/{tv,movies,music,books,audiobooks}   qBittorrent categories
+/data/media/{tv,movies,music,books,audiobooks,podcasts}   libraries
+/data/jellyfin/metadata   Jellyfin's artwork, trickplay and chapter images
+```
+
+Sonarr, Radarr and Bindery import a finished download by hardlinking it
+from `torrents/` into `media/`, so a file costs its space once and keeps
+seeding. Lidarr copies instead: beets retags the music library in place,
+and retagging a hardlink would change the data the torrent seeds, so music
+takes its space twice until qbit_manage removes the seeded torrent. Hardlinks and renames only work inside one filesystem, so:
+
+- `torrents/` and `media/` are plain directories in the one shared folder.
+  Never make them separate shared folders: each OpenMediaVault shared
+  folder is a btrfs subvolume, and a hardlink cannot cross subvolumes.
+- Every writer (qBittorrent, Sonarr, Radarr, Lidarr, Bindery, Unpackerr,
+  qbit_manage) mounts its claim once at `/data`: two mounts of the same export are two
+  filesystems to the kernel, and a hardlink between them fails with `EXDEV`.
+- Every pod sees the same paths, so no remote path mappings are needed.
+
+The whole stack runs as the share's owner, `20004`. A PersistentVolume
+binds a single claim, so each consuming namespace has its own static PV
+(`homeworld-media-<app>`, all pointing at the same export, each with a
+unique `volumeHandle`). Navidrome gets a read-only PV. Jellyfin mounts
+`media/` read-only and `jellyfin/metadata` read-write, so its metadata
+grows on the NAS instead of its Longhorn config volume (its database stays
+there); it needs no backup, since Jellyfin rebuilds it from the media and
+its metadata providers. Audiobookshelf mounts its audiobooks read-only and
+its podcasts read-write. beets mounts `media/music` read-write (it tags the
+files in place and creates no links).
+
+Create the directories once after creating the share:
+
+```bash
+# On the NAS:
+cd <path of homeworld-media>
+install -d -o 20004 -g 20004 -m 2770 \
+  torrents torrents/tv torrents/movies torrents/music torrents/books torrents/audiobooks \
+  media media/tv media/movies media/music media/books media/audiobooks media/podcasts \
+  jellyfin jellyfin/metadata
+```
+
+Check hardlinks from a cluster pod before the first import: in a pod that
+mounts the share at `/data` (any of the writers),
+`touch /data/torrents/t && ln /data/torrents/t /data/media/t && stat -c %h /data/torrents/t`
+prints `2`; remove both files afterwards. Most writers run under gVisor,
+whose gofer performs the link, so the check covers the sandbox too.
 
 ## Firewall
 

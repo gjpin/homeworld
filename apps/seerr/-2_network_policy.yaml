@@ -1,0 +1,248 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: seerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: seerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-seerr-gateway
+  namespace: seerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: seerr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+      toPorts:
+        - ports:
+            - port: "5055"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # In-cluster API clients with Seerr's API key: Maintainerr (request
+  # cleanup), the Homepage widget and media-config (the default Sonarr and
+  # Radarr servers).
+  name: allow-seerr-clients
+  namespace: seerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: seerr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: maintainerr
+            k8s:app.kubernetes.io/name: maintainerr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: homepage
+            k8s:app.kubernetes.io/name: homepage
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media-config
+            k8s:app.kubernetes.io/name: media-config
+      toPorts:
+        - ports:
+            - port: "5055"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-seerr-postgres
+  namespace: seerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: seerr
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: seerr-rw
+            namespace: seerr
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-seerr-postgres-ingress
+  namespace: seerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: seerr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: seerr
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-seerr-postgres-metrics-ingress
+  namespace: seerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The handwritten PodMonitor scrapes the CloudNativePG instance metrics
+  # port.
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: seerr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Jellyfin login, user import and library sync.
+  name: allow-seerr-jellyfin
+  namespace: seerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: seerr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: jellyfin
+            k8s:app.kubernetes.io/name: jellyfin
+      toPorts:
+        - ports:
+            - port: "8096"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Series requests.
+  name: allow-seerr-sonarr
+  namespace: seerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: seerr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: sonarr
+            k8s:app.kubernetes.io/name: sonarr
+      toPorts:
+        - ports:
+            - port: "8989"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Movie requests.
+  name: allow-seerr-radarr
+  namespace: seerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: seerr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: radarr
+            k8s:app.kubernetes.io/name: radarr
+      toPorts:
+        - ports:
+            - port: "7878"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Discovery and metadata: TMDb (required) and TheTVDB, the IMDb ratings
+  # proxy (api.radarr.video) and the Rotten Tomatoes ratings search
+  # (Algolia), and the anime-lists mapping fetched during Jellyfin scans
+  # (raw.githubusercontent.com). The GitHub release check is disabled in
+  # the seeded settings and api.github.com is not allowed; the Plex hosts
+  # are unused.
+  name: allow-seerr-metadata
+  namespace: seerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: seerr
+  egress:
+    - toFQDNs:
+        - matchName: "api.themoviedb.org"
+        - matchName: "image.tmdb.org"
+        - matchName: "api4.thetvdb.com"
+        - matchName: "artworks.thetvdb.com"
+        - matchName: "api.radarr.video"
+        - matchName: "79frdp12pn-dsn.algolia.net"
+        - matchName: "raw.githubusercontent.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

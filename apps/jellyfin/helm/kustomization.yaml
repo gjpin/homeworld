@@ -1,0 +1,70 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: jellyfin
+    repo: https://jellyfin.github.io/jellyfin-helm
+    version: 3.7.0
+    releaseName: jellyfin
+    namespace: jellyfin
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  # The chart sets no metadata.namespace (Argo CD's destination supplies
+  # it); setting it here keeps the scanned render namespaced.
+  - target:
+      name: .*
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: jellyfin
+  # Standard runtime, not gVisor: gVisor has no Intel GPU passthrough. The
+  # media library is NFS, which has no idmapped mounts, so the pod keeps the
+  # host user namespace (docs/pod-security.md). The chart has no hostUsers
+  # value.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^jellyfin$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/hostUsers
+        value: true
+      - op: add
+        path: /spec/template/spec/automountServiceAccountToken
+        value: false
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: Hardware transcoding needs the Intel iGPU, which gVisor cannot pass through, so the pod runs on runc (SELinux container_t); the NFS media library has no idmapped mounts, so it keeps the host user namespace.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: Jellyfin does not document running with a read-only root filesystem, so the chart's writable default stays until verified on the cluster.
+  # Transcode segments and image cache: an emptyDir capped at 32Gi, so they
+  # stay out of the Longhorn volumes and their Velero backups. Throttling and
+  # segment deletion (the encoding.xml seed) keep each stream to roughly
+  # fifteen minutes of segments. The chart renders cache as a plain emptyDir
+  # when its persistence is off.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^jellyfin$
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/volumes/2
+        value:
+          name: cache
+          emptyDir:
+            sizeLimit: 32Gi
+  - target:
+      group: monitoring.coreos.com
+      version: v1
+      kind: ServiceMonitor
+      name: ^jellyfin$
+    patch: |-
+      - op: replace
+        path: /spec/endpoints/0/interval
+        value: 60s

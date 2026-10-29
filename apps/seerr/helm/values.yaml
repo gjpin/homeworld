@@ -1,0 +1,67 @@
+# https://github.com/seerr-team/seerr/tree/develop/charts/seerr-chart
+fullnameOverride: seerr
+# Pod labels read app.kubernetes.io/name: seerr instead of the chart name,
+# which the network policies of the apps Seerr calls select.
+nameOverride: seerr
+
+serviceAccount:
+  # The CloudNativePG cluster owns the seerr ServiceAccount (CNPG adopts an
+  # existing ServiceAccount named after the cluster as-is).
+  name: seerr-app
+  # Token hygiene only: Seerr never talks to the Kubernetes API.
+  automount: false
+
+# gVisor pods keep the host user namespace (google/gvisor#13303); the field
+# is left out of the pod spec.
+hostUsers: null
+
+service:
+  # The container port, so the Envoy egress and the app ingress rules name
+  # the same port.
+  port: 5055
+
+config:
+  persistence:
+    # settings.json, logs and the image cache; the database is PostgreSQL.
+    storageClass: longhorn-crypto
+    size: 2Gi
+
+# https://docs.seerr.dev/extending-seerr/database-config
+extraEnv:
+  - name: TZ
+    value: UTC
+  - name: DB_TYPE
+    value: postgres
+  - name: DB_HOST
+    value: seerr-rw.seerr.svc.cluster.local
+  - name: DB_PORT
+    value: "5432"
+  - name: DB_NAME
+    value: seerr
+  - name: DB_USER
+    valueFrom:
+      secretKeyRef:
+        name: postgres-credentials
+        key: username
+  - name: DB_PASS
+    valueFrom:
+      secretKeyRef:
+        name: postgres-credentials
+        key: password
+  # Fixed API key (overrides the stored one), shared with Maintainerr and
+  # the Homepage widget.
+  - name: API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: seerr-secrets
+        key: apiKey
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 256Mi
+    ephemeral-storage: 64Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+    ephemeral-storage: 1Gi

@@ -1,0 +1,127 @@
+# Unpackerr polls the *arrs' queues and extracts on the NAS share; its web
+# server is reached only by the collector's /metrics scrape. No internet
+# egress: it has no telemetry, and its update check exists only in the
+# desktop tray build.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: unpackerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: unpackerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-unpackerr-sonarr
+  namespace: unpackerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Activity-queue polling and import checks.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: unpackerr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: sonarr
+            k8s:app.kubernetes.io/name: sonarr
+      toPorts:
+        - ports:
+            - port: "8989"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-unpackerr-radarr
+  namespace: unpackerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Activity-queue polling and import checks.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: unpackerr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: radarr
+            k8s:app.kubernetes.io/name: radarr
+      toPorts:
+        - ports:
+            - port: "7878"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-unpackerr-lidarr
+  namespace: unpackerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Activity-queue polling and import checks.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: unpackerr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: lidarr
+            k8s:app.kubernetes.io/name: lidarr
+      toPorts:
+        - ports:
+            - port: "8686"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The ServiceMonitor scraping /metrics with its API key.
+  name: allow-unpackerr-metrics
+  namespace: unpackerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: unpackerr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "5656"
+              protocol: TCP

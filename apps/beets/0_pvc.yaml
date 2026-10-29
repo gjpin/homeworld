@@ -1,0 +1,65 @@
+---
+# beets' library database (the tags it matched for each album), the
+# incremental-import state and the import log.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: beets
+  namespace: beets
+  labels:
+    app.kubernetes.io/name: beets
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-crypto
+  resources:
+    requests:
+      storage: 1Gi
+---
+# The shared media library on the NAS (docs/nas.md): the homeworld-media
+# share, exported with all_squash to its owner 20004. Torrents and the
+# library sit on that one filesystem (/data/torrents, /data/media), so
+# imports hardlink instead of copying. Each consuming namespace binds its
+# own static PersistentVolume to the same export (a PersistentVolume binds
+# one claim); Retain keeps the data if the claim is deleted. Velero skips
+# NFS volumes. beets mounts only media/music (it tags in place and creates
+# no links).
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homeworld-media-beets
+  labels:
+    app.kubernetes.io/name: beets
+spec:
+  capacity:
+    storage: 20Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.1
+  csi:
+    driver: nfs.csi.k8s.io
+    # Unique per PersistentVolume; the node plugin mounts the export named
+    # in volumeAttributes.
+    volumeHandle: 192.168.8.20#homeworld-media##beets
+    volumeAttributes:
+      server: 192.168.8.20
+      share: /homeworld-media
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media
+  namespace: beets
+  labels:
+    app.kubernetes.io/name: beets
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: homeworld-media-beets
+  resources:
+    requests:
+      storage: 20Ti

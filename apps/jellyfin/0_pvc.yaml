@@ -1,0 +1,48 @@
+---
+# The shared media share on the NAS (docs/nas.md): the homeworld-media
+# share, exported with all_squash to its owner 20004. Jellyfin reads the
+# library through a read-only mount of media/ and writes its metadata
+# (artwork, trickplay and chapter images) to jellyfin/metadata, so the
+# volume itself is read-write. Each consuming
+# namespace binds its own static PersistentVolume to the same export (a
+# PersistentVolume binds one claim); Retain keeps the data if the claim is
+# deleted. Velero skips NFS volumes.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homeworld-media-jellyfin
+  labels:
+    app.kubernetes.io/name: jellyfin
+spec:
+  capacity:
+    storage: 20Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.1
+  csi:
+    driver: nfs.csi.k8s.io
+    # Unique per PersistentVolume; the node plugin mounts the export named
+    # in volumeAttributes.
+    volumeHandle: 192.168.8.20#homeworld-media##jellyfin
+    volumeAttributes:
+      server: 192.168.8.20
+      share: /homeworld-media
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media
+  namespace: jellyfin
+  labels:
+    app.kubernetes.io/name: jellyfin
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: homeworld-media-jellyfin
+  resources:
+    requests:
+      storage: 20Ti

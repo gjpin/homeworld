@@ -1,0 +1,155 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: audiomuse-ai
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: audiomuse-ai
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The web app and the worker share the database: settings, users, the
+  # task queue (LISTEN/NOTIFY) and the analysis results.
+  name: allow-audiomuse-ai-postgres
+  namespace: audiomuse-ai
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: audiomuse-ai
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: audiomuse-ai-rw
+            namespace: audiomuse-ai
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-audiomuse-ai-postgres-ingress
+  namespace: audiomuse-ai
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: audiomuse-ai
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: audiomuse-ai
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-audiomuse-ai-postgres-metrics-ingress
+  namespace: audiomuse-ai
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The handwritten PodMonitor scrapes the CloudNativePG instance metrics
+  # port.
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: audiomuse-ai
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The UI through the gateway, and Navidrome's AudioMuse-AI plugin (Instant
+  # Mix, artist radio and similar artists) on the in-cluster Service.
+  name: allow-audiomuse-ai-flask-ingress
+  namespace: audiomuse-ai
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: audiomuse-ai
+      k8s:app.kubernetes.io/component: flask
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: navidrome
+            k8s:app.kubernetes.io/name: navidrome
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Navidrome's Subsonic API: the worker streams each track for analysis,
+  # and both read the library and write the generated playlists. The only
+  # other destination: the AI playlist-naming and chat providers stay
+  # unconfigured (no provider egress), plugins are off, and AudioMuse-AI
+  # has no telemetry or update check.
+  name: allow-audiomuse-ai-navidrome
+  namespace: audiomuse-ai
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: audiomuse-ai
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: navidrome
+            k8s:app.kubernetes.io/name: navidrome
+      toPorts:
+        - ports:
+            - port: "4533"
+              protocol: TCP

@@ -1,0 +1,61 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: beets
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: beets
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The enabled plugins' sources, and nothing else (beets has no telemetry
+  # or update check): MusicBrainz, the Cover Art Archive (which redirects
+  # to archive.org storage hosts), Last.fm tags (lastgenre) and LRCLIB
+  # (lyrics).
+  name: allow-beets-metadata
+  namespace: beets
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: beets
+  egress:
+    - toFQDNs:
+        - matchName: "musicbrainz.org"
+        - matchName: "coverartarchive.org"
+        - matchName: "archive.org"
+        - matchPattern: "**.archive.org"
+        - matchName: "ws.audioscrobbler.com"
+        - matchName: "lrclib.net"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

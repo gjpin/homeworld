@@ -1,0 +1,142 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audiobookshelf
+  namespace: audiobookshelf
+  labels:
+    app.kubernetes.io/name: audiobookshelf
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: audiobookshelf
+  # SQLite: one writer at a time.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: audiobookshelf
+    spec:
+      serviceAccountName: audiobookshelf
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
+      # The shared media volume is NFS (docs/nas.md), which squashes every
+      # access to the share's owner, 20004: the container runs as that ID
+      # (the image ignores PUID/PGID and accepts any UID), and gVisor keeps
+      # the host user namespace NFS needs (no idmapped mounts). kubelet
+      # applies the fsGroup to the Longhorn volumes only (NFS CSI
+      # fsGroupPolicy None).
+      securityContext:
+        fsGroup: 20004
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        runAsUser: 20004
+        runAsGroup: 20004
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: audiobookshelf
+          # Renovate tracks the image tag below.
+          image: ghcr.io/advplyr/audiobookshelf:2.37.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 13378
+              protocol: TCP
+          env:
+            - name: TZ
+              value: UTC
+            # A non-root process cannot bind the default port 80.
+            - name: PORT
+              value: "13378"
+            - name: CONFIG_PATH
+              value: /config
+            - name: METADATA_PATH
+              value: /metadata
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: audiobookshelf-secrets
+                  key: JWT_SECRET_KEY
+            # Authelia sign-in (openid-client over Node's https): Node adds
+            # this file to its built-in roots. The OpenID Connect settings
+            # themselves live in the database (Settings > Authentication,
+            # docs/oidc.md).
+            - name: NODE_EXTRA_CA_CERTS
+              value: /etc/homeworld-ca/ca.crt
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 20004
+            runAsGroup: 20004
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            httpGet:
+              path: /healthcheck
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          # Library scans and ffmpeg transcodes spike CPU and memory.
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: 1500m
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: metadata
+              mountPath: /metadata
+            # The same /data/media paths Bindery imports into. Audiobooks
+            # are read-only: Audiobookshelf keeps covers and metadata in
+            # /metadata (the "Store covers/metadata with item" settings stay
+            # off). Podcast episodes are downloaded into their own folder.
+            - name: media
+              mountPath: /data/media/audiobooks
+              subPath: media/audiobooks
+              readOnly: true
+            - name: media
+              mountPath: /data/media/podcasts
+              subPath: media/podcasts
+            - name: homeworld-ca
+              mountPath: /etc/homeworld-ca
+              readOnly: true
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: audiobookshelf-config
+        - name: metadata
+          persistentVolumeClaim:
+            claimName: audiobookshelf-metadata
+        - name: media
+          persistentVolumeClaim:
+            claimName: media
+        - name: homeworld-ca
+          configMap:
+            name: homeworld-ca

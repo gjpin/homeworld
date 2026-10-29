@@ -1,0 +1,43 @@
+# The shared media share (docs/nas.md, "Media share"): Unpackerr extracts
+# packed downloads next to the archives under /data/torrents, at the paths
+# qBittorrent and the *arrs report.
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homeworld-media-unpackerr
+  labels:
+    app.kubernetes.io/name: unpackerr
+spec:
+  capacity:
+    storage: 20Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.1
+  csi:
+    driver: nfs.csi.k8s.io
+    # Unique per PersistentVolume; the node plugin mounts the export named
+    # in volumeAttributes.
+    volumeHandle: 192.168.8.20#homeworld-media##unpackerr
+    volumeAttributes:
+      server: 192.168.8.20
+      share: /homeworld-media
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media
+  namespace: unpackerr
+  labels:
+    app.kubernetes.io/name: unpackerr
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: homeworld-media-unpackerr
+  resources:
+    requests:
+      storage: 20Ti

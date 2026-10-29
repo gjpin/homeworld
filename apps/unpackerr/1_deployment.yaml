@@ -1,0 +1,168 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unpackerr
+  namespace: unpackerr
+  labels:
+    app.kubernetes.io/name: unpackerr
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: unpackerr
+  # One extractor at a time over the same downloads.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: unpackerr
+    spec:
+      serviceAccountName: unpackerr
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
+      # The shared media volume is NFS (docs/nas.md), which squashes every
+      # access to the share's owner, 20004: the container runs as that ID,
+      # and gVisor keeps the host user namespace NFS needs (no idmapped
+      # mounts).
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 20004
+        runAsGroup: 20004
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: unpackerr
+          # Renovate tracks the image tag below.
+          image: ghcr.io/unpackerr/unpackerr:v1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 5656
+              protocol: TCP
+          # Configured from the environment only, with no config file: a
+          # setting set by UN_* is locked in the web UI, so git stays the
+          # source of truth. Queue history is then kept in memory; the
+          # Starr queues are re-read on the next poll after a restart.
+          # https://unpackerr.zip/docs/install/configuration
+          env:
+            - name: TZ
+              value: UTC
+            # Silences the queue log lines that only report zeros.
+            - name: UN_ACTIVITY
+              value: "true"
+            - name: UN_PARALLEL
+              value: "1"
+            # Each *arr reports its downloads under /data/torrents (the
+            # qBittorrent categories); Unpackerr extracts packed ones in
+            # place, waits for the import (which hardlinks the extracted
+            # files into /data/media), then deletes the extracted copies
+            # after delete_delay. The archives keep seeding.
+            - name: UN_SONARR_0_URL
+              value: http://sonarr.sonarr.svc.cluster.local:8989
+            - name: UN_SONARR_0_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: unpackerr-secrets
+                  key: sonarrApiKey
+            - name: UN_SONARR_0_PATHS_0
+              value: /data/torrents
+            - name: UN_RADARR_0_URL
+              value: http://radarr.radarr.svc.cluster.local:7878
+            - name: UN_RADARR_0_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: unpackerr-secrets
+                  key: radarrApiKey
+            - name: UN_RADARR_0_PATHS_0
+              value: /data/torrents
+            - name: UN_LIDARR_0_URL
+              value: http://lidarr.lidarr.svc.cluster.local:8686
+            - name: UN_LIDARR_0_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: unpackerr-secrets
+                  key: lidarrApiKey
+            - name: UN_LIDARR_0_PATHS_0
+              value: /data/torrents
+            # The web server serves /metrics and the UI. The UI has no
+            # route: it is reached with kubectl port-forward and the local
+            # admin password.
+            - name: UN_WEBSERVER_LISTEN_ADDR
+              value: 0.0.0.0:5656
+            - name: UN_WEBSERVER_METRICS
+              value: "true"
+            - name: UI_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: unpackerr-secrets
+                  key: uiPassword
+            # user:password, hashed by Unpackerr on startup.
+            - name: UN_WEBSERVER_UI_PASSWORD
+              value: admin:$(UI_PASSWORD)
+            # /metrics requires an API key with system:metrics:read: one
+            # key with a role holding only that permission, for the
+            # ServiceMonitor's bearer token.
+            - name: UN_WEBSERVER_ROLES_metrics_PERMISSIONS_0
+              value: system:metrics:read
+            - name: UN_WEBSERVER_API_KEYS_0_NAME
+              value: prometheus
+            - name: UN_WEBSERVER_API_KEYS_0_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: unpackerr-secrets
+                  key: metricsApiKey
+            - name: UN_WEBSERVER_API_KEYS_0_ROLES_0
+              value: metrics
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 20004
+            runAsGroup: 20004
+            seccompProfile:
+              type: RuntimeDefault
+          # No unauthenticated health route: the probes check the web
+          # server's port.
+          startupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 30
+            failureThreshold: 5
+          # Extraction (rar/7z/zip) is CPU-bound and streams to the NAS.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+              ephemeral-storage: 16Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+              ephemeral-storage: 256Mi
+          volumeMounts:
+            - name: media
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: media
+          persistentVolumeClaim:
+            claimName: media
+        - name: tmp
+          emptyDir: {}

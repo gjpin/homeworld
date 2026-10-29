@@ -1,0 +1,165 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: navidrome
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: navidrome
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-navidrome-gateway
+  namespace: navidrome
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: navidrome
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+      toPorts:
+        - ports:
+            - port: "4533"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The Homepage widget, the collector scraping /metrics, and AudioMuse-AI
+  # (its web app and worker read the library, stream tracks for analysis
+  # and write playlists over the Subsonic API). Navidrome rescans the
+  # library hourly, so Lidarr and beets need no connection to it.
+  name: allow-navidrome-clients
+  namespace: navidrome
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: navidrome
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: homepage
+            k8s:app.kubernetes.io/name: homepage
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: audiomuse-ai
+            k8s:app.kubernetes.io/name: audiomuse-ai
+      toPorts:
+        - ports:
+            - port: "4533"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Artist bios, images and similar artists from the external metadata
+  # agents (Deezer, Last.fm, ListenBrainz; their image CDNs), per-user
+  # Last.fm and ListenBrainz scrobbling, and the login page backgrounds
+  # (www.navidrome.org). The insights collector (insights.navidrome.org) is
+  # disabled and not allowed; Navidrome has no update check.
+  name: allow-navidrome-metadata
+  namespace: navidrome
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: navidrome
+  egress:
+    - toFQDNs:
+        - matchName: "api.deezer.com"
+        - matchPattern: "*.dzcdn.net"
+        - matchName: "ws.audioscrobbler.com"
+        - matchName: "lastfm.freetls.fastly.net"
+        - matchName: "api.listenbrainz.org"
+        - matchName: "labs.api.listenbrainz.org"
+        - matchName: "www.navidrome.org"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The AudioMuse-AI plugin's similarity requests.
+  name: allow-navidrome-audiomuse-ai
+  namespace: navidrome
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: navidrome
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: audiomuse-ai
+            k8s:app.kubernetes.io/name: audiomuse-ai
+            k8s:app.kubernetes.io/component: flask
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The plugin loader's pinned, sha256-checked release download (GitHub
+  # redirects release assets to release-assets.githubusercontent.com).
+  # Cilium scopes policies to the pod, so Navidrome itself can reach these
+  # hosts too; it makes no calls to them.
+  name: allow-navidrome-github
+  namespace: navidrome
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: navidrome
+  egress:
+    - toFQDNs:
+        - matchName: "github.com"
+        - matchName: "release-assets.githubusercontent.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

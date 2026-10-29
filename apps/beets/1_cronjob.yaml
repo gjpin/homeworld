@@ -1,0 +1,110 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: beets
+  namespace: beets
+  labels:
+    app.kubernetes.io/name: beets
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  # Polls instead of watching: inotify on NFS sees only this pod's own
+  # writes, never Lidarr's imports from its pod. A run with nothing new is
+  # a directory listing; the first runs work through the existing library
+  # (the state file keeps the progress across runs).
+  schedule: "*/15 * * * *"
+  timeZone: UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 14400
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: beets
+        spec:
+          restartPolicy: Never
+          serviceAccountName: beets
+          automountServiceAccountToken: false
+          runtimeClassName: gvisor
+          # The shared media volume is NFS (docs/nas.md), which squashes
+          # every access to the share's owner, 20004: the job runs as that
+          # ID, and gVisor keeps the host user namespace NFS needs (no
+          # idmapped mounts). kubelet applies the fsGroup to the Longhorn
+          # volume only (NFS CSI fsGroupPolicy None).
+          securityContext:
+            fsGroup: 20004
+            fsGroupChangePolicy: OnRootMismatch
+            runAsNonRoot: true
+            runAsUser: 20004
+            runAsGroup: 20004
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: beets
+              # Renovate tracks the image tag below. The LinuxServer image
+              # bundles beets with ffmpeg (ReplayGain) and ImageMagick (art
+              # resizing); its s6 init is bypassed and beet runs directly.
+              image: ghcr.io/linuxserver/beets:2.14.1-ls357
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - /etc/beets/tag.sh
+              env:
+                - name: TZ
+                  value: UTC
+                - name: BEETSDIR
+                  value: /config
+                - name: HOME
+                  value: /config
+                - name: PYTHONDONTWRITEBYTECODE
+                  value: "1"
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                runAsUser: 20004
+                runAsGroup: 20004
+                seccompProfile:
+                  type: RuntimeDefault
+              # ReplayGain decodes every track; the thread count in the
+              # config matches the CPU limit.
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 256Mi
+                  ephemeral-storage: 64Mi
+                limits:
+                  cpu: "2"
+                  memory: 1Gi
+                  ephemeral-storage: 1Gi
+              volumeMounts:
+                - name: data
+                  mountPath: /config
+                - name: config
+                  mountPath: /etc/beets
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+                - name: media
+                  mountPath: /data/media/music
+                  subPath: media/music
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: beets
+            - name: config
+              configMap:
+                name: beets-config
+            - name: tmp
+              emptyDir: {}
+            - name: media
+              persistentVolumeClaim:
+                claimName: media

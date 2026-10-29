@@ -397,3 +397,113 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: folder-prowlarr
+  namespace: grafana
+spec:
+  title: Prowlarr
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: folder-sonarr
+  namespace: grafana
+spec:
+  title: Sonarr
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: folder-radarr
+  namespace: grafana
+spec:
+  title: Radarr
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: folder-lidarr
+  namespace: grafana
+spec:
+  title: Lidarr
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: folder-bazarr
+  namespace: grafana
+spec:
+  title: Bazarr
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: folder-flaresolverr
+  namespace: grafana
+spec:
+  title: FlareSolverr
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: folder-bindery
+  namespace: grafana
+spec:
+  title: Bindery
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: folder-unpackerr
+  namespace: grafana
+spec:
+  title: Unpackerr
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: folder-jellyfin
+  namespace: grafana
+spec:
+  title: Jellyfin
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: folder-navidrome
+  namespace: grafana
+spec:
+  title: Navidrome
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana

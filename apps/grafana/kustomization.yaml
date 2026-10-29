@@ -180,6 +180,46 @@ configMapGenerator:
   - name: grafana-dashboard-rustfs-operator
     files:
       - json=dashboards/rustfs-operator/rustfs-operator.json
+  # prowlarr
+  - name: grafana-dashboard-prowlarr
+    files:
+      - json=dashboards/prowlarr/prowlarr.json
+  # sonarr
+  - name: grafana-dashboard-sonarr
+    files:
+      - json=dashboards/sonarr/sonarr.json
+  # radarr
+  - name: grafana-dashboard-radarr
+    files:
+      - json=dashboards/radarr/radarr.json
+  # lidarr
+  - name: grafana-dashboard-lidarr
+    files:
+      - json=dashboards/lidarr/lidarr.json
+  # bazarr
+  - name: grafana-dashboard-bazarr
+    files:
+      - json=dashboards/bazarr/bazarr.json
+  # flaresolverr
+  - name: grafana-dashboard-flaresolverr
+    files:
+      - json=dashboards/flaresolverr/flaresolverr.json
+  # bindery
+  - name: grafana-dashboard-bindery
+    files:
+      - json=dashboards/bindery/bindery.json
+  # unpackerr
+  - name: grafana-dashboard-unpackerr
+    files:
+      - json=dashboards/unpackerr/unpackerr.json
+  # jellyfin
+  - name: grafana-dashboard-jellyfin
+    files:
+      - json=dashboards/jellyfin/jellyfin.json
+  # navidrome
+  - name: grafana-dashboard-navidrome
+    files:
+      - json=dashboards/navidrome/navidrome.json
   # kured
   - name: grafana-dashboard-kured
     files:
@@ -251,6 +291,16 @@ resources:
   - 1_dashboards_velero.yaml
   - 1_dashboards_victoria-metrics.yaml
   - 1_dashboards_woodpecker.yaml
+  - 1_dashboards_prowlarr.yaml
+  - 1_dashboards_sonarr.yaml
+  - 1_dashboards_radarr.yaml
+  - 1_dashboards_lidarr.yaml
+  - 1_dashboards_bazarr.yaml
+  - 1_dashboards_flaresolverr.yaml
+  - 1_dashboards_bindery.yaml
+  - 1_dashboards_unpackerr.yaml
+  - 1_dashboards_jellyfin.yaml
+  - 1_dashboards_navidrome.yaml
   - 0_folders.yaml
   - 0_victoriametrics_datasource.yaml
   - 0_prometheus_datasource.yaml

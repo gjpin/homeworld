@@ -1,0 +1,14 @@
+# The plugin talks only to the kubelet, over the device-plugin unix socket
+# in its hostPath mount: no ingress or egress at all.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: intel-gpu-plugin
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []

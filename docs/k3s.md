@@ -28,14 +28,14 @@ Everything on the hosts comes from the `host/` tree:
 | `host/cluster.env` | Cluster coordinates (literal values, as everywhere in git) |
 | `host/versions.env` | Fedora release, the k3s version bootstrap installs, gVisor, kube-vip, helm |
 | `host/nodes/<profile>.env` | Per-hardware profile: expected arch/CPU/RAM, agents VM flag, kubelet `system-reserved`, Longhorn reserve |
-| `host/files/` | k3s config template, PSA defaults, containerd gVisor handler, kube-vip static pod, firewalld, sysctls, kernel modules, dnf5-automatic, kured helpers, systemd units |
+| `host/files/` | k3s config template, PSA defaults, containerd gVisor handler and device ownership, kube-vip static pod, firewalld, sysctls, kernel modules, dnf5-automatic, kured helpers, systemd units |
 | `host/agents-vm/` | The agents VM on the Ryzen ([docs/openchamber.md](openchamber.md)) |
 
 `homeworld-pull.timer` downloads the public `main` branch over HTTPS every
 hour (randomized by up to 20 minutes per node) and runs its `host/apply.sh`.
 The script changes only what differs: packages, firewalld zones and
 policies, sshd (key-only, listening on the node address), gVisor
-(sha512-verified), the k3s configuration, the kube-vip manifest, the
+(sha512-verified), the containerd drop-ins, the k3s configuration, the kube-vip manifest, the
 dnf5-automatic and kured helpers, the Longhorn disk annotation, and the
 agents subnet route. Files k3s or containerd read only at start are written
 but not reloaded: apply.sh leaves `/var/lib/homeworld/reboot-required`, and
@@ -72,7 +72,8 @@ is identical on every server apart from the node address and profile label:
   with `kube-system` exempt (kube-vip and the k3s-managed CoreDNS).
 
 The node label `node.homeworld.internal/profile=<profile>` selects the
-Ryzen for the Gateway VIP exclusion and its Cilium node configuration.
+Ryzen for the Gateway VIP exclusion and its Cilium node configuration, and
+corebox, the only node with an Intel GPU, for the Intel GPU device plugin.
 
 The Gateway API CRDs come from k3s's bundled `gateway-api-crd` addon
 (standard channel), which k3s re-applies on every start and moves with every

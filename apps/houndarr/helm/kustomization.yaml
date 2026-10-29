@@ -1,0 +1,57 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+# The chart creates no ServiceAccount; this one is token-less.
+resources:
+  - service-account.yaml
+helmCharts:
+  - name: houndarr
+    repo: oci://ghcr.io/av1155/charts
+    version: 1.13.3
+    releaseName: houndarr
+    namespace: houndarr
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  # The chart sets no runtime class, seccomp profile, ServiceAccount or
+  # ephemeral-storage resources.
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: ^houndarr$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+      - op: add
+        path: /spec/template/spec/serviceAccountName
+        value: houndarr
+      - op: add
+        path: /spec/template/spec/automountServiceAccountToken
+        value: false
+      - op: add
+        path: /spec/template/spec/securityContext/seccompProfile
+        value:
+          type: RuntimeDefault
+      - op: add
+        path: /spec/template/spec/securityContext/fsGroupChangePolicy
+        value: OnRootMismatch
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext/runAsNonRoot
+        value: true
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext/seccompProfile
+        value:
+          type: RuntimeDefault
+      - op: add
+        path: /spec/template/spec/containers/0/resources/requests/ephemeral-storage
+        value: 64Mi
+      - op: add
+        path: /spec/template/spec/containers/0/resources/limits/ephemeral-storage
+        value: 512Mi
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The upstream image has not been validated with a read-only root filesystem; its chart keeps it writable.

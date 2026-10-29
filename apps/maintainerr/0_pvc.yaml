@@ -1,0 +1,17 @@
+---
+# maintainerr.sqlite (the rules and every connected service's credentials,
+# stored in plain text), logs, posters and artwork backups.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: maintainerr
+  namespace: maintainerr
+  labels:
+    app.kubernetes.io/name: maintainerr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-crypto
+  resources:
+    requests:
+      storage: 2Gi

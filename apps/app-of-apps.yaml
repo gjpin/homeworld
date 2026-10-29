@@ -383,7 +383,7 @@ spec:
 ---
 # csi-driver-nfs
 # Wave 3: the static NFS PersistentVolumes of the wave 6+ apps (Immich,
-# OpenCloud, qBittorrent) mount through its node plugin.
+# OpenCloud, qBittorrent and the media stack) mount through its node plugin.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -425,6 +425,51 @@ spec:
         pod-security.kubernetes.io/warn-version: v1.37
       annotations:
         security.homeworld/exception-reason: The NFS CSI node plugin mounts NAS exports into kubelet's pod directories, which requires a privileged host-network container with bidirectional hostPath mounts.
+---
+# intel-gpu-plugin
+# Wave 3: node plugins; it advertises the Intel iGPU (gpu.intel.com/i915)
+# that Jellyfin (wave 7) requests.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: intel-gpu-plugin-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/intel-gpu-plugin"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: intel-gpu-plugin
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+      annotations:
+        security.homeworld/exception-reason: The Intel GPU device plugin reads /dev/dri and /sys/class/drm and serves its socket in the kubelet's device-plugins directory through hostPath mounts as root, which PSS baseline forbids; SELinux confines it as container_device_plugin_t.
 ---
 # system-upgrade-controller
 # Wave 3: Plan CRD (wave 0 inside) and controller; the Plans upgrade k3s in
@@ -1982,6 +2027,951 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: coder
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# prowlarr
+# Wave 7: the media stack (docs/media-stack.md) after qBittorrent and Authelia
+# (wave 6) and the datastore operators.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prowlarr-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/prowlarr"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prowlarr
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# flaresolverr
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: flaresolverr-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/flaresolverr"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: flaresolverr
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# sonarr
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sonarr-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/sonarr"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sonarr
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# radarr
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: radarr-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/radarr"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: radarr
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# lidarr
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lidarr-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/lidarr"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: lidarr
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# bindery
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: bindery-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/bindery"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: bindery
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# bazarr
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: bazarr-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/bazarr"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: bazarr
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# recyclarr
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: recyclarr-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/recyclarr"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: recyclarr
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# unpackerr
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: unpackerr-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/unpackerr"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: unpackerr
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# media-config
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: media-config-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/media-config"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: media-config
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# jellyfin
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jellyfin-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/jellyfin"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: jellyfin
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# navidrome
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: navidrome-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/navidrome"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: navidrome
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# feishin
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: feishin-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/feishin"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: feishin
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# audiomuse-ai
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: audiomuse-ai-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/audiomuse-ai"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: audiomuse-ai
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# beets
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: beets-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/beets"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: beets
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# audiobookshelf
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: audiobookshelf-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/audiobookshelf"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: audiobookshelf
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# seerr
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: seerr-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/seerr"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: seerr
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# streamystats
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: streamystats-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/streamystats"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: streamystats
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# jellyfin-auto-collections
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jellyfin-auto-collections-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/jellyfin-auto-collections"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: jellyfin-auto-collections
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# maintainerr
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: maintainerr-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/maintainerr"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: maintainerr
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# cleanuparr
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cleanuparr-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/cleanuparr"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cleanuparr
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# qbit-manage
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: qbit-manage-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/qbit-manage"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: qbit-manage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: v1.37
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: v1.37
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: v1.37
+---
+# houndarr
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: houndarr-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: homeworld
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: "apps/houndarr"
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: houndarr
   syncPolicy:
     automated:
       prune: true

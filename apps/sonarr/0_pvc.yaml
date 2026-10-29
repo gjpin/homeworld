@@ -1,0 +1,64 @@
+---
+# config.xml, logs, the MediaCover image cache, and Sonarr's own
+# scheduled backups. The databases live in PostgreSQL (0_postgres.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarr-config
+  namespace: sonarr
+  labels:
+    app.kubernetes.io/name: sonarr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-crypto
+  resources:
+    requests:
+      storage: 2Gi
+---
+# The shared media library on the NAS (docs/nas.md): the homeworld-media
+# share, exported with all_squash to its owner 20004. Torrents and the
+# library sit on that one filesystem (/data/torrents, /data/media), so
+# imports hardlink instead of copying. Each consuming namespace binds its
+# own static PersistentVolume to the same export (a PersistentVolume binds
+# one claim); Retain keeps the data if the claim is deleted. Velero skips
+# NFS volumes.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homeworld-media-sonarr
+  labels:
+    app.kubernetes.io/name: sonarr
+spec:
+  capacity:
+    storage: 20Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.1
+  csi:
+    driver: nfs.csi.k8s.io
+    # Unique per PersistentVolume; the node plugin mounts the export named
+    # in volumeAttributes.
+    volumeHandle: 192.168.8.20#homeworld-media##sonarr
+    volumeAttributes:
+      server: 192.168.8.20
+      share: /homeworld-media
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media
+  namespace: sonarr
+  labels:
+    app.kubernetes.io/name: sonarr
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: homeworld-media-sonarr
+  resources:
+    requests:
+      storage: 20Ti

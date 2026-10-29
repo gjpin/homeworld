@@ -94,3 +94,100 @@ spec:
         - ports:
             - port: "443"
               protocol: TCP
+---
+# Media service widgets call the in-cluster Services: the gateway-OIDC
+# routes (Prowlarr, Sonarr, Radarr, Lidarr, Bazarr, Maintainerr) cannot
+# serve headless clients, and the others take the same path for
+# consistency.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-homepage-media-widgets
+  namespace: homepage
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: homepage
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: prowlarr
+            k8s:app.kubernetes.io/name: prowlarr
+      toPorts:
+        - ports:
+            - port: "9696"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: sonarr
+            k8s:app.kubernetes.io/name: sonarr
+      toPorts:
+        - ports:
+            - port: "8989"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: radarr
+            k8s:app.kubernetes.io/name: radarr
+      toPorts:
+        - ports:
+            - port: "7878"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: lidarr
+            k8s:app.kubernetes.io/name: lidarr
+      toPorts:
+        - ports:
+            - port: "8686"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: bazarr
+            k8s:app.kubernetes.io/name: bazarr
+      toPorts:
+        - ports:
+            - port: "6767"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: seerr
+            k8s:app.kubernetes.io/name: seerr
+      toPorts:
+        - ports:
+            - port: "5055"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: jellyfin
+            k8s:app.kubernetes.io/name: jellyfin
+      toPorts:
+        - ports:
+            - port: "8096"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: audiobookshelf
+            k8s:app.kubernetes.io/name: audiobookshelf
+      toPorts:
+        - ports:
+            - port: "13378"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: navidrome
+            k8s:app.kubernetes.io/name: navidrome
+      toPorts:
+        - ports:
+            - port: "4533"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: maintainerr
+            k8s:app.kubernetes.io/name: maintainerr
+      toPorts:
+        - ports:
+            - port: "6246"
+              protocol: TCP

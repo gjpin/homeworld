@@ -1,0 +1,17 @@
+---
+# The JWT signing key, DataProtection keys and logs. The database is
+# PostgreSQL (0_postgres.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cleanuparr-config
+  namespace: cleanuparr
+  labels:
+    app.kubernetes.io/name: cleanuparr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-crypto
+  resources:
+    requests:
+      storage: 256Mi

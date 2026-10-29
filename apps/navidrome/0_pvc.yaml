@@ -1,0 +1,65 @@
+---
+# navidrome.db (SQLite, never on NFS), the image and transcode caches and
+# Navidrome's scheduled database backups.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: navidrome
+  namespace: navidrome
+  labels:
+    app.kubernetes.io/name: navidrome
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-crypto
+  resources:
+    requests:
+      storage: 5Gi
+---
+# The shared media library on the NAS (docs/nas.md): the homeworld-media
+# share, exported with all_squash to its owner 20004. Navidrome only reads
+# the music Lidarr imports: the PersistentVolume is read-only, so the node
+# mounts the export read-only (the NAS cannot enforce that per client).
+# Each consuming namespace binds its own static PersistentVolume to the same
+# export (a PersistentVolume binds one claim); Retain keeps the data if the
+# claim is deleted. Velero skips NFS volumes.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homeworld-media-navidrome
+  labels:
+    app.kubernetes.io/name: navidrome
+spec:
+  capacity:
+    storage: 20Ti
+  accessModes:
+    - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=4.1
+  csi:
+    driver: nfs.csi.k8s.io
+    readOnly: true
+    # Unique per PersistentVolume; the node plugin mounts the export named
+    # in volumeAttributes.
+    volumeHandle: 192.168.8.20#homeworld-media##navidrome
+    volumeAttributes:
+      server: 192.168.8.20
+      share: /homeworld-media
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media
+  namespace: navidrome
+  labels:
+    app.kubernetes.io/name: navidrome
+spec:
+  accessModes:
+    - ReadOnlyMany
+  storageClassName: ""
+  volumeName: homeworld-media-navidrome
+  resources:
+    requests:
+      storage: 20Ti

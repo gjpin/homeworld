@@ -1,0 +1,81 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: jellyfin-auto-collections
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: jellyfin-auto-collections
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Collections, items and posters through the Jellyfin API.
+  name: allow-jellyfin-auto-collections-jellyfin
+  namespace: jellyfin-auto-collections
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: jellyfin-auto-collections
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: jellyfin
+            k8s:app.kubernetes.io/name: jellyfin
+      toPorts:
+        - ports:
+            - port: "8096"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The enabled list plugins (IMDb charts, Letterboxd) and the Google Fonts
+  # download for generated collection posters. Enabling another plugin in
+  # 0_config.yaml needs its hosts added here. The tool has no telemetry or
+  # update check.
+  name: allow-jellyfin-auto-collections-lists
+  namespace: jellyfin-auto-collections
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: jellyfin-auto-collections
+  egress:
+    - toFQDNs:
+        - matchName: "www.imdb.com"
+        - matchName: "letterboxd.com"
+        - matchName: "fonts.googleapis.com"
+        - matchName: "fonts.gstatic.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

@@ -1,0 +1,19 @@
+# Bindery's native, unauthenticated Prometheus endpoint
+# (internal/metrics/metrics.go); the route redirects /metrics away, so only
+# the in-cluster collector reaches it.
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: bindery
+  namespace: bindery
+  labels:
+    app.kubernetes.io/name: bindery
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bindery
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 60s

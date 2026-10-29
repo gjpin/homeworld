@@ -1,0 +1,82 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: beets-config
+  namespace: beets
+  labels:
+    app.kubernetes.io/name: beets
+data:
+  # https://beets.readthedocs.io/en/stable/reference/config.html
+  #
+  # Lidarr owns the library layout: it grabs, copies (not hardlinks) and
+  # names every album under /data/media/music and writes its MusicBrainz
+  # tags (media-config). beets then tags each album in place: copy and move
+  # stay off, so Lidarr's paths stay valid, and only the tags and a
+  # cover.jpg change. Navidrome picks the changes up on its hourly scan.
+  config.yaml: |
+    library: /config/library.db
+    statefile: /config/state.pickle
+    directory: /data/media/music
+
+    plugins:
+      - musicbrainz
+      - fetchart
+      - lastgenre
+      - lyrics
+      - replaygain
+
+    import:
+      write: yes
+      copy: no
+      move: no
+      # Each album folder is imported once (state.pickle); the job runs
+      # unattended.
+      incremental: yes
+      quiet: yes
+      # Lidarr's MusicBrainz IDs make most matches strong. A weaker match is
+      # left untouched with Lidarr's tags: beets writes files only for an
+      # applied match, and writing an as-is album fills its empty fields
+      # with zeros (original date 0000, disc 0).
+      quiet_fallback: skip
+      duplicate_action: skip
+      resume: no
+      log: /config/import.log
+
+    # Cover art from the Cover Art Archive (by the MusicBrainz release),
+    # saved as cover.jpg in the album folder, which Navidrome prefers.
+    fetchart:
+      sources:
+        - filesystem
+        - coverart
+      minwidth: 500
+      maxwidth: 1200
+    art_filename: cover
+
+    # Last.fm tags, with beets' own API key, filtered through beets' genre
+    # whitelist; existing genres are kept.
+    lastgenre:
+      count: 3
+      source: album
+
+    # Synced lyrics from LRCLIB only (the other sources scrape websites).
+    lyrics:
+      sources:
+        - lrclib
+      synced: yes
+
+    replaygain:
+      backend: ffmpeg
+      threads: 2
+
+    threaded: yes
+    ui:
+      color: no
+  # Album folders (artist/album) that Lidarr has not changed for 15
+  # minutes, so an import in progress is never tagged half-copied. beets
+  # skips the folders it has already imported.
+  tag.sh: |
+    #!/bin/sh
+    set -eu
+    find /data/media/music -mindepth 2 -maxdepth 2 -type d -mmin +15 -print0 |
+      xargs -0 -r beet -c /etc/beets/config.yaml import

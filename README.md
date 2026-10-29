@@ -43,10 +43,39 @@ User-facing applications:
 | Notesnook | `notes.homeworld.internal`<br>`auth.notes.homeworld.internal`<br>`sse.notes.homeworld.internal`<br>`monograph.notes.homeworld.internal` | End-to-end encrypted note-taking sync server with auth, SSE, and Monograph. |
 | OpenChamber | `openchamber.homeworld.internal`<br>`paseo.homeworld.internal`<br>`thinkrail.homeworld.internal` | Routes to the AI agent VM on the Ryzen node: the OpenChamber web server, the Paseo daemon, and ThinkRail (behind the Gateway's Authelia sign-in). |
 | OpenCloud | `cloud.homeworld.internal` | Files, sharing, search, collaboration, CalDAV, and CardDAV. |
-| qBittorrent | `qbittorrent.homeworld.internal` | Torrent client with a gluetun VPN sidecar, a three-layer kill switch (gluetun firewall, Cilium egress allowlist, readiness gate), and VPN port-forwarding (see [qbittorrent.md](docs/qbittorrent.md)). |
 | Supernote | `supernote.homeworld.internal` | Supernote Private Cloud: device sync, web file manager, and note conversion (amd64 nodes only). |
 | Vaultwarden | `vault.homeworld.internal` | Bitwarden-compatible password manager with optional Authelia SSO sign-in. |
 | Woodpecker CI | `ci.homeworld.internal` | Continuous integration engine integrated with Forgejo. |
+
+## *arr Stack
+Media automation, download and streaming apps sharing the NAS media library ([docs/media-stack.md](docs/media-stack.md)):
+| App | Domain(s) | Description |
+| --- | --- | --- |
+| Audiobookshelf | `audiobookshelf.homeworld.internal` | Audiobook and podcast server with Authelia sign-in and mobile apps; reads the audiobooks Bindery imports. |
+| AudioMuse-AI | `audiomuse.homeworld.internal` | Sonic analysis of the music library: similar songs, mood and genre playlists written into Navidrome, and Navidrome's Instant Mix through its plugin; behind the Gateway's Authelia sign-in. |
+| Bazarr | `bazarr.homeworld.internal` | Subtitle manager for Sonarr and Radarr, behind the Gateway's Authelia sign-in. |
+| beets | — | Job tagging new Lidarr albums in place every 15 minutes: MusicBrainz tags, cover art, genres, synced lyrics and ReplayGain. |
+| Bindery | `bindery.homeworld.internal` | Book and audiobook manager (the Readarr successor) with Authelia sign-in; imports into the shared media library. |
+| Cleanuparr | `cleanuparr.homeworld.internal` | Download queue cleaner and malware blocker for qBittorrent and the *arrs, with Authelia sign-in. |
+| Feishin | `feishin.homeworld.internal` | Web music player for Navidrome, signed in with Navidrome accounts. |
+| FlareSolverr | — | Cloudflare challenge solver used only by Prowlarr (no route, no login). |
+| Gluetun | — | ProtonVPN WireGuard sidecar in the qBittorrent pod: tunnels all BitTorrent traffic and DNS, keeps a default-deny firewall as the kill switch, and provides the forwarded port qBittorrent seeds on ([qbittorrent.md](docs/qbittorrent.md)). |
+| Houndarr | `houndarr.homeworld.internal` | Rate-limited background searches for missing episodes, films and albums in Sonarr, Radarr and Lidarr, behind the Gateway's Authelia sign-in. |
+| Jellyfin | `jellyfin.homeworld.internal` | Media server for movies, TV and music with Intel QuickSync hardware transcoding. |
+| Jellyfin-Auto-Collections | — | Daily job building Jellyfin collections from IMDb and Letterboxd lists. |
+| Lidarr | `lidarr.homeworld.internal` | Music manager, behind the Gateway's Authelia sign-in. |
+| Maintainerr | `maintainerr.homeworld.internal` | Rule-based library cleanup through Jellyfin, Seerr, Sonarr and Radarr, behind the Gateway's Authelia sign-in. |
+| Media Config | — | Hourly job wiring the media stack through the apps' APIs: download clients, root folders, Prowlarr app links, Jellyfin connections, delay profiles, Seerr and Maintainerr servers, Bazarr's English subtitle profile, Bindery's integrations. |
+| Navidrome | `navidrome.homeworld.internal` | Music streaming server with the Subsonic API for mobile and desktop players. |
+| Prowlarr | `prowlarr.homeworld.internal` | Indexer manager for the *arrs and Bindery, behind the Gateway's Authelia sign-in. |
+| qbit_manage | — | qBittorrent lifecycle job: tracker tags, share limits, unregistered and orphaned cleanup. |
+| qBittorrent | `qbittorrent.homeworld.internal` | Torrent client with a gluetun VPN sidecar, a three-layer kill switch (gluetun firewall, Cilium egress allowlist, readiness gate), and VPN port-forwarding (see [qbittorrent.md](docs/qbittorrent.md)). |
+| Radarr | `radarr.homeworld.internal` | Movie manager, behind the Gateway's Authelia sign-in. |
+| Recyclarr | — | Hourly job syncing TRaSH Guides quality profiles and custom formats into Sonarr and Radarr. |
+| Seerr | `seerr.homeworld.internal` | Movie and series requests with Jellyfin accounts. |
+| Sonarr | `sonarr.homeworld.internal` | TV series manager, behind the Gateway's Authelia sign-in. |
+| Streamystats | `streamystats.homeworld.internal` | Jellyfin watch statistics and recommendations, signed in with Jellyfin accounts. |
+| Unpackerr | — | Extracts packed (RAR) downloads for Sonarr, Radarr and Lidarr so they import. |
 
 ## Platform
 Operators, foundations, and supporting services:
@@ -60,13 +89,14 @@ Operators, foundations, and supporting services:
 | CloudNativePG | — | PostgreSQL operator. |
 | CrowdSec | — | Security Engine, PostgreSQL-backed LAPI, and AppSec WAF. |
 | CrowdSec Envoy Bouncer | — | Envoy Gateway external-authorization bouncer. |
-| csi-driver-nfs | — | NFS CSI node plugin mounting the NAS shares behind the static Immich, OpenCloud, and qBittorrent volumes. |
+| csi-driver-nfs | — | NFS CSI node plugin mounting the NAS shares behind the static Immich, OpenCloud, and media-stack volumes. |
 | DocumentDB Operator | — | DocumentDB, a MongoDB-compatible datastore, operator. |
 | Dragonfly Operator | — | Dragonfly, a Redis-compatible datastore, operator. |
 | Envoy Gateway | `envoy.homeworld.internal` | Gateway API implementation and its admin console. |
 | External Secrets | — | Infisical-backed secret synchronization. |
 | Grafana | `grafana.homeworld.internal` | Dashboards and observability visualization. |
 | Grafana Operator | — | Grafana instance, dashboard, and datasource operator. |
+| Intel GPU Plugin | — | Intel's device plugin advertising the corebox iGPU (`gpu.intel.com/i915`) for Jellyfin's QuickSync transcoding. |
 | Kube Control Plane | — | Scrape targets for the k3s-embedded API servers, scheduler, controller manager, and etcd (a ServiceMonitor and ScrapeConfigs; no workloads). |
 | Kube State Metrics | — | Cluster-state `kube_*` metrics for the OpenTelemetry pipeline and the CloudNativePG dashboard. |
 | Kubelet Serving Cert Approver | — | Approves kubelet serving certificate CSRs so metrics-server scrapes kubelets over verified TLS. |
@@ -99,7 +129,7 @@ This is a fresh-install runbook, in order. Every cluster coordinate is committed
 | Gateway VIP | `192.168.8.50` | Every Gateway's `spec.addresses`; `host/cluster.env`; the router's DNS rewrite; outside the router's DHCP pool ([docs/openwrt.md](docs/openwrt.md) section 17) |
 | Kubernetes API VIP | `192.168.8.51` | `host/cluster.env` (kube-vip and the k3s `tls-san`); outside the router's DHCP pool |
 | Node addresses | `192.168.8.10`–`.12` | The router's static leases; entered at bootstrap and kept on each node in `/etc/homeworld/env` (never in git) |
-| NAS | `192.168.8.20` | `host/cluster.env`; the static NFS PersistentVolumes (Immich, OpenCloud, qBittorrent); the router's static lease ([docs/nas.md](docs/nas.md)) |
+| NAS | `192.168.8.20` | `host/cluster.env`; the static NFS PersistentVolumes (Immich, OpenCloud, the media stack); the router's static lease ([docs/nas.md](docs/nas.md)) |
 | Agents VM subnet | `10.20.0.0/24` (VM `10.20.0.10`) | `host/cluster.env`; `host/agents-vm/network.xml`; the router's static route; the OpenChamber EndpointSlices; Home Assistant's LAN egress exceptions |
 | Tang | `http://192.168.8.1:7500` | `host/cluster.env`; the router ([docs/openwrt.md](docs/openwrt.md) section 17) |
 | Infisical | `https://eu.infisical.com`, project `homeworld`, environment `prod` | `apps/external-secrets/2_secret_store.yaml` and its egress policy; the agents VM's secrets loader (`host/agents-vm/provision.sh`) |
@@ -145,7 +175,7 @@ users:
 ```
 | Group | Grants |
 | --- | --- |
-| `platform` | Gateway-OIDC routes (victoria-metrics, victoria-logs, victoria-traces, longhorn, homepage, envoy admin listener, z2m); sign-in requires the group (deny-by-default) |
+| `platform` | Gateway-OIDC routes (victoria-metrics, victoria-logs, victoria-traces, longhorn, homepage, envoy admin listener, z2m, prowlarr, sonarr, radarr, lidarr, bazarr, maintainerr, houndarr, audiomuse); sign-in requires the group (deny-by-default) |
 | `argocd-admin` | Argo CD admin (everyone else is read-only) |
 | `forgejo-admin` | Forgejo site admin |
 | `grafana-admin` | Grafana server admin (everyone else is a Viewer) |
@@ -155,6 +185,9 @@ users:
 | `homeassistant-admin` | Home Assistant admin role |
 | `affine-user` | AFFiNE sign-in; required (deny-by-default). AFFiNE roles are not mapped from groups: the instance admin is the account created in AFFiNE's `/admin` setup ([docs/affine.md](docs/affine.md)) |
 | `coder-user` | Coder sign-in; required (deny-by-default). Coder roles are not mapped from groups: the first user to sign in becomes Owner ([docs/coder.md](docs/coder.md)) |
+| `audiobookshelf-admin` / `audiobookshelf-user` | Audiobookshelf sign-in; required (deny-by-default). Roles are assigned in Audiobookshelf |
+| `bindery-admin` / `bindery-user` | Bindery sign-in; required (deny-by-default). `bindery-admin` is mapped to the admin role on every login |
+| `cleanuparr-admin` | Cleanuparr sign-in; required (deny-by-default). Every Cleanuparr account is an administrator |
 
 After editing the Infisical value, the change reaches the cluster on the ExternalSecret's hourly refresh (or immediately with `kubectl -n authelia delete secret authelia-files`, which External Secrets recreates at once). Authelia reads the database only at startup (`watch: false`), so finish with `kubectl -n authelia rollout restart deploy/authelia`.
 
@@ -182,7 +215,7 @@ This pins `homeassistant-zigbee2mqtt` to the host hardware where the serial dong
 
 ### 9. Trust the Homeworld CA on Your Devices
 Install `homeworld-ca.crt` (the certificate only, never the key) on every device that opens `*.homeworld.internal`, whether on the Pixel network or over WireGuard:
-- **Android**: *Settings → Security & privacy → More security settings → Encryption & credentials → Install a certificate → CA certificate*. Browsers trust it; individual apps trust user-installed CAs only if they opt in, so check each app you use (Immich, Bitwarden, Home Assistant, OpenCloud, DAVx⁵, Notesnook, OpenChamber, Paseo).
+- **Android**: *Settings → Security & privacy → More security settings → Encryption & credentials → Install a certificate → CA certificate*. Browsers trust it; individual apps trust user-installed CAs only if they opt in, so check each app you use (Immich, Bitwarden, Home Assistant, OpenCloud, DAVx⁵, Notesnook, OpenChamber, Paseo, Jellyfin, Audiobookshelf, your Subsonic player).
 - **macOS**: `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain homeworld-ca.crt`
 - **Linux**: copy it to `/usr/local/share/ca-certificates/homeworld-ca.crt` and run `sudo update-ca-certificates`; Firefox keeps its own store (*Settings → Privacy & Security → Certificates → View Certificates → Import*).
 - **Windows**: `certutil -addstore -f Root homeworld-ca.crt` from an elevated prompt.
@@ -231,6 +264,34 @@ The Ryzen node builds the agents VM during its bootstrap ([docs/openchamber.md](
 
 ### 14. Set Up AFFiNE
 Open `https://affine.homeworld.internal/admin` right after the first sync and create the instance admin account in the setup wizard; `affine-user` members then sign in through Authelia. AI keys are not set in git: each workspace owner adds them under **Workspace Settings → Integrations → AI BYOK**, following [docs/affine.md](docs/affine.md).
+
+### 15. Set Up the Media Stack
+The media apps ([docs/media-stack.md](docs/media-stack.md)) keep most of their settings in their own databases. The connections between them are made by the hourly **media-config** job (`apps/media-config`) through the apps' APIs, so they need no UI steps and come back if removed:
+- Sonarr, Radarr and Lidarr: the qBittorrent download client (categories `tv`, `movies`, `music`), the root folders `/data/media/tv`, `/data/media/movies` and `/data/media/music`, the global delay profile (a fresh release waits 6 hours for a better one, unless it is already the best quality), and a Jellyfin library-refresh connection once the Jellyfin API key exists. In Lidarr also: upgrades off on every quality profile, propers and repacks not preferred, imports **copied** instead of hardlinked, and **Write Audio Tags** set to **For new downloads only** (beets then retags the library in place; retagging a hardlinked file would corrupt the torrent it is seeding).
+- Prowlarr: the Sonarr, Radarr and Lidarr app links (full sync) and the FlareSolverr proxy, applied to indexers tagged `flaresolverr`.
+- Seerr: Sonarr and Radarr as the default servers with the combined 2160p profiles, once Seerr's first sign-in is done and Recyclarr has created the profiles.
+- Maintainerr: Sonarr, Radarr, Seerr and (once the key exists) Jellyfin.
+- Bazarr: an **English** language profile, set as the default for every new series and film (the profile is created once; later edits to it in the UI are kept).
+- Bindery: the Prowlarr server (its indexers are re-synced every run), the qBittorrent client (categories `books` and `audiobooks`) and the Authelia OIDC provider.
+
+Recyclarr manages the Sonarr and Radarr quality profiles (2160p preferred, otherwise the best lower resolution available; one download per title, no upgrades); pick **WEB-2160p (Combined)** in Sonarr and **WEBDL 2160p (Combined)** in Radarr when adding series and films (Seerr uses them by default). Lidarr's default **Any** profile is used for the music root folder. Run either job at once instead of waiting for the hour with `kubectl -n media-config create job --from=cronjob/media-config media-config-now` (or `-n recyclarr ... cronjob/recyclarr`).
+
+What remains is the setup that creates accounts or picks content:
+1. **Prowlarr**: add the indexers, and tag `flaresolverr` the ones behind Cloudflare.
+2. **Bazarr**: enable the subtitle providers under **Settings → Providers**; only the providers listed in `apps/bazarr/-2_network_policy.yaml` are reachable, and OpenSubtitles.com needs an account.
+3. **Jellyfin**: run the setup wizard, add the libraries under `/data/media`, and create API keys under **Dashboard → API Keys** for Homepage and media-config (`/homepage/JELLYFIN_API_KEY`), for Jellyfin-Auto-Collections (`/jellyfin-auto-collections/JELLYFIN_API_KEY`, with the user ID from the user's dashboard URL in `/jellyfin-auto-collections/JELLYFIN_USER_ID`), and for Streamystats (entered in its setup, step 12). Install the TMDb Box Sets plugin from the catalog.
+4. **Seerr**: sign in with a Jellyfin administrator and point it at `http://jellyfin.jellyfin.svc.cluster.local:8096`; the next media-config run adds the Sonarr and Radarr servers.
+5. **Bindery**: create the local admin (the fallback login); sign-in through Authelia works once media-config has added the provider.
+6. **Audiobookshelf**: create the root user, add the libraries `/data/media/audiobooks` and `/data/media/podcasts`, enable OpenID Connect under **Settings → Authentication** (issuer `https://auth.homeworld.internal`, client `audiobookshelf`, secret `/authelia/OIDC_CLIENT_SECRET_AUDIOBOOKSHELF`, *Match existing users by username*, auto-register off, no group claim), and create an API key for Homepage (`/homepage/AUDIOBOOKSHELF_API_KEY`).
+7. **Navidrome**: create the admin user and a Homepage user; store `/homepage/NAVIDROME_USER`, a random salt as `/homepage/NAVIDROME_SALT`, and `md5(password + salt)` as `/homepage/NAVIDROME_TOKEN`. Create the account AudioMuse-AI uses with the `/audiomuse-ai/NAVIDROME_USER` and `/audiomuse-ai/NAVIDROME_PASSWORD` values (the playlists AudioMuse-AI creates belong to it; make them public in Navidrome to share them). Under **Plugins**, enable **AudioMuse-AI Instant Mix** with **AudioMuse-AI API URL** `http://audiomuse-ai-flask-service.audiomuse-ai.svc.cluster.local:8000` and **API Token** `/audiomuse-ai/API_TOKEN`. Navidrome rescans the library hourly, so Lidarr and beets need no connection to it.
+8. **AudioMuse-AI**: sign in with `/audiomuse-ai/ADMIN_USERNAME` (created on the first start; the Navidrome server is already configured), start the first analysis under **Analysis and Clustering**, and schedule analysis and clustering under **Administration → Scheduled Tasks** so new music is analysed.
+9. **Cleanuparr**: complete the first-run setup over `kubectl -n cleanuparr port-forward svc/cleanuparr 11011` (the setup endpoints are anonymous until the first account exists), then add qBittorrent (the WebAPI key `/qbittorrent/WEBUI_API_KEY`), Sonarr, Radarr and Lidarr, configure the Authelia OIDC provider (client `cleanuparr`, secret `/authelia/OIDC_CLIENT_SECRET_CLEANUPARR`) and link your account, and turn off **Status Check**. Enable the Queue Cleaner, the Malware Blocker (`blacklist` for Sonarr and Radarr, `blacklist_permissive` for Lidarr) and Blacklist Sync (`blacklist_permissive`); leave the Download Cleaner and the Seeker's proactive search off (qbit_manage and Houndarr own those jobs). Start with **Dry Run** on.
+10. **Houndarr**: add the Sonarr, Radarr and Lidarr instances in its UI.
+11. **Maintainerr**: create the cleanup rules; keep its qBittorrent and Jellyfin delete fallbacks off.
+12. **Streamystats**: on the first visit, add the Jellyfin server with **Jellyfin URL** `http://jellyfin.jellyfin.svc.cluster.local:8096` and the Streamystats API key from Jellyfin (it can reach Jellyfin only in-cluster).
+13. **qbit_manage** acts for real (`dry_run: False`). Deploy it only on a qbit_manage release whose `SUPPORTED_VERSIONS.json` lists the pinned qBittorrent.
+
+Unpackerr, beets and Feishin need no setup: they are configured from git (beets has no UI, and Feishin's users sign in with their Navidrome accounts). Unpackerr's web UI (queue and history) is reached with `kubectl -n unpackerr port-forward svc/unpackerr 5656` and the user `admin` with the password `/unpackerr/UI_PASSWORD`.
 
 ## One-Time Codes
 

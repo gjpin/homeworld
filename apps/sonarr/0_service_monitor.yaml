@@ -1,0 +1,17 @@
+# exportarr serves Sonarr's metrics (https://github.com/onedr0p/exportarr).
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: sonarr
+  namespace: sonarr
+  labels:
+    app.kubernetes.io/name: sonarr
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sonarr
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 60s

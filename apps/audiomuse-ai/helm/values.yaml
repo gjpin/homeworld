@@ -1,0 +1,110 @@
+# https://github.com/NeptuneHub/AudioMuse-AI-helm
+# https://github.com/NeptuneHub/AudioMuse-AI/blob/main/docs/DEPLOYMENT.md
+fullnameOverride: audiomuse-ai
+
+timezone: UTC
+
+image:
+  repository: ghcr.io/neptunehub/audiomuse-ai
+  pullPolicy: IfNotPresent
+  # Renovate tracks the tag below; the chart's appVersion is "latest".
+  tag: "3.6.4"
+
+flask:
+  service:
+    type: ClusterIP
+    port: 8000
+  # / redirects to the login page or the setup wizard (a redirect passes
+  # the probe). The first start creates the schema, so liveness waits.
+  livenessProbe:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 5
+  readinessProbe:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+      ephemeral-storage: 256Mi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+      ephemeral-storage: 2Gi
+
+# Audio analysis (ONNX models on the CPU). AudioMuse-AI sizes its worker
+# and ONNX thread counts from the CPU limit. Tracks are streamed from
+# Navidrome into the temp_audio emptyDir one album at a time.
+worker:
+  resources:
+    requests:
+      cpu: 250m
+      memory: 2Gi
+      ephemeral-storage: 1Gi
+    limits:
+      cpu: "4"
+      memory: 6Gi
+      ephemeral-storage: 8Gi
+
+# AudioMuse-AI no longer uses Redis (its task queue lives in PostgreSQL);
+# the chart still requires a URL when its own Redis is off, and the
+# kustomization drops the variable from the render.
+redis:
+  enabled: false
+  external:
+    url: unused
+
+# The CloudNativePG cluster (0_postgres.yaml) instead of the chart's
+# PostgreSQL Deployment.
+postgres:
+  enabled: false
+  external:
+    host: audiomuse-ai-rw.audiomuse-ai.svc.cluster.local
+    port: 5432
+  existingSecret: audiomuse-ai-postgres
+
+# The image sets no USER; it runs as an arbitrary non-root user (the image
+# points its numba cache at /tmp for that case). Its runtime writes (temp
+# audio, the IVF index cache, the CLAP label cache, supervisord's socket)
+# go to emptyDirs, and the self-signed TLS directory and plugins are off
+# (kustomization), so the root filesystem is read-only: a full analysis
+# and similarity query ran this way as UID 1000.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+ingress:
+  enabled: false
+
+# Token hygiene only: AudioMuse-AI never talks to the Kubernetes API. The
+# name must not be the CloudNativePG cluster's (audiomuse-ai), whose
+# instance ServiceAccount CNPG creates with a token.
+serviceAccount:
+  create: true
+  name: audiomuse-ai-app
+  automountServiceAccountToken: false

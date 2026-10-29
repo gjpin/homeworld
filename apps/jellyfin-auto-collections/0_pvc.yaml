@@ -1,0 +1,17 @@
+---
+# Working directory: the downloaded poster font and the Letterboxd lookup
+# cache, kept between runs.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-auto-collections
+  namespace: jellyfin-auto-collections
+  labels:
+    app.kubernetes.io/name: jellyfin-auto-collections
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-crypto
+  resources:
+    requests:
+      storage: 256Mi

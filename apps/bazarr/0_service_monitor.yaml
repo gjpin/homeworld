@@ -1,0 +1,17 @@
+# exportarr serves Bazarr's metrics (https://github.com/onedr0p/exportarr).
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: bazarr
+  namespace: bazarr
+  labels:
+    app.kubernetes.io/name: bazarr
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bazarr
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 60s

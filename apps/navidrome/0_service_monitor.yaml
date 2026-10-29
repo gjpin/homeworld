@@ -1,0 +1,20 @@
+# Navidrome's native Prometheus endpoint (ND_PROMETHEUS_ENABLED,
+# core/metrics/prometheus.go), unauthenticated on the application port; the
+# route redirects /metrics away, so only the in-cluster collector reaches
+# it.
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: navidrome
+  namespace: navidrome
+  labels:
+    app.kubernetes.io/name: navidrome
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: navidrome
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 60s

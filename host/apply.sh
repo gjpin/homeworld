@@ -88,6 +88,12 @@ timedatectl set-timezone "$TIMEZONE"
 # NFS volumes keep their nfs_t label (the CSI driver drops context= mount
 # options); container_t reaches them through this container-selinux boolean.
 [ "$(getsebool virt_use_nfs | awk '{print $3}')" = on ] || setsebool -P virt_use_nfs on
+# Jellyfin's QuickSync transcoding (container_t) maps the iGPU render node
+# allocated by the Intel GPU device plugin; recent container-selinux turns
+# this boolean on by default, older releases lack it.
+if getsebool container_use_dri_devices >/dev/null 2>&1; then
+  [ "$(getsebool container_use_dri_devices | awk '{print $3}')" = on ] || setsebool -P container_use_dri_devices on
+fi
 
 # --- kernel ---------------------------------------------------------------
 put 0644 "$files/sysctl/90-homeworld.conf" /etc/sysctl.d/90-homeworld.conf && sysctl -q --system || true
@@ -235,6 +241,10 @@ put 0755 "$files/libexec/runsc-selinux-strip" "$libexec/runsc-selinux-strip" || 
 put 0644 "$files/containerd/runsc.toml" /etc/containerd/runsc.toml || true
 put 0644 "$files/containerd/gvisor.toml" /var/lib/rancher/k3s/agent/etc/containerd/config-v3.toml.d/gvisor.toml &&
   needs_reboot "containerd gVisor handler" || true
+
+# --- containerd -----------------------------------------------------------
+put 0644 "$files/containerd/devices.toml" /var/lib/rancher/k3s/agent/etc/containerd/config-v3.toml.d/devices.toml &&
+  needs_reboot "containerd device ownership" || true
 
 # --- k3s ------------------------------------------------------------------
 put 0644 "$files/k3s/psa.yaml" /etc/rancher/k3s/psa.yaml && needs_reboot "Pod Security Admission defaults" || true

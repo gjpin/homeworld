@@ -1,0 +1,103 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: jellyfin-auto-collections
+  namespace: jellyfin-auto-collections
+  labels:
+    app.kubernetes.io/name: jellyfin-auto-collections
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  # Daily, clear of the 01:00-02:00 k3s upgrade window and the NAS backup.
+  schedule: "0 6 * * *"
+  timeZone: UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: jellyfin-auto-collections
+        spec:
+          restartPolicy: Never
+          serviceAccountName: jellyfin-auto-collections
+          automountServiceAccountToken: false
+          runtimeClassName: gvisor
+          # The image declares no USER; plain Python runs as any non-root
+          # ID that owns the working directory.
+          securityContext:
+            fsGroup: 1000
+            fsGroupChangePolicy: OnRootMismatch
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: jellyfin-auto-collections
+              # Renovate tracks the commit tag below (no releases upstream;
+              # CI tags every image with its commit SHA).
+              image: ghcr.io/ghomashudson/jellyfin-auto-collections:5ffcae1d022b1eaff370456081d6632c87f3fe26
+              imagePullPolicy: IfNotPresent
+              # The fonts and the Letterboxd cache are written relative to
+              # the working directory; the plugins still load from /app.
+              command:
+                - python3.10
+                - -u
+                - /app/main.py
+                - --config
+                - /config/config.yaml
+              workingDir: /work
+              env:
+                - name: TZ
+                  value: UTC
+                - name: LOG_LEVEL
+                  value: INFO
+                - name: PYTHONDONTWRITEBYTECODE
+                  value: "1"
+              envFrom:
+                - secretRef:
+                    name: jellyfin-auto-collections-secrets
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                seccompProfile:
+                  type: RuntimeDefault
+              # Poster mosaics are rendered with Pillow.
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                  ephemeral-storage: 16Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+                  ephemeral-storage: 256Mi
+              volumeMounts:
+                - name: work
+                  mountPath: /work
+                - name: config
+                  mountPath: /config
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: work
+              persistentVolumeClaim:
+                claimName: jellyfin-auto-collections
+            - name: config
+              configMap:
+                name: jellyfin-auto-collections-config
+            - name: tmp
+              emptyDir: {}

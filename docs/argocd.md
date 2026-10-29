@@ -45,6 +45,9 @@
    * csi-driver-nfs: the NFS CSI node plugin that mounts the NAS shares,
      ahead of the wave 6+ applications whose static NFS PersistentVolumes
      it serves ([docs/nas.md](nas.md))
+   * intel-gpu-plugin: Intel's GPU device plugin (from the release's own
+     kustomize base), advertising the corebox iGPU as `gpu.intel.com/i915`
+     ahead of Jellyfin (wave 7), which requests it
    * system-upgrade-controller: the `Plan` CRD (from the pinned release tag,
      intra-component wave 0), the controller, and the k3s upgrade Plans
      ([docs/upgrades.md](upgrades.md))
@@ -109,7 +112,7 @@
      Authelia sign-in; its startup probe holds the pod un-Ready until the
      OpenID discovery against Authelia (same wave) succeeds
    * qbittorrent: torrent client with a gluetun VPN sidecar and a
-     port-forward sync job, after csi-driver-nfs (the downloads share),
+     port-forward sync job, after csi-driver-nfs (the shared media share),
      External Secrets, and the CrowdSec Envoy bouncer
 * **Sync wave 7**
    * collabora: standalone Collabora chart and WOPI endpoint
@@ -122,6 +125,16 @@
      intra-component wave-0 `coder-workspaces` application, the workspace
      namespace whose Role the wave-1 chart binds; after Authelia, whose OIDC
      discovery coderd requires at startup ([docs/coder.md](coder.md))
+   * the media stack ([media-stack.md](media-stack.md)), after qBittorrent
+     and Authelia (wave 6), CloudNativePG, and csi-driver-nfs: prowlarr,
+     flaresolverr, sonarr, radarr, lidarr, bindery, bazarr, recyclarr,
+     unpackerr, media-config, jellyfin (official chart, after
+     intel-gpu-plugin), navidrome, feishin, audiomuse-ai (official chart),
+     beets, audiobookshelf, seerr (official chart),
+     streamystats, jellyfin-auto-collections, maintainerr, cleanuparr,
+     qbit-manage, and houndarr (official chart); their cross-namespace API
+     connections are made by media-config's hourly reconciler or in the
+     apps' UIs, and retry until the other side is up
 * **Sync wave 8**
    * opencloud: OpenCloud (users' files on the NAS), Tika, authenticated DAV
      proxy, and routes

@@ -1,0 +1,114 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: audiomuse-ai
+    repo: https://neptunehub.github.io/AudioMuse-AI-helm
+    version: 1.1.6
+    releaseName: audiomuse-ai
+    namespace: audiomuse-ai
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  # The chart sets no metadata.namespace (Argo CD's destination supplies
+  # it); setting it here keeps the scanned render namespaced.
+  - target:
+      name: .*
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: audiomuse-ai
+  # The environment both Deployments load. Settings without a database
+  # row are imported from it on the first start and edited in the UI's
+  # setup wizard afterwards; PostgreSQL stays environment-only.
+  - target:
+      version: v1
+      kind: ConfigMap
+      name: ^audiomuse-ai-env-vars$
+    patch: |-
+      - op: remove
+        path: /data/REDIS_URL
+      # Navidrome over its in-cluster Service; the account comes from
+      # audiomuse-ai-secrets.
+      - op: add
+        path: /data/MEDIASERVER_TYPE
+        value: navidrome
+      - op: add
+        path: /data/NAVIDROME_URL
+        value: http://navidrome.navidrome.svc.cluster.local:4533
+      # Envoy terminates TLS: no self-signed listener on port 8000, and the
+      # forwarded scheme and client address are trusted.
+      - op: add
+        path: /data/FLASK_BUILTIN_HTTPS
+        value: "false"
+      - op: add
+        path: /data/ENABLE_PROXY_FIX
+        value: "true"
+      # Plugins are downloaded from GitHub and pip-install their
+      # dependencies at runtime; the subsystem and its hourly catalog
+      # refresh stay off.
+      - op: add
+        path: /data/PLUGINS_ENABLED
+        value: "false"
+      # The models are baked into the image (local_files_only); nothing is
+      # fetched from Hugging Face.
+      - op: add
+        path: /data/HF_HUB_OFFLINE
+        value: "1"
+      - op: add
+        path: /data/TRANSFORMERS_OFFLINE
+        value: "1"
+      # Writable caches for the non-root user: the defaults sit in the
+      # root-owned /app tree.
+      - op: add
+        path: /data/IVF_DISK_CACHE_DIR
+        value: /cache/ivf
+      - op: add
+        path: /data/CLAP_OTHER_FEATURES_CACHE_DIR
+        value: /cache/clap
+      - op: add
+        path: /data/HOME
+        value: /tmp
+  # gVisor sandboxing, no ServiceAccount token, the API token
+  # (-1_secrets.yaml), and the cache and /tmp emptyDirs (supervisord's
+  # socket, the numba cache). The chart has no runtimeClassName, extra-env
+  # or extra-volume values.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ^audiomuse-ai-(flask|worker)$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+      - op: add
+        path: /spec/template/spec/automountServiceAccountToken
+        value: false
+      - op: add
+        path: /spec/template/spec/volumes/-
+        value:
+          name: cache
+          emptyDir: {}
+      - op: add
+        path: /spec/template/spec/volumes/-
+        value:
+          name: tmp
+          emptyDir: {}
+      - op: add
+        path: /spec/template/spec/containers/0/envFrom/-
+        value:
+          secretRef:
+            name: audiomuse-ai-secrets
+      - op: add
+        path: /spec/template/spec/containers/0/volumeMounts/-
+        value:
+          name: cache
+          mountPath: /cache
+      - op: add
+        path: /spec/template/spec/containers/0/volumeMounts/-
+        value:
+          name: tmp
+          mountPath: /tmp

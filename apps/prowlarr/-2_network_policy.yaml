@@ -1,0 +1,308 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-prowlarr-gateway
+  namespace: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: prowlarr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+      toPorts:
+        - ports:
+            - port: "9696"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-prowlarr-clients
+  namespace: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # In-cluster API clients, each with Prowlarr's API key. With
+  # Authentication Method External the web UI hands the API key to anyone
+  # who loads it, so ingress stays limited to Envoy (behind the gateway
+  # OIDC) and these named clients:
+  # sonarr: Torznab searches and grabs (indexers synced as Prowlarr proxies).
+  # radarr: Torznab searches and grabs.
+  # lidarr: Torznab searches and grabs.
+  # bindery: indexer sync and Torznab searches.
+  # homepage: service widget.
+  # media-config: app sync links and the FlareSolverr proxy.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: prowlarr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: sonarr
+            k8s:app.kubernetes.io/name: sonarr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: radarr
+            k8s:app.kubernetes.io/name: radarr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: lidarr
+            k8s:app.kubernetes.io/name: lidarr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: bindery
+            k8s:app.kubernetes.io/name: bindery
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: homepage
+            k8s:app.kubernetes.io/name: homepage
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media-config
+            k8s:app.kubernetes.io/name: media-config
+      toPorts:
+        - ports:
+            - port: "9696"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-prowlarr-metrics
+  namespace: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The ServiceMonitor scrapes the exportarr sidecar.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: prowlarr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9707"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-prowlarr-postgres
+  namespace: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: prowlarr
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: prowlarr-rw
+            namespace: prowlarr
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-prowlarr-postgres-ingress
+  namespace: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: prowlarr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: prowlarr
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-prowlarr-postgres-metrics-ingress
+  namespace: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The handwritten PodMonitor scrapes the CloudNativePG instance metrics
+  # port.
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: prowlarr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-prowlarr-sonarr
+  namespace: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Indexer sync (Settings > Apps).
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: prowlarr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: sonarr
+            k8s:app.kubernetes.io/name: sonarr
+      toPorts:
+        - ports:
+            - port: "8989"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-prowlarr-radarr
+  namespace: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Indexer sync.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: prowlarr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: radarr
+            k8s:app.kubernetes.io/name: radarr
+      toPorts:
+        - ports:
+            - port: "7878"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-prowlarr-lidarr
+  namespace: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Indexer sync.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: prowlarr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: lidarr
+            k8s:app.kubernetes.io/name: lidarr
+      toPorts:
+        - ports:
+            - port: "8686"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-prowlarr-flaresolverr
+  namespace: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Cloudflare challenge solving for tagged indexers.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: prowlarr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: flaresolverr
+            k8s:app.kubernetes.io/name: flaresolverr
+      toPorts:
+        - ports:
+            - port: "8191"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # Indexers: every configured tracker and Usenet indexer, plus
+  # indexers.prowlarr.com for the Cardigann definitions. Indexer hosts are
+  # open-ended (each tracker, its mirrors, and the hosts its .torrent links
+  # point at), so egress is port-scoped to world HTTP/HTTPS like
+  # Woodpecker's pipeline egress (docs/network-policies.md). Indexer
+  # traffic deliberately skips the VPN: private trackers ban VPN exits.
+  # prowlarr.servarr.com (update check, health notices) also matches; the
+  # update mechanism is Docker, so it only notifies.
+  name: allow-prowlarr-indexers
+  namespace: prowlarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: prowlarr
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP

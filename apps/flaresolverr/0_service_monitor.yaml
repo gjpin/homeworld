@@ -1,0 +1,18 @@
+# PROMETHEUS_ENABLED serves FlareSolverr's own metrics on :8192
+# (src/metrics.py).
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: flaresolverr
+  namespace: flaresolverr
+  labels:
+    app.kubernetes.io/name: flaresolverr
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flaresolverr
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 60s
