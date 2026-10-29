@@ -1,0 +1,53 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: affine
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: manticoresearch
+    repo: https://helm.manticoresearch.com
+    version: 29.9.1
+    releaseName: manticore
+    namespace: affine
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+resources:
+  - role.yaml
+patches:
+  # The chart templates omit metadata.namespace (they rely on the Helm
+  # release namespace at deploy time), so kustomize patches it in.
+  - target:
+      kind: ^(ServiceAccount|ConfigMap|Service|StatefulSet|ServiceMonitor)$
+      name: ^manticore(-.*)?$
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: affine
+  # The worker's replication supervisor only lists Manticore pods in its own
+  # namespace (manticoresearch-auto-replication K8s/ApiClient.php), so the
+  # chart's cluster-wide read on nodes, pods, services, configmaps and
+  # workloads is replaced by the namespaced Role in role.yaml.
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: ^(ClusterRole|ClusterRoleBinding)$
+      name: ^manticore-affine$
+    patch: |-
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: manticore-affine
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: ^manticore-worker$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/runtimeClassName
+        value: gvisor
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
+        value: The pinned upstream worker image writes its generated searchd configuration and supervisord state to its root filesystem; overriding it would break startup.

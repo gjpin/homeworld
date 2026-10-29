@@ -1340,6 +1340,14 @@
           "name": "^coder$",
           "namespace": "^coder$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^manticore-worker$",
+          "namespace": "^affine$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2016,6 +2024,14 @@
           "name": "^coder$",
           "namespace": "^coder$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^manticore-worker$",
+          "namespace": "^affine$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2512,6 +2528,14 @@
           "kind": "^Deployment$",
           "name": "^coder$",
           "namespace": "^coder$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^manticore-worker$",
+          "namespace": "^affine$"
         }
       }
     ],
@@ -3553,6 +3577,14 @@
           "name": "^coder$",
           "namespace": "^coder-workspaces$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^manticore$",
+          "namespace": "^affine$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4431,6 +4463,14 @@
           "kind": "^Deployment$",
           "name": "^coder$",
           "namespace": "^coder$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^manticore-worker$",
+          "namespace": "^affine$"
         }
       }
     ],
@@ -5394,6 +5434,14 @@
           "kind": "^Deployment$",
           "name": "^coder$",
           "namespace": "^coder$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^manticore-worker$",
+          "namespace": "^affine$"
         }
       }
     ],
@@ -6559,6 +6607,14 @@
           "name": "^coder$",
           "namespace": "^coder$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^manticore-worker$",
+          "namespace": "^affine$"
+        }
       }
     ],
     "posturePolicies": [
@@ -6957,6 +7013,14 @@
           "name": "^coder$",
           "namespace": "^coder$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^manticore-worker$",
+          "namespace": "^affine$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7152,6 +7216,14 @@
           "kind": "^Deployment$",
           "name": "^vmalert$",
           "namespace": "^victoria-metrics$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^manticore-worker$",
+          "namespace": "^affine$"
         }
       }
     ],
@@ -7693,6 +7765,14 @@
           "name": "^coder$",
           "namespace": "^coder$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^manticore-worker$",
+          "namespace": "^affine$"
+        }
       }
     ],
     "posturePolicies": [
@@ -8034,6 +8114,14 @@
           "kind": "^Deployment$",
           "name": "^coder$",
           "namespace": "^coder$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^StatefulSet$",
+          "name": "^manticore-worker$",
+          "namespace": "^affine$"
         }
       }
     ],

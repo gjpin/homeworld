@@ -1,0 +1,16 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: affine
+  namespace: affine
+spec:
+  # metrics.enabled in config.json starts AFFiNE's OpenTelemetry Prometheus
+  # exporter on its default port 9464.
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: affine
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 60s

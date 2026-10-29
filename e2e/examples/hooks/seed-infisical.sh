@@ -320,11 +320,11 @@ put_secret() {
 }
 
 seed_secrets() {
-  local token project_id authelia_jwk authelia_users proof_key proof_pub folder ca_dir ca_cert ca_key
+  local token project_id authelia_jwk authelia_users proof_key proof_pub folder ca_dir ca_cert ca_key affine_key
   token=$(cat "${OUT_DIR}/token")
   project_id=$(cat "${OUT_DIR}/project_id")
 
-  for folder in grafana homepage authelia cert-manager immich forgejo rustfs rustfs-operator opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker vaultwarden qbittorrent homeassistant coder; do
+  for folder in grafana homepage authelia cert-manager immich forgejo rustfs rustfs-operator opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker vaultwarden qbittorrent homeassistant coder affine; do
     ensure_folder "${token}" "${project_id}" "${folder}"
   done
 
@@ -390,6 +390,7 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_RUSTFS" "e2e-oidc-rustfs"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_VAULTWARDEN" "e2e-oidc-vaultwarden"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_ACTUAL_BUDGET" "e2e-oidc-actual-budget"
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_AFFINE" "e2e-oidc-affine"
   # Shared gateway-OIDC client: consumed by the authelia, envoy-gateway,
   # homepage, victoria-metrics, homeassistant, and longhorn ExternalSecrets
   # (the latter two apps are omitted on kind, but seeding the key keeps the
@@ -458,6 +459,17 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/vaultwarden/ADMIN_TOKEN" "e2e-vaultwarden-admin"
   put_secret "${token}" "${project_id}" "/vaultwarden/POSTGRES_USERNAME" "vaultwarden"
   put_secret "${token}" "${project_id}" "/vaultwarden/POSTGRES_PASSWORD" "e2e-vaultwarden-db"
+  # AFFiNE signs and encrypts with a P-256 key in SEC1 PEM, the format its
+  # self-host-predeploy.js would generate.
+  affine_key=$(openssl ecparam -name prime256v1 -genkey -noout 2>/dev/null)
+  put_secret "${token}" "${project_id}" "/affine/PRIVATE_KEY" "${affine_key}"
+  put_secret "${token}" "${project_id}" "/affine/POSTGRES_USERNAME" "affine"
+  put_secret "${token}" "${project_id}" "/affine/POSTGRES_PASSWORD" "e2e-affine-db"
+  put_secret "${token}" "${project_id}" "/affine/DRAGONFLY_PASSWORD" "e2e-affine-dragonfly"
+  put_secret "${token}" "${project_id}" "/affine/RUSTFS_ACCESS_KEY" "e2eaccesskey-affine"
+  put_secret "${token}" "${project_id}" "/affine/RUSTFS_SECRET_KEY" "e2esecretkey-affine"
+  put_secret "${token}" "${project_id}" "/affine/EXA_API_KEY" "e2e-affine-exa"
+  put_secret "${token}" "${project_id}" "/affine/UNSPLASH_API_KEY" "e2e-affine-unsplash"
   log "secret seed completed"
 }
 

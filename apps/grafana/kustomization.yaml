@@ -8,6 +8,13 @@ configMapGenerator:
   # One entry per dashboard, grouped by application folder (see
   # 0_folders.yaml); dashboards/<app>/<dashboard>.json mirrors the Grafana
   # folder layout.
+  # affine
+  - name: grafana-dashboard-affine
+    files:
+      - json=dashboards/affine/affine.json
+  - name: grafana-dashboard-affine-manticore
+    files:
+      - json=dashboards/affine/manticore.json
   # argocd
   - name: grafana-dashboard-argocd
     files:
@@ -208,6 +215,7 @@ resources:
   - 0_gateway.yaml
   - 0_grafana.yaml
   - 0_service_monitor.yaml
+  - 1_dashboards_affine.yaml
   - 1_dashboards_argocd.yaml
   - 1_dashboards_authelia.yaml
   - 1_dashboards_cert-manager.yaml

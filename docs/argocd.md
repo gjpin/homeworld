@@ -94,6 +94,10 @@
    * grafana
    * homepage: application dashboard, gateway-OIDC protected (`platform` group)
    * notesnook: fully featured encrypted notes sync server with DocumentDB (MongoDB-compatible on CloudNativePG), SSE, and Monograph
+   * affine: AFFiNE docs and whiteboard server with a CloudNativePG
+     database (pgvector), a Dragonfly cache, RustFS buckets, and a Manticore
+     search worker (nested `affine-manticore` application at intra-component
+     wave 0, ahead of the server)
    * radicale: internal CalDAV and CardDAV backend, before OpenCloud's
      authenticated DAV proxy
    * supernote: Supernote Private Cloud sync server and notelib converter
@@ -178,7 +182,7 @@ In `apps/app-of-apps.yaml`, CRD-providing infrastructure and operators are seque
   `conf/crds` templates so Kustomize Helm inflation includes them), whose
   collector custom resource in wave 6 both validates against the CRDs and
   reconciles against the running operator
-- **Waves 6–8:** Applications and workloads consuming those CRDs (`authelia`, `immich`, `forgejo`, `grafana`, `notesnook` via `DocumentDB`, `supernote` via `MariaDB` and `SqlJob`, `otel-collector` via `OpenTelemetryCollector`, `kube-control-plane` via `ServiceMonitor` and `ScrapeConfig`, `opencloud`, etc.)
+- **Waves 6–8:** Applications and workloads consuming those CRDs (`authelia`, `immich`, `forgejo`, `grafana`, `affine` via `Cluster`, `Dragonfly`, and `ServiceMonitor`, `notesnook` via `DocumentDB`, `supernote` via `MariaDB` and `SqlJob`, `otel-collector` via `OpenTelemetryCollector`, `kube-control-plane` via `ServiceMonitor` and `ScrapeConfig`, `opencloud`, etc.)
 
 Argo CD's custom Lua Application health check pauses wave advancement until all applications in Wave $N$ report `Healthy`, preventing downstream workloads from encountering missing CRD errors during initial deployment or cluster-wide upgrades.
 

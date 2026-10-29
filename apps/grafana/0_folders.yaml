@@ -5,6 +5,17 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
 metadata:
+  name: folder-affine
+  namespace: grafana
+spec:
+  title: AFFiNE
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
   name: folder-argocd
   namespace: grafana
 spec:

@@ -1,6 +1,7 @@
 # IAM policy documents for the RustFS Operator-provisioned users in
-# 0_tenant.yaml. Each user is scoped to the single bucket its application
-# uses: notesnook-attachments (Notesnook S3_*_BUCKET_NAME).
+# 0_tenant.yaml. Each user is scoped to the buckets its application uses:
+# notesnook-attachments (Notesnook S3_*_BUCKET_NAME), and affine-blobs,
+# affine-avatars and affine-copilot (AFFiNE's blob, avatar and AI storages).
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -23,6 +24,33 @@ data:
           "Resource": [
             "arn:aws:s3:::notesnook-attachments",
             "arn:aws:s3:::notesnook-attachments/*"
+          ]
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    rustfs.tenant: rustfs
+  name: rustfs-user-policy-affine
+  namespace: rustfs
+data:
+  policy.json: |
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "s3:*",
+          "Resource": [
+            "arn:aws:s3:::affine-blobs",
+            "arn:aws:s3:::affine-blobs/*",
+            "arn:aws:s3:::affine-avatars",
+            "arn:aws:s3:::affine-avatars/*",
+            "arn:aws:s3:::affine-copilot",
+            "arn:aws:s3:::affine-copilot/*"
           ]
         }
       ]

@@ -14,6 +14,7 @@ The table below outlines the Pod Security Standard compliance level for every co
 
 | Application | Namespace | PSA Level | Compliance | Details & Rationale |
 | :--- | :--- | :---: | :---: | :--- |
+| **AFFiNE** | `affine` | Restricted | **Restricted** | The server and its `migrate` init container run as the image's non-root `node` user (UID/GID `1000`) with dropped capabilities (`ALL`), `allowPrivilegeEscalation: false`, and `RuntimeDefault` seccomp; the root filesystem stays writable because the migration step runs yarn and Prisma from `/app`, and the configuration directory is a read-only Secret mount. The Manticore search worker (official chart) runs as the image's `manticore` user (UID/GID `999`, which owns every path supervisord, searchd and the replication supervisor write) under the same restrictions; the chart's cluster-wide RBAC is replaced by a namespaced Role that only lists pods. The attached PostgreSQL instance and Dragonfly operand also conform to Restricted. |
 | **Actual Budget** | `actual-budget` | Restricted | **Restricted** | Sync server runs as the image's non-root `actual` user (UID/GID `1001`) on port `5006` with dropped capabilities (`ALL`), read-only root filesystem, and `RuntimeDefault` seccomp. |
 | **Argo CD** | `argocd` | Restricted | **Restricted** | All components (`server`, `repo-server`, `application-controller`, `applicationset-controller`, `notifications-controller`) run as non-root with dropped capabilities (`ALL`) and `RuntimeDefault` seccomp. The attached Dragonfly instance (the chart's bundled Redis is disabled) runs as the image's `dfly` user (UID/GID `999`) with dropped capabilities and `RuntimeDefault` seccomp. Dex and the bundled Redis are disabled in values. |
 | **Authelia** | `authelia` | Restricted | **Restricted** | Application container runs as UID `1000` with read-only root filesystem, dropped capabilities (`ALL`), and `RuntimeDefault` seccomp. Attached PostgreSQL and Dragonfly instances also conform to Restricted. |
@@ -74,9 +75,9 @@ gVisor cannot join a pod user namespace: its gofer fails to enter the pod's user
 | Workload | Namespace | User Namespaces | Implementation Mechanism | Details & Rationale |
 | :--- | :--- | :---: | :--- | :--- |
 | **gVisor workloads** (every pod in the gVisor table below) | all | **Not used** (`true`) | *None (gVisor)* | gVisor cannot join a pod user namespace (google/gvisor#13303). Pods that mount a NAS share (Immich server, OpenCloud server) also need the host user namespace for that reason alone: NFS has no idmapped mounts, so they run as the share's owner ([nas.md](nas.md)). |
-| **CloudNativePG Clusters** | `authelia`, `coder`, `crowdsec`, `forgejo`, `homeassistant`, `immich`, `vaultwarden`, `woodpecker` | **Enabled** (`false`) | CNPG `podPatch` annotation | `cnpg.io/podPatch` injects `hostUsers: false` into PostgreSQL instance pods. |
+| **CloudNativePG Clusters** | `affine`, `authelia`, `coder`, `crowdsec`, `forgejo`, `homeassistant`, `immich`, `vaultwarden`, `woodpecker` | **Enabled** (`false`) | CNPG `podPatch` annotation | `cnpg.io/podPatch` injects `hostUsers: false` into PostgreSQL instance pods. |
 | **RustFS Tenant** | `rustfs` | **Enabled** (`false`) | `MutatingAdmissionPolicy` | RustFS Operator does not support a pod template patch field for `hostUsers`. A CEL-based Kubernetes `MutatingAdmissionPolicy` mutates Tenant pods at admission to inject `hostUsers: false`. |
-| **Dragonfly, DocumentDB and MariaDB operands** | `argocd`, `authelia`, `immich`, `notesnook`, `supernote` | **Disabled** (`true`) | *None (Operator limitation)* | The Dragonfly, DocumentDB, MariaDB and SqlJob CRDs expose no `hostUsers` field. |
+| **Dragonfly, DocumentDB and MariaDB operands** | `affine`, `argocd`, `authelia`, `immich`, `notesnook`, `supernote` | **Disabled** (`true`) | *None (Operator limitation)* | The Dragonfly, DocumentDB, MariaDB and SqlJob CRDs expose no `hostUsers` field. |
 | **Cilium (Agent / Envoy / Operator)** | `cilium` | **Disabled** (`true`) | *None (Host integration)* | `hostNetwork` (the kube-proxy replacement datapath) prohibits `hostUsers: false`. |
 | **CrowdSec (Agent)** | `crowdsec` | **Disabled** (`true`) | *None (Host integration)* | The read-only `/var/log` hostPath and the `spc_t` SELinux type (see the PSS exception row). |
 | **csi-driver-nfs (Node)** | `csi-driver-nfs` | **Disabled** (`true`) | *None (Host integration)* | Privileged `hostNetwork` mount plugin. |
@@ -111,6 +112,7 @@ Only workloads requiring direct host device access, host namespaces, raw block d
 
 | Workload | Namespace | gVisor Sandboxing | Implementation Mechanism | Details & Rationale |
 | :--- | :--- | :---: | :--- | :--- |
+| **AFFiNE** | `affine` | **Enabled** (`gvisor`) | Manifest / Kustomize patch | Declared in the AFFiNE server Deployment (server and `migrate` init container); a Kustomize patch applies it to the Manticore worker StatefulSet (the chart has no `runtimeClassName` value). The CNPG and Dragonfly operands are documented standard-runtime exceptions (their CRDs lack a `runtimeClassName` field). |
 | **Actual Budget** | `actual-budget` | **Enabled** (`gvisor`) | Manifest | Declared in the Actual Budget Deployment. |
 | **Argo CD** | `argocd` | **Enabled** (`gvisor`) | Kustomize patch | Applied to `server`, `repo-server`, `application-controller`, `applicationset-controller`, and `notifications-controller`. The Dragonfly operand is a documented standard-runtime exception (CRD lacks a `runtimeClassName` field). |
 | **Authelia** | `authelia` | **Enabled** (`gvisor`) | Kustomize patch | Applied to Authelia Deployment. |
@@ -181,10 +183,12 @@ Standalone applications use dedicated ServiceAccounts rather than the namespace 
 
 Handwritten application ServiceAccounts:
 - `supernote`: Dedicated `supernote-app` ServiceAccount with `automountServiceAccountToken: false` shared by `supernote-service` and `notelib` (the name avoids the ServiceAccounts the MariaDB operator derives from its `mariadb` instance and seed SqlJob). The PreSync snapshot-rotation Job has its own `pre-sync-snapshot-rotation` ServiceAccount, bound to a Role limited to the `mariadb-pre-sync` PhysicalBackup (get, delete) and VolumeSnapshots (list, patch, delete).
+- `affine`: Dedicated `affine-app` ServiceAccount with `automountServiceAccountToken: false` (the name avoids colliding with the CloudNativePG cluster-derived `affine` ServiceAccount, which CNPG adopts as-is and needs a mounted token).
 - `vaultwarden`: Dedicated `vaultwarden-app` ServiceAccount with `automountServiceAccountToken: false` (the name avoids colliding with the CloudNativePG cluster-derived `vaultwarden` ServiceAccount, which CNPG adopts as-is and needs a mounted token).
 
 Helm workloads with API access disabled via patches or values:
 - `forgejo`: `automountServiceAccountToken: false`
+- `manticore` (AFFiNE search worker): the `manticore` ServiceAccount keeps its token — the worker's replication supervisor lists its peer pods through the API, bound by a namespaced Role to `pods` (`get`, `list`, `watch`) in `affine` only; the chart's ClusterRole is removed from the render.
 - `coder`: the `coder` ServiceAccount keeps its token — the built-in provisioners' Terraform kubernetes provider authenticates with it, bound by the chart's Role to Pods, PVCs, and Deployments in `coder-workspaces` only (no permissions in its own namespace). Workspace Pods from the repository template set `automountServiceAccountToken: false`.
 - `victoria-metrics`: `automountServiceAccountToken: false`
 - `longhorn-ui`: `automountServiceAccountToken: false`

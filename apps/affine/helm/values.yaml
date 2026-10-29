@@ -1,0 +1,87 @@
+# https://github.com/manticoresoftware/manticoresearch-helm
+# Manticore Search backs AFFiNE's indexer (full-text and doc search, AI doc
+# retrieval) as a single worker; the index is derived data AFFiNE rebuilds.
+fullNameOverride: manticore
+
+global:
+  manticoresearch: {}
+  clusterDomainSuffix: cluster.local
+
+# A single worker needs no load balancer; AFFiNE talks to the worker Service.
+balancer:
+  enabled: false
+
+worker:
+  replicaCount: 1
+  # AFFiNE writes plain table names; a table auto-added to the replication
+  # cluster would only accept cluster-prefixed writes.
+  autoAddTablesInCluster: false
+  image:
+    repository: docker.io/manticoresearch/helm-worker
+  persistence:
+    enabled: true
+    storageClass: longhorn-crypto
+    size: 2Gi
+  config:
+    path: /mnt/manticore.conf
+    # The chart default plus telemetry = 0: Manticore's anonymous usage
+    # telemetry (through Buddy) is on by default.
+    content: |
+      searchd
+      {
+        listen = /var/run/mysqld/mysqld.sock:mysql41
+        listen = 9306:mysql41
+        listen = 9308:http
+        listen = 9301:mysql_vip
+        listen = $hostname:9312
+        listen = $hostname:9315-9415:replication
+        node_address = $hostname
+        binlog_path = /var/lib/manticore
+        query_log = /dev/stdout
+        query_log_format = sphinxql
+        pid_file = /var/run/manticore/searchd.pid
+        data_dir = /var/lib/manticore
+        shutdown_timeout = 25s
+        server_id = $server_id
+        telemetry = 0
+      }
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+      ephemeral-storage: 64Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+      ephemeral-storage: 1Gi
+
+# Buddy serves Prometheus metrics on the worker's HTTP port (9308, /metrics).
+serviceMonitor:
+  enabled: true
+  interval: 60s
+
+serviceAccount:
+  name: manticore
+
+# The image runs supervisord, searchd and the PHP replication supervisor as
+# root by default; the image's manticore user (UID/GID 999) owns every path
+# they write (/var/lib/manticore, /var/run/manticore, /var/run/mysqld, /tmp).
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 999
+  runAsGroup: 999
+  fsGroup: 999
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  runAsNonRoot: true
+  runAsUser: 999
+  runAsGroup: 999
+  seccompProfile:
+    type: RuntimeDefault

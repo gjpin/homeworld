@@ -26,6 +26,14 @@ Non-secret cluster coordinates are committed as literal values, not placeholders
 | | `/agents/PASEO_PASSWORD` | Paseo daemon password (clients send it as a bearer token); required, because the daemon listens on the VM's network address. | Chosen strong password |
 | | `/agents/OPENAI_API_KEY` | OpenAI API key for Codex CLI and OpenCode. | From OpenAI |
 | | `/agents/GITHUB_TOKEN` | GitHub token for agent git operations. | From GitHub (needs the Copilot Requests permission, [openchamber.md](openchamber.md#agent-logins)) |
+| **AFFiNE** | `/affine/PRIVATE_KEY` | Server signing and encryption key (sessions, tokens, and the BYOK provider keys workspace owners store server-side), rendered into the read-only `private.key` of the server's configuration directory. Rotating it invalidates every stored BYOK key and session. | `openssl ecparam -name prime256v1 -genkey -noout` (P-256 private-key PEM, including the BEGIN/END lines) |
+| | `/affine/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `affine` (the CNPG `owner` user) |
+| | `/affine/POSTGRES_PASSWORD` | CloudNativePG application password. Must contain only RFC 3986 unreserved characters; it is embedded unescaped in the PostgreSQL connection URL. | `openssl rand -hex 32` (hex output is RFC 3986 unreserved) |
+| | `/affine/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for the job queues, cache, and sessions. | `openssl rand -hex 32` |
+| | `/affine/RUSTFS_ACCESS_KEY` | RustFS S3 access key for the blob, avatar, and AI storages. | Chosen access key ID (≥8 characters, no whitespace, `=` or `,`) |
+| | `/affine/RUSTFS_SECRET_KEY` | RustFS S3 secret key for the blob, avatar, and AI storages. | `openssl rand -hex 16` |
+| | `/affine/EXA_API_KEY` | Exa API key for AFFiNE AI web search. | From Exa |
+| | `/affine/UNSPLASH_API_KEY` | Unsplash access key for image search in documents. | From Unsplash (application access key) |
 | **Argo CD** | `/argocd/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for the controllers' cache; rendered into both the `password` key (Dragonfly CR) and the chart's `redis-password` key. | `openssl rand -hex 32` |
 | **Authelia** | `/authelia/SESSION_SECRET` | Session cookie encryption secret. | `openssl rand -hex 32` |
 | | `/authelia/STORAGE_ENCRYPTION_KEY` | At-rest encryption key for the SQL configuration storage. | `openssl rand -hex 32` |
@@ -37,6 +45,7 @@ Non-secret cluster coordinates are committed as literal values, not placeholders
 | | `/authelia/OIDC_JWK_RS256` | RSA private key (JWK) for signing OIDC tokens. | `openssl genrsa 2048` (private-key PEM, including the BEGIN/END lines; Authelia derives the public key) |
 | | `/authelia/RESET_PASSWORD_JWT_SECRET` | JWT secret for the password-reset flow. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_ARGOCD` | Argo CD OIDC client secret. | `openssl rand -hex 32` |
+| | `/authelia/OIDC_CLIENT_SECRET_AFFINE` | AFFiNE OIDC client secret (also rendered into AFFiNE's `config.json` by the `affine-config` ExternalSecret). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_ACTUAL_BUDGET` | Actual Budget OIDC client secret (also delivered to the `actual-budget` namespace as `actual-budget-secrets`). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_CODER` | Coder OIDC client secret (also delivered to coderd by the `coder-secrets` ExternalSecret). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_ENVOY` | Envoy Gateway OIDC client secret (shared by every gateway-OIDC route; delivered to each protected app's namespace — envoy-gateway, homepage, longhorn-system, victoria-metrics, homeassistant, and openchamber — as `envoy-oidc-client-secret`). | `openssl rand -hex 32` |
@@ -120,6 +129,6 @@ Some secrets are produced by manual one-time procedures rather than generated di
 
 Generation constraints worth knowing:
 
-- The ten `/authelia/OIDC_CLIENT_SECRET_*` values are 64-character hex strings from `openssl rand -hex 32`: hex output is RFC 3986 unreserved, which avoids token-endpoint encoding issues, and exceeds Authelia's 40-character recommendation for client secrets.
-- S3 secret keys (`/rustfs/RUSTFS_SECRET_KEY`, `/notesnook/RUSTFS_SECRET_KEY`) use `openssl rand -hex 16` to stay within the 40-character secret-key limit MinIO-compatible stores accept; access key IDs are chosen and must be at least 8 characters with no whitespace, `=` or `,`.
-- The RustFS user behind the `/notesnook/RUSTFS_*` keypair does not require manual registration: the `Tenant` in `apps/rustfs/0_tenant.yaml` declares its bucket, policy, and user, and the RustFS Operator provisions them from the Secrets synced by `apps/rustfs/-1_user_secrets.yaml` once the Tenant workload is ready. If equivalent users were previously created through the RustFS console, remove any console user carrying the same access key before the first sync, then confirm all items provisioned with `kubectl -n rustfs get tenant rustfs -o jsonpath='{.status.provisioning}'`.
+- The twelve `/authelia/OIDC_CLIENT_SECRET_*` values are 64-character hex strings from `openssl rand -hex 32`: hex output is RFC 3986 unreserved, which avoids token-endpoint encoding issues, and exceeds Authelia's 40-character recommendation for client secrets.
+- S3 secret keys (`/rustfs/RUSTFS_SECRET_KEY`, `/notesnook/RUSTFS_SECRET_KEY`, `/affine/RUSTFS_SECRET_KEY`) use `openssl rand -hex 16` to stay within the 40-character secret-key limit MinIO-compatible stores accept; access key IDs are chosen and must be at least 8 characters with no whitespace, `=` or `,`.
+- The RustFS users behind the `/notesnook/RUSTFS_*` and `/affine/RUSTFS_*` keypairs do not require manual registration: the `Tenant` in `apps/rustfs/0_tenant.yaml` declares their buckets, policies, and users, and the RustFS Operator provisions them from the Secrets synced by `apps/rustfs/-1_user_secrets.yaml` once the Tenant workload is ready. If equivalent users were previously created through the RustFS console, remove any console user carrying the same access key before the first sync, then confirm all items provisioned with `kubectl -n rustfs get tenant rustfs -o jsonpath='{.status.provisioning}'`.

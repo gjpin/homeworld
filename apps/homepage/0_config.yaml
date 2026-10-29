@@ -100,6 +100,11 @@ data:
             href: https://notes.homeworld.internal
             description: Encrypted notes
             siteMonitor: https://notes.homeworld.internal
+        - AFFiNE:
+            icon: affine
+            href: https://affine.homeworld.internal
+            description: Docs, whiteboards, and AI workspace
+            siteMonitor: https://affine.homeworld.internal
         - Actual Budget:
             icon: actual-budget
             href: https://budget.homeworld.internal

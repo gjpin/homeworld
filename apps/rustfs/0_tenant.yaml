@@ -122,6 +122,9 @@ spec:
   # single bucket the application uses (see 0_user_policies.yaml).
   buckets:
     - name: notesnook-attachments
+    - name: affine-blobs
+    - name: affine-avatars
+    - name: affine-copilot
   policies:
     - name: platform
       document:
@@ -133,7 +136,15 @@ spec:
         configMapKeyRef:
           name: rustfs-user-policy-notesnook
           key: policy.json
+    - name: affine-readwrite
+      document:
+        configMapKeyRef:
+          name: rustfs-user-policy-affine
+          key: policy.json
   users:
     - name: notesnook
       policies:
         - notesnook-readwrite
+    - name: affine
+      policies:
+        - affine-readwrite

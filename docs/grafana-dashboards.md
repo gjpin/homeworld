@@ -71,6 +71,7 @@ dashboard's JSON `description` cites its provenance.
 
 | Folder | Dashboard | Source |
 | --- | --- | --- |
+| AFFiNE | AFFiNE, Manticore Search (Prometheus) | AFFiNE: custom (AFFiNE publishes no dashboard; business metric scopes from `base/metrics/metrics.ts` and Prisma client and pool metrics, as rendered by `@opentelemetry/exporter-prometheus` and checked against the live exporter; the server emits no HTTP request histogram). Manticore Search: official manticoresoftware/grafana-dashboard repo `grafana/dashboards/manticore-dashboard.json` (linked from the Manticore manual's Grafana integration page); matchers scoped to `namespace="affine"`, the `job` variable limited to the Manticore scrape job there, and the datasource variable defaulted to `prometheus` |
 | Argo CD | ArgoCD | official: argoproj/argo-cd repo `examples/dashboard.json` (linked from the docs monitoring page) |
 | Authelia | Authelia | custom (authelia telemetry metrics, authelia.com reference; no official dashboard) |
 | cert-manager | cert-manager | custom (pkg/metrics/metrics.go plus certificate metrics corroborated by the docs-referenced monitoring mixin; the project publishes no dashboard) |

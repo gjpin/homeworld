@@ -1,0 +1,197 @@
+# https://github.com/toeverything/AFFiNE/releases/latest/download/docker-compose.yml
+# https://docs.affine.pro/self-host-affine/install/configuration
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: affine
+  namespace: affine
+  labels:
+    app.kubernetes.io/name: affine
+    app.kubernetes.io/component: server
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: affine
+  # Migrations run in the init container: never let an old and a new pod run
+  # them (or serve the schema) side by side.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: affine
+        app.kubernetes.io/component: server
+    spec:
+      serviceAccountName: affine-app
+      automountServiceAccountToken: false
+      runtimeClassName: gvisor
+      securityContext:
+        runAsNonRoot: true
+        # The image's built-in node user; its home directory holds the
+        # configuration directory AFFiNE resolves from os.homedir().
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        # The compose file's affine_migration service: Prisma schema
+        # migrations, then AFFiNE's data migrations. Re-running it on every
+        # pod start is a no-op once the database is current, so each image
+        # bump migrates before the new server starts.
+        - name: migrate
+          image: ghcr.io/toeverything/affine:0.27.4
+          imagePullPolicy: IfNotPresent
+          command:
+            - node
+            - ./scripts/self-host-predeploy.js
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: HOME
+              value: /home/node
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: affine-secrets
+                  key: DATABASE_URL
+            - name: REDIS_SERVER_HOST
+              value: dragonfly.affine.svc.cluster.local
+            - name: REDIS_SERVER_PORT
+              value: "6379"
+            - name: REDIS_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dragonfly
+                  key: password
+            # OIDC discovery, token, UserInfo and JWKS calls to Authelia and
+            # CalDAV calls to OpenCloud need the homeworld CA.
+            - name: NODE_EXTRA_CA_CERTS
+              value: /etc/homeworld-ca/ca.crt
+            # Prisma CLI update checks and usage telemetry (checkpoint.prisma.io).
+            - name: CHECKPOINT_DISABLE
+              value: "1"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+          volumeMounts:
+            - name: config
+              mountPath: /home/node/.affine/config
+              readOnly: true
+            - name: homeworld-ca
+              mountPath: /etc/homeworld-ca
+              readOnly: true
+      containers:
+        - name: affine
+          image: ghcr.io/toeverything/affine:0.27.4
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: HOME
+              value: /home/node
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: affine-secrets
+                  key: DATABASE_URL
+            - name: REDIS_SERVER_HOST
+              value: dragonfly.affine.svc.cluster.local
+            - name: REDIS_SERVER_PORT
+              value: "6379"
+            - name: REDIS_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dragonfly
+                  key: password
+            # OIDC discovery, token, UserInfo and JWKS calls to Authelia and
+            # CalDAV calls to OpenCloud need the homeworld CA.
+            - name: NODE_EXTRA_CA_CERTS
+              value: /etc/homeworld-ca/ca.crt
+            # Prisma CLI update checks and usage telemetry (checkpoint.prisma.io).
+            - name: CHECKPOINT_DISABLE
+              value: "1"
+          ports:
+            - name: http
+              containerPort: 3010
+              protocol: TCP
+            - name: metrics
+              containerPort: 9464
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /info
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /info
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /info
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: "2"
+              memory: 3Gi
+              ephemeral-storage: 2Gi
+          volumeMounts:
+            - name: config
+              mountPath: /home/node/.affine/config
+              readOnly: true
+            - name: homeworld-ca
+              mountPath: /etc/homeworld-ca
+              readOnly: true
+            # NestJS GraphQL writes the generated schema to
+            # <projectRoot>/src/schema.gql at every start; /app is root-owned,
+            # so the non-root server needs this directory writable.
+            - name: graphql-schema
+              mountPath: /app/src
+      volumes:
+        - name: config
+          secret:
+            secretName: affine-config
+        - name: graphql-schema
+          emptyDir:
+            sizeLimit: 16Mi
+        - name: homeworld-ca
+          configMap:
+            name: homeworld-ca

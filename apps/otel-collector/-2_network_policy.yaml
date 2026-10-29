@@ -1202,6 +1202,39 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: allow-otel-pod-scrape-affine
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # AFFiNE's ServiceMonitor scrapes the server's OpenTelemetry Prometheus
+  # exporter (9464), the Manticore chart's ServiceMonitor scrapes the
+  # worker's /metrics on its HTTP port (9308), and the handwritten
+  # PodMonitors scrape the CloudNativePG instance metrics port (9187) and the
+  # Dragonfly operand admin metrics port (9999).
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: affine
+      toPorts:
+        - ports:
+            - port: "9464"
+              protocol: TCP
+            - port: "9308"
+              protocol: TCP
+            - port: "9187"
+              protocol: TCP
+            - port: "9999"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-otel-pod-scrape-vaultwarden
   namespace: otel-collector
   annotations:

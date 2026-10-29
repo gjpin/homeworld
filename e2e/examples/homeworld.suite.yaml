@@ -236,6 +236,7 @@ spec:
             - woodpecker
             - coder
             - vaultwarden
+            - affine
             - actual-budget
             - homepage
             - opentelemetry-operator
@@ -360,6 +361,25 @@ spec:
           condition: Ready
           status: "True"
           timeout: 10m
+      - name: cnpg-affine
+        resourceCondition:
+          apiVersion: postgresql.cnpg.io/v1
+          kind: Cluster
+          name: affine
+          namespace: affine
+          condition: Ready
+          status: "True"
+          timeout: 10m
+      - name: dragonfly-affine
+        resourceCondition:
+          apiVersion: dragonflydb.io/v1alpha1
+          kind: Dragonfly
+          name: dragonfly
+          namespace: affine
+          fields:
+            - path: status.phase
+              value: Ready
+          timeout: 10m
       - name: documentdb-notesnook
         resourceCondition:
           apiVersion: postgresql.cnpg.io/v1
@@ -477,6 +497,13 @@ spec:
           service: vaultwarden
           port: 8080
           path: "/alive"
+          timeout: 10m
+      - name: affine-health
+        serviceProbe:
+          namespace: affine
+          service: affine
+          port: 3010
+          path: "/info"
           timeout: 10m
       # Actual Budget reports bootstrapped only after its startup OpenID
       # discovery against Authelia succeeded (the pod's startup probe gates

@@ -280,6 +280,19 @@
       ]
     },
     {
+      "description": "AFFiNE minors run irreversible schema and data migrations and can change the config schema",
+      "matchPackageNames": [
+        "ghcr.io/toeverything/affine"
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor"
+      ],
+      "prBodyNotes": [
+        "ℹ️ **AFFiNE Upgrade**: Read the [release notes](https://github.com/toeverything/AFFiNE/releases) of every minor crossed and diff the release's `config.schema.json` against `apps/affine/-1_secrets.yaml` (renamed keys and new BYOK provider values). The init container migrates on startup and cannot be rolled back, so take the CNPG volume-snapshot backup first (docs/upgrades.md §9)."
+      ]
+    },
+    {
       "description": "Woodpecker majors carry required admin actions",
       "matchPackageNames": [
         "woodpecker"

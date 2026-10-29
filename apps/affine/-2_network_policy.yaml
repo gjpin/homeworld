@@ -1,0 +1,405 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-affine-gateway
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: affine
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+      toPorts:
+        - ports:
+            - port: "3010"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The handwritten ServiceMonitor scrapes AFFiNE's OpenTelemetry Prometheus
+  # exporter.
+  name: allow-affine-metrics-ingress
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: affine
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9464"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-affine-postgres
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: affine
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: affine-rw
+            namespace: affine
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-affine-dragonfly
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: affine
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: dragonfly
+            namespace: affine
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-affine-manticore
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: affine
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: manticore-worker-svc
+            namespace: affine
+      toPorts:
+        - ports:
+            - port: "9308"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-affine-rustfs
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: affine
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: rustfs
+            k8s:rustfs.tenant: rustfs
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-affine-authelia
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: affine
+  egress:
+    - toFQDNs:
+        - matchName: "auth.homeworld.internal"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # CalDAV calendar sync through OpenCloud's DAV proxy to Radicale (the only
+  # provider config.json offers).
+  name: allow-affine-opencloud-caldav
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: affine
+  egress:
+    - toFQDNs:
+        - matchName: "cloud.homeworld.internal"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # AI BYOK providers: the four built-in providers (OpenAI, Anthropic,
+  # Gemini, fal) plus the OpenAI-compatible endpoints documented for
+  # workspace owners (OpenRouter, Mistral, DeepSeek, OpenCode Zen). Any other
+  # custom endpoint a workspace adds needs its host here first. Exa (AI web
+  # search) and Unsplash (image search) use the keys in config.json.
+  name: allow-affine-ai-providers
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: affine
+  egress:
+    - toFQDNs:
+        - matchName: "api.openai.com"
+        - matchName: "api.anthropic.com"
+        - matchName: "generativelanguage.googleapis.com"
+        - matchName: "fal.run"
+        - matchName: "queue.fal.run"
+        - matchName: "rest.fal.ai"
+        - matchName: "fal.media"
+        - matchPattern: "*.fal.media"
+        - matchName: "openrouter.ai"
+        - matchName: "api.mistral.ai"
+        - matchName: "api.deepseek.com"
+        - matchName: "opencode.ai"
+        - matchName: "api.exa.ai"
+        - matchName: "api.unsplash.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-affine-postgres-ingress
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: affine
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: affine
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-affine-postgres-metrics-ingress
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The handwritten PodMonitor scrapes the CloudNativePG instance metrics
+  # port.
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: affine
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-affine-dragonfly-ingress
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: dragonfly
+      k8s:app.kubernetes.io/instance: dragonfly
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: affine
+            k8s:app.kubernetes.io/name: affine
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    # Operand admin/metrics endpoint (port 9999) scraped by the PodMonitor.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9999"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-manticore-ingress
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: manticoresearch
+      k8s:app.kubernetes.io/component: worker
+  ingress:
+    # AFFiNE's indexer talks to the HTTP JSON API.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: affine
+            k8s:app.kubernetes.io/name: affine
+      toPorts:
+        - ports:
+            - port: "9308"
+              protocol: TCP
+    # The chart's ServiceMonitor scrapes /metrics on the same HTTP port.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "9308"
+              protocol: TCP
+    # The worker's replication supervisor reaches searchd through the pod's
+    # own DNS name (SQL 9306, binary 9312, replication 9315-9415).
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: affine
+            k8s:app.kubernetes.io/name: manticoresearch
+            k8s:app.kubernetes.io/component: worker
+      toPorts:
+        - ports:
+            - port: "9306"
+              protocol: TCP
+            - port: "9312"
+              protocol: TCP
+            - port: "9315"
+              endPort: 9415
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-manticore-egress
+  namespace: affine
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: manticoresearch
+      k8s:app.kubernetes.io/component: worker
+  egress:
+    # The worker's replication supervisor (replica.php) discovers its peers
+    # through the Kubernetes API.
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: affine
+            k8s:app.kubernetes.io/name: manticoresearch
+            k8s:app.kubernetes.io/component: worker
+      toPorts:
+        - ports:
+            - port: "9306"
+              protocol: TCP
+            - port: "9312"
+              protocol: TCP
+            - port: "9315"
+              endPort: 9415
+              protocol: TCP

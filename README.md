@@ -33,6 +33,7 @@ User-facing applications:
 | App | Domain(s) | Description |
 | --- | --- | --- |
 | Actual Budget | `budget.homeworld.internal` | Envelope-budgeting sync server and web app with Authelia sign-in and Enable Banking bank sync. |
+| AFFiNE | `affine.homeworld.internal` | Docs, whiteboards, and databases with Authelia sign-in, Manticore-backed search, CalDAV calendars through OpenCloud, and AI through workspace-owned provider keys ([docs/affine.md](docs/affine.md)). |
 | Coder | `coder.homeworld.internal`<br>`*.coder.homeworld.internal` | Cloud development workspaces and Coder Agents; the wildcard serves workspace apps ([docs/coder.md](docs/coder.md)). |
 | Collabora | `office.homeworld.internal` | WOPI office editor for OpenCloud. |
 | Forgejo | `git.homeworld.internal` | Git forge. |
@@ -152,6 +153,7 @@ users:
 | `opencloud-admin` / `opencloud-spaceadmin` / `opencloud-user` / `opencloud-user-light` | OpenCloud roles; sign-in requires one of these groups (deny-by-default) |
 | `vaultwarden-admin` / `vaultwarden-user` | Vaultwarden sign-in groups (role mapping is not supported by the upstream image; admin access is assigned in the admin panel via `ADMIN_TOKEN`) |
 | `homeassistant-admin` | Home Assistant admin role |
+| `affine-user` | AFFiNE sign-in; required (deny-by-default). AFFiNE roles are not mapped from groups: the instance admin is the account created in AFFiNE's `/admin` setup ([docs/affine.md](docs/affine.md)) |
 | `coder-user` | Coder sign-in; required (deny-by-default). Coder roles are not mapped from groups: the first user to sign in becomes Owner ([docs/coder.md](docs/coder.md)) |
 
 After editing the Infisical value, the change reaches the cluster on the ExternalSecret's hourly refresh (or immediately with `kubectl -n authelia delete secret authelia-files`, which External Secrets recreates at once). Authelia reads the database only at startup (`watch: false`), so finish with `kubectl -n authelia rollout restart deploy/authelia`.
@@ -226,6 +228,9 @@ The Ryzen node builds the agents VM during its bootstrap ([docs/openchamber.md](
   copilot login         # Copilot CLI (device-code flow)
   ```
   `/agents/OPENAI_API_KEY` and `/agents/GITHUB_TOKEN` reach the agents that OpenChamber and Paseo start, so Codex and OpenCode also work without an interactive login. Copilot CLI prefers `GITHUB_TOKEN` over its stored login, so that token must carry the Copilot Requests permission, otherwise `copilot login` appears to succeed but is silently shadowed.
+
+### 14. Set Up AFFiNE
+Open `https://affine.homeworld.internal/admin` right after the first sync and create the instance admin account in the setup wizard; `affine-user` members then sign in through Authelia. AI keys are not set in git: each workspace owner adds them under **Workspace Settings → Integrations → AI BYOK**, following [docs/affine.md](docs/affine.md).
 
 ## One-Time Codes
 
