@@ -1426,6 +1426,14 @@
           "name": "^audiomuse-ai-worker$",
           "namespace": "^audiomuse-ai$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-repo-server$",
+          "namespace": "^argocd$"
+        }
       }
     ],
     "posturePolicies": [
@@ -3771,6 +3779,14 @@
           "kind": "^Deployment$",
           "name": "^audiomuse-ai-worker$",
           "namespace": "^audiomuse-ai$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^argocd-argocd-repo-server$",
+          "namespace": "^argocd$"
         }
       }
     ],
