@@ -1,7 +1,11 @@
-# TODO: each application has a gateway, which are merged into a single one till
-# cert-manager supports http routes for automatic certificates
-# https://github.com/cert-manager/cert-manager/issues/6051
-# https://gateway.envoyproxy.io/docs/tasks/security/tls-cert-manager/
+# The single Gateway every route attaches to. cert-manager's Gateway shim
+# issues one Let's Encrypt certificate (DNS-01) for the hostnames of every
+# listener that references wildcard-tls: *.base-domain.invalid plus the
+# second-level wildcards for the apps that use multi-level names (a
+# wildcard certificate covers one label only). A new app needs only an
+# HTTPRoute on <app>.base-domain.invalid. base-domain.invalid is the
+# placeholder the Argo CD homeworld plugin replaces with the real domain
+# (docs/argocd.md).
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
@@ -11,26 +15,82 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-    cert-manager.io/cluster-issuer: homeworld-ca
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   gatewayClassName: envoy-merged
   addresses:
     - type: IPAddress
       value: 192.168.8.50
   listeners:
-    # No port-80 listener by design: certificates come from the private
-    # homeworld-ca issuer, so no HTTP-01 challenge path is needed; adding
-    # HTTP would only be a footgun.
-    - name: envoy-https
+    # No port-80 listener by design: certificates are issued through DNS-01,
+    # so no HTTP-01 challenge path is needed; adding HTTP would only be a
+    # footgun.
+    - name: https
       protocol: HTTPS
       port: 443
-      hostname: "envoy.homeworld.internal"
+      hostname: "*.base-domain.invalid"
       allowedRoutes:
         namespaces:
           from: All
       tls:
         mode: Terminate
         certificateRefs:
-          - name: envoy-tls-cert
+          - name: wildcard-tls
             kind: Secret
             group: ""
+    # Notesnook's auth, sse, and monograph servers (apps/notesnook).
+    - name: https-notes
+      protocol: HTTPS
+      port: 443
+      hostname: "*.notes.base-domain.invalid"
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: wildcard-tls
+            kind: Secret
+            group: ""
+    # The RustFS console (apps/rustfs).
+    - name: https-rustfs
+      protocol: HTTPS
+      port: 443
+      hostname: "*.rustfs.base-domain.invalid"
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: wildcard-tls
+            kind: Secret
+            group: ""
+    # Coder workspace apps (apps/coder).
+    - name: https-coder
+      protocol: HTTPS
+      port: 443
+      hostname: "*.coder.base-domain.invalid"
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: wildcard-tls
+            kind: Secret
+            group: ""
+    # Plain TCP passthrough for git SSH (git@ clone/push). Raw TCP carries
+    # no hostname, so every name resolving to 192.168.8.50 reaches it;
+    # clients use git.base-domain.invalid.
+    - name: forgejo-ssh
+      protocol: TCP
+      port: 22
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: forgejo
+        kinds:
+          - kind: TCPRoute

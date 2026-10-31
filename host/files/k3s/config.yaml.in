@@ -8,7 +8,7 @@ node-ip: @NODE_IP@
 tls-san:
   - @API_VIP@
 node-label:
-  - node.homeworld.internal/profile=@PROFILE@
+  - node.homeworld/profile=@PROFILE@
   - node.longhorn.io/create-default-disk=config
 selinux: true
 secrets-encryption: true

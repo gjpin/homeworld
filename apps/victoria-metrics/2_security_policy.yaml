@@ -1,37 +1,8 @@
 ---
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: SecurityPolicy
-metadata:
-  name: crowdsec-ext-auth
-  namespace: victoria-metrics
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
-spec:
-  targetRefs:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: envoy
-  extAuth:
-    failOpen: false
-    # Envoy Gateway only forwards request bodies to the ext-auth service when
-    # bodyToExtAuth is set; without it CrowdSec AppSec never sees request
-    # bodies (in-band virtual patching) and the gap is silent — path and
-    # header bans keep working.
-    bodyToExtAuth:
-      maxRequestBytes: 65536
-    grpc:
-      backendRefs:
-        - group: ""
-          kind: Service
-          name: crowdsec-envoy-bouncer
-          namespace: envoy-gateway
-          port: 8080
-          weight: 1
----
 # Gateway OIDC for the VictoriaMetrics UI. Authelia is the only login:
 # the UI has no built-in authentication, and the route requires the platform
 # group (docs/oidc.md). StrategicMerge keeps this policy from overriding the
-# Gateway-level CrowdSec extAuth above.
+# Gateway-level CrowdSec extAuth.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
@@ -47,27 +18,18 @@ spec:
       name: victoria-metrics
   oidc:
     provider:
-      # Token requests go through the authelia Backend so Envoy validates
-      # Authelia's certificate against the homeworld CA
-      # (2_authelia_backend.yaml).
-      backendRefs:
-        - group: gateway.envoyproxy.io
-          kind: Backend
-          name: authelia
-          port: 443
-          weight: 1
-      issuer: https://auth.homeworld.internal
-      authorizationEndpoint: https://auth.homeworld.internal/api/oidc/authorization
-      tokenEndpoint: https://auth.homeworld.internal/api/oidc/token
+      issuer: https://auth.base-domain.invalid
+      authorizationEndpoint: https://auth.base-domain.invalid/api/oidc/authorization
+      tokenEndpoint: https://auth.base-domain.invalid/api/oidc/token
     clientID: envoy
     clientSecret:
       name: envoy-oidc-client-secret
     scopes:
       - openid
       - offline_access
-    redirectURL: https://victoria-metrics.homeworld.internal/oauth2/callback
+    redirectURL: https://victoria-metrics.base-domain.invalid/oauth2/callback
     logoutPath: /logout
-    cookieDomain: victoria-metrics.homeworld.internal
+    cookieDomain: victoria-metrics.base-domain.invalid
     forwardAccessToken: false
     refreshToken: true
     passThroughAuthHeader: false
@@ -88,27 +50,18 @@ spec:
       name: victoria-logs
   oidc:
     provider:
-      # Token requests go through the authelia Backend so Envoy validates
-      # Authelia's certificate against the homeworld CA
-      # (2_authelia_backend.yaml).
-      backendRefs:
-        - group: gateway.envoyproxy.io
-          kind: Backend
-          name: authelia
-          port: 443
-          weight: 1
-      issuer: https://auth.homeworld.internal
-      authorizationEndpoint: https://auth.homeworld.internal/api/oidc/authorization
-      tokenEndpoint: https://auth.homeworld.internal/api/oidc/token
+      issuer: https://auth.base-domain.invalid
+      authorizationEndpoint: https://auth.base-domain.invalid/api/oidc/authorization
+      tokenEndpoint: https://auth.base-domain.invalid/api/oidc/token
     clientID: envoy
     clientSecret:
       name: envoy-oidc-client-secret
     scopes:
       - openid
       - offline_access
-    redirectURL: https://victoria-logs.homeworld.internal/oauth2/callback
+    redirectURL: https://victoria-logs.base-domain.invalid/oauth2/callback
     logoutPath: /logout
-    cookieDomain: victoria-logs.homeworld.internal
+    cookieDomain: victoria-logs.base-domain.invalid
     forwardAccessToken: false
     refreshToken: true
     passThroughAuthHeader: false
@@ -129,27 +82,18 @@ spec:
       name: victoria-traces
   oidc:
     provider:
-      # Token requests go through the authelia Backend so Envoy validates
-      # Authelia's certificate against the homeworld CA
-      # (2_authelia_backend.yaml).
-      backendRefs:
-        - group: gateway.envoyproxy.io
-          kind: Backend
-          name: authelia
-          port: 443
-          weight: 1
-      issuer: https://auth.homeworld.internal
-      authorizationEndpoint: https://auth.homeworld.internal/api/oidc/authorization
-      tokenEndpoint: https://auth.homeworld.internal/api/oidc/token
+      issuer: https://auth.base-domain.invalid
+      authorizationEndpoint: https://auth.base-domain.invalid/api/oidc/authorization
+      tokenEndpoint: https://auth.base-domain.invalid/api/oidc/token
     clientID: envoy
     clientSecret:
       name: envoy-oidc-client-secret
     scopes:
       - openid
       - offline_access
-    redirectURL: https://victoria-traces.homeworld.internal/oauth2/callback
+    redirectURL: https://victoria-traces.base-domain.invalid/oauth2/callback
     logoutPath: /logout
-    cookieDomain: victoria-traces.homeworld.internal
+    cookieDomain: victoria-traces.base-domain.invalid
     forwardAccessToken: false
     refreshToken: true
     passThroughAuthHeader: false

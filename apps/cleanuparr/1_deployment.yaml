@@ -75,11 +75,6 @@ spec:
                 secretKeyRef:
                   name: postgres-credentials
                   key: password
-            # Authelia sign-in: .NET reads every certificate in these
-            # directories into its trust store (the image's bundle plus the
-            # Homeworld CA).
-            - name: SSL_CERT_DIR
-              value: /etc/ssl/certs:/etc/homeworld-ca
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -126,15 +121,9 @@ spec:
               mountPath: /config
             - name: tmp
               mountPath: /tmp
-            - name: homeworld-ca
-              mountPath: /etc/homeworld-ca
-              readOnly: true
       volumes:
         - name: config
           persistentVolumeClaim:
             claimName: cleanuparr-config
         - name: tmp
           emptyDir: {}
-        - name: homeworld-ca
-          configMap:
-            name: homeworld-ca

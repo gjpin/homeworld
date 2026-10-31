@@ -74,7 +74,7 @@ server:
             # its post-boot checks. A taint, because kured uncordons the node
             # it rebooted; it removes nothing it did not add.
             - alert: NodePostbootFailed
-              expr: kube_node_spec_taint{key="node.homeworld.internal/postboot-failed"} == 1
+              expr: kube_node_spec_taint{key="node.homeworld/postboot-failed"} == 1
               for: 1m
               annotations:
                 summary: Node {{ $labels.node }} failed its post-boot checks (journalctl -u homeworld-postboot).

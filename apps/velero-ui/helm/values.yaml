@@ -33,11 +33,11 @@ env:
   - name: OAUTH_NAME
     value: Authelia
   - name: OAUTH_AUTHORIZATION_URL
-    value: https://auth.homeworld.internal/api/oidc/authorization
+    value: https://auth.base-domain.invalid/api/oidc/authorization
   - name: OAUTH_TOKEN_URL
-    value: https://auth.homeworld.internal/api/oidc/token
+    value: https://auth.base-domain.invalid/api/oidc/token
   - name: OAUTH_USER_INFO_URL
-    value: https://auth.homeworld.internal/api/oidc/userinfo
+    value: https://auth.base-domain.invalid/api/oidc/userinfo
   - name: OAUTH_CLIENT_ID
     value: velero-ui
   - name: OAUTH_CLIENT_SECRET
@@ -50,21 +50,9 @@ env:
   - name: OAUTH_GROUP_CLAIM
     value: groups
   - name: OAUTH_REDIRECT_URI
-    value: https://velero.homeworld.internal/login
+    value: https://velero.base-domain.invalid/login
   - name: DEFAULT_TIMEZONE
     value: Europe/Lisbon
-  # Authelia's certificate (OAuth token and userinfo calls) is signed by the
-  # homeworld CA; Node adds this file to its built-in roots.
-  - name: NODE_EXTRA_CA_CERTS
-    value: /etc/homeworld-ca/ca.crt
-volumes:
-  - name: homeworld-ca
-    configMap:
-      name: homeworld-ca
-volumeMounts:
-  - name: homeworld-ca
-    mountPath: /etc/homeworld-ca
-    readOnly: true
 podSecurityContext:
   runAsNonRoot: true
   seccompProfile:

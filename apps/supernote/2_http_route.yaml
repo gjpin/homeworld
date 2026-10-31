@@ -9,12 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: supernote
-      sectionName: supernote-https
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "supernote.homeworld.internal"
+    - "supernote.base-domain.invalid"
   rules:
     - filters:
         # The bundled nginx derives the public port it hands the backend

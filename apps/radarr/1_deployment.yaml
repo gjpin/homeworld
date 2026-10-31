@@ -61,7 +61,7 @@ spec:
             # pod hostname are always accepted, so the probes send
             # Host: localhost.
             - name: RADARR__SERVER__ALLOWEDHOSTS
-              value: radarr.homeworld.internal,radarr,radarr.radarr,radarr.radarr.svc,radarr.radarr.svc.cluster.local
+              value: radarr.base-domain.invalid,radarr,radarr.radarr,radarr.radarr.svc,radarr.radarr.svc.cluster.local
             # The gateway OIDC SecurityPolicy (2_security_policy.yaml) is
             # the login: External skips Radarr's own form. The API
             # still requires the key; ingress is limited to Envoy and the

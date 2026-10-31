@@ -1,0 +1,33 @@
+# https://artifacthub.io/packages/helm/external-dns/external-dns
+# https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/cloudflare.md
+# https://kubernetes-sigs.github.io/external-dns/latest/docs/sources/crd/
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: external-dns
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: external-dns
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=true
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ServerSideApply=true
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/external-dns/helm
+    targetRevision: HEAD
+    plugin:
+      name: homeworld

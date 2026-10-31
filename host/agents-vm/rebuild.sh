@@ -47,22 +47,30 @@ fi
 
 # --- cloud-init seed ------------------------------------------------------
 b64() { base64 -w0 "$1"; }
-ca=$(k3s kubectl -n kube-system get configmap homeworld-ca -o jsonpath='{.data.ca\.crt}' 2>/dev/null || true)
+# The cluster domain stays out of git: the staged files carry the
+# base-domain.invalid placeholder, filled in from the Secret Argo CD's
+# homeworld plugin renders with (docs/argocd.md).
+domain=$(k3s kubectl -n argocd get secret homeworld-domain -o jsonpath='{.data.BASE_DOMAIN}' | base64 -d)
+case "$domain" in
+  *.*) ;;
+  *) echo "agents-vm-rebuild: argocd/homeworld-domain holds no domain" >&2; exit 1 ;;
+esac
 seed=$(mktemp -d)
 trap 'rm -rf "$seed"' EXIT
+for f in provision.sh agents-instructions.md; do
+  sed "s/base-domain\.invalid/$domain/g" "$src/$f" >"$seed/$f"
+done
 {
   echo "AGENTS_INFISICAL_CLIENT_ID=$AGENTS_INFISICAL_CLIENT_ID"
   echo "AGENTS_INFISICAL_CLIENT_SECRET=$AGENTS_INFISICAL_CLIENT_SECRET"
   echo "AGENTS_INFISICAL_PROJECT_ID=$AGENTS_INFISICAL_PROJECT_ID"
 } >"$seed/infisical.env"
-printf '%s\n' "$ca" >"$seed/homeworld-ca.crt"
 keys=$(printf '%s\n' "$AGENT_SSH_KEYS" | sed '/^$/d; s/^/      - /')
 sed -e "s|@INFISICAL_ENV_B64@|$(b64 "$seed/infisical.env")|" \
   -e "s|@VERSIONS_B64@|$(b64 "$src/versions.env")|" \
-  -e "s|@PROVISION_B64@|$(b64 "$src/provision.sh")|" \
+  -e "s|@PROVISION_B64@|$(b64 "$seed/provision.sh")|" \
   -e "s|@CONFIG_B64@|$(b64 "$src/agents-config.sh")|" \
-  -e "s|@INSTRUCTIONS_B64@|$(b64 "$src/agents-instructions.md")|" \
-  -e "s|@CA_B64@|$(b64 "$seed/homeworld-ca.crt")|" \
+  -e "s|@INSTRUCTIONS_B64@|$(b64 "$seed/agents-instructions.md")|" \
   -e "s|@TIMEZONE@|$TIMEZONE|" \
   "$src/user-data.in" |
   awk -v keys="$keys" '$0 == "@AGENT_SSH_KEYS@" {print keys; next} {print}' >"$seed/user-data"

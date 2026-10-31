@@ -384,23 +384,16 @@ spec:
             seccompProfile:
               type: RuntimeDefault
           env:
-            # Authelia (OIDC), Collabora (WOPI discovery on
-            # office.homeworld.internal), and the public cloud URL serve
-            # certificates signed by the homeworld CA: add the trust-manager
-            # ConfigMap mounted below to Go's system roots (additive to the
-            # image's CA bundle).
-            - name: SSL_CERT_DIR
-              value: /etc/homeworld-ca
             - name: OC_ADD_RUN_SERVICES
               value: collaboration
             - name: WEB_OPTION_DISABLE_SPONSOR_LINK
               value: "true"
             - name: WEB_OPTION_YJS_SERVER_URL
-              value: wss://cloud.homeworld.internal/yjs
+              value: wss://cloud.base-domain.invalid/yjs
             - name: FRONTEND_APP_HANDLER_SECURE_VIEW_APP_ADDR
               value: eu.opencloud.api.collaboration
             - name: OC_URL
-              value: https://cloud.homeworld.internal
+              value: https://cloud.base-domain.invalid
             - name: OC_LOG_LEVEL
               value: info
             - name: OC_LOG_COLOR
@@ -433,7 +426,7 @@ spec:
             - name: NATS_NATS_PORT
               value: "9233"
             - name: OC_OIDC_ISSUER
-              value: https://auth.homeworld.internal
+              value: https://auth.base-domain.invalid
             - name: OC_OIDC_CLIENT_ID
               value: web
             - name: OC_OIDC_CLIENT_SCOPES
@@ -489,7 +482,7 @@ spec:
             - name: COLLABORATION_APP_PRODUCT
               value: Collabora
             - name: COLLABORATION_APP_ADDR
-              value: https://office.homeworld.internal
+              value: https://office.base-domain.invalid
             - name: COLLABORATION_APP_INSECURE
               value: "false"
             - name: COLLABORATION_APP_PROOF_DISABLE
@@ -497,7 +490,7 @@ spec:
             - name: COLLABORATION_CS3API_DATAGATEWAY_INSECURE
               value: "false"
             - name: COLLABORATION_WOPI_SRC
-              value: https://cloud.homeworld.internal
+              value: https://cloud.base-domain.invalid
             # Blobs and metadata of every space on a POSIX filesystem: the
             # NAS share mounted at the users storage root (the default path,
             # set explicitly). The rest of /var/lib/opencloud (NATS, search
@@ -554,9 +547,6 @@ spec:
               memory: 4Gi
               ephemeral-storage: 2Gi
           volumeMounts:
-            - name: homeworld-ca
-              mountPath: /etc/homeworld-ca
-              readOnly: true
             - name: opencloud-config
               mountPath: /etc/opencloud
             - name: opencloud-config-files
@@ -650,9 +640,6 @@ spec:
             claimName: opencloud-users
         - name: opencloud-apps
           emptyDir: {}
-        - name: homeworld-ca
-          configMap:
-            name: homeworld-ca
 ---
 apiVersion: apps/v1
 kind: Deployment

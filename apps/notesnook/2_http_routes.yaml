@@ -9,12 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: notesnook
-      sectionName: notes-https
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "notes.homeworld.internal"
+    - "notes.base-domain.invalid"
   rules:
     - backendRefs:
         - name: notesnook-sync
@@ -34,12 +33,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: notesnook
-      sectionName: notes-auth-https
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "auth.notes.homeworld.internal"
+    - "auth.notes.base-domain.invalid"
   rules:
     - backendRefs:
         - name: notesnook-identity
@@ -59,12 +57,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: notesnook
-      sectionName: notes-sse-https
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "sse.notes.homeworld.internal"
+    - "sse.notes.base-domain.invalid"
   rules:
     - backendRefs:
         - name: notesnook-sse
@@ -84,12 +81,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: notesnook
-      sectionName: notes-monograph-https
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "monograph.notes.homeworld.internal"
+    - "monograph.notes.base-domain.invalid"
   rules:
     - backendRefs:
         - name: notesnook-monograph

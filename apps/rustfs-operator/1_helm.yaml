@@ -41,3 +41,5 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: apps/rustfs-operator/helm
     targetRevision: HEAD
+    plugin:
+      name: homeworld

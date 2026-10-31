@@ -5,7 +5,7 @@
 #
 # Workspaces land in the coder-workspaces namespace, which enforces the
 # Restricted Pod Security Standard and the network policies in
-# apps/coder/workspaces/: no ingress, egress to coder.homeworld.internal,
+# apps/coder/workspaces/: no ingress, egress to coder.base-domain.invalid,
 # Forgejo, and the internet on 22/80/443.
 
 terraform {
@@ -34,9 +34,6 @@ locals {
   # .github/workflows/coder-workspace-image.yaml.
   image = "ghcr.io/gjpin/homeworld/coder-workspace:20261027.8"
   home  = "/home/coder"
-  # Public roots plus the Homeworld CA, assembled at container start; see
-  # the dev container's command.
-  ca_bundle = "/tmp/ca-certificates.crt"
 
   labels = {
     "app.kubernetes.io/name"     = "coder-workspace"
@@ -163,7 +160,7 @@ module "code-server" {
   version  = "1.6.0"
   agent_id = coder_agent.main.id
   folder   = local.home
-  # Served on its own origin under *.coder.homeworld.internal.
+  # Served on its own origin under *.coder.base-domain.invalid.
   subdomain = true
   # code-server's usage telemetry and its update check against GitHub.
   additional_args = "--disable-telemetry --disable-update-check"
@@ -262,15 +259,7 @@ resource "kubernetes_deployment_v1" "main" {
           name              = "dev"
           image             = local.image
           image_pull_policy = "IfNotPresent"
-          # The agent init script downloads the agent binary from
-          # https://coder.homeworld.internal with curl, so the Homeworld CA
-          # has to be in the bundle before it runs. The bundle is rebuilt
-          # from the mounted ConfigMap on every start.
-          command = ["sh", "-c", <<-EOT
-            cat /etc/ssl/certs/ca-certificates.crt /etc/homeworld-ca/ca.crt > ${local.ca_bundle}
-            ${coder_agent.main.init_script}
-          EOT
-          ]
+          command = ["sh", "-c", coder_agent.main.init_script]
           security_context {
             allow_privilege_escalation = false
             run_as_non_root            = true
@@ -281,33 +270,6 @@ resource "kubernetes_deployment_v1" "main" {
           env {
             name  = "CODER_AGENT_TOKEN"
             value = coder_agent.main.token
-          }
-          # curl (the init script), git (Forgejo over HTTPS), cargo, and
-          # OpenSSL clients read the combined bundle; the Go agent adds the CA
-          # directory to its system roots; Node.js appends the CA.
-          env {
-            name  = "CURL_CA_BUNDLE"
-            value = local.ca_bundle
-          }
-          env {
-            name  = "GIT_SSL_CAINFO"
-            value = local.ca_bundle
-          }
-          env {
-            name  = "CARGO_HTTP_CAINFO"
-            value = local.ca_bundle
-          }
-          env {
-            name  = "SSL_CERT_FILE"
-            value = local.ca_bundle
-          }
-          env {
-            name  = "SSL_CERT_DIR"
-            value = "/etc/homeworld-ca"
-          }
-          env {
-            name  = "NODE_EXTRA_CA_CERTS"
-            value = "/etc/homeworld-ca/ca.crt"
           }
           resources {
             requests = {
@@ -326,11 +288,6 @@ resource "kubernetes_deployment_v1" "main" {
             name       = "home"
             read_only  = false
           }
-          volume_mount {
-            mount_path = "/etc/homeworld-ca"
-            name       = "homeworld-ca"
-            read_only  = true
-          }
         }
 
         volume {
@@ -338,13 +295,6 @@ resource "kubernetes_deployment_v1" "main" {
           persistent_volume_claim {
             claim_name = kubernetes_persistent_volume_claim_v1.home.metadata[0].name
             read_only  = false
-          }
-        }
-
-        volume {
-          name = "homeworld-ca"
-          config_map {
-            name = "homeworld-ca"
           }
         }
 

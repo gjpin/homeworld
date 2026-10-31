@@ -253,7 +253,7 @@ spec:
       k8s:app.kubernetes.io/name: server
   egress:
     - toFQDNs:
-        - matchName: "auth.homeworld.internal"
+        - matchName: "auth.base-domain.invalid"
       toPorts:
         - ports:
             - port: "443"

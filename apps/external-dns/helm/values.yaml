@@ -1,0 +1,55 @@
+fullnameOverride: external-dns
+# The only source is the DNSEndpoint in this namespace
+# (apps/external-dns/2_dns_endpoint.yaml), so RBAC stays a namespaced Role.
+namespaced: true
+# Explicit, so the Role and RoleBinding render with metadata.namespace.
+sourceNamespace: external-dns
+replicaCount: 1
+
+image:
+  pullPolicy: IfNotPresent
+
+sources:
+  - crd
+
+# The wildcard record is the only record this instance publishes, so sync
+# also removes it when the DNSEndpoint goes away. The TXT registry limits
+# deletions to records carrying this owner id.
+policy: sync
+
+# Scope this instance to its own zone; the txt registry only adopts records
+# carrying this prefix/owner id. base-domain.invalid is replaced with the
+# real domain by the Argo CD homeworld plugin (docs/argocd.md).
+domainFilters:
+  - base-domain.invalid
+txtPrefix: external-dns.
+txtOwnerId: external-dns
+
+extraArgs:
+  # The registry TXT record of *.base-domain.invalid cannot carry a literal
+  # "*" behind the prefix; write it as "wildcard" instead.
+  - --txt-wildcard-replacement=wildcard
+
+provider:
+  name: cloudflare
+
+env:
+  - name: CF_API_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: cloudflare-api-token
+        key: api-token
+
+serviceMonitor:
+  enabled: true
+  interval: 60s
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+    ephemeral-storage: 64Mi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+    ephemeral-storage: 2Gi

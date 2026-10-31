@@ -47,7 +47,7 @@ spec:
             - name: SERVER_TYPE
               value: navidrome
             - name: SERVER_URL
-              value: https://navidrome.homeworld.internal
+              value: https://navidrome.base-domain.invalid
             # Only the username and password can be changed in the login
             # form.
             - name: SERVER_LOCK

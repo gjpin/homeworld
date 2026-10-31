@@ -9,12 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: opencloud
-      sectionName: cloud-https
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "cloud.homeworld.internal"
+    - "cloud.base-domain.invalid"
   rules:
     - backendRefs:
         - name: opencloud

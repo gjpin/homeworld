@@ -29,3 +29,5 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: apps/otel-collector/helm/cluster
     targetRevision: HEAD
+    plugin:
+      name: homeworld

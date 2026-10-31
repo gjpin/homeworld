@@ -12,7 +12,7 @@ spec:
   disableDefaultAdminSecret: true
   config:
     server:
-      root_url: "https://grafana.homeworld.internal"
+      root_url: "https://grafana.base-domain.invalid"
     analytics:
       reporting_enabled: "false"
       check_for_updates: "false"
@@ -42,9 +42,9 @@ spec:
       name: Authelia
       client_id: grafana
       scopes: "openid profile email groups"
-      auth_url: "https://auth.homeworld.internal/api/oidc/authorization"
-      token_url: "https://auth.homeworld.internal/api/oidc/token"
-      api_url: "https://auth.homeworld.internal/api/oidc/userinfo"
+      auth_url: "https://auth.base-domain.invalid/api/oidc/authorization"
+      token_url: "https://auth.base-domain.invalid/api/oidc/token"
+      api_url: "https://auth.base-domain.invalid/api/oidc/userinfo"
       use_pkce: "true"
       auth_style: "InHeader"
       allow_sign_up: "true"
@@ -55,9 +55,6 @@ spec:
       role_attribute_path: "contains(groups[*], 'grafana-admin') && 'GrafanaAdmin' || 'Viewer'"
       allow_assign_grafana_admin: "true"
       skip_org_role_sync: "false"
-      # Authelia's certificate is signed by the homeworld CA (ConfigMap
-      # published by trust-manager, mounted below).
-      tls_client_ca: /etc/homeworld-ca/ca.crt
   # grafana-operator v5.25 creates the claim from this spec but never wires
   # it into the pod (its deployment template hard-codes an emptyDir data
   # volume), so the deployment override below mounts <cr-name>-pvc at
@@ -155,9 +152,6 @@ spec:
                   mountPath: /var/lib/grafana
                 - name: victoria-plugins
                   mountPath: /var/lib/grafana/plugins
-                - name: homeworld-ca
-                  mountPath: /etc/homeworld-ca
-                  readOnly: true
               env:
                 - name: GF_SECURITY_ADMIN_USER
                   valueFrom:
@@ -188,8 +182,5 @@ spec:
                 claimName: grafana-pvc
             - name: victoria-plugins
               emptyDir: {}
-            - name: homeworld-ca
-              configMap:
-                name: homeworld-ca
   # The public HTTPRoute is hand-written in 2_http_route.yaml (standard
   # wave-2 file); the operator's spec.httpRoute generation stays unset.

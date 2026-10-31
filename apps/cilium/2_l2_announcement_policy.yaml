@@ -30,7 +30,7 @@ metadata:
 spec:
   nodeSelector:
     matchExpressions:
-      - key: node.homeworld.internal/profile
+      - key: node.homeworld/profile
         operator: NotIn
         values:
           - ryzen

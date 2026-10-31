@@ -29,7 +29,7 @@ identity_validation:
     require_second_factor: true
 totp:
   disable: false
-  issuer: auth.homeworld.internal
+  issuer: auth.base-domain.invalid
 webauthn:
   disable: false
   display_name: Homeworld
@@ -51,9 +51,9 @@ access_control:
   default_policy: two_factor
 session:
   cookies:
-    - domain: homeworld.internal
-      authelia_url: https://auth.homeworld.internal
-      default_redirection_url: https://cloud.homeworld.internal
+    - domain: base-domain.invalid
+      authelia_url: https://auth.base-domain.invalid
+      default_redirection_url: https://cloud.base-domain.invalid
   redis:
     host: dragonfly.authelia.svc.cluster.local
     port: 6379
@@ -212,21 +212,21 @@ identity_providers:
         - userinfo
       allowed_origins_from_client_redirect_uris: true
       allowed_origins:
-        - https://cloud.homeworld.internal
-        - https://grafana.homeworld.internal
-        - https://git.homeworld.internal
-        - https://argocd.homeworld.internal
-        - https://photos.homeworld.internal
-        - https://velero.homeworld.internal
-        - https://console.rustfs.homeworld.internal
-        - https://vault.homeworld.internal
-        - https://home.homeworld.internal
-        - https://budget.homeworld.internal
-        - https://coder.homeworld.internal
-        - https://affine.homeworld.internal
-        - https://audiobookshelf.homeworld.internal
-        - https://bindery.homeworld.internal
-        - https://cleanuparr.homeworld.internal
+        - https://cloud.base-domain.invalid
+        - https://grafana.base-domain.invalid
+        - https://git.base-domain.invalid
+        - https://argocd.base-domain.invalid
+        - https://photos.base-domain.invalid
+        - https://velero.base-domain.invalid
+        - https://console.rustfs.base-domain.invalid
+        - https://vault.base-domain.invalid
+        - https://home.base-domain.invalid
+        - https://budget.base-domain.invalid
+        - https://coder.base-domain.invalid
+        - https://affine.base-domain.invalid
+        - https://audiobookshelf.base-domain.invalid
+        - https://bindery.base-domain.invalid
+        - https://cleanuparr.base-domain.invalid
     clients:
       # OpenCloud clients deviate from the official Authelia guide
       # (https://www.authelia.com/integration/openid-connect/clients/opencloud/)
@@ -258,9 +258,9 @@ identity_providers:
         access_token_signed_response_alg: RS256
         userinfo_signed_response_alg: 'none'
         redirect_uris:
-          - https://cloud.homeworld.internal/
-          - https://cloud.homeworld.internal/oidc-callback.html
-          - https://cloud.homeworld.internal/oidc-silent-redirect.html
+          - https://cloud.base-domain.invalid/
+          - https://cloud.base-domain.invalid/oidc-callback.html
+          - https://cloud.base-domain.invalid/oidc-silent-redirect.html
         scopes: &opencloud_scopes
           - openid
           - profile
@@ -342,7 +342,7 @@ identity_providers:
         token_endpoint_auth_method: client_secret_basic
         access_token_signed_response_alg: RS256
         redirect_uris:
-          - https://grafana.homeworld.internal/login/generic_oauth
+          - https://grafana.base-domain.invalid/login/generic_oauth
         scopes: &app_scopes
           - openid
           - profile
@@ -368,7 +368,7 @@ identity_providers:
         token_endpoint_auth_method: client_secret_basic
         access_token_signed_response_alg: RS256
         redirect_uris:
-          - https://git.homeworld.internal/user/oauth2/Authelia/callback
+          - https://git.base-domain.invalid/user/oauth2/Authelia/callback
         scopes: *app_scopes
         grant_types: *app_grants
         response_types: *app_responses
@@ -391,7 +391,7 @@ identity_providers:
         token_endpoint_auth_method: client_secret_basic
         access_token_signed_response_alg: RS256
         redirect_uris:
-          - https://argocd.homeworld.internal/auth/callback
+          - https://argocd.base-domain.invalid/auth/callback
         scopes: *app_scopes
         grant_types: *app_grants
         response_types: *app_responses
@@ -439,8 +439,8 @@ identity_providers:
         token_endpoint_auth_method: client_secret_basic
         access_token_signed_response_alg: RS256
         redirect_uris:
-          - https://photos.homeworld.internal/auth/login
-          - https://photos.homeworld.internal/user-settings
+          - https://photos.base-domain.invalid/auth/login
+          - https://photos.base-domain.invalid/user-settings
           - app.immich:///oauth-callback
         scopes:
           - openid
@@ -468,7 +468,7 @@ identity_providers:
         token_endpoint_auth_method: client_secret_post
         access_token_signed_response_alg: RS256
         redirect_uris:
-          - https://velero.homeworld.internal/login
+          - https://velero.base-domain.invalid/login
         scopes: *app_scopes
         grant_types: *app_grants
         response_types: *app_responses
@@ -490,8 +490,8 @@ identity_providers:
         token_endpoint_auth_method: client_secret_post
         access_token_signed_response_alg: RS256
         redirect_uris:
-          - https://console.rustfs.homeworld.internal/rustfs/admin/v3/oidc/callback/default
-          - https://console.rustfs.homeworld.internal/rustfs/admin/v3/oidc/callback
+          - https://console.rustfs.base-domain.invalid/rustfs/admin/v3/oidc/callback/default
+          - https://console.rustfs.base-domain.invalid/rustfs/admin/v3/oidc/callback
         scopes: *app_scopes
         grant_types: *app_grants
         response_types: *app_responses
@@ -512,7 +512,7 @@ identity_providers:
         token_endpoint_auth_method: client_secret_basic
         access_token_signed_response_alg: RS256
         redirect_uris:
-          - https://vault.homeworld.internal/identity/connect/oidc-signin
+          - https://vault.base-domain.invalid/identity/connect/oidc-signin
         # offline_access / refresh_token grant let Vaultwarden extend SSO
         # sessions without re-prompting.
         scopes:
@@ -546,7 +546,7 @@ identity_providers:
         access_token_signed_response_alg: RS256
         userinfo_signed_response_alg: none
         redirect_uris:
-          - https://budget.homeworld.internal/openid/callback
+          - https://budget.base-domain.invalid/openid/callback
         scopes:
           - openid
           - profile
@@ -572,7 +572,7 @@ identity_providers:
         token_endpoint_auth_method: client_secret_post
         access_token_signed_response_alg: RS256
         redirect_uris:
-          - https://home.homeworld.internal/auth/oidc/callback
+          - https://home.base-domain.invalid/auth/oidc/callback
         scopes:
           - openid
           - profile
@@ -602,7 +602,7 @@ identity_providers:
         access_token_signed_response_alg: RS256
         userinfo_signed_response_alg: 'none'
         redirect_uris:
-          - https://coder.homeworld.internal/api/v2/users/oidc/callback
+          - https://coder.base-domain.invalid/api/v2/users/oidc/callback
         # offline_access / refresh_token keep Coder sessions alive past the
         # access token lifetime (Coder's OIDC refresh-token guide).
         scopes:
@@ -642,7 +642,7 @@ identity_providers:
         access_token_signed_response_alg: RS256
         userinfo_signed_response_alg: none
         redirect_uris:
-          - https://affine.homeworld.internal/oauth/callback
+          - https://affine.base-domain.invalid/oauth/callback
         scopes:
           - openid
           - profile
@@ -671,8 +671,8 @@ identity_providers:
         access_token_signed_response_alg: RS256
         userinfo_signed_response_alg: none
         redirect_uris:
-          - https://audiobookshelf.homeworld.internal/auth/openid/callback
-          - https://audiobookshelf.homeworld.internal/auth/openid/mobile-redirect
+          - https://audiobookshelf.base-domain.invalid/auth/openid/callback
+          - https://audiobookshelf.base-domain.invalid/auth/openid/mobile-redirect
           - audiobookshelf://oauth
         scopes:
           - openid
@@ -701,7 +701,7 @@ identity_providers:
         token_endpoint_auth_method: client_secret_basic
         access_token_signed_response_alg: RS256
         redirect_uris:
-          - https://bindery.homeworld.internal/api/v1/auth/oidc/authelia/callback
+          - https://bindery.base-domain.invalid/api/v1/auth/oidc/authelia/callback
         scopes:
           - openid
           - profile
@@ -730,8 +730,8 @@ identity_providers:
         token_endpoint_auth_method: client_secret_post
         access_token_signed_response_alg: RS256
         redirect_uris:
-          - https://cleanuparr.homeworld.internal/api/auth/oidc/callback
-          - https://cleanuparr.homeworld.internal/api/account/oidc/link/callback
+          - https://cleanuparr.base-domain.invalid/api/auth/oidc/callback
+          - https://cleanuparr.base-domain.invalid/api/account/oidc/link/callback
         scopes:
           - openid
           - profile
@@ -743,7 +743,7 @@ identity_providers:
       # Envoy Gateway itself is the OIDC client for the browser UIs that
       # have no usable app-native auth: victoria-metrics, victoria-logs,
       # victoria-traces, longhorn, homepage, the Envoy Gateway admin console
-      # (envoy.homeworld.internal backs onto the controller's 19000 admin port),
+      # (envoy.base-domain.invalid backs onto the controller's 19000 admin port),
       # zigbee2mqtt, and the media apps prowlarr, sonarr, radarr, lidarr,
       # bazarr, maintainerr, houndarr and audiomuse-ai. Each host gets its own
       # HTTPRoute-scoped SecurityPolicy with a per-host redirect URL and
@@ -767,22 +767,22 @@ identity_providers:
         # No claims_policy: Envoy only validates the ID token's issuer,
         # audience, and expiry; no claims are read or forwarded.
         redirect_uris:
-          - https://victoria-metrics.homeworld.internal/oauth2/callback
-          - https://victoria-logs.homeworld.internal/oauth2/callback
-          - https://victoria-traces.homeworld.internal/oauth2/callback
-          - https://longhorn.homeworld.internal/oauth2/callback
-          - https://homepage.homeworld.internal/oauth2/callback
-          - https://envoy.homeworld.internal/oauth2/callback
-          - https://z2m.homeworld.internal/oauth2/callback
-          - https://thinkrail.homeworld.internal/oauth2/callback
-          - https://prowlarr.homeworld.internal/oauth2/callback
-          - https://sonarr.homeworld.internal/oauth2/callback
-          - https://radarr.homeworld.internal/oauth2/callback
-          - https://lidarr.homeworld.internal/oauth2/callback
-          - https://bazarr.homeworld.internal/oauth2/callback
-          - https://maintainerr.homeworld.internal/oauth2/callback
-          - https://houndarr.homeworld.internal/oauth2/callback
-          - https://audiomuse.homeworld.internal/oauth2/callback
+          - https://victoria-metrics.base-domain.invalid/oauth2/callback
+          - https://victoria-logs.base-domain.invalid/oauth2/callback
+          - https://victoria-traces.base-domain.invalid/oauth2/callback
+          - https://longhorn.base-domain.invalid/oauth2/callback
+          - https://homepage.base-domain.invalid/oauth2/callback
+          - https://envoy.base-domain.invalid/oauth2/callback
+          - https://z2m.base-domain.invalid/oauth2/callback
+          - https://thinkrail.base-domain.invalid/oauth2/callback
+          - https://prowlarr.base-domain.invalid/oauth2/callback
+          - https://sonarr.base-domain.invalid/oauth2/callback
+          - https://radarr.base-domain.invalid/oauth2/callback
+          - https://lidarr.base-domain.invalid/oauth2/callback
+          - https://bazarr.base-domain.invalid/oauth2/callback
+          - https://maintainerr.base-domain.invalid/oauth2/callback
+          - https://houndarr.base-domain.invalid/oauth2/callback
+          - https://audiomuse.base-domain.invalid/oauth2/callback
         # offline_access backs the SecurityPolicies' refreshToken: true,
         # which renews gateway sessions without a new authorization flow.
         scopes:

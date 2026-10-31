@@ -58,7 +58,7 @@ spec:
             # pod hostname are always accepted, so the probes send
             # Host: localhost.
             - name: PROWLARR__SERVER__ALLOWEDHOSTS
-              value: prowlarr.homeworld.internal,prowlarr,prowlarr.prowlarr,prowlarr.prowlarr.svc,prowlarr.prowlarr.svc.cluster.local
+              value: prowlarr.base-domain.invalid,prowlarr,prowlarr.prowlarr,prowlarr.prowlarr.svc,prowlarr.prowlarr.svc.cluster.local
             # The gateway OIDC SecurityPolicy (2_security_policy.yaml) is
             # the login: External skips Prowlarr's own form. The API
             # still requires the key; ingress is limited to Envoy and the

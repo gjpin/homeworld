@@ -1,7 +1,8 @@
 ---
-# Git SSH (git@ clone/push) through the merged Gateway's TCP listener
-# (0_gateway.yaml). TCPRoute carries no spec.hostnames of its own; clients
-# reach it as git.homeworld.internal through the router's wildcard rewrite.
+# Git SSH (git@ clone/push) through the shared Gateway's forgejo-ssh TCP
+# listener (apps/envoy-gateway/2_gateway.yaml). TCPRoute carries no
+# spec.hostnames of its own; clients reach it as git.base-domain.invalid
+# through the wildcard DNS record.
 apiVersion: gateway.networking.k8s.io/v1
 kind: TCPRoute
 metadata:
@@ -12,7 +13,7 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: forgejo
+      namespace: envoy-gateway
       sectionName: forgejo-ssh
       group: gateway.networking.k8s.io
       kind: Gateway

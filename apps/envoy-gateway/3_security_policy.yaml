@@ -31,7 +31,7 @@ spec:
 ---
 # Gateway OIDC for the Envoy Gateway admin console. The envoy-gateway
 # Service's 19000 admin port is published through the gateway itself at
-# envoy.homeworld.internal (3_http_route.yaml); the route requires the platform
+# envoy.base-domain.invalid (3_http_route.yaml); the route requires the platform
 # group (docs/oidc.md). StrategicMerge keeps this
 # policy from overriding the Gateway-level CrowdSec extAuth above.
 apiVersion: gateway.envoyproxy.io/v1alpha1
@@ -50,27 +50,18 @@ spec:
       name: envoy
   oidc:
     provider:
-      # Token requests go through the authelia Backend so Envoy validates
-      # Authelia's certificate against the homeworld CA
-      # (3_authelia_backend.yaml).
-      backendRefs:
-        - group: gateway.envoyproxy.io
-          kind: Backend
-          name: authelia
-          port: 443
-          weight: 1
-      issuer: https://auth.homeworld.internal
-      authorizationEndpoint: https://auth.homeworld.internal/api/oidc/authorization
-      tokenEndpoint: https://auth.homeworld.internal/api/oidc/token
+      issuer: https://auth.base-domain.invalid
+      authorizationEndpoint: https://auth.base-domain.invalid/api/oidc/authorization
+      tokenEndpoint: https://auth.base-domain.invalid/api/oidc/token
     clientID: envoy
     clientSecret:
       name: envoy-oidc-client-secret
     scopes:
       - openid
       - offline_access
-    redirectURL: https://envoy.homeworld.internal/oauth2/callback
+    redirectURL: https://envoy.base-domain.invalid/oauth2/callback
     logoutPath: /logout
-    cookieDomain: envoy.homeworld.internal
+    cookieDomain: envoy.base-domain.invalid
     forwardAccessToken: false
     refreshToken: true
     passThroughAuthHeader: false

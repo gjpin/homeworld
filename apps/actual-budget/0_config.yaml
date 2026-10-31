@@ -29,9 +29,9 @@ data:
   ACTUAL_OPENID_ENFORCE: "true"
   ACTUAL_USER_CREATION_MODE: "manual"
   # https://www.authelia.com/integration/openid-connect/clients/actual-budget/
-  ACTUAL_OPENID_DISCOVERY_URL: "https://auth.homeworld.internal"
+  ACTUAL_OPENID_DISCOVERY_URL: "https://auth.base-domain.invalid"
   ACTUAL_OPENID_CLIENT_ID: "actual-budget"
-  ACTUAL_OPENID_SERVER_HOSTNAME: "https://budget.homeworld.internal"
+  ACTUAL_OPENID_SERVER_HOSTNAME: "https://budget.base-domain.invalid"
   ACTUAL_OPENID_AUTH_METHOD: "oauth2"
   # Sessions last one week instead of the upstream default (never).
   ACTUAL_TOKEN_EXPIRATION: "604800"

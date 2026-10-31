@@ -29,38 +29,38 @@ data:
     - Development:
         - Forgejo:
             icon: forgejo
-            href: https://git.homeworld.internal
+            href: https://git.base-domain.invalid
             description: Git forge
-            siteMonitor: https://git.homeworld.internal
+            siteMonitor: https://git.base-domain.invalid
         - Woodpecker CI:
             icon: woodpecker-ci
-            href: https://ci.homeworld.internal
+            href: https://ci.base-domain.invalid
             description: CI pipelines
-            siteMonitor: https://ci.homeworld.internal
+            siteMonitor: https://ci.base-domain.invalid
         - Coder:
             icon: coder
-            href: https://coder.homeworld.internal
+            href: https://coder.base-domain.invalid
             description: Cloud development workspaces
-            siteMonitor: https://coder.homeworld.internal
+            siteMonitor: https://coder.base-domain.invalid
         - OpenChamber:
             icon: /icons/openchamber.svg
-            href: https://openchamber.homeworld.internal
+            href: https://openchamber.base-domain.invalid
             description: AI agent workspace
-            siteMonitor: https://openchamber.homeworld.internal
+            siteMonitor: https://openchamber.base-domain.invalid
         # No siteMonitor: the route is behind the Gateway's Authelia sign-in.
         - ThinkRail:
             icon: /icons/thinkrail.svg
-            href: https://thinkrail.homeworld.internal
+            href: https://thinkrail.base-domain.invalid
             description: Agentic IDE for the Pi agent
     - Media:
         - Immich:
             icon: immich
-            href: https://photos.homeworld.internal
+            href: https://photos.base-domain.invalid
             description: Photos and videos
-            siteMonitor: https://photos.homeworld.internal
+            siteMonitor: https://photos.base-domain.invalid
             widget:
               type: immich
-              url: https://photos.homeworld.internal
+              url: https://photos.base-domain.invalid
               key: "{{HOMEPAGE_VAR_IMMICH_API_KEY}}"
     # The media stack (the README's *arr Stack table). Widgets call the
     # in-cluster Services with each app's API key; the gateway-OIDC routes
@@ -69,9 +69,9 @@ data:
     - "*arr":
         - Jellyfin:
             icon: jellyfin
-            href: https://jellyfin.homeworld.internal
+            href: https://jellyfin.base-domain.invalid
             description: Movies, TV and music streaming
-            siteMonitor: https://jellyfin.homeworld.internal
+            siteMonitor: https://jellyfin.base-domain.invalid
             widget:
               type: jellyfin
               url: http://jellyfin.jellyfin.svc.cluster.local:8096
@@ -81,27 +81,27 @@ data:
               enableNowPlaying: true
         - Seerr:
             icon: seerr
-            href: https://seerr.homeworld.internal
+            href: https://seerr.base-domain.invalid
             description: Movie and series requests
-            siteMonitor: https://seerr.homeworld.internal
+            siteMonitor: https://seerr.base-domain.invalid
             widget:
               type: seerr
               url: http://seerr.seerr.svc.cluster.local:5055
               key: "{{HOMEPAGE_VAR_SEERR_API_KEY}}"
         - Audiobookshelf:
             icon: audiobookshelf
-            href: https://audiobookshelf.homeworld.internal
+            href: https://audiobookshelf.base-domain.invalid
             description: Audiobooks and podcasts
-            siteMonitor: https://audiobookshelf.homeworld.internal
+            siteMonitor: https://audiobookshelf.base-domain.invalid
             widget:
               type: audiobookshelf
               url: http://audiobookshelf.audiobookshelf.svc.cluster.local:13378
               key: "{{HOMEPAGE_VAR_AUDIOBOOKSHELF_API_KEY}}"
         - Navidrome:
             icon: navidrome
-            href: https://navidrome.homeworld.internal
+            href: https://navidrome.base-domain.invalid
             description: Music streaming
-            siteMonitor: https://navidrome.homeworld.internal
+            siteMonitor: https://navidrome.base-domain.invalid
             widget:
               type: navidrome
               url: http://navidrome.navidrome.svc.cluster.local:4533
@@ -110,27 +110,27 @@ data:
               salt: "{{HOMEPAGE_VAR_NAVIDROME_SALT}}"
         - Feishin:
             icon: feishin
-            href: https://feishin.homeworld.internal
+            href: https://feishin.base-domain.invalid
             description: Navidrome web player
-            siteMonitor: https://feishin.homeworld.internal
+            siteMonitor: https://feishin.base-domain.invalid
         - Streamystats:
             icon: streamystats
-            href: https://streamystats.homeworld.internal
+            href: https://streamystats.base-domain.invalid
             description: Jellyfin statistics
-            siteMonitor: https://streamystats.homeworld.internal
+            siteMonitor: https://streamystats.base-domain.invalid
         - qBittorrent:
             icon: qbittorrent
-            href: https://qbittorrent.homeworld.internal
+            href: https://qbittorrent.base-domain.invalid
             description: Torrent downloads over VPN
-            siteMonitor: https://qbittorrent.homeworld.internal
+            siteMonitor: https://qbittorrent.base-domain.invalid
             widget:
               type: qbittorrent
-              url: https://qbittorrent.homeworld.internal
+              url: https://qbittorrent.base-domain.invalid
               username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
               password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
         - Prowlarr:
             icon: prowlarr
-            href: https://prowlarr.homeworld.internal
+            href: https://prowlarr.base-domain.invalid
             description: Indexer manager
             widget:
               type: prowlarr
@@ -138,7 +138,7 @@ data:
               key: "{{HOMEPAGE_VAR_PROWLARR_API_KEY}}"
         - Sonarr:
             icon: sonarr
-            href: https://sonarr.homeworld.internal
+            href: https://sonarr.base-domain.invalid
             description: TV series
             widget:
               type: sonarr
@@ -147,7 +147,7 @@ data:
               enableQueue: true
         - Radarr:
             icon: radarr
-            href: https://radarr.homeworld.internal
+            href: https://radarr.base-domain.invalid
             description: Movies
             widget:
               type: radarr
@@ -156,7 +156,7 @@ data:
               enableQueue: true
         - Lidarr:
             icon: lidarr
-            href: https://lidarr.homeworld.internal
+            href: https://lidarr.base-domain.invalid
             description: Music
             widget:
               type: lidarr
@@ -164,12 +164,12 @@ data:
               key: "{{HOMEPAGE_VAR_LIDARR_API_KEY}}"
         - Bindery:
             icon: bindery
-            href: https://bindery.homeworld.internal
+            href: https://bindery.base-domain.invalid
             description: Books and audiobooks
-            siteMonitor: https://bindery.homeworld.internal
+            siteMonitor: https://bindery.base-domain.invalid
         - Bazarr:
             icon: bazarr
-            href: https://bazarr.homeworld.internal
+            href: https://bazarr.base-domain.invalid
             description: Subtitles
             widget:
               type: bazarr
@@ -177,85 +177,85 @@ data:
               key: "{{HOMEPAGE_VAR_BAZARR_API_KEY}}"
         - Cleanuparr:
             icon: cleanuparr
-            href: https://cleanuparr.homeworld.internal
+            href: https://cleanuparr.base-domain.invalid
             description: Download queue cleaning and malware blocking
-            siteMonitor: https://cleanuparr.homeworld.internal
+            siteMonitor: https://cleanuparr.base-domain.invalid
         - Houndarr:
             icon: houndarr
-            href: https://houndarr.homeworld.internal
+            href: https://houndarr.base-domain.invalid
             description: Missing-item searches
         - Maintainerr:
             icon: maintainerr
-            href: https://maintainerr.homeworld.internal
+            href: https://maintainerr.base-domain.invalid
             description: Library cleanup rules
             widget:
               type: maintainerr
               url: http://maintainerr.maintainerr.svc.cluster.local:6246
         - AudioMuse-AI:
             icon: audiomuse-ai
-            href: https://audiomuse.homeworld.internal
+            href: https://audiomuse.base-domain.invalid
             description: Sonic analysis and playlists
     - Home:
         - Home Assistant:
             icon: home-assistant
-            href: https://home.homeworld.internal
+            href: https://home.base-domain.invalid
             description: Home automation
-            siteMonitor: https://home.homeworld.internal
+            siteMonitor: https://home.base-domain.invalid
             widget:
               type: homeassistant
-              url: https://home.homeworld.internal
+              url: https://home.base-domain.invalid
               key: "{{HOMEPAGE_VAR_HASS_TOKEN}}"
         - Zigbee2MQTT:
             icon: zigbee2mqtt
-            href: https://z2m.homeworld.internal
+            href: https://z2m.base-domain.invalid
             description: Zigbee bridge
     - Productivity:
         - OpenCloud:
             icon: mdi-cloud-outline
-            href: https://cloud.homeworld.internal
+            href: https://cloud.base-domain.invalid
             description: Files, sharing, and collaboration
-            siteMonitor: https://cloud.homeworld.internal
+            siteMonitor: https://cloud.base-domain.invalid
         - Collabora:
             icon: collabora
-            href: https://office.homeworld.internal
+            href: https://office.base-domain.invalid
             description: Online office editor
-            siteMonitor: https://office.homeworld.internal
+            siteMonitor: https://office.base-domain.invalid
         - Notesnook:
             icon: notesnook
-            href: https://notes.homeworld.internal
+            href: https://notes.base-domain.invalid
             description: Encrypted notes
-            siteMonitor: https://notes.homeworld.internal
+            siteMonitor: https://notes.base-domain.invalid
         - AFFiNE:
             icon: affine
-            href: https://affine.homeworld.internal
+            href: https://affine.base-domain.invalid
             description: Docs, whiteboards, and AI workspace
-            siteMonitor: https://affine.homeworld.internal
+            siteMonitor: https://affine.base-domain.invalid
         - Actual Budget:
             icon: actual-budget
-            href: https://budget.homeworld.internal
+            href: https://budget.base-domain.invalid
             description: Personal budgeting
-            siteMonitor: https://budget.homeworld.internal
+            siteMonitor: https://budget.base-domain.invalid
         - Vaultwarden:
             icon: vaultwarden
-            href: https://vault.homeworld.internal
+            href: https://vault.base-domain.invalid
             description: Password manager
-            siteMonitor: https://vault.homeworld.internal
+            siteMonitor: https://vault.base-domain.invalid
         - Supernote:
             icon: mdi-notebook-edit-outline
-            href: https://supernote.homeworld.internal
+            href: https://supernote.base-domain.invalid
             description: Supernote private cloud
-            siteMonitor: https://supernote.homeworld.internal
+            siteMonitor: https://supernote.base-domain.invalid
     - Monitoring:
         - Grafana:
             icon: grafana
-            href: https://grafana.homeworld.internal
+            href: https://grafana.base-domain.invalid
             description: Dashboards and observability
             # No siteMonitor: unauthenticated probes hit Grafana's OIDC
             # auto_login redirect and would measure the Authelia portal,
             # not Grafana (same class as the gateway-OIDC hosts above).
             widget:
               type: grafana
-              url: https://grafana.homeworld.internal
+              url: https://grafana.base-domain.invalid
               # The v2.4.0 grafana widget proxies through the generic
               # handler, which only sets Authorization from username/
               # password and silently ignores `key:`. Send the existing
@@ -265,54 +265,54 @@ data:
                 Authorization: Bearer {{HOMEPAGE_VAR_GRAFANA_TOKEN}}
         - VictoriaMetrics:
             icon: victoriametrics
-            href: https://victoria-metrics.homeworld.internal
+            href: https://victoria-metrics.base-domain.invalid
             description: Metrics backend
         - VictoriaLogs:
             icon: victorialogs
-            href: https://victoria-logs.homeworld.internal
+            href: https://victoria-logs.base-domain.invalid
             description: Logs backend
         - VictoriaTraces:
             icon: mdi-chart-timeline-variant
-            href: https://victoria-traces.homeworld.internal
+            href: https://victoria-traces.base-domain.invalid
             description: Traces backend
     - Platform:
         - Argo CD:
             icon: argo-cd
-            href: https://argocd.homeworld.internal
+            href: https://argocd.base-domain.invalid
             description: GitOps delivery
-            siteMonitor: https://argocd.homeworld.internal
+            siteMonitor: https://argocd.base-domain.invalid
             widget:
               type: argocd
-              url: https://argocd.homeworld.internal
+              url: https://argocd.base-domain.invalid
               key: "{{HOMEPAGE_VAR_ARGOCD_TOKEN}}"
         - Longhorn:
             icon: longhorn
-            href: https://longhorn.homeworld.internal
+            href: https://longhorn.base-domain.invalid
             description: Distributed block storage
         - RustFS:
             icon: rustfs
-            href: https://console.rustfs.homeworld.internal
+            href: https://console.rustfs.base-domain.invalid
             description: S3 object storage console
-            siteMonitor: https://s3.homeworld.internal
+            siteMonitor: https://s3.base-domain.invalid
         - RustFS Operator:
             icon: rustfs
-            href: https://rustfs.homeworld.internal
+            href: https://rustfs.base-domain.invalid
             description: Storage operator console
-            siteMonitor: https://rustfs.homeworld.internal
+            siteMonitor: https://rustfs.base-domain.invalid
         - Velero UI:
             icon: velero
-            href: https://velero.homeworld.internal
+            href: https://velero.base-domain.invalid
             description: Backup management
-            siteMonitor: https://velero.homeworld.internal
+            siteMonitor: https://velero.base-domain.invalid
         - Envoy Gateway:
             icon: mdi-lan
-            href: https://envoy.homeworld.internal
+            href: https://envoy.base-domain.invalid
             description: Gateway API admin console
         - Authelia:
             icon: authelia
-            href: https://auth.homeworld.internal
+            href: https://auth.base-domain.invalid
             description: Identity provider
-            siteMonitor: https://auth.homeworld.internal
+            siteMonitor: https://auth.base-domain.invalid
   widgets.yaml: |
     - kubernetes:
         cluster:

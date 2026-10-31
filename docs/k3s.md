@@ -71,7 +71,7 @@ is identical on every server apart from the node address and profile label:
   enforce baseline and audit/warn restricted for namespaces without labels,
   with `kube-system` exempt (kube-vip and the k3s-managed CoreDNS).
 
-The node label `node.homeworld.internal/profile=<profile>` selects the
+The node label `node.homeworld/profile=<profile>` selects the
 Ryzen for the Gateway VIP exclusion and its Cilium node configuration, and
 corebox, the only node with an Intel GPU, for the Intel GPU device plugin.
 
@@ -90,8 +90,9 @@ Prerequisites:
    an admin user whose `~/.ssh/authorized_keys` holds your key
    ([docs/fedora.md](fedora.md)). Set each node's hostname in the installer:
    it becomes the Kubernetes node name.
-3. The Infisical secrets exist (README step 5), including the External
-   Secrets Universal Auth identity and, for the Ryzen, the read-only
+3. The Infisical secrets exist (README step 5), including the cluster
+   domain (`/argocd/BASE_DOMAIN`), the External Secrets Universal Auth
+   identity and, for the Ryzen, the read-only
    `/agents/*` identity ([docs/secrets.md](secrets.md)).
 
 ### First server
@@ -115,15 +116,18 @@ The script checks the profile against the hardware and asks for:
 - the LUKS passphrase, once per encrypted device, to bind it to Tang (compare
   the key thumbprint it prints with the router's first);
 - the External Secrets Operator's Infisical Universal Auth client ID and
-  secret.
+  secret, with which it reads the cluster domain from Infisical.
 
 It prints the cluster token (also in `/etc/rancher/k3s/token`), grows the
 root LV, binds Clevis, runs apply.sh, installs the pinned k3s and starts it.
 On the first server it then renders the Cilium CRDs (from the tag in
 `apps/cilium/0_crds.yaml`), the Cilium release (`apps/cilium/helm`), a
 minimal Argo CD (the chart pinned in `apps/argocd/helm` with
-`bootstrap/argocd-values.yaml`), the root `apps/app-of-apps.yaml`, and the
-`external-secrets` namespace with the `universal-auth-credentials` Secret,
+`bootstrap/argocd-values.yaml` plus the homeworld plugin from
+`apps/argocd/helm/values.yaml`, [argocd.md](argocd.md#homeworld-plugin)),
+the `homeworld-domain` Secret the plugin renders with, the root
+`apps/app-of-apps.yaml`, and the `external-secrets` namespace with the
+`universal-auth-credentials` Secret,
 and drops them into the k3s auto-deploying manifests directory
 (`/var/lib/rancher/k3s/server/manifests`). k3s applies every known kind and
 retries the rest (the Cilium ServiceMonitors wait for their CRDs), so the

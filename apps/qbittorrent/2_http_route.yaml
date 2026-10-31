@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: qbittorrent
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "qbittorrent.homeworld.internal"
+    - "qbittorrent.base-domain.invalid"
   rules:
     - backendRefs:
         - name: qbittorrent

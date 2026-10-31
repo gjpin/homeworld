@@ -75,10 +75,6 @@ spec:
                 secretKeyRef:
                   name: dragonfly
                   key: password
-            # OIDC discovery, token, UserInfo and JWKS calls to Authelia and
-            # CalDAV calls to OpenCloud need the homeworld CA.
-            - name: NODE_EXTRA_CA_CERTS
-              value: /etc/homeworld-ca/ca.crt
             # Prisma CLI update checks and usage telemetry (checkpoint.prisma.io).
             - name: CHECKPOINT_DISABLE
               value: "1"
@@ -94,9 +90,6 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /home/node/.affine/config
-              readOnly: true
-            - name: homeworld-ca
-              mountPath: /etc/homeworld-ca
               readOnly: true
       containers:
         - name: affine
@@ -129,10 +122,6 @@ spec:
                 secretKeyRef:
                   name: dragonfly
                   key: password
-            # OIDC discovery, token, UserInfo and JWKS calls to Authelia and
-            # CalDAV calls to OpenCloud need the homeworld CA.
-            - name: NODE_EXTRA_CA_CERTS
-              value: /etc/homeworld-ca/ca.crt
             # Prisma CLI update checks and usage telemetry (checkpoint.prisma.io).
             - name: CHECKPOINT_DISABLE
               value: "1"
@@ -177,9 +166,6 @@ spec:
             - name: config
               mountPath: /home/node/.affine/config
               readOnly: true
-            - name: homeworld-ca
-              mountPath: /etc/homeworld-ca
-              readOnly: true
             # NestJS GraphQL writes the generated schema to
             # <projectRoot>/src/schema.gql at every start; /app is root-owned,
             # so the non-root server needs this directory writable.
@@ -192,6 +178,3 @@ spec:
         - name: graphql-schema
           emptyDir:
             sizeLimit: 16Mi
-        - name: homeworld-ca
-          configMap:
-            name: homeworld-ca

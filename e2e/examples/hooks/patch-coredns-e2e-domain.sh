@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Point *.${BASE_DOMAIN} at the Envoy Gateway ClusterIP so in-cluster
 # clients (OIDC discovery, OpenCloud WOPI discovery, Collabora callbacks)
-# resolve cluster hostnames. Production gets them from the router's AdGuard
-# rewrite; on kind, CoreDNS would otherwise forward homeworld.internal to the
-# Docker VM resolver, which times out.
+# resolve cluster hostnames. Production resolves them through the public
+# wildcard record ExternalDNS publishes; kind has no such record for the
+# reserved homeworld.test domain.
 set -euo pipefail
 
-DOMAIN="${BASE_DOMAIN:-homeworld.internal}"
+DOMAIN="${BASE_DOMAIN:-homeworld.test}"
 WAIT_IP_SECS="${WAIT_IP_SECS:-900}"
 
 log() { printf '[patch-coredns-e2e-domain] %s\n' "$*"; }

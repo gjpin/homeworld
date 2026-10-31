@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: forgejo
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "git.homeworld.internal"
+    - "git.base-domain.invalid"
   rules:
     - backendRefs:
         - name: forgejo-http

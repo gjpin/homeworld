@@ -1,6 +1,6 @@
 # AFFiNE
 
-AFFiNE is a docs, whiteboard, and database workspace at `https://affine.homeworld.internal`. AFFiNE publishes no official Helm chart, so `apps/affine` implements its official Docker Compose deployment as handwritten manifests, with each Compose service replaced by the cluster's own building blocks.
+AFFiNE is a docs, whiteboard, and database workspace at `https://affine.base-domain.invalid`. AFFiNE publishes no official Helm chart, so `apps/affine` implements its official Docker Compose deployment as handwritten manifests, with each Compose service replaced by the cluster's own building blocks.
 
 ## Components
 
@@ -51,7 +51,7 @@ AI web search uses the Exa key (`/affine/EXA_API_KEY`) and image search in docum
 
 ## Calendar
 
-CalDAV sync offers one provider, OpenCloud (`https://cloud.homeworld.internal/caldav/`, the DAV proxy in front of Radicale). Users connect it with their OpenCloud username and an OpenCloud app token. `blockPrivateNetwork` is off because the hostname resolves to the private Gateway VIP; `allowedHosts` limits CalDAV requests to that one host. Google Calendar sync is not configured (it needs a Google OAuth application).
+CalDAV sync offers one provider, OpenCloud (`https://cloud.base-domain.invalid/caldav/`, the DAV proxy in front of Radicale). Users connect it with their OpenCloud username and an OpenCloud app token. `blockPrivateNetwork` is off because the hostname resolves to the private Gateway VIP; `allowedHosts` limits CalDAV requests to that one host. Google Calendar sync is not configured (it needs a Google OAuth application).
 
 ## Telemetry
 

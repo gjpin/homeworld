@@ -69,6 +69,7 @@ spec:
           INFISICAL_HOST_LOCAL: http://127.0.0.1:8080
           INFISICAL_PROJECT_SLUG: homeworld
           INFISICAL_ENVIRONMENT_SLUG: prod
+          BASE_DOMAIN: homeworld.test
       # CRDs before credentials: apply-eso-credentials also applies the
       # ClusterSecretStore, which needs the ClusterSecretStore CRD to exist.
       - name: apply-eso-crds
@@ -79,6 +80,13 @@ spec:
         timeout: 5m
         env:
           INFISICAL_HOST: http://host.docker.internal:8080
+      # The cluster domain the Argo CD homeworld plugin renders with; it must
+      # exist before the bootstrap repo-server starts.
+      - name: apply-argocd-domain
+        command: ["./e2e/examples/hooks/apply-argocd-domain.sh"]
+        timeout: 1m
+        env:
+          BASE_DOMAIN: homeworld.test
       - name: apply-operator-crds
         command: ["./e2e/examples/hooks/apply-operator-crds.sh"]
         timeout: 5m
@@ -124,6 +132,9 @@ spec:
           skipIfPresent: true
           valuesFiles:
             - e2e/examples/argocd-bootstrap-values.yaml
+            # The homeworld plugin, written by stage-local-repo.sh from the
+            # staged apps/argocd/helm/values.yaml.
+            - e2e/examples/.generated/argocd-plugin-values.yaml
       - name: apply-root
         apply:
           paths: ["e2e/examples/.generated/app-of-apps.yaml"]
@@ -138,7 +149,7 @@ spec:
           command: ["./e2e/examples/hooks/patch-coredns-e2e-domain.sh"]
           timeout: 16m
           env:
-            BASE_DOMAIN: homeworld.internal
+            BASE_DOMAIN: homeworld.test
 
       - name: wait-argo
         wait:
@@ -180,6 +191,13 @@ spec:
     #     AppSec health is probed below; log acquisition itself stays
     #     untested).
     #   * No browser/OIDC login flows or git-SSH (see e2e/README.md).
+    #   * No publicly trusted certificates: kind cannot answer Let's Encrypt
+    #     DNS-01 challenges, so the Gateway serves a self-signed certificate
+    #     that no workload trusts. Every in-cluster HTTPS call to the domain
+    #     (OIDC discovery and token calls to Authelia, WOPI, webhooks) fails
+    #     with x509 errors. Coder and Actual Budget gate startup on Authelia's
+    #     OIDC discovery and never become Ready, so their namespaces are
+    #     excluded below and their health probes are not asserted.
     timeout: 20m
     checks:
       - name: pods
@@ -197,6 +215,9 @@ spec:
             - longhorn-system
             - velero
             - homeassistant
+            # OIDC discovery over the untrusted e2e certificate (above).
+            - coder
+            - actual-budget
             - otel-collector
             - otel-collector-node
             - qbittorrent
@@ -234,10 +255,8 @@ spec:
             - documentdb-operator
             - notesnook
             - woodpecker
-            - coder
             - vaultwarden
             - affine
-            - actual-budget
             - homepage
             # The media stack (docs/media-stack.md); the Intel GPU plugin and
             # qbit_manage are omitted on kind, and Recyclarr, media-config,
@@ -437,23 +456,13 @@ spec:
           condition: Ready
           status: "True"
           timeout: 10m
+      # The single shared Gateway every route attaches to; the Argo health
+      # rewrite forces Gateway CRDs to Healthy for wait-argo, so assert the
+      # real conditions explicitly.
       - name: gateway-envoy
         gatewayReady:
           name: envoy
           namespace: envoy-gateway
-          timeout: 10m
-      # Per-component gateways: the Argo health rewrite forces Gateway CRDs
-      # to Healthy for wait-argo, so assert the real conditions explicitly
-      # for the gateways whose routes the probes below depend on.
-      - name: gateway-grafana
-        gatewayReady:
-          name: envoy
-          namespace: grafana
-          timeout: 10m
-      - name: gateway-forgejo
-        gatewayReady:
-          name: envoy
-          namespace: forgejo
           timeout: 10m
       # The grafana HTTPRoute must actually attach and resolve its backend:
       # the operator-created Service is grafana-service (grafana-operator
@@ -526,18 +535,6 @@ spec:
           port: 3010
           path: "/info"
           timeout: 10m
-      # Actual Budget reports bootstrapped only after its startup OpenID
-      # discovery against Authelia succeeded (the pod's startup probe gates
-      # on the same endpoint).
-      - name: actual-budget-openid-bootstrap
-        serviceProbe:
-          namespace: actual-budget
-          service: actual-budget
-          port: 5006
-          path: "/account/needs-bootstrap"
-          bodyContains: '"bootstrapped":true'
-          timeout: 10m
-      # Collabora's WOPI discovery endpoint must serve its XML.
       - name: collabora-wopi-discovery
         serviceProbe:
           namespace: collabora
@@ -561,20 +558,13 @@ spec:
           port: 80
           path: "/healthz"
           timeout: 10m
-      - name: coder-health
-        serviceProbe:
-          namespace: coder
-          service: coder
-          port: 80
-          path: "/healthz"
-          timeout: 10m
       - name: homepage-health
         serviceProbe:
           namespace: homepage
           service: homepage
           port: 3000
           path: "/api/healthcheck"
-          host: homepage.homeworld.internal
+          host: homepage.homeworld.test
           timeout: 10m
       # The notesnook-sync service's own health endpoint.
       - name: notesnook-sync-health
@@ -641,7 +631,7 @@ spec:
           service: authelia
           port: 80
           path: "/.well-known/openid-configuration"
-          host: auth.homeworld.internal
+          host: auth.homeworld.test
           headers:
             X-Forwarded-Proto: https
           bodyContains: '"issuer"'

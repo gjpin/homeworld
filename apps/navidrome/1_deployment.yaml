@@ -101,7 +101,7 @@ spec:
             - name: ND_PORT
               value: "4533"
             - name: ND_BASEURL
-              value: https://navidrome.homeworld.internal
+              value: https://navidrome.base-domain.invalid
             # The database and caches stay on Longhorn; the library is the
             # same /data/media/music path Lidarr imports into.
             - name: ND_DATAFOLDER

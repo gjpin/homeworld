@@ -123,7 +123,7 @@ spec:
   egress:
     # OIDC discovery, token, and userinfo requests to Authelia.
     - toFQDNs:
-        - matchName: "auth.homeworld.internal"
+        - matchName: "auth.base-domain.invalid"
       toPorts:
         - ports:
             - port: "443"

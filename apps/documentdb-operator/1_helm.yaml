@@ -32,3 +32,5 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: apps/documentdb-operator/helm
     targetRevision: HEAD
+    plugin:
+      name: homeworld

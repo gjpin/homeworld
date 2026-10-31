@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: openchamber
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "openchamber.homeworld.internal"
+    - "openchamber.base-domain.invalid"
   rules:
     - backendRefs:
         - name: openchamber
@@ -36,11 +36,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: openchamber
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "paseo.homeworld.internal"
+    - "paseo.base-domain.invalid"
   rules:
     - backendRefs:
         - name: paseo
@@ -62,11 +62,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: openchamber
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "thinkrail.homeworld.internal"
+    - "thinkrail.base-domain.invalid"
   rules:
     - backendRefs:
         - name: thinkrail

@@ -62,12 +62,6 @@ spec:
                 secretKeyRef:
                   name: audiobookshelf-secrets
                   key: JWT_SECRET_KEY
-            # Authelia sign-in (openid-client over Node's https): Node adds
-            # this file to its built-in roots. The OpenID Connect settings
-            # themselves live in the database (Settings > Authentication,
-            # docs/oidc.md).
-            - name: NODE_EXTRA_CA_CERTS
-              value: /etc/homeworld-ca/ca.crt
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -124,9 +118,6 @@ spec:
             - name: media
               mountPath: /data/media/podcasts
               subPath: media/podcasts
-            - name: homeworld-ca
-              mountPath: /etc/homeworld-ca
-              readOnly: true
       volumes:
         - name: config
           persistentVolumeClaim:
@@ -137,6 +128,3 @@ spec:
         - name: media
           persistentVolumeClaim:
             claimName: media
-        - name: homeworld-ca
-          configMap:
-            name: homeworld-ca

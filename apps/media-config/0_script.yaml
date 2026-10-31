@@ -392,7 +392,7 @@ data:
             # One server per app for every request: no separate 4K server.
             "is4k": False,
             "isDefault": True,
-            "externalUrl": f"https://{kind}.homeworld.internal",
+            "externalUrl": f"https://{kind}.base-domain.invalid",
             "syncEnabled": True,
             "preventSearch": False,
             "tagRequests": False,
@@ -563,7 +563,7 @@ data:
         want = {
             "id": "authelia",
             "name": "Authelia",
-            "issuer": "https://auth.homeworld.internal",
+            "issuer": "https://auth.base-domain.invalid",
             "client_id": "bindery",
             "scopes": ["openid", "profile", "email", "groups"],
         }

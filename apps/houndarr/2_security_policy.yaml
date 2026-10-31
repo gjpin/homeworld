@@ -1,39 +1,9 @@
 ---
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: SecurityPolicy
-metadata:
-  name: crowdsec-ext-auth
-  namespace: houndarr
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
-spec:
-  targetRefs:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: envoy
-  extAuth:
-    failOpen: false
-    # Envoy Gateway only forwards request bodies to the ext-auth service when
-    # bodyToExtAuth is set; without it CrowdSec AppSec never sees request
-    # bodies (in-band virtual patching) and the gap is silent — path and
-    # header bans keep working.
-    bodyToExtAuth:
-      maxRequestBytes: 65536
-    grpc:
-      backendRefs:
-        - group: ""
-          kind: Service
-          name: crowdsec-envoy-bouncer
-          namespace: envoy-gateway
-          port: 8080
-          weight: 1
----
 # Gateway OIDC in front of Houndarr's own login: Houndarr has no OIDC, so
 # Authelia gates the route to the platform group (docs/oidc.md) and the
 # built-in bcrypt login stays as a second layer. The Homepage widget calls
 # the in-cluster Service with Houndarr's widget API key. StrategicMerge
-# keeps this policy from overriding the Gateway-level CrowdSec extAuth
-# above.
+# keeps this policy from overriding the Gateway-level CrowdSec extAuth.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
@@ -49,27 +19,18 @@ spec:
       name: houndarr
   oidc:
     provider:
-      # Token requests go through the authelia Backend so Envoy validates
-      # Authelia's certificate against the homeworld CA
-      # (2_authelia_backend.yaml).
-      backendRefs:
-        - group: gateway.envoyproxy.io
-          kind: Backend
-          name: authelia
-          port: 443
-          weight: 1
-      issuer: https://auth.homeworld.internal
-      authorizationEndpoint: https://auth.homeworld.internal/api/oidc/authorization
-      tokenEndpoint: https://auth.homeworld.internal/api/oidc/token
+      issuer: https://auth.base-domain.invalid
+      authorizationEndpoint: https://auth.base-domain.invalid/api/oidc/authorization
+      tokenEndpoint: https://auth.base-domain.invalid/api/oidc/token
     clientID: envoy
     clientSecret:
       name: envoy-oidc-client-secret
     scopes:
       - openid
       - offline_access
-    redirectURL: https://houndarr.homeworld.internal/oauth2/callback
+    redirectURL: https://houndarr.base-domain.invalid/oauth2/callback
     logoutPath: /logout
-    cookieDomain: houndarr.homeworld.internal
+    cookieDomain: houndarr.base-domain.invalid
     forwardAccessToken: false
     refreshToken: true
     passThroughAuthHeader: false

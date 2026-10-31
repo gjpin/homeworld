@@ -118,7 +118,7 @@ node waits.
 `homeworld-postboot.service` runs on every boot and checks that SELinux is
 enforcing, the `k3s` SELinux module is loaded, k3s is active and the node is
 Ready, and, after an offline upgrade, that the node runs the target release.
-On failure it taints the node `node.homeworld.internal/postboot-failed` and
+On failure it taints the node `node.homeworld/postboot-failed` and
 cordons it: `NodePostbootFailed` fires and no further node reboots. (kured
 uncordons the node it rebooted, but never touches the taint.) Fix the cause,
 then:

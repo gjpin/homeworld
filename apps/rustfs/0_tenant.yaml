@@ -19,7 +19,7 @@ spec:
     - name: RUSTFS_IDENTITY_OPENID_ENABLE
       value: "on"
     - name: RUSTFS_IDENTITY_OPENID_CONFIG_URL
-      value: https://auth.homeworld.internal
+      value: https://auth.base-domain.invalid
     - name: RUSTFS_IDENTITY_OPENID_CLIENT_ID
       value: rustfs
     - name: RUSTFS_IDENTITY_OPENID_CLIENT_SECRET
@@ -30,7 +30,7 @@ spec:
     - name: RUSTFS_IDENTITY_OPENID_SCOPES
       value: openid,profile,email,groups
     - name: RUSTFS_IDENTITY_OPENID_REDIRECT_URI
-      value: https://console.rustfs.homeworld.internal/rustfs/admin/v3/oidc/callback/default
+      value: https://console.rustfs.base-domain.invalid/rustfs/admin/v3/oidc/callback/default
     - name: RUSTFS_IDENTITY_OPENID_REDIRECT_URI_DYNAMIC
       value: "off"
     # No role policy is set, so each groups-claim value names a RustFS
@@ -43,15 +43,11 @@ spec:
     - name: RUSTFS_IDENTITY_OPENID_DISPLAY_NAME
       value: Authelia
     - name: RUSTFS_BROWSER_REDIRECT_URL
-      value: https://console.rustfs.homeworld.internal
-    # auth.homeworld.internal resolves to the private Gateway VIP, which the
-    # OIDC outbound SSRF policy rejects unless the exact origin is allowed,
-    # and its certificate is signed by the homeworld CA (merged with the
-    # default roots for OIDC requests only).
+      value: https://console.rustfs.base-domain.invalid
+    # auth.base-domain.invalid resolves to the private Gateway VIP, which the
+    # OIDC outbound SSRF policy rejects unless the exact origin is allowed.
     - name: RUSTFS_OUTBOUND_ALLOW_ORIGINS
-      value: https://auth.homeworld.internal
-    - name: RUSTFS_EXTRA_CA_CERT
-      value: /etc/homeworld-ca/ca.crt
+      value: https://auth.base-domain.invalid
     # RustFS exposes no Prometheus scrape endpoint (upstream ships OTLP push
     # only): push metrics to the cluster collector's OTLP/HTTP receiver, which
     # exports them to VictoriaMetrics. Traces and log export stay disabled —
@@ -77,16 +73,6 @@ spec:
     # The newer-release check defaults to on (upgrade checker).
     - name: RUSTFS_CHECK_UPDATE
       value: "false"
-  # The trust-manager homeworld-ca ConfigMap, read through
-  # RUSTFS_EXTRA_CA_CERT above.
-  additionalVolumes:
-    - name: homeworld-ca
-      configMap:
-        name: homeworld-ca
-  additionalVolumeMounts:
-    - name: homeworld-ca
-      mountPath: /etc/homeworld-ca
-      readOnly: true
   securityContext:
     fsGroup: 10001
     runAsGroup: 10001

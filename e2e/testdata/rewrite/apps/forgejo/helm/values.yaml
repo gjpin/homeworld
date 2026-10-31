@@ -51,7 +51,7 @@ gitea:
     - name: Authelia
       provider: openidConnect
       existingSecret: forgejo-oauth
-      autoDiscoverUrl: https://auth.homeworld.internal/.well-known/openid-configuration
+      autoDiscoverUrl: https://auth.base-domain.invalid/.well-known/openid-configuration
       scopes: "openid profile email groups"
       groupClaimName: groups
       adminGroup: forgejo-admin
@@ -65,9 +65,9 @@ gitea:
       NAME: forgejo
       USER: forgejo
     server:
-      DOMAIN: git.homeworld.internal
-      ROOT_URL: https://git.homeworld.internal/
-      SSH_DOMAIN: git.homeworld.internal
+      DOMAIN: git.base-domain.invalid
+      ROOT_URL: https://git.base-domain.invalid/
+      SSH_DOMAIN: git.base-domain.invalid
     webhook:
       # Upstream default is `external`; Woodpecker's Forgejo guide adds
       # `loopback` for same-cluster delivery. `private` would additionally

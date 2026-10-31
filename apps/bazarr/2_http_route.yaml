@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: bazarr
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "bazarr.homeworld.internal"
+    - "bazarr.base-domain.invalid"
   rules:
     - backendRefs:
         - name: bazarr

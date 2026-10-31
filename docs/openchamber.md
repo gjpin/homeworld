@@ -15,8 +15,8 @@ CLI, kind, kubectl and rootless Podman on Fedora.
 | Definition | `host/agents-vm/` (applied by `host/apply.sh` through `host.sh`) |
 | Size | 8 vCPU, 16 GiB RAM, 40 GiB root and 160 GiB `/home` (thin qcow2 on the encrypted root) |
 | Address | `10.20.0.10` on the routed network `10.20.0.0/24` (`virbr-agents`) |
-| Domains | `openchamber.homeworld.internal` (port `3000`), `paseo.homeworld.internal` (port `6767`), `thinkrail.homeworld.internal` (port `24242`) |
-| Cluster side | `apps/openchamber`: Gateway listeners, HTTPRoutes, ThinkRail's gateway sign-in and selectorless Services with EndpointSlices to `10.20.0.10` |
+| Domains | `openchamber.base-domain.invalid` (port `3000`), `paseo.base-domain.invalid` (port `6767`), `thinkrail.base-domain.invalid` (port `24242`) |
+| Cluster side | `apps/openchamber`: HTTPRoutes, ThinkRail's gateway sign-in and selectorless Services with EndpointSlices to `10.20.0.10` |
 
 The Ryzen's kubelet reserves the VM's 16 GiB (`system-reserved`), the VM runs
 with a lower CPU weight than the host's own services, and `libvirt-guests`
@@ -35,8 +35,9 @@ The root disk is rebuilt from scratch, `/home` never is:
 3. `rebuild.sh` downloads the Fedora Cloud Base image for `FEDORA_RELEASE`,
    verifies its `CHECKSUM` file against the Fedora release key and the image
    against it, creates a new root disk and a cloud-init seed (the agents'
-   SSH keys, the Infisical identity, the Homeworld CA from trust-manager's
-   `homeworld-ca` ConfigMap, and `provision.sh`), and redefines the domain.
+   SSH keys, the Infisical identity, and `provision.sh` and the agents'
+   instructions with the cluster domain filled in from the `homeworld-domain`
+   Secret), and redefines the libvirt domain.
 4. cloud-init creates the `/home` filesystem once (XFS, label `agents-home`)
    and never formats it again; then `provision.sh` installs everything.
 
@@ -57,7 +58,7 @@ crosses `virbr-agents`:
 
 | Direction | Allowed |
 | --- | --- |
-| VM → Ryzen | DHCP and DNS (libvirt's dnsmasq, forwarding to the router, so `*.homeworld.internal` resolves) |
+| VM → Ryzen | DHCP and DNS (libvirt's dnsmasq, forwarding to the router, so `*.base-domain.invalid` resolves) |
 | VM → internet | Everything |
 | VM → Gateway VIP `192.168.8.50` | TCP `443` and `22` (Forgejo, its registry, every web app) |
 | VM → anything else private | Rejected: RFC 1918, CGNAT, link-local, multicast and their IPv6 counterparts, so no node, pod, Service, NAS or LAN host |
@@ -72,11 +73,11 @@ reason Envoy on it can reach the VM.
 
 ## Access
 
-- **Browser**: `https://openchamber.homeworld.internal` and
-  `https://paseo.homeworld.internal` through Envoy Gateway (Homeworld CA
-  certificates, CrowdSec bouncer). Both apps authenticate on their own: the
+- **Browser**: `https://openchamber.base-domain.invalid` and
+  `https://paseo.base-domain.invalid` through Envoy Gateway (the
+  wildcard Let's Encrypt certificate, CrowdSec bouncer). Both apps authenticate on their own: the
   OpenChamber UI password and Paseo's bearer password ([docs/oidc.md](oidc.md)).
-- **ThinkRail**: `https://thinkrail.homeworld.internal`, behind Envoy
+- **ThinkRail**: `https://thinkrail.base-domain.invalid`, behind Envoy
   Gateway's Authelia sign-in (the `platform` group): ThinkRail has no
   accounts of its own, so the VM's port is closed to LAN and WireGuard
   clients and the Gateway is the only way in. It runs the Pi agent
@@ -84,7 +85,7 @@ reason Envoy on it can reach the VM.
   to JetBrains AI from its own settings; app state lives in
   `~/.thinkrail`.
 - **Paseo apps**: pair the desktop or mobile app with the daemon, directly at
-  `10.20.0.10:6767` or through `paseo.homeworld.internal`. The relay is
+  `10.20.0.10:6767` or through `paseo.base-domain.invalid`. The relay is
   disabled (`PASEO_RELAY_ENABLED=false`), and `PASEO_HOSTNAMES` allows the
   Gateway hostname besides the IP addresses Paseo accepts by default.
 - **SSH and editors**: `ssh agent@10.20.0.10` (the keys entered at bootstrap)

@@ -29,3 +29,5 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: apps/immich/helm
     targetRevision: HEAD
+    plugin:
+      name: homeworld

@@ -8,12 +8,11 @@ glab, the Claude Code, Codex, OpenCode, Copilot, Pi, and Antigravity coding
 agents, and Playwright with Chromium. Projects pin other versions with
 [mise](https://mise.jdx.dev): run `mise install` in a repository with a
 `mise.toml` or `.tool-versions`. Use it for coding tasks in repositories on
-Forgejo (`git.homeworld.internal`) or public forges.
+the homeworld Forgejo (`git.` on the cluster domain) or public forges.
 
 - Runs in the `coder-workspaces` namespace under gVisor, as UID 1000 with
   the Restricted Pod Security Standard: no root, no `sudo`, no Docker or
   Podman. Install extra tools with mise, `pipx`, or `npm -g`, never `apt`.
 - Internet egress on ports 22, 80, and 443 only; no inbound connections.
-- The Homeworld CA is trusted by curl, git, OpenSSL, Go, and Node.js.
 - Stopping the workspace keeps the home volume, including tools you
   installed; everything outside `/home/coder` resets on every start.

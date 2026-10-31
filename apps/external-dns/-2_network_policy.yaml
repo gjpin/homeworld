@@ -1,0 +1,100 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+  namespace: external-dns
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: external-dns
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-kubernetes-api
+  namespace: external-dns
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: external-dns
+      k8s:app.kubernetes.io/instance: external-dns
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-cloudflare-dns-api
+  namespace: external-dns
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # ExternalDNS reconciles records only through the Cloudflare HTTPS API.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: external-dns
+      k8s:app.kubernetes.io/instance: external-dns
+  egress:
+    - toFQDNs:
+        - matchName: api.cloudflare.com
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-metrics-scraping
+  namespace: external-dns
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The chart's ServiceMonitor scrapes the http listener that also serves
+  # the Prometheus endpoint.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: external-dns
+      k8s:app.kubernetes.io/instance: external-dns
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: otel-collector
+            k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+            k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+            k8s:app.kubernetes.io/component: opentelemetry-collector
+      toPorts:
+        - ports:
+            - port: "7979"
+              protocol: TCP

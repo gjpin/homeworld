@@ -7,7 +7,7 @@ Torrent client whose traffic is routed through a [gluetun](https://github.com/qd
 | | |
 | :--- | :--- |
 | Component | `apps/qbittorrent` |
-| Domain | `qbittorrent.homeworld.internal` |
+| Domain | `qbittorrent.base-domain.invalid` |
 | Data | `qbittorrent-config` PVC (256Mi, Longhorn) mounted at `/config`; `media` (the shared NAS share `homeworld-media`, NFS, [nas.md](nas.md#media-share)) mounted at `/data`, downloads under `/data/torrents/<category>` |
 | Dependencies | csi-driver-nfs, External Secrets, Envoy Gateway, CrowdSec bouncer, OpenTelemetry operator |
 | Secrets | `/qbittorrent/*` Infisical keys (see [secrets.md](secrets.md)) |

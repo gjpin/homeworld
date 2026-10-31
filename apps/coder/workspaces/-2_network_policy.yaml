@@ -50,7 +50,7 @@ spec:
   endpointSelector: {}
   egress:
     - toFQDNs:
-        - matchName: "coder.homeworld.internal"
+        - matchName: "coder.base-domain.invalid"
       toPorts:
         - ports:
             - port: "443"
@@ -79,7 +79,7 @@ spec:
             - port: "22"
               protocol: TCP
     - toFQDNs:
-        - matchName: "git.homeworld.internal"
+        - matchName: "git.base-domain.invalid"
       toPorts:
         - ports:
             - port: "443"

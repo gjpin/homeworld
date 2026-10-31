@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: audiomuse-ai
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "audiomuse.homeworld.internal"
+    - "audiomuse.base-domain.invalid"
   rules:
     - backendRefs:
         - name: audiomuse-ai-flask-service

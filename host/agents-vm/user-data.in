@@ -19,9 +19,6 @@ bootcmd:
 mounts:
   - [LABEL=agents-home, /home, xfs, "defaults,nofail", "0", "2"]
 write_files:
-  - path: /etc/pki/ca-trust/source/anchors/homeworld-ca.crt
-    encoding: b64
-    content: @CA_B64@
   - path: /etc/agents/infisical.env
     permissions: '0600'
     encoding: b64

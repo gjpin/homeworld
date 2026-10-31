@@ -25,13 +25,13 @@ collabora:
     # "<protocol>://<host-name>:<port>"; the explicit :443 matches the
     # rendered coolwsd allowlist entries to the HTTPS origin OpenCloud
     # uses for WOPI callbacks.
-    - host: https://cloud.homeworld.internal:443
-  server_name: office.homeworld.internal:443
+    - host: https://cloud.base-domain.invalid:443
+  server_name: office.base-domain.invalid:443
   extra_params: >-
     --o:ssl.enable=false
     --o:ssl.termination=true
     --o:welcome.enable=false
-    --o:net.frame_ancestors=https://cloud.homeworld.internal
+    --o:net.frame_ancestors=https://cloud.base-domain.invalid
     --o:logging.level=warning
   existingSecret:
     enabled: true

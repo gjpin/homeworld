@@ -92,15 +92,11 @@ spec:
             # every login; everyone else is a user. Local password login
             # stays as the fallback for the first admin.
             - name: BINDERY_OIDC_REDIRECT_BASE_URL
-              value: https://bindery.homeworld.internal
+              value: https://bindery.base-domain.invalid
             - name: BINDERY_TRUSTED_PROXY
               value: 10.42.0.0/16
             - name: BINDERY_OIDC_ADMIN_GROUP
               value: bindery-admin
-            # OIDC discovery, token and UserInfo calls to Authelia: Go adds
-            # this directory to the image's CA bundle.
-            - name: SSL_CERT_DIR
-              value: /etc/homeworld-ca
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -148,9 +144,6 @@ spec:
             # filesystems to the kernel and fail with EXDEV).
             - name: media
               mountPath: /data
-            - name: homeworld-ca
-              mountPath: /etc/homeworld-ca
-              readOnly: true
       volumes:
         - name: config
           persistentVolumeClaim:
@@ -160,6 +153,3 @@ spec:
         - name: media
           persistentVolumeClaim:
             claimName: media
-        - name: homeworld-ca
-          configMap:
-            name: homeworld-ca

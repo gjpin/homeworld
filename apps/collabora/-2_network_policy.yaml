@@ -47,7 +47,7 @@ spec:
       k8s:app.kubernetes.io/instance: collabora
   egress:
     - toFQDNs:
-        - matchName: "cloud.homeworld.internal"
+        - matchName: "cloud.base-domain.invalid"
       toPorts:
         - ports:
             - port: "443"

@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: homeassistant
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "home.homeworld.internal"
+    - "home.base-domain.invalid"
   rules:
     - backendRefs:
         - name: homeassistant
@@ -33,11 +33,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: homeassistant
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "z2m.homeworld.internal"
+    - "z2m.base-domain.invalid"
   rules:
     - backendRefs:
         - name: homeassistant-zigbee2mqtt

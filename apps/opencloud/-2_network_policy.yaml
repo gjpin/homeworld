@@ -89,9 +89,9 @@ spec:
       k8s:app.kubernetes.io/name: opencloud
   egress:
     - toFQDNs:
-        - matchName: "auth.homeworld.internal"
-        - matchName: "office.homeworld.internal"
-        - matchName: "cloud.homeworld.internal"
+        - matchName: "auth.base-domain.invalid"
+        - matchName: "office.base-domain.invalid"
+        - matchName: "cloud.base-domain.invalid"
       toPorts:
         - ports:
             - port: "443"

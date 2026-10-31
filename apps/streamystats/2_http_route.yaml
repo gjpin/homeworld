@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: streamystats
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "streamystats.homeworld.internal"
+    - "streamystats.base-domain.invalid"
   rules:
     # The frontend only; the job server's API has no authentication and
     # stays internal.

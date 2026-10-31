@@ -173,7 +173,7 @@ spec:
         - ports:
             - port: "22"
               protocol: TCP
-    # OIDC hairpin: Envoy's own token calls to auth.homeworld.internal resolve to
+    # OIDC hairpin: Envoy's own token calls to auth.base-domain.invalid resolve to
     # the gateway's public address and re-enter this listener from the data
     # plane pod itself (allow-envoy-authelia-oidc egress).
     - fromEndpoints:
@@ -233,7 +233,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  # The admin console route (envoy.homeworld.internal, 3_http_route.yaml) backs
+  # The admin console route (envoy.base-domain.invalid, 3_http_route.yaml) backs
   # onto the controller's 19000 admin port.
   endpointSelector:
     matchLabels:
@@ -287,11 +287,11 @@ spec:
       k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     # Envoy's OIDC filter calls the Authelia authorization and token
-    # endpoints on auth.homeworld.internal. The name resolves to the gateway's
+    # endpoints on auth.base-domain.invalid. The name resolves to the gateway's
     # own public address, so the connection hairpins through the merged
     # listener back to the Authelia HTTPRoute (docs/network-policies.md).
     - toFQDNs:
-        - matchName: "auth.homeworld.internal"
+        - matchName: "auth.base-domain.invalid"
       toPorts:
         - ports:
             - port: "443"
@@ -1010,7 +1010,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  # Both the coder.homeworld.internal and *.coder.homeworld.internal
+  # Both the coder.base-domain.invalid and *.coder.base-domain.invalid
   # (workspace apps) routes back onto this Service.
   name: allow-envoy-backend-coder
   namespace: envoy-gateway

@@ -1,6 +1,6 @@
 # Envoy Gateway
 
-Every Gateway merges into one Envoy data plane (`mergeGateways: true` in `apps/envoy-gateway/2_envoy_proxy.yaml`) behind the Gateway VIP `192.168.8.50`.
+One Gateway (`apps/envoy-gateway/2_gateway.yaml`) serves every app behind the Gateway VIP `192.168.8.50`: its HTTPS listeners cover `*.base-domain.invalid` and the `*.notes`, `*.rustfs` and `*.coder` second-level wildcards with a single Let's Encrypt certificate (cert-manager's Gateway shim, DNS-01), and a TCP listener on port 22 carries Forgejo's git SSH. Components attach HTTPRoutes (and Forgejo its TCPRoute) to it from their own namespaces; the Gateway-level CrowdSec extAuth policy covers every route, and route-level gateway-OIDC policies merge with it (`mergeType: StrategicMerge`). The `envoy-merged` GatewayClass keeps `mergeGateways: true` (`apps/envoy-gateway/2_envoy_proxy.yaml`).
 
 ## Why Envoy runs as a DaemonSet
 

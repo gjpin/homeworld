@@ -6,7 +6,8 @@
    * prometheus-operator-crd: CRDs required by service monitors, ahead of Argo CD's own ServiceMonitors
    * external-secrets: External Secrets Operator, Infisical ClusterSecretStore, and the ExternalSecret CRD, ahead of Argo CD's own wave -1 ExternalSecret
 * **Sync wave 0**
-   * argocd: enables Helm inflation for the Kustomize-rendered chart profiles;
+   * argocd: the homeworld Config Management Plugin that renders every
+     application ([below](#homeworld-plugin));
      Argo CD is first installed by `host/bootstrap.sh` through the k3s
      auto-deploying manifests directory with `bootstrap/argocd-values.yaml`
      ([docs/k3s.md](k3s.md#first-server)), and this application adopts that
@@ -25,8 +26,12 @@
      application adopts it, sequenced after prometheus-operator-crd so the
      chart's ServiceMonitors validate
 * **Sync wave 3**
-   * cert-manager: Gateway listener certificates from the private
-     `homeworld-ca` CA ClusterIssuer (CA keypair from Infisical)
+   * cert-manager: the shared Gateway's wildcard certificate from the
+     Let's Encrypt ClusterIssuers (DNS-01 through Cloudflare)
+   * external-dns: publishes the wildcard record pointing every name under
+     the domain at the Gateway VIP; its `DNSEndpoint` CRD ships with the
+     chart (wave-1 Helm Application) and the `DNSEndpoint` itself syncs at
+     intra-component wave 2 with `SkipDryRunOnMissingResource=true`
    * longhorn: block storage
    * snapshot-controller: CSI volume snapshot CRDs (from the pinned
      `external-snapshotter` Git tag) and the handwritten snapshot
@@ -58,10 +63,6 @@
      webhook cert-controller; its CRDs ship with the chart (`crds.enabled`)
    * rustfs-operator: RustFS storage operator, console, and STS endpoint
    * velero: whole-cluster backups after External Secrets and Longhorn
-   * trust-manager: publishes the Homeworld CA certificate as the
-     `homeworld-ca` ConfigMap in every namespace, after cert-manager (its
-     webhook certificate comes from a cert-manager Issuer) and ahead of the
-     wave 5+ workloads that mount the ConfigMap
 * **Sync wave 5**
    * documentdb-operator: DocumentDB (MongoDB-compatible) operator and its
      CNPG-I sidecar injector plugin, after CloudNativePG
@@ -118,9 +119,9 @@
    * collabora: standalone Collabora chart and WOPI endpoint
    * woodpecker: CI server and Kubernetes-backend agents, after Forgejo (the
      OAuth source and webhook target)
-   * openchamber: Gateway listeners, routes, and selectorless Services for
-     the agents VM ([docs/openchamber.md](openchamber.md)), after Envoy
-     Gateway, cert-manager, and the CrowdSec Envoy bouncer
+   * openchamber: routes and selectorless Services for the agents VM
+     ([docs/openchamber.md](openchamber.md)), after Envoy Gateway,
+     cert-manager, and the CrowdSec Envoy bouncer
    * coder: Coder control plane (CloudNativePG-backed) and, through its
      intra-component wave-0 `coder-workspaces` application, the workspace
      namespace whose Role the wave-1 chart binds; after Authelia, whose OIDC
@@ -138,6 +139,38 @@
 * **Sync wave 8**
    * opencloud: OpenCloud (users' files on the NAS), Tika, authenticated DAV
      proxy, and routes
+
+## Homeworld plugin
+
+The cluster domain is not in git. Wherever it belongs, manifests carry the
+placeholder `base-domain.invalid` (`.invalid` is reserved and never
+resolves, so a missed substitution fails visibly), and every Application
+sourced from this repository names the `homeworld` Config Management Plugin
+(`spec.source.plugin.name: homeworld`) instead of relying on Argo CD's
+built-in source detection.
+
+The plugin (`configs.cmp` in `apps/argocd/helm/values.yaml`) runs as the
+`homeworld-plugin` sidecar of the repo-server, on the Argo CD image itself.
+For a directory holding a `kustomization.yaml` it runs
+`kustomize build --enable-helm` with the same `--helm-kube-version` and
+`--helm-api-versions` arguments the built-in Kustomize tool would pass;
+otherwise it concatenates the directory's YAML files, as a plain directory
+source would. It then replaces `base-domain.invalid` with the domain from
+the `homeworld-domain` Secret in `argocd`, and refuses to render when that
+value is missing or is not a domain, so the placeholder never reaches the
+cluster.
+
+The Secret comes from Infisical (`/argocd/BASE_DOMAIN`, [secrets.md](secrets.md)).
+Rendering anything, External Secrets included, needs it, so
+`host/bootstrap.sh` reads the key once with the External Secrets machine
+identity and seeds the Secret before Argo CD starts
+([k3s.md](k3s.md#first-server)); the `homeworld-domain` ExternalSecret
+(`apps/argocd/-1_secrets.yaml`) adopts it afterwards and keeps it in sync.
+The sidecar mounts the whole Secret, so a changed domain reaches it without
+a restart; Argo CD re-renders on its next manifest refresh (hard-refresh to
+force it). The bootstrap install merges the plugin's values from
+`apps/argocd/helm/values.yaml` into `bootstrap/argocd-values.yaml`, so both
+installs run the same plugin.
 
 ## Application Health Checks
 
@@ -186,8 +219,8 @@ In `apps/app-of-apps.yaml`, CRD-providing infrastructure and operators are seque
 - **Wave -1:** `prometheus-operator-crd` (ServiceMonitor/PodMonitor/ScrapeConfig CRDs) and `external-secrets` (ExternalSecret CRD and the Infisical `ClusterSecretStore`), both ahead of `argocd` in wave 0 so Argo CD's own ServiceMonitors and its wave -1 ExternalSecret validate on the first install; the monitoring CRDs are later consumed cluster-wide by the OpenTelemetry Operator's Target Allocator (wave 5)
 - **Wave 0:** `argocd` and `dragonfly-operator` — Argo CD's tracked config replaces the chart's bundled Redis with an in-namespace Dragonfly instance through the chart's `externalRedis` block, so the operator that reconciles that instance installs in the same wave as the switch; the controllers reconnect while the operand starts (~1 minute, the same transient any Argo CD restart incurs)
 - **Wave 2:** `envoy-gateway` (Envoy Gateway CRDs; the Gateway API CRDs are installed by k3s before Argo CD exists) and `cilium` (Cilium CRDs applied from the pinned Git tag by the nested `cilium-crds` application; the Helm chart ships no CRDs, while the CiliumNetworkPolicy CRDs are consumed by every component's `-2_network_policy.yaml`)
-- **Wave 3:** `cert-manager` (Certificates and ClusterIssuers), `snapshot-controller` (CSI volume snapshot CRDs from the pinned `external-snapshotter` Git tag plus the handwritten snapshot controller — the CSI snapshot API suite Velero's data movement drives, installed ahead of the wave 4 backup operator), `system-upgrade-controller` (the `Plan` CRD from the pinned release tag, ahead of its Plans), plus the `longhorn`, `csi-driver-nfs`, `kubelet-serving-cert-approver`, and `metrics-server` applications
-- **Wave 4:** `velero` (backup operator, after the snapshot-controller suite), `trust-manager` (Bundle CRD; its `homeworld-ca` Bundle syncs at intra-component wave 2, after the wave-1 Helm Application installs the CRD, with `SkipDryRunOnMissingResource=true`), and the datastore operators (`cloudnative-pg`, `mariadb-operator`, `rustfs-operator`, `grafana-operator`)
+- **Wave 3:** `cert-manager` (Certificates and ClusterIssuers), `external-dns` (the `DNSEndpoint` CRD from its chart, ahead of its intra-component wave-2 `DNSEndpoint`), `snapshot-controller` (CSI volume snapshot CRDs from the pinned `external-snapshotter` Git tag plus the handwritten snapshot controller — the CSI snapshot API suite Velero's data movement drives, installed ahead of the wave 4 backup operator), `system-upgrade-controller` (the `Plan` CRD from the pinned release tag, ahead of its Plans), plus the `longhorn`, `csi-driver-nfs`, `kubelet-serving-cert-approver`, and `metrics-server` applications
+- **Wave 4:** `velero` (backup operator, after the snapshot-controller suite) and the datastore operators (`cloudnative-pg`, `mariadb-operator`, `rustfs-operator`, `grafana-operator`)
 - **Wave 5:** `velero-ui` (web interface for Velero), `crowdsec` (PostgreSQL-backed LAPI, log agent, and AppSec WAF), `rustfs` (shared S3-compatible Tenant), `victoria-metrics` (the metrics/logs/traces backends and vmalert), the `documentdb-operator` (DocumentDB CRDs plus the CNPG-I sidecar
   injector plugin, which must live in the `cloudnative-pg` namespace for
   CloudNativePG plugin discovery), and the `opentelemetry-operator`
@@ -201,7 +234,7 @@ Argo CD's custom Lua Application health check pauses wave advancement until all 
 
 ### Declarative CRD Upgrades via Server-Side Apply
 Standard Helm (`helm upgrade`) intentionally ignores the `crds/` directory, preventing declarative CRD upgrades. In this repository:
-- Operator charts are rendered via Kustomize with `includeCRDs: true`; local rendering therefore requires Helm inflation (`kubectl kustomize --enable-helm` or `kustomize build --enable-helm` — the same flag Argo CD sets globally via `kustomize.buildOptions` in `argocd-cm`).
+- Operator charts are rendered via Kustomize with `includeCRDs: true`; local rendering therefore requires Helm inflation (`kubectl kustomize --enable-helm` or `kustomize build --enable-helm` — the same flag the homeworld plugin passes, [below](#homeworld-plugin)).
 - Every `Application` enforces `ServerSideApply=true`.
 - On chart version bumps, Argo CD detects CRD schema changes and applies them directly to the Kubernetes API server using Server-Side Apply (`fieldManager: argocd`), avoiding the 256 KB `kubectl.kubernetes.io/last-applied-configuration` annotation limit.
 
@@ -210,7 +243,7 @@ Within an individual sync wave, Argo CD sorts manifests by Kubernetes `Kind` pri
 
 ### Dedicated CRD Applications vs. Bundled Helm Releases
 - **Standalone CRDs:** Shared ecosystem CRD suites without local controller dependencies are separated into dedicated Argo CD applications and sync waves: `prometheus-operator-crd` is a root application, while `cilium-crds`, `snapshot-controller-crds`, and `system-upgrade-controller-crds` are child Applications inside their component directories (all four precede every CR consumer). The Gateway API CRDs (standard channel) come from k3s's bundled `gateway-api-crd` addon, which k3s re-applies on every server start and upgrades with every k3s release; the Envoy Gateway chart's own Gateway API CRD copy is patch-deleted from the render (`apps/envoy-gateway/helm/kustomization.yaml`) so k3s stays the single owner. The `cilium` Helm chart ships no CRDs, so `cilium-crds` applies the full `pkg/k8s/apis/cilium.io/client/crds/v2` set from the chart-aligned Git tag; `host/bootstrap.sh` (see [docs/k3s.md](k3s.md)) installs them before Argo CD exists, and the application takes over ownership for declarative upgrades. The v2alpha1 `CiliumL2AnnouncementPolicy` CRD is registered by `cilium-operator` itself on startup, so the `cilium` component applies its L2 announcement policy (`apps/cilium/2_l2_announcement_policy.yaml`) at wave 2, after the wave-1 Helm Application, with `SkipDryRunOnMissingResource=true`. Pruning is deliberately disabled on `cilium-crds`: garbage-collecting the Cilium CRDs would delete every `CiliumNetworkPolicy` in the cluster along with them, cutting all workload networking. Pruning is equally disabled on `snapshot-controller-crds`: garbage-collecting the snapshot CRDs would delete the `VolumeSnapshot` objects referencing every existing CSI snapshot. `prometheus-operator-crd` and `system-upgrade-controller-crds` run the same way (see the header comments in their `0_crds.yaml` manifests): pruning is deliberately disabled there too — garbage-collecting the ServiceMonitor/PodMonitor definitions would delete every live monitor, and garbage-collecting the `Plan` definition would delete the k3s upgrade Plans. When an upstream bundle bump drops a CRD, remove the stale definition by hand.
-- **Bundled Operator CRDs:** Operators (`cloudnative-pg`, `cert-manager`, `trust-manager`, `external-secrets`, `dragonfly-operator`, `documentdb-operator`, `opentelemetry-operator`, `longhorn`, `velero`, etc.) bundle their upstream CRDs within their Helm charts, relying on Server-Side Apply and Kind-based sorting for in-place schema upgrades. The `documentdb-operator` chart is vendored and patched under `apps/documentdb-operator/helm/local-charts` (see `scripts/vendor-documentdb-operator.sh`) because its upstream packaging breaks Kustomize's Helm inflation: it bundles a CloudNativePG subchart that collides with the standalone operator and hardcodes the `cnpg-system` namespace. Renovate bumps the vendored `Chart.yaml` version and re-vendors the complete tree in the same PR. The `rustfs-operator` image tag follows the chart's `appVersion`, so the operator binary always matches the `tenants.rustfs.com` CRD shipped in the same chart (the apiserver prunes status fields the CRD does not declare). Helm-hook Jobs are inert under Argo and their immutable specs block chart bumps: Longhorn's `preUpgradeChecker` is disabled (its online version check is a phone-home) and its uninstall Job is patch-deleted, while the post-upgrade cleanup is re-annotated as an Argo CD PostSync hook (`argocd.argoproj.io/hook: PostSync` + `hook-delete-policy: HookSucceeded`) so it runs after every sync with the fresh image and self-deletes instead of breaking upgrades.
+- **Bundled Operator CRDs:** Operators (`cloudnative-pg`, `cert-manager`, `external-dns`, `external-secrets`, `dragonfly-operator`, `documentdb-operator`, `opentelemetry-operator`, `longhorn`, `velero`, etc.) bundle their upstream CRDs within their Helm charts, relying on Server-Side Apply and Kind-based sorting for in-place schema upgrades. The `documentdb-operator` chart is vendored and patched under `apps/documentdb-operator/helm/local-charts` (see `scripts/vendor-documentdb-operator.sh`) because its upstream packaging breaks Kustomize's Helm inflation: it bundles a CloudNativePG subchart that collides with the standalone operator and hardcodes the `cnpg-system` namespace. Renovate bumps the vendored `Chart.yaml` version and re-vendors the complete tree in the same PR. The `rustfs-operator` image tag follows the chart's `appVersion`, so the operator binary always matches the `tenants.rustfs.com` CRD shipped in the same chart (the apiserver prunes status fields the CRD does not declare). Helm-hook Jobs are inert under Argo and their immutable specs block chart bumps: Longhorn's `preUpgradeChecker` is disabled (its online version check is a phone-home) and its uninstall Job is patch-deleted, while the post-upgrade cleanup is re-annotated as an Argo CD PostSync hook (`argocd.argoproj.io/hook: PostSync` + `hook-delete-policy: HookSucceeded`) so it runs after every sync with the fresh image and self-deletes instead of breaking upgrades.
 
 ## Intra-Component Sync Wave Architecture
 
@@ -220,11 +253,11 @@ While `apps/app-of-apps.yaml` coordinates dependencies across broad system waves
 | :--- | :--- | :--- | :--- |
 | **Network Isolation** | `-2` (or `-3`) | `CiliumNetworkPolicy` | Enforce egress/ingress firewalling before secrets or pods materialize. |
 | **Secret Material** | `-1` | `ExternalSecret` | Fetch and reconcile credentials from Infisical before datastores start. |
-| **Datastores & Base** | `0` | CNPG `Cluster`, Dragonfly, RustFS `Tenant`, `Gateway`, `PVC` | Provision databases, caches, listeners, and storage. |
+| **Datastores & Base** | `0` | CNPG `Cluster`, Dragonfly, RustFS `Tenant`, `PVC` | Provision databases, caches, and storage. |
 | **Workloads** | `1` | Child `Application`s, `Deployment`, `StatefulSet` | Deploy application workloads, pods, and backend Services. |
-| **Routing & Auth** | `2` | `HTTPRoute`, `GRPCRoute`, `SecurityPolicy` | Bind ingress routes and CrowdSec external authentication after Services exist. |
+| **Routing & Auth** | `2` | `HTTPRoute`, `GRPCRoute`, `SecurityPolicy` | Attach routes to the shared Gateway (`apps/envoy-gateway`) and their gateway OIDC policies after Services exist. |
 
 `apps/envoy-gateway` is the one component that shifts the routing tiers right by one (monitors `0`, Helm `1`, `Gateway`/`GatewayClass`/`EnvoyProxy` `2`, route and `SecurityPolicy` `3`): its Gateway must be created after the Helm-installed controller and its CRDs, and the route after the Gateway, so the relative order workload → gateway → routes is preserved with distinct waves.
 
 ### CRDs and OpenAPI Validation (`SkipDryRunOnMissingResource=true`)
-When an application directory deploys both a CRD and custom resources of that kind (e.g. `apps/envoy-gateway` and `apps/cert-manager`), Argo CD runs client dry-run validation during initial sync before any wave begins. Because CRDs are not yet registered on the API server during dry-run, `SkipDryRunOnMissingResource=true` is retained to bypass dry-run validation failures on uninstalled CRDs. Intra-component sync waves then apply CRDs at wave 0 and downstream custom resources at subsequent waves.
+When an application directory deploys both a CRD and custom resources of that kind (e.g. `apps/envoy-gateway`, `apps/cert-manager`, and `apps/external-dns`), Argo CD runs client dry-run validation during initial sync before any wave begins. Because CRDs are not yet registered on the API server during dry-run, `SkipDryRunOnMissingResource=true` is retained to bypass dry-run validation failures on uninstalled CRDs. Intra-component sync waves then apply CRDs at wave 0 and downstream custom resources at subsequent waves.

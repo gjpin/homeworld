@@ -6,7 +6,7 @@
 # (kured uncordons the node it rebooted, but leaves the taint alone.)
 set -u
 state=/var/lib/homeworld
-taint=node.homeworld.internal/postboot-failed
+taint=node.homeworld/postboot-failed
 . /etc/os-release
 fail=
 if [ -e "$state/fedora-upgrade-attempted" ]; then

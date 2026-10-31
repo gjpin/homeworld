@@ -59,10 +59,6 @@ spec:
                 secretKeyRef:
                   name: actual-budget-secrets
                   key: ACTUAL_OPENID_CLIENT_SECRET
-            # OpenID discovery, token, and UserInfo calls to Authelia need
-            # the homeworld CA; Node adds this file to its built-in roots.
-            - name: NODE_EXTRA_CA_CERTS
-              value: /etc/homeworld-ca/ca.crt
           ports:
             - name: http
               containerPort: 5006
@@ -110,15 +106,9 @@ spec:
               mountPath: /data
             - name: tmp
               mountPath: /tmp
-            - name: homeworld-ca
-              mountPath: /etc/homeworld-ca
-              readOnly: true
       volumes:
         - name: actual-budget
           persistentVolumeClaim:
             claimName: actual-budget
         - name: tmp
           emptyDir: {}
-        - name: homeworld-ca
-          configMap:
-            name: homeworld-ca

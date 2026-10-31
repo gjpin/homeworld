@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: cleanuparr
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "cleanuparr.homeworld.internal"
+    - "cleanuparr.base-domain.invalid"
   rules:
     - backendRefs:
         - name: cleanuparr

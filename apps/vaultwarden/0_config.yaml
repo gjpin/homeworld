@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: vaultwarden
 data:
   # https://github.com/dani-garcia/vaultwarden/blob/main/.env.template
-  DOMAIN: "https://vault.homeworld.internal"
+  DOMAIN: "https://vault.base-domain.invalid"
   # Unprivileged port so the container can run as non-root.
   ROCKET_PORT: "8080"
   # Envoy Gateway runs with use_remote_address=true, which sets this header
@@ -31,7 +31,7 @@ data:
   # known WebView rendering issue with Authelia's login page. SSO signups
   # are closed as well: only admin-invited emails can join through SSO.
   SSO_ENABLED: "true"
-  SSO_AUTHORITY: "https://auth.homeworld.internal"
+  SSO_AUTHORITY: "https://auth.base-domain.invalid"
   SSO_CLIENT_ID: "vaultwarden"
   # Upstream vaultwarden always requests `openid` implicitly (SSO.md:
   # default "profile email", openid is implicit) and extends sessions with

@@ -1011,7 +1011,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-otel-pod-scrape-trust-manager
+  name: allow-otel-pod-scrape-external-dns
   namespace: otel-collector
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -1024,10 +1024,10 @@ spec:
   egress:
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: trust-manager
+            k8s:io.kubernetes.pod.namespace: external-dns
       toPorts:
         - ports:
-            - port: "9402"
+            - port: "7979"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2

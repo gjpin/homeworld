@@ -23,9 +23,9 @@ Ethernet Dispatch enabled (loads after the final reboot), PixelIoT on
 WPA2-PSK `psk2+ccmp` with PMF off for older IoT devices, PixelThings on
 WPA2/WPA3 `sae-mixed` with optional PMF for WPA2-only clients, chrony client-only,
 dnsmasq on port 54 with no public upstreams and no cache, AdGuard Home
-primary on port 53 with its dashboard reachable from Pixel only and every
-`*.homeworld.internal` name rewritten to the cluster's Gateway VIP
-`192.168.8.50`, and an
+primary on port 53 with its dashboard reachable from Pixel only and the
+cluster domain exempted from rebind protection (its public wildcard record
+points at the Gateway VIP `192.168.8.50`), and an
 IPv4-only WireGuard server on `VPN_IF`/`VPN_PORT`/`VPN_ADDR` attached to the
 trusted Pixel zone with no preconfigured peers (peers inherit the Pixel
 zone's DNS interception).
@@ -69,8 +69,10 @@ export ADGUARD_USERNAME='admin' # letter/digit first, <=64 chars
 #   htpasswd -bnBC 12 '' 'secret' | cut -d: -f2
 # Keep the single quotes: the $ characters are special to the shell.
 export ADGUARD_PASSWORD_HASH='$2y$12$replace-with-a-real-60-character-bcrypt-hash'
-# Optional: permit private DNS answers for this apex and its subdomains.
-# export DNS_REBIND_DOMAIN='mydomain.com'
+# The cluster domain (Infisical /argocd/BASE_DOMAIN): its public wildcard
+# record answers with the private Gateway VIP, which rebind protection
+# would otherwise block.
+export DNS_REBIND_DOMAIN='mydomain.com'
 umask 077
 ```
 
@@ -710,13 +712,12 @@ uci commit adguardhome
 The dashboard binds to Pixel only; DNS binds loopback, the WireGuard server
 address, and the four VLAN
 gateways. Blocked responses are NXDOMAIN, AAAA answers are disabled
-(IPv4-only networks), `.lan` and private PTR go to dnsmasq on port 54,
-`*.homeworld.internal` (every cluster hostname, at any depth) is answered
-locally with the Envoy Gateway VIP `192.168.8.50` (outside the DHCP pool,
-see section 17), and 26 filter lists are enabled. Rewrites are
-answered before filtering, so the rebind-protection list does not block
-these private answers. An optional `DNS_REBIND_DOMAIN` adds a private
-answer exception after the built-in user rules.
+(IPv4-only networks), `.lan` and private PTR go to dnsmasq on port 54, and
+26 filter lists are enabled. `DNS_REBIND_DOMAIN` adds a private answer
+exception after the built-in user rules: every cluster hostname resolves
+through the public wildcard record that ExternalDNS keeps pointing at the
+Envoy Gateway VIP `192.168.8.50` (outside the DHCP pool, see section 17),
+and the rebind-protection list would otherwise drop that private answer.
 
 ```sh
 mkdir -p /etc/adguardhome
@@ -856,10 +857,7 @@ filtering:
   parental_enabled: false
   safebrowsing_enabled: false
   rewrites_enabled: true
-  rewrites:
-  - domain: '*.homeworld.internal'
-    answer: 192.168.8.50
-    enabled: true
+  rewrites: []
   safe_fs_patterns: []
   safe_search:
     enabled: false
@@ -1177,7 +1175,7 @@ grep -E '^(http:|dns:|filters:|querylog:|statistics:)' /etc/adguardhome/adguardh
 grep -c -- '- enabled: true' /etc/adguardhome/adguardhome.yaml # 26
 grep -A7 'bind_hosts:' /etc/adguardhome/adguardhome.yaml       # loopback, the WireGuard server address, plus the four VLAN gateways
 uci show uhttpd | grep listen_
-nslookup git.homeworld.internal 127.0.0.1 # 192.168.8.50 (AdGuard rewrite)
+nslookup git."$DNS_REBIND_DOMAIN" 127.0.0.1 # 192.168.8.50 (public wildcard record, rebind exception)
 uci show dropbear           # DirectInterface='pixel', Port 22
 uci get network.wan.peerdns # 0
 chronyc tracking
@@ -1219,7 +1217,7 @@ Each client becomes a `network.wg_<name>` section of type
 IP, and gets a ready-to-import configuration file in
 `/root/wireguard-clients/`. Clients reach the WireGuard subnet, Pixel
 (`192.168.8.0/24`, including the cluster's Gateway VIP `192.168.8.50`, so
-every `*.homeworld.internal` service works remotely) and the agents VM
+every cluster service works remotely) and the agents VM
 subnet (`10.20.0.0/24`, routed through the Ryzen node, section 17) through
 the tunnel; other traffic stays on their own connection. As members of the Pixel zone they get the same DNS policy as
 Pixel clients: AdGuard Home on the server address, port-53 interception and
@@ -1305,7 +1303,7 @@ From a connected client, check the handshake and the DNS policy (replace
 ping -c 3 10.10.0.1                   # tunnel up; `wg show` on the router shows a recent handshake
 dig @10.10.0.1 openwrt.org +short     # answered by AdGuard Home
 dig @192.168.8.254 openwrt.org +short # also answered: intercepted and sent to AdGuard Home
-dig @10.10.0.1 git.homeworld.internal +short # 192.168.8.50 (the cluster's Gateway VIP)
+dig @10.10.0.1 git.mydomain.com +short # 192.168.8.50 (the cluster's Gateway VIP; use the cluster domain)
 dig -p 54 @10.10.0.1 openwrt.org      # must fail: dnsmasq is not reachable directly
 ```
 

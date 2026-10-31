@@ -30,3 +30,5 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: apps/affine/helm
     targetRevision: HEAD
+    plugin:
+      name: homeworld

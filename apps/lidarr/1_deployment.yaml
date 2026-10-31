@@ -61,7 +61,7 @@ spec:
             # pod hostname are always accepted, so the probes send
             # Host: localhost.
             - name: LIDARR__SERVER__ALLOWEDHOSTS
-              value: lidarr.homeworld.internal,lidarr,lidarr.lidarr,lidarr.lidarr.svc,lidarr.lidarr.svc.cluster.local
+              value: lidarr.base-domain.invalid,lidarr,lidarr.lidarr,lidarr.lidarr.svc,lidarr.lidarr.svc.cluster.local
             # The gateway OIDC SecurityPolicy (2_security_policy.yaml) is
             # the login: External skips Lidarr's own form. The API
             # still requires the key; ingress is limited to Envoy and the

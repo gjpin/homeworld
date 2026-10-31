@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: houndarr
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "houndarr.homeworld.internal"
+    - "houndarr.base-domain.invalid"
   rules:
     - backendRefs:
         - name: houndarr-web

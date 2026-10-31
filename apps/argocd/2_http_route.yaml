@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: argocd
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "argocd.homeworld.internal"
+    - "argocd.base-domain.invalid"
   rules:
     - backendRefs:
       - name: argocd-argocd-server

@@ -38,7 +38,7 @@ If manual intervention or maintenance is required:
 ## Identity & integrations
 
 * **OIDC sign-in:** OpenCloud authenticates through Authelia as the four clients `web`, `OpenCloudDesktop`, `OpenCloudAndroid`, `OpenCloudIOS`; access requires membership in one of the `opencloud-admin`, `opencloud-spaceadmin`, `opencloud-user`, or `opencloud-user-light` groups (the `opencloud` authorization policy; see [oidc.md](oidc.md) and the inline deviation notes in `apps/authelia/helm/configuration.yaml.tmpl`).
-* **WOPI office editing:** Collabora (office.`homeworld.internal`) serves document editing through OpenCloud's WOPI callbacks; the Collabora WOPI allow-list is the `aliasgroups` host `https://cloud.homeworld.internal:443`.
+* **WOPI office editing:** Collabora (office.`base-domain.invalid`) serves document editing through OpenCloud's WOPI callbacks; the Collabora WOPI allow-list is the `aliasgroups` host `https://cloud.base-domain.invalid:443`.
 * **CalDAV/CardDAV:** OpenCloud's authenticated DAV proxy forwards calendar and contact requests to the internal Radicale server (`radicale:5232`) — clients never reach Radicale directly.
 * **Full-text search:** the `opencloud-tika` sidecar (Apache Tika on `:9998`) extracts text from documents for search indexing.
 * **Collaborative editing (yjs):** the `yjs` sidecar (WebSocket relay on `127.0.0.1:1234`) serves the `/yjs` route through the internal proxy, scoped to the pod.

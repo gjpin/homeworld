@@ -14,12 +14,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: grafana
-      sectionName: grafana-https
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "grafana.homeworld.internal"
+    - "grafana.base-domain.invalid"
   rules:
     - matches:
         - path:

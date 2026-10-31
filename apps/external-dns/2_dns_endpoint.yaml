@@ -1,0 +1,22 @@
+# https://kubernetes-sigs.github.io/external-dns/latest/docs/sources/crd/
+#
+# One wildcard record sends every name under the domain to the Gateway VIP
+# (apps/envoy-gateway/2_gateway.yaml); new apps need no DNS change. The
+# address is private, so the names resolve publicly but only answer on the
+# LAN and over WireGuard (docs/openwrt.md).
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: wildcard
+  namespace: external-dns
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  endpoints:
+    - dnsName: "*.base-domain.invalid"
+      recordType: A
+      recordTTL: 300
+      targets:
+        - 192.168.8.50

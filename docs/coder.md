@@ -13,9 +13,9 @@ the control plane. The deployment uses the official Helm chart
 | Workspace template | `apps/coder/template/` (pushed by hand, see [below](#workspace-template)) |
 | Workspace image | `apps/coder/image/`, built by `.github/workflows/coder-workspace-image.yaml` into `ghcr.io/gjpin/homeworld/coder-workspace` (see [below](#workspace-image)) |
 
-`https://coder.homeworld.internal` serves the dashboard, the API, and the
+`https://coder.base-domain.invalid` serves the dashboard, the API, and the
 agents' WebSockets. Workspace apps (code-server, forwarded ports) get their
-own origins under `*.coder.homeworld.internal` (`CODER_WILDCARD_ACCESS_URL`).
+own origins under `*.coder.base-domain.invalid` (`CODER_WILDCARD_ACCESS_URL`).
 
 ## Sign-in
 
@@ -45,12 +45,11 @@ persistent home volume (Longhorn `longhorn-crypto`), running the homeworld
 workspace image ([below](#workspace-image)), which carries the agents VM's
 toolset. One template serves every language. Its pod spec meets
 the `coder-workspaces` namespace rules: Restricted security context, gVisor,
-UID/GID `1000`, resources from workspace parameters, and the Homeworld CA in
-the trust bundle for curl, git, OpenSSL, Go, and Node.js. Push it from a
-machine that trusts the Homeworld CA (README step 9):
+UID/GID `1000`, and resources from workspace parameters. Push it with the
+Coder CLI:
 
 ```bash
-coder login https://coder.homeworld.internal
+coder login https://coder.base-domain.invalid
 coder templates push kubernetes -d apps/coder/template --yes
 coder templates edit kubernetes \
   --display-name "Kubernetes (homeworld)" \
@@ -161,7 +160,7 @@ from Open VSX and keeps them updated. Add more in the code-server module's
 ## Networking
 
 Workspaces accept no inbound connections. The workspace agent dials
-`coder.homeworld.internal`, and every session rides back over that
+`coder.base-domain.invalid`, and every session rides back over that
 connection through the embedded DERP relay: the web terminal, SSH,
 IDEs, workspace apps, and Coder Agents tool calls. STUN is disabled (the
 default servers are Google's) and direct connections are blocked, because

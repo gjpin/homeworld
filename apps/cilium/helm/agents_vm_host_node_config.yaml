@@ -17,6 +17,6 @@ metadata:
 spec:
   nodeSelector:
     matchLabels:
-      node.homeworld.internal/profile: ryzen
+      node.homeworld/profile: ryzen
   defaults:
     enable-host-legacy-routing: "true"

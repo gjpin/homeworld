@@ -95,6 +95,10 @@ configMapGenerator:
   - name: grafana-dashboard-envoy-gateway-resources-monitor
     files:
       - json=dashboards/envoy-gateway/envoy-gateway-resources-monitor.json
+  # external-dns
+  - name: grafana-dashboard-external-dns
+    files:
+      - json=dashboards/external-dns/external-dns.json
   # external-secrets
   - name: grafana-dashboard-external-secrets
     files:
@@ -224,10 +228,6 @@ configMapGenerator:
   - name: grafana-dashboard-kured
     files:
       - json=dashboards/kured/kured.json
-  # trust-manager
-  - name: grafana-dashboard-trust-manager
-    files:
-      - json=dashboards/trust-manager/trust-manager.json
   # velero
   - name: grafana-dashboard-velero
     files:
@@ -252,7 +252,6 @@ configMapGenerator:
 resources:
   - -2_network_policy.yaml
   - -1_secrets.yaml
-  - 0_gateway.yaml
   - 0_grafana.yaml
   - 0_service_monitor.yaml
   - 1_dashboards_affine.yaml
@@ -267,6 +266,7 @@ resources:
   - 1_dashboards_crowdsec-envoy-bouncer.yaml
   - 1_dashboards_dragonfly-operator.yaml
   - 1_dashboards_envoy-gateway.yaml
+  - 1_dashboards_external-dns.yaml
   - 1_dashboards_external-secrets.yaml
   - 1_dashboards_forgejo.yaml
   - 1_dashboards_grafana.yaml
@@ -287,7 +287,6 @@ resources:
   - 1_dashboards_rustfs.yaml
   - 1_dashboards_rustfs-operator.yaml
   - 1_dashboards_snapshot-controller.yaml
-  - 1_dashboards_trust-manager.yaml
   - 1_dashboards_velero.yaml
   - 1_dashboards_victoria-metrics.yaml
   - 1_dashboards_woodpecker.yaml
@@ -309,4 +308,3 @@ resources:
   - 0_victoriatraces_jaeger_datasource.yaml
   - 0_victoriatraces_tempo_datasource.yaml
   - 2_http_route.yaml
-  - 2_security_policy.yaml

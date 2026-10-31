@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: seerr
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "seerr.homeworld.internal"
+    - "seerr.base-domain.invalid"
   rules:
     - backendRefs:
         - name: seerr

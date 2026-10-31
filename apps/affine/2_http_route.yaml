@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: affine
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "affine.homeworld.internal"
+    - "affine.base-domain.invalid"
   rules:
     - backendRefs:
         - name: affine

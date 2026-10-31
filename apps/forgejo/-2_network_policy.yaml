@@ -164,7 +164,7 @@ spec:
       k8s:app.kubernetes.io/instance: forgejo
   egress:
     - toFQDNs:
-        - matchName: "auth.homeworld.internal"
+        - matchName: "auth.base-domain.invalid"
       toPorts:
         - ports:
             - port: "443"
@@ -208,7 +208,7 @@ spec:
       k8s:app.kubernetes.io/instance: forgejo
   egress:
     - toFQDNs:
-        - matchName: "ci.homeworld.internal"
+        - matchName: "ci.base-domain.invalid"
       toPorts:
         - ports:
             - port: "443"

@@ -247,8 +247,8 @@ Do all of the following:
    Restricted security contexts, runtimeClassName gvisor or hostUsers:
    false, requests and limits on every container, 60s ServiceMonitors and
    PodMonitors, fully qualified images, Gateway/HTTPRoute alignment,
-   network policies for new ports or egress, Homeworld CA trust for new
-   in-cluster HTTPS calls, CRD ordering, helm.sh/hook Jobs disabled or
+   network policies for new ports or egress, the base-domain.invalid
+   placeholder (never a real domain) in new hostnames, CRD ordering, helm.sh/hook Jobs disabled or
    converted. Fix every regression the report lists. Pre-existing findings
    that are documented exceptions in docs/pod-security.md stay.
 6. Docs. Update docs/ as AGENTS.md requires (pod-security tables,

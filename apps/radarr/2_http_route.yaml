@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: radarr
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "radarr.homeworld.internal"
+    - "radarr.base-domain.invalid"
   rules:
     - backendRefs:
         - name: radarr

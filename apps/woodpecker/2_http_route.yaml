@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: woodpecker
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "ci.homeworld.internal"
+    - "ci.base-domain.invalid"
   rules:
     - backendRefs:
         - name: woodpecker-server

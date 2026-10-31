@@ -14,7 +14,7 @@ spec:
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "envoy.homeworld.internal"
+    - "envoy.base-domain.invalid"
   rules:
     - backendRefs:
         - name: envoy-gateway

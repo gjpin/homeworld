@@ -22,6 +22,7 @@ require_tools() {
   command -v python3 >/dev/null || { log "python3 required"; exit 1; }
   command -v kubectl >/dev/null || { log "kubectl required"; exit 1; }
   command -v openssl >/dev/null || { log "openssl required"; exit 1; }
+  command -v yq >/dev/null || { log "yq required"; exit 1; }
 }
 
 b64() { printf '%s' "$1" | base64 | tr -d '\n'; }
@@ -66,8 +67,10 @@ kind_coordinates() {
 }
 
 # The tracked tree carries production coordinates as literals (README
-# "Manual Setup"); swap the ones kind cannot use. The homeworld.internal
-# domain and the Infisical project/environment (homeworld/prod) stay as-is.
+# "Manual Setup"); swap the ones kind cannot use. The base-domain.invalid
+# placeholder stays: Argo CD's homeworld plugin replaces it with BASE_DOMAIN
+# (apply-argocd-domain.sh), as in production. The Infisical
+# project/environment (homeworld/prod) stay as-is.
 rewrite_coordinates() {
   local f
   while IFS= read -r -d '' f; do
@@ -81,6 +84,9 @@ rewrite_coordinates() {
 }
 
 apply_static_overlays() {
+  # Kind cannot answer Let's Encrypt DNS-01 challenges.
+  cp "${ROOT}/e2e/examples/manifests/selfsigned-cluster-issuer.yaml" \
+    "${STAGING}/apps/cert-manager/2_cluster_issuer.yaml"
   python3 "${ROOT}/e2e/examples/hooks/rewrite-staging.py" "${STAGING}"
 }
 
@@ -154,6 +160,12 @@ publish_generated() {
   mkdir -p "${GENERATED}"
   cp "${STAGING}/apps/app-of-apps.yaml" "${GENERATED}/app-of-apps.yaml"
   log "wrote ${GENERATED}/app-of-apps.yaml"
+  # The bootstrap Argo CD needs the homeworld plugin before it can render any
+  # Application; take it from the staged argocd values, as host/bootstrap.sh
+  # does in production.
+  yq '{"configs": {"cmp": .configs.cmp}, "repoServer": {"extraContainers": .repoServer.extraContainers, "volumes": .repoServer.volumes}}' \
+    "${STAGING}/apps/argocd/helm/values.yaml" >"${GENERATED}/argocd-plugin-values.yaml"
+  log "wrote ${GENERATED}/argocd-plugin-values.yaml"
 }
 
 require_tools

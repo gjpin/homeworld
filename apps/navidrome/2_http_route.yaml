@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: navidrome
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "navidrome.homeworld.internal"
+    - "navidrome.base-domain.invalid"
   rules:
     # /metrics is unauthenticated on the application port; keep it off the
     # public hostname (the collector scrapes the Service directly).

@@ -51,3 +51,5 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: apps/cilium/helm
     targetRevision: HEAD
+    plugin:
+      name: homeworld

@@ -9,12 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: rustfs-operator
-      sectionName: rustfs-https
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "rustfs.homeworld.internal"
+    - "rustfs.base-domain.invalid"
   rules:
     - backendRefs:
       - name: rustfs-operator-console

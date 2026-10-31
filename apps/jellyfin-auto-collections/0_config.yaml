@@ -15,7 +15,7 @@ metadata:
 data:
   config.yaml: |
     jellyfin:
-      # In-cluster Service: plain HTTP, no Homeworld CA needed.
+      # In-cluster Service: plain HTTP.
       server_url: http://jellyfin.jellyfin.svc.cluster.local:8096
       api_key: !ENV ${JELLYFIN_API_KEY}
       user_id: !ENV ${JELLYFIN_USER_ID}

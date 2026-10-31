@@ -12,12 +12,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: coder
-      sectionName: coder-https
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "coder.homeworld.internal"
+    - "coder.base-domain.invalid"
   rules:
     - backendRefs:
         - name: coder
@@ -37,12 +36,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: coder
-      sectionName: coder-apps-https
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "*.coder.homeworld.internal"
+    - "*.coder.base-domain.invalid"
   rules:
     - backendRefs:
         - name: coder

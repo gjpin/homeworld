@@ -9,12 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: rustfs
-      sectionName: rustfs-s3-https
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "s3.homeworld.internal"
+    - "s3.base-domain.invalid"
   rules:
     - backendRefs:
       - name: rustfs-io
@@ -34,12 +33,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: rustfs
-      sectionName: rustfs-console-https
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "console.rustfs.homeworld.internal"
+    - "console.rustfs.base-domain.invalid"
   rules:
     - backendRefs:
       - name: rustfs-console

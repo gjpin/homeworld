@@ -11,19 +11,19 @@ coder:
 
   env:
     - name: CODER_ACCESS_URL
-      value: "https://coder.homeworld.internal"
+      value: "https://coder.base-domain.invalid"
     # Workspace apps (code-server, AI agent UIs, forwarded ports) are served
     # on their own origins under the wildcard listener rather than as path
     # apps on the dashboard origin.
     - name: CODER_WILDCARD_ACCESS_URL
-      value: "*.coder.homeworld.internal"
+      value: "*.coder.base-domain.invalid"
     - name: CODER_PG_CONNECTION_URL
       valueFrom:
         secretKeyRef:
           name: coder-secrets
           key: CODER_PG_CONNECTION_URL
     # Envoy Gateway terminates TLS; the dashboard is only ever reached over
-    # https://coder.homeworld.internal.
+    # https://coder.base-domain.invalid.
     - name: CODER_SECURE_AUTH_COOKIE
       value: "true"
     - name: CODER_REDIRECT_TO_ACCESS_URL
@@ -37,7 +37,7 @@ coder:
 
     # --- Authelia OIDC (https://www.authelia.com/integration/openid-connect/clients/coder/)
     - name: CODER_OIDC_ISSUER_URL
-      value: "https://auth.homeworld.internal"
+      value: "https://auth.base-domain.invalid"
     - name: CODER_OIDC_CLIENT_ID
       value: coder
     - name: CODER_OIDC_CLIENT_SECRET
@@ -106,22 +106,6 @@ coder:
     # VictoriaLogs and the upstream dashboards' log panels parse.
     - name: CODER_LOGGING_HUMAN
       value: /dev/stderr
-
-    # Authelia (OIDC discovery, token, userinfo, JWKS) and coderd's own
-    # access URL (health checks, DERP) serve certificates signed by the
-    # homeworld CA; add the trust-manager ConfigMap mounted below to Go's
-    # system roots (SSL_CERT_DIR is additive to the image's CA bundle).
-    - name: SSL_CERT_DIR
-      value: /etc/homeworld-ca
-
-  volumes:
-    - name: homeworld-ca
-      configMap:
-        name: homeworld-ca
-  volumeMounts:
-    - name: homeworld-ca
-      mountPath: /etc/homeworld-ca
-      readOnly: true
 
   # Workspaces run in their own namespace (apps/coder/workspaces/), away
   # from coderd, its database credentials, and the OIDC client secret. The

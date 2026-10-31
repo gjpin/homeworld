@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: longhorn-system
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "longhorn.homeworld.internal"
+    - "longhorn.base-domain.invalid"
   rules:
     - backendRefs:
       - name: longhorn-frontend

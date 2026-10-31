@@ -248,7 +248,7 @@ AudioMuse-AI's analysis schedule) are the README's manual steps.
 
 - **Intel GPU**: Intel's GPU device plugin from its release's own kustomize
   base, scheduled on corebox only (the
-  `node.homeworld.internal/profile=corebox` label). Jellyfin requests
+  `node.homeworld/profile=corebox` label). Jellyfin requests
   `gpu.intel.com/i915: 1`, which also places it on corebox; containerd's
   `device_ownership_from_security_context` gives the render node to
   Jellyfin's user, and `host/apply.sh` keeps `container_use_dri_devices` on.

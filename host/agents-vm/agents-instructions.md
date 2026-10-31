@@ -12,6 +12,6 @@ pinned tools change, so anything outside `/home/agent` can disappear.
 - The coding-agent CLIs, OpenChamber and Paseo are pinned in `/usr/local` and
   never self-update.
 - Network: the internet is reachable. The home network, the cluster and the
-  NAS are not, except `git.homeworld.internal` (HTTPS and SSH) through the
-  cluster gateway. The system trusts the Homeworld CA.
+  NAS are not, except `git.base-domain.invalid` (HTTPS and SSH) through the
+  cluster gateway.
 - Never put secrets in files you commit or in container images.

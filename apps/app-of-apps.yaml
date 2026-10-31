@@ -17,6 +17,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/admission-policies"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
@@ -49,6 +51,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/prometheus-operator-crd"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: prometheus-operator-crd
@@ -97,6 +101,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/dragonfly-operator"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: dragonfly-operator
@@ -138,6 +144,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/envoy-gateway"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: envoy-gateway
@@ -179,6 +187,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/cilium"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: cilium
@@ -230,6 +240,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/cert-manager"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
@@ -253,30 +265,31 @@ spec:
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.37
 ---
-# trust-manager
-# Wave 4: its webhook serving certificate comes from a cert-manager Issuer
-# (wave 3), and the homeworld-ca ConfigMap it publishes cluster-wide must
-# exist before the wave 5+ workloads that mount it start.
+# external-dns
+# Wave 3: publishes the wildcard record for the Gateway VIP alongside
+# cert-manager, whose wildcard certificate needs the same Cloudflare zone.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: trust-manager-app
+  name: external-dns-app
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: homeworld
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/trust-manager"
+    path: "apps/external-dns"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
-    namespace: trust-manager
+    namespace: external-dns
   syncPolicy:
     automated:
       prune: true
@@ -315,6 +328,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/longhorn"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: longhorn-system
@@ -358,6 +373,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/snapshot-controller"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: snapshot-controller
@@ -401,6 +418,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/csi-driver-nfs"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: csi-driver-nfs
@@ -446,6 +465,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/intel-gpu-plugin"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: intel-gpu-plugin
@@ -491,6 +512,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/system-upgrade-controller"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: system-upgrade
@@ -534,6 +557,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/kubelet-serving-cert-approver"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: kubelet-serving-cert-approver
@@ -575,6 +600,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/metrics-server"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: metrics-server
@@ -616,6 +643,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/velero"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: velero
@@ -662,6 +691,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/velero-ui"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: velero-ui
@@ -703,6 +734,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/argocd"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
@@ -744,6 +777,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/cloudnative-pg"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: cloudnative-pg
@@ -786,6 +821,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/mariadb-operator"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: mariadb-operator
@@ -827,6 +864,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/rustfs-operator"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: rustfs-operator
@@ -868,6 +907,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/external-secrets"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: external-secrets
@@ -909,6 +950,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/documentdb-operator"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: documentdb-operator
@@ -950,6 +993,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/crowdsec"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: crowdsec
@@ -993,6 +1038,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/crowdsec-envoy-bouncer"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: envoy-gateway
@@ -1027,6 +1074,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/grafana-operator"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: grafana-operator
@@ -1068,6 +1117,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/rustfs"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: rustfs
@@ -1111,6 +1162,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/victoria-metrics"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: victoria-metrics
@@ -1152,6 +1205,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/opentelemetry-operator"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: opentelemetry-operator
@@ -1193,6 +1248,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/authelia"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: authelia
@@ -1234,6 +1291,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/homeassistant"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: homeassistant
@@ -1280,6 +1339,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/radicale"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: radicale
@@ -1321,6 +1382,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/immich"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: immich
@@ -1362,6 +1425,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/kube-state-metrics"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-state-metrics
@@ -1406,6 +1471,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/kube-control-plane"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
@@ -1440,6 +1507,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/kured"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: kured
@@ -1483,6 +1552,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/otel-collector"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: otel-collector
@@ -1524,6 +1595,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/forgejo"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: forgejo
@@ -1565,6 +1638,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/grafana"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: grafana
@@ -1606,6 +1681,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/notesnook"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: notesnook
@@ -1647,6 +1724,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/affine"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: affine
@@ -1688,6 +1767,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/homepage"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: homepage
@@ -1729,6 +1810,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/supernote"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: supernote
@@ -1770,6 +1853,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/vaultwarden"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: vaultwarden
@@ -1811,6 +1896,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/actual-budget"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: actual-budget
@@ -1852,6 +1939,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/qbittorrent"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: qbittorrent
@@ -1899,6 +1988,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/collabora"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: collabora
@@ -1940,6 +2031,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/woodpecker"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: woodpecker
@@ -1981,6 +2074,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/openchamber"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: openchamber
@@ -2024,6 +2119,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/coder"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: coder
@@ -2067,6 +2164,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/prowlarr"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: prowlarr
@@ -2108,6 +2207,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/flaresolverr"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: flaresolverr
@@ -2149,6 +2250,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/sonarr"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: sonarr
@@ -2190,6 +2293,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/radarr"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: radarr
@@ -2231,6 +2336,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/lidarr"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: lidarr
@@ -2272,6 +2379,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/bindery"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: bindery
@@ -2313,6 +2422,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/bazarr"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: bazarr
@@ -2354,6 +2465,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/recyclarr"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: recyclarr
@@ -2395,6 +2508,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/unpackerr"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: unpackerr
@@ -2436,6 +2551,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/media-config"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: media-config
@@ -2477,6 +2594,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/jellyfin"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: jellyfin
@@ -2518,6 +2637,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/navidrome"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: navidrome
@@ -2559,6 +2680,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/feishin"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: feishin
@@ -2600,6 +2723,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/audiomuse-ai"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: audiomuse-ai
@@ -2641,6 +2766,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/beets"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: beets
@@ -2682,6 +2809,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/audiobookshelf"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: audiobookshelf
@@ -2723,6 +2852,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/seerr"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: seerr
@@ -2764,6 +2895,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/streamystats"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: streamystats
@@ -2805,6 +2938,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/jellyfin-auto-collections"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: jellyfin-auto-collections
@@ -2846,6 +2981,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/maintainerr"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: maintainerr
@@ -2887,6 +3024,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/cleanuparr"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: cleanuparr
@@ -2928,6 +3067,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/qbit-manage"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: qbit-manage
@@ -2969,6 +3110,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/houndarr"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: houndarr
@@ -3010,6 +3153,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: "apps/opencloud"
     targetRevision: HEAD
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: opencloud

@@ -9,12 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: immich
-      sectionName: immich-https
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "photos.homeworld.internal"
+    - "photos.base-domain.invalid"
   rules:
     - backendRefs:
       - name: immich-server

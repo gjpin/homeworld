@@ -182,11 +182,17 @@ done >"$work/homeworld-cilium-crds.yaml"
 namespace cilium cilium-app >"$work/homeworld-cilium-namespace.yaml"
 render "$repo/apps/cilium/helm" >"$work/homeworld-cilium.yaml"
 
-# Minimal Argo CD: the chart pinned by apps/argocd with bootstrap values.
+# Minimal Argo CD: the chart pinned by apps/argocd with bootstrap values,
+# plus the homeworld Config Management Plugin from apps/argocd/helm, which
+# renders every Application (docs/argocd.md).
 mkdir "$work/argocd"
 yq '.helmCharts[0] |= (.valuesFile = "values.yaml" | del(.valuesInline)) | {"apiVersion": .apiVersion, "kind": .kind, "helmCharts": [.helmCharts[0]]}' \
   "$repo/apps/argocd/helm/kustomization.yaml" >"$work/argocd/kustomization.yaml"
-cp "$repo/bootstrap/argocd-values.yaml" "$work/argocd/values.yaml"
+yq '{"configs": {"cmp": .configs.cmp}, "repoServer": {"extraContainers": .repoServer.extraContainers, "volumes": .repoServer.volumes}}' \
+  "$repo/apps/argocd/helm/values.yaml" >"$work/argocd-plugin.yaml"
+# shellcheck disable=SC2016 # a yq expression, not a shell one
+yq eval-all '. as $item ireduce ({}; . * $item)' \
+  "$repo/bootstrap/argocd-values.yaml" "$work/argocd-plugin.yaml" >"$work/argocd/values.yaml"
 namespace argocd argocd-app >"$work/homeworld-argocd-namespace.yaml"
 render "$work/argocd" >"$work/homeworld-argocd.yaml"
 cp "$repo/apps/app-of-apps.yaml" "$work/homeworld-root.yaml"
@@ -202,8 +208,34 @@ ask_secret es_client_secret "Client secret"
     --dry-run=client -o yaml
 } >"$work/homeworld-external-secrets.yaml"
 
+# The cluster domain lives only in Infisical (/argocd/BASE_DOMAIN). The
+# repo-server cannot render anything without it, External Secrets included,
+# so read it once with the same machine identity and seed the Secret that
+# apps/argocd/-1_secrets.yaml adopts afterwards.
+log "Reading the cluster domain from Infisical"
+store="$repo/apps/external-secrets/2_secret_store.yaml"
+infisical=$(yq '.spec.provider.infisical.hostAPI' "$store")
+token=$(jq -n --arg id "$es_client_id" --arg secret "$es_client_secret" '{clientId: $id, clientSecret: $secret}' |
+  curl -fsS -H 'Content-Type: application/json' -d @- "$infisical/api/v1/auth/universal-auth/login" | jq -r .accessToken)
+domain=$(curl -fsS -G -H "Authorization: Bearer $token" \
+  --data-urlencode "workspaceSlug=$(yq '.spec.provider.infisical.secretsScope.projectSlug' "$store")" \
+  --data-urlencode "environment=$(yq '.spec.provider.infisical.secretsScope.environmentSlug' "$store")" \
+  --data-urlencode secretPath=/argocd \
+  "$infisical/api/v3/secrets/raw/BASE_DOMAIN" | jq -r .secret.secretValue)
+case "$domain" in
+  *.*) ;;
+  *) echo "/argocd/BASE_DOMAIN in Infisical is not a domain" >&2; exit 1 ;;
+esac
+case "$domain" in
+  *[!a-z0-9.-]* | .* | *. | *..*) echo "/argocd/BASE_DOMAIN in Infisical is not a domain" >&2; exit 1 ;;
+esac
+echo "Cluster domain: $domain"
+k3s kubectl create secret generic homeworld-domain --namespace argocd \
+  --from-literal=BASE_DOMAIN="$domain" --dry-run=client -o yaml >"$work/homeworld-argocd-domain.yaml"
+
 oneshot=(homeworld-cilium-crds homeworld-cilium-namespace homeworld-cilium
-  homeworld-argocd-namespace homeworld-argocd homeworld-root homeworld-external-secrets)
+  homeworld-argocd-namespace homeworld-argocd-domain homeworld-argocd homeworld-root
+  homeworld-external-secrets)
 for f in "${oneshot[@]}"; do
   install -m 0600 "$work/$f.yaml" "$manifests/$f.yaml"
 done

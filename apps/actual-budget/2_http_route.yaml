@@ -13,11 +13,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: actual-budget
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "budget.homeworld.internal"
+    - "budget.base-domain.invalid"
   rules:
     - backendRefs:
         - name: actual-budget

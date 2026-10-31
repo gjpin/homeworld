@@ -28,3 +28,5 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: apps/houndarr/helm
     targetRevision: HEAD
+    plugin:
+      name: homeworld

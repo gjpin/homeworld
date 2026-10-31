@@ -15,7 +15,7 @@ crds:
 # https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#ingressroute-crd
 configs:
   cm:
-    url: https://argocd.homeworld.internal
+    url: https://argocd.base-domain.invalid
     admin.enabled: false
     # Local account for the Homepage dashboard's Argo CD widget: API-key-only,
     # read-only through the RBAC role mapping below.
@@ -73,11 +73,9 @@ configs:
     # Keep this dollar reference intact; do not run it through envsubst.
     oidc.config: |
       name: Authelia
-      issuer: https://auth.homeworld.internal
+      issuer: https://auth.base-domain.invalid
       clientID: argocd
       clientSecret: $argocd-oidc:clientSecret
-      # Authelia's certificate is signed by the homeworld CA.
-      rootCA: $argocd-oidc:rootCA
       cliClientID: argocd-cli
       requestedScopes:
         - openid
@@ -95,6 +93,59 @@ configs:
     scopes: "[groups]"
   params:
     server.insecure: true
+  # The homeworld Config Management Plugin renders every Application sourced
+  # from this repository (docs/argocd.md). Git carries the placeholder
+  # base-domain.invalid wherever the cluster domain belongs; the plugin
+  # renders the component as Argo CD's built-in tools would (kustomize with
+  # Helm for directories holding a kustomization.yaml, the plain YAML files
+  # otherwise) and replaces the placeholder with the domain from the
+  # argocd/homeworld-domain Secret (Infisical /argocd/BASE_DOMAIN, synced by
+  # apps/argocd/-1_secrets.yaml and seeded by host/bootstrap.sh). It fails
+  # instead of rendering when the domain is missing or malformed, so the
+  # placeholder never reaches the cluster.
+  cmp:
+    create: true
+    plugins:
+      homeworld:
+        generate:
+          command: [sh, -c]
+          args:
+            - |
+              set -eu
+              domain=$(cat /etc/homeworld-domain/BASE_DOMAIN)
+              case "$domain" in
+                *.*) ;;
+                *) echo "homeworld plugin: BASE_DOMAIN is not a domain" >&2; exit 1 ;;
+              esac
+              case "$domain" in
+                *[!a-z0-9.-]* | .* | *. | *..* | base-domain\.invalid)
+                  echo "homeworld plugin: BASE_DOMAIN is not a domain" >&2; exit 1 ;;
+              esac
+              # The placeholder is spelled with an escaped dot throughout
+              # this script, so rendering Argo CD's own Application leaves
+              # it intact.
+              out=$(mktemp)
+              if [ -f kustomization.yaml ]; then
+                # The arguments Argo CD passes to its built-in kustomize
+                # when kustomize.buildOptions holds --enable-helm.
+                set -- build . --enable-helm
+                if [ -n "${KUBE_VERSION:-}" ]; then
+                  set -- "$@" --helm-kube-version "$KUBE_VERSION"
+                fi
+                for v in $(echo "${KUBE_API_VERSIONS:-}" | tr ',' ' '); do
+                  set -- "$@" --helm-api-versions "$v"
+                done
+                kustomize "$@" >"$out"
+              else
+                for f in *.yaml *.yml *.json; do
+                  [ -f "$f" ] || continue
+                  printf -- '---\n'
+                  cat "./$f"
+                  printf '\n'
+                done >"$out"
+              fi
+              sed "s/base-domain\.invalid/$domain/g" "$out"
+              rm -f "$out"
 # server
 server:
   name: argocd-server
@@ -111,6 +162,63 @@ repoServer:
     serviceMonitor:
       enabled: true
       interval: 60s
+  # The homeworld plugin's sidecar (configs.cmp above), on the Argo CD image
+  # itself, which ships kustomize, helm, and sed.
+  extraContainers:
+    - name: homeworld-plugin
+      image: "{{ .Values.global.image.repository }}:{{ default .Chart.AppVersion .Values.global.image.tag }}"
+      imagePullPolicy: IfNotPresent
+      command: [/var/run/argocd/argocd-cmp-server]
+      env:
+        - name: HELM_CACHE_HOME
+          value: /tmp/helm
+        - name: HELM_CONFIG_HOME
+          value: /tmp/helm
+        - name: HELM_DATA_HOME
+          value: /tmp/helm
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+        seccompProfile:
+          type: RuntimeDefault
+        capabilities:
+          drop:
+            - ALL
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+          ephemeral-storage: 64Mi
+        limits:
+          cpu: "1"
+          memory: 2Gi
+          ephemeral-storage: 2Gi
+      volumeMounts:
+        - name: var-files
+          mountPath: /var/run/argocd
+        - name: plugins
+          mountPath: /home/argocd/cmp-server/plugins
+        - name: argocd-cmp-cm
+          mountPath: /home/argocd/cmp-server/config/plugin.yaml
+          subPath: homeworld.yaml
+        - name: homeworld-plugin-tmp
+          mountPath: /tmp
+        # Mounted whole (not subPath) so a changed domain reaches the
+        # running sidecar.
+        - name: homeworld-domain
+          mountPath: /etc/homeworld-domain
+          readOnly: true
+  volumes:
+    - name: argocd-cmp-cm
+      configMap:
+        name: argocd-cmp-cm
+    - name: homeworld-plugin-tmp
+      emptyDir: {}
+    - name: homeworld-domain
+      secret:
+        secretName: homeworld-domain
 # controller
 controller:
   name: argocd-application-controller
@@ -152,7 +260,7 @@ notifications:
   # Context URL used in notification templates; nothing is subscribed today —
   # set before enabling any subscription, or templates render with the
   # chart-default https://argocd.example.com.
-  argocdUrl: https://argocd.homeworld.internal
+  argocdUrl: https://argocd.base-domain.invalid
   metrics:
     enabled: true
     serviceMonitor:

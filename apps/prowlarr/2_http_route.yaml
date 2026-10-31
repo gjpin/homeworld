@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: prowlarr
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "prowlarr.homeworld.internal"
+    - "prowlarr.base-domain.invalid"
   rules:
     - backendRefs:
         - name: prowlarr

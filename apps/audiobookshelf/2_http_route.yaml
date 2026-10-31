@@ -9,11 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: audiobookshelf
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "audiobookshelf.homeworld.internal"
+    - "audiobookshelf.base-domain.invalid"
   rules:
     - backendRefs:
         - name: audiobookshelf

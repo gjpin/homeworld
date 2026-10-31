@@ -9,12 +9,11 @@ metadata:
 spec:
   parentRefs:
     - name: envoy
-      namespace: velero-ui
-      sectionName: velero-ui-https
+      namespace: envoy-gateway
       group: gateway.networking.k8s.io
       kind: Gateway
   hostnames:
-    - "velero.homeworld.internal"
+    - "velero.base-domain.invalid"
   rules:
     - backendRefs:
       - name: velero-ui

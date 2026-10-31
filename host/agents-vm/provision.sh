@@ -17,11 +17,6 @@ esac
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
-# --- Homeworld CA ---------------------------------------------------------
-anchor=/etc/pki/ca-trust/source/anchors/homeworld-ca.crt
-grep -q 'BEGIN CERTIFICATE' "$anchor" 2>/dev/null || rm -f "$anchor"
-update-ca-trust
-
 # --- repositories ---------------------------------------------------------
 # HashiCorp and Adoptium publish a new Fedora release some time after GA:
 # use the newest release they serve, at most ours.
@@ -291,7 +286,7 @@ After=agents-config.service
 EnvironmentFile=/run/agents/secrets.env
 Environment=PASEO_LISTEN=0.0.0.0:6767
 Environment=PASEO_RELAY_ENABLED=false
-Environment=PASEO_HOSTNAMES=paseo.homeworld.internal
+Environment=PASEO_HOSTNAMES=paseo.base-domain.invalid
 Environment=PASEO_WEB_UI_ENABLED=true
 WorkingDirectory=%h
 ExecStart=/usr/local/bin/paseo daemon run
@@ -301,7 +296,7 @@ Restart=on-failure
 WantedBy=default.target
 EOF
 # ThinkRail has no login of its own: Envoy Gateway's Authelia sign-in
-# fronts thinkrail.homeworld.internal, and the VM host's firewall keeps
+# fronts thinkrail.base-domain.invalid, and the VM host's firewall keeps
 # LAN and WireGuard clients off this port (docs/openchamber.md).
 cat >$units/thinkrail.service <<'EOF'
 [Unit]

@@ -112,6 +112,30 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: allow-cert-manager-external-issuance
+  namespace: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # ACME HTTP APIs and Cloudflare DNS-01 reconciliation are the controller's
+  # only Internet dependencies.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/component: controller
+      k8s:app.kubernetes.io/name: cert-manager
+  egress:
+    - toFQDNs:
+        - matchName: acme-v02.api.letsencrypt.org
+        - matchName: acme-staging-v02.api.letsencrypt.org
+        - matchName: api.cloudflare.com
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-cert-manager-webhook-ingress
   namespace: cert-manager
   annotations:

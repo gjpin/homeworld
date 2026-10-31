@@ -14,6 +14,8 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     targetRevision: HEAD
     path: apps/crowdsec/helm
+    plugin:
+      name: homeworld
   destination:
     server: https://kubernetes.default.svc
     namespace: crowdsec

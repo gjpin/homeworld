@@ -27,3 +27,5 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: apps/system-upgrade-controller/controller
     targetRevision: HEAD
+    plugin:
+      name: homeworld

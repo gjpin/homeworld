@@ -18,7 +18,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - `apps/app-of-apps.yaml`: root Argo CD applications and dependency sync waves.
 - `apps/<component>/`: manifests for one component. Filenames are prefixed with
   their exact Argo CD sync wave (e.g. `-2_network_policy.yaml`, `-1_secrets.yaml`,
-  `0_gateway.yaml`, `1_helm.yaml`, `2_http_route.yaml`).
+  `0_postgres.yaml`, `1_helm.yaml`, `2_http_route.yaml`).
 - `apps/grafana/dashboards/<app>/`: dashboard JSON for the app's Grafana folder.
 - `host/`: the Fedora/k3s hosts, outside Argo CD (docs/k3s.md, docs/fedora.md):
   `bootstrap.sh` (one-time node bootstrap), `apply.sh` (idempotent converger
@@ -92,12 +92,17 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   features and functionality must NOT be disabled or broken in the process;
   when in doubt whether a mechanism is pure telemetry or required for features,
   ask the user.
-- HTTP/gRPC endpoints use Gateway API resources on `<app>.homeworld.internal`:
-  a Gateway with `spec.addresses` `192.168.8.50` (the Cilium-announced Gateway
-  VIP; the router's AdGuard Home resolves every `*.homeworld.internal` name to
-  it, so no DNS records are managed in git) and the
-  `cert-manager.io/cluster-issuer: homeworld-ca` annotation. Keep Gateway listeners,
-  route hostnames, TLS hostnames, and backend ports aligned. Every route backend also
+- HTTP/gRPC endpoints are routes on `<app>.base-domain.invalid` attached to the
+  single shared Gateway (`parentRefs` `envoy` in `envoy-gateway`,
+  `apps/envoy-gateway/2_gateway.yaml`); components never add their own Gateway.
+  Its wildcard listener (`*.base-domain.invalid`, plus the second-level
+  `*.notes`, `*.rustfs` and `*.coder` wildcards) carries one Let's Encrypt
+  certificate, and ExternalDNS's wildcard record points every name at the
+  Cilium-announced Gateway VIP `192.168.8.50`, so a new single-label hostname
+  needs no DNS or certificate change. A hostname with more labels needs its own
+  wildcard listener on the shared Gateway (same `wildcard-tls` Secret). The
+  Gateway-level CrowdSec extAuth covers every route. Keep route hostnames and
+  backend ports aligned. Every route backend also
   needs a matching per-service `allow-envoy-backend-<service>` egress CiliumNetworkPolicy
   in `apps/envoy-gateway` (one port per rule — Cilium applies `toPorts` to every
   `toServices` entry) plus an ingress rule on the app side, and a `docs/network-policies.md` row.
@@ -113,15 +118,24 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   docs/network-policies.md): explicit `fromEntities: host` probe rules are
   optional defense-in-depth, not a requirement. Revisit if the datapath mode or
   the host firewall configuration changes.
-- Argo CD deploys this repository straight from git, so tracked manifests contain
-  no deployment placeholders: cluster coordinates (domain, Gateway VIP, Infisical
-  endpoint, Velero target) are literal values, and anything operator-specific
-  that is not a fixed coordinate (SMTP relays, sender addresses) comes from
-  Infisical. Runtime expansions owned by an application (CrowdSec's
-  `${DB_PASSWORD}`) stay verbatim.
-- Workloads that call `*.homeworld.internal` over HTTPS from inside the cluster
-  must trust the Homeworld CA; follow "In-cluster trust of the Homeworld CA"
-  below.
+- The cluster domain never appears in git. Write `base-domain.invalid` wherever
+  it belongs (hostnames, URLs, cookie domains, `toFQDNs`, Helm values, app
+  config); Argo CD's homeworld Config Management Plugin replaces it with
+  Infisical `/argocd/BASE_DOMAIN` at render time (docs/argocd.md, "Homeworld
+  plugin"). Every Application sourced from this repository sets
+  `spec.source.plugin.name: homeworld`. Files that reach a system outside Argo
+  CD need their own substitution (the agents VM seed, `host/agents-vm/rebuild.sh`)
+  or must avoid the placeholder (the hand-pushed Coder template). All other
+  cluster coordinates (Gateway VIP, Infisical endpoint, Velero target) are
+  literal values, and anything operator-specific that is not a fixed coordinate
+  (SMTP relays, sender addresses) comes from Infisical. Runtime expansions owned
+  by an application (CrowdSec's `${DB_PASSWORD}`) stay verbatim.
+- `*.base-domain.invalid` certificates are publicly trusted, so in-cluster HTTPS
+  calls need no CA mounts. The names resolve to the private Gateway VIP: apps
+  with SSRF guards that refuse private destinations need the exact origin
+  allowlisted (RustFS `RUSTFS_OUTBOUND_ALLOW_ORIGINS`), and the egress
+  CiliumNetworkPolicy allows `toFQDNs: <host>.base-domain.invalid` on `443`.
+  Never work around TLS errors with `insecureSkipVerify` or similar switches.
 - Never place real credentials, tokens, passwords, private keys, or substituted
   secret values in the repository. Prefer the existing External Secrets /
   Infisical pattern for new secret material. Every container env `secretKeyRef`
@@ -188,7 +202,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   when ordering dependencies exist:
   - Wave `-2`: `CiliumNetworkPolicy` (and `-3` for early bootstrap policies)
   - Wave `-1`: `ExternalSecret`
-  - Wave `0`: Datastores (CNPG `Cluster`, Dragonfly, DocumentDB, `MariaDB`, Tenant), foundational Gateway listeners, PVCs
+  - Wave `0`: Datastores (CNPG `Cluster`, Dragonfly, DocumentDB, `MariaDB`, Tenant), PVCs
   - Wave `1`: Workload child `Application`s, Deployments, StatefulSets
   - Wave `2`: `HTTPRoute`, `GRPCRoute`, and `SecurityPolicy`
   Omit `sync-wave` on resources that do not have ordering dependencies (defaulting to wave 0). Do not keep redundant `sync-wave: "0"` annotations on standalone resources like `ReferenceGrant` or `PodMonitor`.
@@ -200,7 +214,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
     `Cluster` and `1_database.yaml` for CNPG `Database`).
   - Resources sharing the same sync wave within a component share the same wave
     prefix and are disambiguated by their descriptive suffix (e.g. `0_pvc.yaml`,
-    `0_postgres.yaml`, `0_dragonfly.yaml`, `0_documentdb.yaml`, `0_gateway.yaml`).
+    `0_postgres.yaml`, `0_dragonfly.yaml`, `0_documentdb.yaml`).
   - Resources with omitted sync waves default to wave 0 and must use the `0_` prefix.
 - CRDs must always precede custom resources: when CRDs and custom resources
   coexist in the same directory, use sync waves to apply CRDs first and retain
@@ -257,7 +271,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `!env_var` tag so the secret never lands on the PVC.
 - List every OIDC app origin explicitly in the provider's `cors.allowed_origins`.
 - Apps doing server-side token exchange get an `allow-<app>-authelia`
-  CiliumNetworkPolicy egress (`toFQDNs: auth.homeworld.internal:443`) and a
+  CiliumNetworkPolicy egress (`toFQDNs: auth.base-domain.invalid:443`) and a
   matching `docs/network-policies.md` egress entry.
 - Public browser-UI routes for workloads with no usable app-native OIDC or
   login must be authenticated by Envoy Gateway itself as the shared `envoy`
@@ -370,69 +384,24 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - For Helm workloads, use the chart's exact value key or a Kustomize patch if not exposed. For handwritten manifests, declare `runtimeClassName: gvisor` directly in the Pod template spec. For operator-generated Pods, use a supported operator pod-template or patch mechanism.
 - A Pod with `runtimeClassName: gvisor` must not use `hostNetwork`, host block devices, or direct node filesystem integration. Preserve standard runtimes only for the documented exceptions (`cilium-agent`, `cilium-envoy`, `cilium-operator`, `crowdsec-agent`, `csi-nfs-node`, `kured`, `longhorn-manager`, `otel-collector-node`, `velero-node-agent`, the k3s upgrade Jobs of system-upgrade-controller, the qBittorrent pod (gluetun's policy routing needs netlink rules gVisor lacks), `jellyfin` (Intel iGPU transcoding), `intel-gpu-plugin`, `zigbee2mqtt`, the k3s-managed `kube-system` components (kube-vip, CoreDNS), and operator-generated operands whose pod templates the CRD cannot set — CNPG, Dragonfly, DocumentDB, MariaDB Operator, and RustFS Tenant operands). Standard-runtime Pods are confined by SELinux (`container_t`); one whose host integration `container_t` denies runs as `spc_t` with a resource-scoped exception (docs/pod-security.md). Keep the gVisor table in `docs/pod-security.md` as the source of truth for the exact list. Operator-spawned pods that accept a runtime class per-instance (e.g. Woodpecker pipeline pods) opt in through the operator's allow-from-step flag plus per-pipeline backend options, never a repo-level manifest.
 
-## In-cluster trust of the Homeworld CA
-
-Every `*.homeworld.internal` certificate is signed by the private Homeworld CA
-(cert-manager `homeworld-ca` ClusterIssuer), which no container image trusts by
-default. When onboarding or changing an app:
-
-1. List every HTTPS call the app makes to `*.homeworld.internal` from inside the
-   cluster, in every container including init containers and jobs: OIDC
-   discovery, token, userinfo, and JWKS requests to `auth.homeworld.internal`,
-   webhooks, WOPI, API widgets, and git clones. Plain-HTTP calls to in-cluster
-   Service names need nothing. Never work around a missing trust with
-   `insecureSkipVerify`, `tls_verify: false`, or similar switches.
-2. Mount the `homeworld-ca` ConfigMap (key `ca.crt`; trust-manager publishes it
-   in every namespace, `apps/trust-manager/2_bundle.yaml`) read-only at
-   `/etc/homeworld-ca` in each of those containers. Mount the whole ConfigMap,
-   not a `subPath`, so a rotated CA reaches running pods.
-3. Add it to the container's trust store, verified against the runtime's TLS
-   stack rather than assumed:
-   - Go: `SSL_CERT_DIR=/etc/homeworld-ca` (additive to the image's bundle
-     file; Forgejo, Woodpecker, OpenCloud).
-   - Node.js: `NODE_EXTRA_CA_CERTS=/etc/homeworld-ca/ca.crt` (Immich,
-     Homepage, velero-ui).
-   - Rust with rustls-native-certs or rustls-platform-verifier: setting either
-     variable replaces the platform store, so set `SSL_CERT_FILE` to the image's
-     own bundle (check the path in the pinned image) plus
-     `SSL_CERT_DIR=/etc/homeworld-ca` (Vaultwarden).
-   - Otherwise the app's own CA setting, which is preferred whenever it exists:
-     Grafana `auth.generic_oauth.tls_client_ca`, hass-oidc-auth
-     `network.tls_ca_path`, RustFS `RUSTFS_EXTRA_CA_CERT`. PVC-seeded config
-     follows the create-if-missing bootstrap convention.
-   - Apps that sync before trust-manager (app-of-apps wave 4) read the
-     certificate from `/cert-manager/CA_CERT` through their own ExternalSecret
-     instead (Argo CD's OIDC `rootCA: $argocd-oidc:rootCA`).
-4. Envoy Gateway OIDC (`SecurityPolicy` `oidc`): set `provider.backendRefs` to an
-   `authelia` Backend and add the matching BackendTLSPolicy in the same
-   namespace and wave, copied from `apps/homepage/2_authelia_backend.yaml`.
-5. `*.homeworld.internal` resolves to the private Gateway VIP `192.168.8.50`.
-   Apps with SSRF guards that refuse private destinations need the exact origin
-   allowlisted (RustFS `RUSTFS_OUTBOUND_ALLOW_ORIGINS`), and the egress
-   CiliumNetworkPolicy allows `toFQDNs: <host>.homeworld.internal` on `443`.
-6. Render the change and confirm the mount and variable reach every container
-   that makes the calls, then check the app's logs on a live or e2e cluster for
-   `x509`/`certificate` errors on its first call.
-
 ## New component checklist
 
 - `fullnameOverride`
 - `runtimeClassName: gvisor` (where supported; otherwise `hostUsers: false`)
-- Gateway listener and `HTTPRoute` (if applicable)
+- `HTTPRoute` on the shared Gateway (if applicable)
 - Homepage entry for every browser web UI (`apps/homepage/0_config.yaml`)
 - README Apps (user-facing), *arr Stack (media) or Platform table row
 - `ServiceMonitor`
 - Grafana dashboard in the app's Grafana folder (Grafana dashboard conventions above; docs/grafana-dashboards.md)
 - `ServerSideApply=true` in `spec.syncPolicy.syncOptions` for all `Application` resources
-- Standard intra-component sync waves (-2 network policy, -1 secrets, 0 datastore/gateway, 1 workload, 2 routes)
+- Standard intra-component sync waves (-2 network policy, -1 secrets, 0 datastore, 1 workload, 2 routes)
   with manifest filenames strictly matching `<wave>_<descriptor>.yaml`.
 - Bulk data on a per-app NAS share following the NFS rule above, never on Longhorn
 - CRD ordering: newly added apps with CRDs must install CRDs before workloads (and support declarative upgrades via `ServerSideApply=true`), with `docs/argocd.md` updated within the existing text.
 - Document Pod Security Standards compliance and User Namespaces status in `docs/pod-security.md`.
 - Document Authelia OIDC integration status or sign-in behavior in `docs/oidc.md`.
 - Authelia OIDC client per the Authelia OIDC client conventions (if the app has user login).
-- Homeworld CA trust for every in-cluster HTTPS call to `*.homeworld.internal`
-  (see "In-cluster trust of the Homeworld CA").
+- The `base-domain.invalid` placeholder for every cluster hostname (never the real domain).
 - Scope the component's internet egress with dedicated, per-app CiliumNetworkPolicies
   (FQDN- or port-scoped — there is no shared world-egress selector) and add a matching
   `docs/network-policies.md` row.
@@ -549,8 +518,9 @@ for f in host/files/libexec/*; do sh -n "$f"; done
 Helm inflation requires an explicit flag in every local render: use
 `kubectl kustomize --enable-helm <dir>` (or `kustomize build --enable-helm`);
 the bare `kustomize build` command fails on every `helmCharts` directory.
-Production Argo CD already sets this globally via `kustomize.buildOptions`
-in `argocd-cm` (see docs/argocd.md).
+Production Argo CD renders through the homeworld plugin, which passes the same
+flag (docs/argocd.md). Local renders keep the `base-domain.invalid`
+placeholder; never substitute the real domain into a tracked file.
 
 Also inspect the diff for accidental secret substitution and verify cross-file
 references manually. Cluster-side schema validation is useful only when the

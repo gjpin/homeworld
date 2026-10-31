@@ -31,3 +31,5 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: apps/envoy-gateway/helm
     targetRevision: HEAD
+    plugin:
+      name: homeworld

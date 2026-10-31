@@ -128,17 +128,17 @@ spec:
               value: "7264"
             # Link generation only; runtime server-to-server calls use the internal *_HOST/*_PORT vars.
             - name: IDENTITY_SERVER_URL
-              value: "https://auth.notes.homeworld.internal"
+              value: "https://auth.notes.base-domain.invalid"
             - name: NOTESNOOK_APP_HOST
-              value: "https://notes.homeworld.internal"
+              value: "https://notes.base-domain.invalid"
             - name: NOTESNOOK_APP_PUBLIC_URL
-              value: "https://notes.homeworld.internal"
+              value: "https://notes.base-domain.invalid"
             - name: MONOGRAPH_PUBLIC_URL
-              value: "https://monograph.notes.homeworld.internal"
+              value: "https://monograph.notes.base-domain.invalid"
             - name: AUTH_SERVER_PUBLIC_URL
-              value: "https://auth.notes.homeworld.internal"
+              value: "https://auth.notes.base-domain.invalid"
             - name: ATTACHMENTS_SERVER_PUBLIC_URL
-              value: "https://s3.homeworld.internal"
+              value: "https://s3.base-domain.invalid"
             - name: DOCUMENTDB_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -158,7 +158,7 @@ spec:
             - name: S3_INTERNAL_BUCKET_NAME
               value: "notesnook-attachments"
             - name: S3_SERVICE_URL
-              value: "https://s3.homeworld.internal"
+              value: "https://s3.base-domain.invalid"
             - name: S3_BUCKET_NAME
               value: "notesnook-attachments"
             - name: S3_REGION

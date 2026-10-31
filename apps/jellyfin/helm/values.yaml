@@ -46,7 +46,7 @@ jellyfin:
     - name: TZ
       value: UTC
     - name: JELLYFIN_PublishedServerUrl
-      value: https://jellyfin.homeworld.internal
+      value: https://jellyfin.base-domain.invalid
 
 # Intel QuickSync (corebox's UHD 730). The device plugin
 # (apps/intel-gpu-plugin) runs on corebox only and advertises

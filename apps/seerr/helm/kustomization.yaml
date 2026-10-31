@@ -52,7 +52,7 @@ patches:
                 if (!fs.existsSync(path)) {
                   fs.writeFileSync(path, JSON.stringify({
                     main: {
-                      applicationUrl: "https://seerr.homeworld.internal",
+                      applicationUrl: "https://seerr.base-domain.invalid",
                       // GitHub release check (/api/v1/status); the only
                       // phone-home Seerr has.
                       versionCheck: false,

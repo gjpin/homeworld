@@ -27,3 +27,5 @@ spec:
     repoURL: https://github.com/gjpin/homeworld.git
     path: apps/victoria-metrics/helm/alert
     targetRevision: HEAD
+    plugin:
+      name: homeworld

@@ -1,38 +1,9 @@
 ---
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: SecurityPolicy
-metadata:
-  name: crowdsec-ext-auth
-  namespace: openchamber
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
-spec:
-  targetRefs:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: envoy
-  extAuth:
-    failOpen: false
-    # Envoy Gateway only forwards request bodies to the ext-auth service when
-    # bodyToExtAuth is set; without it CrowdSec AppSec never sees request
-    # bodies (in-band virtual patching) and the gap is silent — path and
-    # header bans keep working.
-    bodyToExtAuth:
-      maxRequestBytes: 65536
-    grpc:
-      backendRefs:
-        - group: ""
-          kind: Service
-          name: crowdsec-envoy-bouncer
-          namespace: envoy-gateway
-          port: 8080
-          weight: 1
----
 # Gateway OIDC for ThinkRail. Authelia is the only login: ThinkRail has no
 # accounts of its own, and the route requires the platform group
 # (docs/oidc.md). The VM host's firewall keeps LAN and WireGuard clients off
 # the VM's port, so this route is the only way in. StrategicMerge keeps this
-# policy from overriding the Gateway-level CrowdSec extAuth above.
+# policy from overriding the Gateway-level CrowdSec extAuth.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
@@ -48,27 +19,18 @@ spec:
       name: thinkrail
   oidc:
     provider:
-      # Token requests go through the authelia Backend so Envoy validates
-      # Authelia's certificate against the homeworld CA
-      # (2_authelia_backend.yaml).
-      backendRefs:
-        - group: gateway.envoyproxy.io
-          kind: Backend
-          name: authelia
-          port: 443
-          weight: 1
-      issuer: https://auth.homeworld.internal
-      authorizationEndpoint: https://auth.homeworld.internal/api/oidc/authorization
-      tokenEndpoint: https://auth.homeworld.internal/api/oidc/token
+      issuer: https://auth.base-domain.invalid
+      authorizationEndpoint: https://auth.base-domain.invalid/api/oidc/authorization
+      tokenEndpoint: https://auth.base-domain.invalid/api/oidc/token
     clientID: envoy
     clientSecret:
       name: envoy-oidc-client-secret
     scopes:
       - openid
       - offline_access
-    redirectURL: https://thinkrail.homeworld.internal/oauth2/callback
+    redirectURL: https://thinkrail.base-domain.invalid/oauth2/callback
     logoutPath: /logout
-    cookieDomain: thinkrail.homeworld.internal
+    cookieDomain: thinkrail.base-domain.invalid
     # ThinkRail's /ws upgrade checks no Origin: Lax keeps a browser from
     # sending the session to a WebSocket opened by another site.
     cookieConfig:

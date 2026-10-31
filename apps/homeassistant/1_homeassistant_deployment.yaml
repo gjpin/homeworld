@@ -145,14 +145,10 @@ spec:
               auth_oidc:
                 client_id: home-assistant
                 client_secret: !env_var OIDC_CLIENT_SECRET
-                discovery_url: https://auth.homeworld.internal/.well-known/openid-configuration
+                discovery_url: https://auth.base-domain.invalid/.well-known/openid-configuration
                 display_name: Authelia
                 roles:
                   admin: homeassistant-admin
-                # Authelia's certificate is signed by the homeworld CA
-                # (trust-manager ConfigMap mounted into the container).
-                network:
-                  tls_ca_path: /etc/homeworld-ca/ca.crt
               YAML
               [ -f /config/automations.yaml ] || printf '[]\n' > /config/automations.yaml
               [ -f /config/scripts.yaml ] || : > /config/scripts.yaml
@@ -237,9 +233,6 @@ spec:
             # populates it with the pinned hass-oidc-auth integration.
             - mountPath: /config/custom_components/auth_oidc
               name: hass-oidc-auth
-            - mountPath: /etc/homeworld-ca
-              name: homeworld-ca
-              readOnly: true
       restartPolicy: Always
       volumes:
         - name: homeassistant-claim0
@@ -247,6 +240,3 @@ spec:
             claimName: homeassistant-claim0
         - name: hass-oidc-auth
           emptyDir: {}
-        - name: homeworld-ca
-          configMap:
-            name: homeworld-ca

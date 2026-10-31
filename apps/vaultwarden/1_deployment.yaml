@@ -54,14 +54,6 @@ spec:
             - secretRef:
                 name: vaultwarden-secrets
           env:
-            # SSO discovery and token calls to Authelia need the homeworld CA.
-            # Vaultwarden's rustls verifier loads only the locations named by
-            # these variables once either is set, so the image's own public
-            # bundle is listed next to the trust-manager ConfigMap.
-            - name: SSL_CERT_FILE
-              value: /etc/ssl/certs/ca-certificates.crt
-            - name: SSL_CERT_DIR
-              value: /etc/homeworld-ca
           ports:
             - name: http
               containerPort: 8080
@@ -102,15 +94,9 @@ spec:
               mountPath: /data
             - name: tmp
               mountPath: /tmp
-            - name: homeworld-ca
-              mountPath: /etc/homeworld-ca
-              readOnly: true
       volumes:
         - name: vaultwarden
           persistentVolumeClaim:
             claimName: vaultwarden
         - name: tmp
           emptyDir: {}
-        - name: homeworld-ca
-          configMap:
-            name: homeworld-ca
