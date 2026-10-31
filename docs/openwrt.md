@@ -714,7 +714,7 @@ address, and the four VLAN
 gateways. Blocked responses are NXDOMAIN, AAAA answers are disabled
 (IPv4-only networks), `.lan` and private PTR go to dnsmasq on port 54, and
 26 filter lists are enabled. `DNS_REBIND_DOMAIN` adds a private answer
-exception after the built-in user rules: every cluster hostname resolves
+exception at the top of the user rules: every cluster hostname resolves
 through the public wildcard record that ExternalDNS keeps pointing at the
 Envoy Gateway VIP `192.168.8.50` (outside the DHCP pool, see section 17),
 and the rebind-protection list would otherwise drop that private answer.
@@ -733,26 +733,50 @@ awk -v username="$ADGUARD_USERNAME" \
     }
     $0 == "@USER_RULES@" {
         print "user_rules:"
-        print "- \047@@||steamconnecttest.com^\047"
-        print "- \047@@||ipv6check-udp.steamserver.net^\047"
-        print "- \047@@||ipv6check-http.steamserver.net^\047"
-        print "- \047@@||lgtvonline.lge.com^\047"
-        print "- \047@@||ipv4.connman.net^\047"
-        print "- \047@@||ipv6.connman.net^\047"
-        print "- \047||lgtvsdp.com^\047"
-        print "- \047||nextlgsdp.com^\047"
-        print "- \047@@||suggestqueries*.youtube.com^\047"
-        print "- \047@@||suggestqueries.google.com^\047"
-        print "- \047@@||clients1.google.com^\047"
-        print "- \047@@||clients2.google.com^\047"
-        print "- \047@@||clients3.google.com^\047"
-        print "- \047@@||clients.l.google.com^\047"
-        print "- \047@@||script.google.com^\047"
-        print "- \047@@||script.googleusercontent.com^\047"
-        print "- \047@@||doc-*-docstext.googleusercontent.com^\047"
+        print "- \047! --- ALLOW My domain to resolve to local IPs ---\047"
         if (rebind_domain != "") {
             print "- \047@@||" rebind_domain "^\047"
         }
+        print "- \047\047"
+        print "- \047! --- ALLOW Gaming related domains ---\047"
+        print "- \047@@||capcom.com^\047"
+        print "- \047@@||steamconnecttest.com^\047"
+        print "- \047\047"
+        print "- \047! --- ALLOW Google services ---\047"
+        print "- \047@@||clients.l.google.com^\047"
+        print "- \047@@||clients1.google.com^\047"
+        print "- \047@@||clients2.google.com^\047"
+        print "- \047@@||clients3.google.com^\047"
+        print "- \047@@||doc-*-docstext.googleusercontent.com^\047"
+        print "- \047@@||suggestqueries*.youtube.com^\047"
+        print "- \047@@||suggestqueries.google.com^\047"
+        print "- \047@@||script.google.com^\047"
+        print "- \047@@||script.googleusercontent.com^\047"
+        print "- \047\047"
+        print "- \047! --- ALLOW Weather app ---\047"
+        print "- \047@@||mparticle.weather.com^\047"
+        print "- \047\047"
+        print "- \047! --- ALLOW Privacy related domains ---\047"
+        print "- \047@@||protonvpn.com^\047"
+        print "- \047@@||protonweb.com^\047"
+        print "- \047@@||quad9.net^\047"
+        print "- \047\047"
+        print "- \047! --- ALLOW X ---\047"
+        print "- \047@@||t.co^\047"
+        print "- \047\047"
+        print "- \047! --- BLOCK LG TV ---\047"
+        print "- \047||lgtvsdp.com^\047"
+        print "- \047||nextlgsdp.com^\047"
+        print "- \047\047"
+        print "- \047! --- ALLOW Facebook (web) ---\047"
+        print "- \047@@|www.facebook.com^\047"
+        print "- \047@@/^(static|scontent[a-z0-9.-]*|video[a-z0-9.-]*|external[a-z0-9.-]*)\\.(xx|fna)\\.fbcdn\\.net$/\047"
+        print "- \047\047"
+        print "- \047! --- ALLOW Instagram (web) ---\047"
+        print "- \047@@|www.instagram.com^\047"
+        print "- \047@@|static.cdninstagram.com^\047"
+        print "- \047@@/^scontent[a-z0-9.-]*\\.cdninstagram\\.com$/\047"
+        print "- \047@@/^instagram\\.[a-z0-9.-]+\\.fna\\.fbcdn\\.net$/\047"
         next
     }
     $0 == "@WIREGUARD_BIND_HOST@" {
