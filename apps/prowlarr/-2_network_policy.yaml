@@ -284,7 +284,7 @@ metadata:
   # Indexers: every configured tracker and Usenet indexer, plus
   # indexers.prowlarr.com for the Cardigann definitions. Indexer hosts are
   # open-ended (each tracker, its mirrors, and the hosts its .torrent links
-  # point at), so egress is port-scoped to world HTTP/HTTPS like
+  # point at), so egress is port-scoped to public HTTP/HTTPS like
   # Woodpecker's pipeline egress (docs/network-policies.md). Indexer
   # traffic deliberately skips the VPN: private trackers ban VPN exits.
   # prowlarr.servarr.com (update check, health notices) also matches; the
@@ -298,8 +298,16 @@ spec:
     matchLabels:
       k8s:app.kubernetes.io/name: prowlarr
   egress:
-    - toEntities:
-        - world
+    # Public internet only: `world` would also cover the LAN (router, NAS,
+    # nodes), so the private, CGNAT, and link-local ranges stay closed.
+    - toCIDRSet:
+        - cidr: 0.0.0.0/0
+          except:
+            - 10.0.0.0/8
+            - 100.64.0.0/10
+            - 169.254.0.0/16
+            - 172.16.0.0/12
+            - 192.168.0.0/16
       toPorts:
         - ports:
             - port: "80"

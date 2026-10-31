@@ -404,7 +404,9 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - The `base-domain.invalid` placeholder for every cluster hostname (never the real domain).
 - Scope the component's internet egress with dedicated, per-app CiliumNetworkPolicies
   (FQDN- or port-scoped — there is no shared world-egress selector) and add a matching
-  `docs/network-policies.md` row.
+  `docs/network-policies.md` row. Port-scoped internet egress is a `toCIDRSet` on
+  `0.0.0.0/0` excluding RFC 1918, CGNAT and link-local, never `toEntities: world`,
+  which also reaches the LAN (router, nodes, NAS).
 - Set requests and limits on all regular, init, and sidecar containers. Preserve
   higher upstream values; use the documented profile fallbacks when absent.
 - Application telemetry, anonymous usage metrics, and upgrade checkers disabled

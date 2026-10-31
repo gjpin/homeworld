@@ -84,7 +84,7 @@ kind: CiliumNetworkPolicy
 metadata:
   # The browser loads whatever indexer page Prowlarr hands it, plus every
   # asset the Cloudflare challenge pulls in (challenges.cloudflare.com and
-  # the site's own CDNs), so egress is port-scoped to world HTTP/HTTPS like
+  # the site's own CDNs), so egress is port-scoped to public HTTP/HTTPS like
   # Prowlarr's (docs/network-policies.md). Direct, not through the VPN:
   # Cloudflare's clearance cookie is bound to the client IP, which must
   # match Prowlarr's.
@@ -97,8 +97,16 @@ spec:
     matchLabels:
       k8s:app.kubernetes.io/name: flaresolverr
   egress:
-    - toEntities:
-        - world
+    # Public internet only: `world` would also cover the LAN (router, NAS,
+    # nodes), so the private, CGNAT, and link-local ranges stay closed.
+    - toCIDRSet:
+        - cidr: 0.0.0.0/0
+          except:
+            - 10.0.0.0/8
+            - 100.64.0.0/10
+            - 169.254.0.0/16
+            - 172.16.0.0/12
+            - 192.168.0.0/16
       toPorts:
         - ports:
             - port: "80"

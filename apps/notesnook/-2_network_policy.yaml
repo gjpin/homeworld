@@ -106,13 +106,21 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   # The SMTP relay host comes from the notesnook-secrets ExternalSecret so it
-  # cannot be pinned by FQDN; allow submission ports to world.
+  # cannot be pinned by FQDN; allow submission ports to the public internet.
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: notesnook-sse
   egress:
-    - toEntities:
-        - world
+    # Public internet only: `world` would also cover the LAN (router, NAS,
+    # nodes), so the private, CGNAT, and link-local ranges stay closed.
+    - toCIDRSet:
+        - cidr: 0.0.0.0/0
+          except:
+            - 10.0.0.0/8
+            - 100.64.0.0/10
+            - 169.254.0.0/16
+            - 172.16.0.0/12
+            - 192.168.0.0/16
       toPorts:
         - ports:
             - port: "465"
@@ -134,8 +142,16 @@ spec:
     matchLabels:
       k8s:app.kubernetes.io/name: notesnook-identity
   egress:
-    - toEntities:
-        - world
+    # Public internet only: `world` would also cover the LAN (router, NAS,
+    # nodes), so the private, CGNAT, and link-local ranges stay closed.
+    - toCIDRSet:
+        - cidr: 0.0.0.0/0
+          except:
+            - 10.0.0.0/8
+            - 100.64.0.0/10
+            - 169.254.0.0/16
+            - 172.16.0.0/12
+            - 192.168.0.0/16
       toPorts:
         - ports:
             - port: "465"
