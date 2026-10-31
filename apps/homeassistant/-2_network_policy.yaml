@@ -46,7 +46,11 @@ spec:
   egress:
     # Home Assistant integrations may reach the home LAN, but never the
     # cluster's pod or service CIDRs (the k3s defaults, 10.42.0.0/16 and
-    # 10.43.0.0/16) or the agents VM subnet (10.20.0.0/24, docs/k3s.md).
+    # 10.43.0.0/16), the agents VM subnet (10.20.0.0/24, docs/k3s.md), or
+    # the infrastructure in host/cluster.env: the router and its Tang
+    # server (.1), the nodes (.10-.12), the NAS (.20, whose NFS exports
+    # trust the node addresses this pod's masqueraded traffic carries),
+    # and the Gateway and API VIPs (.50, .51).
     - toCIDRSet:
         - cidr: 10.0.0.0/8
           except:
@@ -55,6 +59,12 @@ spec:
             - 10.20.0.0/24
         - cidr: 172.16.0.0/12
         - cidr: 192.168.0.0/16
+          except:
+            - 192.168.8.1/32
+            - 192.168.8.10/31
+            - 192.168.8.12/32
+            - 192.168.8.20/32
+            - 192.168.8.50/31
       toPorts:
         - ports:
             - port: "1"
@@ -229,8 +239,8 @@ spec:
       k8s:io.kompose.service: homeassistant-zigbee2mqtt
   egress:
     # Zigbee2MQTT frontend websockets may reach the home LAN, but never the
-    # cluster's pod or service CIDRs or the agents VM subnet (see the
-    # allow-homeassistant-lan comment).
+    # cluster's pod or service CIDRs, the agents VM subnet, or the cluster
+    # infrastructure (see the allow-homeassistant-lan comment).
     - toCIDRSet:
         - cidr: 10.0.0.0/8
           except:
@@ -239,6 +249,12 @@ spec:
             - 10.20.0.0/24
         - cidr: 172.16.0.0/12
         - cidr: 192.168.0.0/16
+          except:
+            - 192.168.8.1/32
+            - 192.168.8.10/31
+            - 192.168.8.12/32
+            - 192.168.8.20/32
+            - 192.168.8.50/31
       toPorts:
         - ports:
             - port: "1"
