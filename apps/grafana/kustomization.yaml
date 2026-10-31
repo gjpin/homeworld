@@ -64,17 +64,6 @@ configMapGenerator:
   - name: grafana-dashboard-collabora-overview
     files:
       - json=dashboards/collabora/collabora-overview.json
-  # crowdsec
-  - name: grafana-dashboard-crowdsec-overview
-    files:
-      - json=dashboards/crowdsec/crowdsec-overview.json
-  - name: grafana-dashboard-lapi-metrics
-    files:
-      - json=dashboards/crowdsec/lapi-metrics.json
-  # crowdsec-envoy-bouncer
-  - name: grafana-dashboard-crowdsec-envoy-bouncer
-    files:
-      - json=dashboards/crowdsec-envoy-bouncer/crowdsec-envoy-bouncer.json
   # dragonfly-operator
   - name: grafana-dashboard-dragonfly-operator
     files:
@@ -262,8 +251,6 @@ resources:
   - 1_dashboards_cloudnative-pg.yaml
   - 1_dashboards_coder.yaml
   - 1_dashboards_collabora.yaml
-  - 1_dashboards_crowdsec.yaml
-  - 1_dashboards_crowdsec-envoy-bouncer.yaml
   - 1_dashboards_dragonfly-operator.yaml
   - 1_dashboards_envoy-gateway.yaml
   - 1_dashboards_external-dns.yaml

@@ -93,28 +93,6 @@ spec:
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
 metadata:
-  name: folder-crowdsec
-  namespace: grafana
-spec:
-  title: CrowdSec
-  instanceSelector:
-    matchLabels:
-      dashboards: grafana
----
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaFolder
-metadata:
-  name: folder-crowdsec-envoy-bouncer
-  namespace: grafana
-spec:
-  title: CrowdSec Envoy Bouncer
-  instanceSelector:
-    matchLabels:
-      dashboards: grafana
----
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaFolder
-metadata:
   name: folder-dragonfly-operator
   namespace: grafana
 spec:

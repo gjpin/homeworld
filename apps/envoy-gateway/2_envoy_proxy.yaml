@@ -77,7 +77,7 @@ spec:
           type: StrategicMerge
           value:
             spec:
-              # Keeps client source addresses for CrowdSec and the
+              # Keeps client source addresses for the access logs and the
               # X-Envoy-External-Address header; safe because every node
               # runs an Envoy pod (envoyDaemonSet above).
               externalTrafficPolicy: Local

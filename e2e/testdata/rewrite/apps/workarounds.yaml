@@ -87,16 +87,13 @@ spec:
         key: /authelia/POSTGRES_USERNAME
         decodingStrategy: Auto
 ---
-storeCAPICredentialsInSecret: true
-storeLAPICscliCredentialsInSecret: true
----
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
-  name: crowdsec-ext-auth
+  name: authelia-oidc
 spec:
-  extAuth:
-    failOpen: false
+  oidc:
+    clientID: envoy
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

@@ -1,39 +1,8 @@
 ---
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: SecurityPolicy
-metadata:
-  name: crowdsec-ext-auth
-  namespace: envoy-gateway
-  annotations:
-    argocd.argoproj.io/sync-wave: "3"
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-spec:
-  targetRefs:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: envoy
-  extAuth:
-    failOpen: false
-    # Envoy Gateway only forwards request bodies to the ext-auth service when
-    # bodyToExtAuth is set; without it CrowdSec AppSec never sees request
-    # bodies (in-band virtual patching) and the gap is silent — path and
-    # header bans keep working.
-    bodyToExtAuth:
-      maxRequestBytes: 65536
-    grpc:
-      backendRefs:
-        - group: ""
-          kind: Service
-          name: crowdsec-envoy-bouncer
-          namespace: envoy-gateway
-          port: 8080
-          weight: 1
----
 # Gateway OIDC for the Envoy Gateway admin console. The envoy-gateway
 # Service's 19000 admin port is published through the gateway itself at
-# envoy.base-domain.invalid (3_http_route.yaml); the route requires the platform
-# group (docs/oidc.md). StrategicMerge keeps this
-# policy from overriding the Gateway-level CrowdSec extAuth above.
+# envoy.base-domain.invalid (3_http_route.yaml); the route requires the
+# platform group (docs/oidc.md).
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
@@ -43,7 +12,6 @@ metadata:
     argocd.argoproj.io/sync-wave: "3"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
-  mergeType: StrategicMerge
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute

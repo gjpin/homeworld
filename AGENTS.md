@@ -100,9 +100,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   certificate, and ExternalDNS's wildcard record points every name at the
   Cilium-announced Gateway VIP `192.168.8.50`, so a new single-label hostname
   needs no DNS or certificate change. A hostname with more labels needs its own
-  wildcard listener on the shared Gateway (same `wildcard-tls` Secret). The
-  Gateway-level CrowdSec extAuth covers every route. Keep route hostnames and
-  backend ports aligned. Every route backend also
+  wildcard listener on the shared Gateway (same `wildcard-tls` Secret). Keep
+  route hostnames and backend ports aligned. Every route backend also
   needs a matching per-service `allow-envoy-backend-<service>` egress CiliumNetworkPolicy
   in `apps/envoy-gateway` (one port per rule — Cilium applies `toPorts` to every
   `toServices` entry) plus an ingress rule on the app side, and a `docs/network-policies.md` row.
@@ -129,7 +128,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   cluster coordinates (Gateway VIP, Infisical endpoint, Velero target) are
   literal values, and anything operator-specific that is not a fixed coordinate
   (SMTP relays, sender addresses) comes from Infisical. Runtime expansions owned
-  by an application (CrowdSec's `${DB_PASSWORD}`) stay verbatim.
+  by an application stay verbatim.
 - `*.base-domain.invalid` certificates are publicly trusted, so in-cluster HTTPS
   calls need no CA mounts. The names resolve to the private Gateway VIP: apps
   with SSRF guards that refuse private destinations need the exact origin
@@ -275,9 +274,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   matching `docs/network-policies.md` egress entry.
 - Public browser-UI routes for workloads with no usable app-native OIDC or
   login must be authenticated by Envoy Gateway itself as the shared `envoy`
-  client: one HTTPRoute-scoped `SecurityPolicy` per hostname with
-  `mergeType: StrategicMerge` (a route-level policy silently overrides the
-  Gateway-level CrowdSec extAuth without it), a
+  client: one HTTPRoute-scoped `SecurityPolicy` per hostname with a
   `https://<host>/oauth2/callback` redirect URI with a matching
   `cookieDomain`, and the `platform` authorization policy; the client secret
   is delivered to each protected app's namespace as the
@@ -382,7 +379,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 
 - Opt every compatible Pod into gVisor runtime sandboxing with `spec.runtimeClassName: gvisor`.
 - For Helm workloads, use the chart's exact value key or a Kustomize patch if not exposed. For handwritten manifests, declare `runtimeClassName: gvisor` directly in the Pod template spec. For operator-generated Pods, use a supported operator pod-template or patch mechanism.
-- A Pod with `runtimeClassName: gvisor` must not use `hostNetwork`, host block devices, or direct node filesystem integration. Preserve standard runtimes only for the documented exceptions (`cilium-agent`, `cilium-envoy`, `cilium-operator`, `crowdsec-agent`, `csi-nfs-node`, `kured`, `longhorn-manager`, `otel-collector-node`, `velero-node-agent`, the k3s upgrade Jobs of system-upgrade-controller, the qBittorrent pod (gluetun's policy routing needs netlink rules gVisor lacks), `jellyfin` (Intel iGPU transcoding), `intel-gpu-plugin`, `zigbee2mqtt`, the k3s-managed `kube-system` components (kube-vip, CoreDNS), and operator-generated operands whose pod templates the CRD cannot set — CNPG, Dragonfly, DocumentDB, MariaDB Operator, and RustFS Tenant operands). Standard-runtime Pods are confined by SELinux (`container_t`); one whose host integration `container_t` denies runs as `spc_t` with a resource-scoped exception (docs/pod-security.md). Keep the gVisor table in `docs/pod-security.md` as the source of truth for the exact list. Operator-spawned pods that accept a runtime class per-instance (e.g. Woodpecker pipeline pods) opt in through the operator's allow-from-step flag plus per-pipeline backend options, never a repo-level manifest.
+- A Pod with `runtimeClassName: gvisor` must not use `hostNetwork`, host block devices, or direct node filesystem integration. Preserve standard runtimes only for the documented exceptions (`cilium-agent`, `cilium-envoy`, `cilium-operator`, `csi-nfs-node`, `kured`, `longhorn-manager`, `otel-collector-node`, `velero-node-agent`, the k3s upgrade Jobs of system-upgrade-controller, the qBittorrent pod (gluetun's policy routing needs netlink rules gVisor lacks), `jellyfin` (Intel iGPU transcoding), `intel-gpu-plugin`, `zigbee2mqtt`, the k3s-managed `kube-system` components (kube-vip, CoreDNS), and operator-generated operands whose pod templates the CRD cannot set — CNPG, Dragonfly, DocumentDB, MariaDB Operator, and RustFS Tenant operands). Standard-runtime Pods are confined by SELinux (`container_t`); one whose host integration `container_t` denies runs as `spc_t` with a resource-scoped exception (docs/pod-security.md). Keep the gVisor table in `docs/pod-security.md` as the source of truth for the exact list. Operator-spawned pods that accept a runtime class per-instance (e.g. Woodpecker pipeline pods) opt in through the operator's allow-from-step flag plus per-pipeline backend options, never a repo-level manifest.
 
 ## New component checklist
 

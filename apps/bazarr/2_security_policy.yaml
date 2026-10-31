@@ -3,8 +3,7 @@
 # (auth.type null in the seeded config.yaml), so Authelia is the only login
 # and the route requires the platform group (docs/oidc.md). Bazarr has no
 # native OIDC; its API always requires the key, and its clients (Homepage,
-# exportarr) call the in-cluster Service, never this route. StrategicMerge
-# keeps this policy from overriding the Gateway-level CrowdSec extAuth.
+# exportarr) call the in-cluster Service, never this route.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
@@ -13,7 +12,6 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  mergeType: StrategicMerge
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute

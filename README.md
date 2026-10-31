@@ -10,7 +10,6 @@
 - [User Namespaces](docs/pod-security.md#user-namespaces)
 - [gVisor runtime sandboxing](docs/pod-security.md#gvisor-runtime-sandboxing)
 - Tight [network policies](docs/network-policies.md)
-- Ingress protection via CrowdSec Security Engine and AppSec WAF
 - Gateway API routing with [Envoy Gateway](docs/envoy-gateway.md)
 - One wildcard for every app: ExternalDNS publishes `*.<domain>` to a Cilium-announced Gateway VIP, and cert-manager issues a Let's Encrypt wildcard certificate through DNS-01; the domain itself stays out of git ([homeworld plugin](docs/argocd.md#homeworld-plugin))
 - Zero-secret GitOps with Infisical and External Secrets Operator ([required secrets](docs/secrets.md))
@@ -87,8 +86,6 @@ Operators, foundations, and supporting services:
 | cert-manager | — | The shared Gateway's Let's Encrypt wildcard certificate (DNS-01 through Cloudflare). |
 | Cilium | — | kube-proxy-free eBPF CNI with WireGuard pod-to-pod encryption and Hubble relay/UI observability (cluster-internal). |
 | CloudNativePG | — | PostgreSQL operator. |
-| CrowdSec | — | Security Engine, PostgreSQL-backed LAPI, and AppSec WAF. |
-| CrowdSec Envoy Bouncer | — | Envoy Gateway external-authorization bouncer. |
 | csi-driver-nfs | — | NFS CSI node plugin mounting the NAS shares behind the static Immich, OpenCloud, and media-stack volumes. |
 | DocumentDB Operator | — | DocumentDB, a MongoDB-compatible datastore, operator. |
 | Dragonfly Operator | — | Dragonfly, a Redis-compatible datastore, operator. |

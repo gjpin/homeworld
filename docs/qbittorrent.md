@@ -9,7 +9,7 @@ Torrent client whose traffic is routed through a [gluetun](https://github.com/qd
 | Component | `apps/qbittorrent` |
 | Domain | `qbittorrent.base-domain.invalid` |
 | Data | `qbittorrent-config` PVC (256Mi, Longhorn) mounted at `/config`; `media` (the shared NAS share `homeworld-media`, NFS, [nas.md](nas.md#media-share)) mounted at `/data`, downloads under `/data/torrents/<category>` |
-| Dependencies | csi-driver-nfs, External Secrets, Envoy Gateway, CrowdSec bouncer, OpenTelemetry operator |
+| Dependencies | csi-driver-nfs, External Secrets, Envoy Gateway, OpenTelemetry operator |
 | Secrets | `/qbittorrent/*` Infisical keys (see [secrets.md](secrets.md)) |
 
 A single Deployment runs one pod with a shared network namespace containing three containers — qBittorrent, gluetun, and the Prometheus exporter — plus a rootless `qbittorrent-config-bootstrap` init container that seeds `qBittorrent.conf` on the first start of an empty PVC (see [Configuration seeding](#configuration-seeding)). The pod runs on the standard runtime (runc): gluetun sets up policy routing (`ip rule`), which gVisor's netlink does not implement, so it cannot run under gVisor. SELinux confines every container as `container_t` with the pod's own MCS categories, and gluetun's `NET_ADMIN`/`NET_RAW` act only on the pod's network namespace. gluetun uses the kernel WireGuard module (loaded on every node), so the pod needs no `/dev/net/tun`. qBittorrent and its init container run as the media share's owner, UID/GID `20004`, the exporter as its image's non-root user and gluetun as root (to manage the namespace's firewall and routes), and the pod keeps the host user namespace because NFS has no idmapped mounts. The `Recreate` strategy keeps two pods from ever owning the same tunnel routing state on a node.
@@ -64,7 +64,7 @@ Containers start in parallel, so qBittorrent may boot before the tunnel exists. 
           ^               ^                 ^                         ^
           |               |                 |                         |
       Envoy Gateway   OTel collector     port-forward             kubelet probes
-      (CrowdSec WAF)  (Target Allocator) sync CronJob             -> :8080/:9999/:17871
+                      (Target Allocator) sync CronJob             -> :8080/:9999/:17871
       -> :8080        -> :17871          -> :8000/:8080           (from the node)
 
 ```
@@ -85,7 +85,7 @@ Port forwarding uses ProtonVPN's NAT-PMP (`VPN_PORT_FORWARDING_PROVIDER=protonvp
 
 ## Authentication
 
-The WebUI keeps its own username/password login behind the Gateway-level CrowdSec extAuth — no OIDC (see [oidc.md](oidc.md)): the route is also an API endpoint for non-browser clients, which cannot complete an OIDC redirect. Humans sign in with the WebUI credential pair; the metrics exporter and the port-forward sync job authenticate with a stateless WebAPI key instead of the password; the Homepage widget authenticates with the WebUI credentials. The IP-subnet auth whitelist is deliberately unused — external access always authenticates.
+The WebUI keeps its own username/password login — no OIDC (see [oidc.md](oidc.md)): the route is also an API endpoint for non-browser clients, which cannot complete an OIDC redirect. Humans sign in with the WebUI credential pair; the metrics exporter and the port-forward sync job authenticate with a stateless WebAPI key instead of the password; the Homepage widget authenticates with the WebUI credentials. The IP-subnet auth whitelist is deliberately unused — external access always authenticates.
 
 ## Configuration seeding
 

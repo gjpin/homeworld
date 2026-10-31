@@ -1,11 +1,9 @@
 ---
-# Gateway OIDC for the Lidarr UI: Lidarr runs with
-# Authentication Method External, so Authelia is the only login and the
-# route requires the platform group (docs/oidc.md). API clients (the other
-# *arrs, Homepage, exportarr) call the in-cluster Service and never pass
-# through this route; mobile apps on the public hostname cannot complete
-# the OIDC redirect. StrategicMerge keeps this policy from overriding the
-# Gateway-level CrowdSec extAuth.
+# Gateway OIDC for the Lidarr UI: Lidarr runs with Authentication Method
+# External, so Authelia is the only login and the route requires the
+# platform group (docs/oidc.md). API clients (the other *arrs, Homepage,
+# exportarr) call the in-cluster Service and never pass through this route;
+# mobile apps on the public hostname cannot complete the OIDC redirect.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
@@ -14,7 +12,6 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  mergeType: StrategicMerge
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute

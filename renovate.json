@@ -341,14 +341,6 @@
       "groupName": "snapshot-controller"
     },
     {
-      "description": "Group the CrowdSec Envoy bouncer chart, image, and the e2e load-hook image so one bump arrives in a single PR",
-      "matchPackageNames": [
-        "ghcr.io/kdwils/charts/envoy-proxy-bouncer",
-        "ghcr.io/kdwils/envoy-proxy-bouncer"
-      ],
-      "groupName": "crowdsec-envoy-bouncer"
-    },
-    {
       "description": "Group the Envoy Gateway chart and image bumps into one PR",
       "matchPackageNames": [
         "docker.io/envoyproxy/gateway-helm",
@@ -604,7 +596,7 @@
       "customType": "regex",
       "description": "Update CloudNativePG Cluster images",
       "managerFilePatterns": [
-        "/^apps/(?:authelia|coder|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker|bazarr|cleanuparr|lidarr|prowlarr|radarr|seerr|sonarr|streamystats)/0_postgres\\.yaml$/"
+        "/^apps/(?:authelia|coder|forgejo|homeassistant|immich|vaultwarden|woodpecker|bazarr|cleanuparr|lidarr|prowlarr|radarr|seerr|sonarr|streamystats)/0_postgres\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^\\s*imageName:\\s*(?<depName>ghcr\\.io/[^:\\s]+):(?<currentValue>[^\\s#]+)\\s*$"
@@ -617,7 +609,7 @@
       "customType": "regex",
       "description": "Move CloudNativePG Cluster images to the newest Debian stable release CNPG publishes for the pinned PostgreSQL version (the docker manager above treats the -system-<debian> suffix as fixed)",
       "managerFilePatterns": [
-        "/^apps/(?:authelia|coder|crowdsec|forgejo|homeassistant|immich|vaultwarden|woodpecker|bazarr|cleanuparr|lidarr|prowlarr|radarr|seerr|sonarr|streamystats)/0_postgres\\.yaml$/"
+        "/^apps/(?:authelia|coder|forgejo|homeassistant|immich|vaultwarden|woodpecker|bazarr|cleanuparr|lidarr|prowlarr|radarr|seerr|sonarr|streamystats)/0_postgres\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^\\s*imageName:\\s*(?<packageName>ghcr\\.io/cloudnative-pg/postgresql):(?<pgVersion>\\d+\\.\\d+)-system-(?<currentValue>[a-z]+)\\s*$"
@@ -708,72 +700,6 @@
       "datasourceTemplate": "helm",
       "versioningTemplate": "helm",
       "registryUrlTemplate": "https://helm.cilium.io"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the CrowdSec Helm chart",
-      "managerFilePatterns": [
-        "/^apps/crowdsec/helm/kustomization\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^\\s+- name:\\s+crowdsec\\s+repo:\\s+https://crowdsecurity\\.github\\.io/helm-charts\\s+version:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "depNameTemplate": "crowdsec",
-      "datasourceTemplate": "helm",
-      "versioningTemplate": "helm",
-      "registryUrlTemplate": "https://crowdsecurity.github.io/helm-charts"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the CrowdSec image",
-      "managerFilePatterns": [
-        "/^apps/crowdsec/helm/values\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^image:\\s*\\n\\s+repository:\\s*docker\\.io/(?<depName>crowdsecurity/crowdsec)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
-      "registryUrlTemplate": "https://index.docker.io"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the CrowdSec wait-for-LAPI helper images",
-      "managerFilePatterns": [
-        "/^apps/crowdsec/helm/values\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^\\s+wait_for_lapi:\\s*\\n(?:\\s*#[^\\n]*\\n)*\\s+image:\\s*\\n\\s+repository:\\s*docker\\.io/(?<depName>library/busybox)\\s*\\n\\s+tag:\\s*[\"']?(?<currentValue>[^\"'\\s#]+)"
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
-      "registryUrlTemplate": "https://index.docker.io"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the CrowdSec kubectl helper image",
-      "managerFilePatterns": [
-        "/^apps/crowdsec/helm/values\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^\\s+kubectl:\\s*\\n\\s+repository:\\s*docker\\.io/(?<depName>alpine/kubectl)\\s*\\n\\s+tag:\\s*[\"']?(?<currentValue>[^\"'\\s#]+)[\"']?"
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
-      "registryUrlTemplate": "https://index.docker.io"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Envoy bouncer image",
-      "managerFilePatterns": [
-        "/^apps/crowdsec-envoy-bouncer/helm/values\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^image:\\s*\\n\\s+repository:\\s*(?<depName>ghcr\\.io/kdwils/envoy-proxy-bouncer)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
-      "registryUrlTemplate": "https://ghcr.io"
     },
     {
       "customType": "regex",
@@ -1803,18 +1729,6 @@
       "depNameTemplate": "kubescape/regolibrary",
       "datasourceTemplate": "github-releases",
       "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Envoy bouncer image default in the e2e load hook",
-      "managerFilePatterns": [
-        "/^e2e/examples/hooks/load-bouncer-image\\.sh$/"
-      ],
-      "matchStrings": [
-        "BOUNCER_IMAGE:-(?<depName>ghcr\\.io/kdwils/envoy-proxy-bouncer):(?<currentValue>[^\\\"}]+)"
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker"
     },
     {
       "customType": "regex",

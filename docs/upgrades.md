@@ -6,7 +6,7 @@ This document details upgrade automation, database migration procedures, and ver
 
 ## 1. Automated Major Database Upgrades (CloudNativePG)
 
-All PostgreSQL databases (`affine`, `authelia`, `coder`, `crowdsec`, `forgejo`,
+All PostgreSQL databases (`affine`, `authelia`, `coder`, `forgejo`,
 `homeassistant`, `immich`, `vaultwarden`, `woodpecker`) run on **CloudNativePG** (CNPG). Each
 `apps/<app>/0_postgres.yaml` pins `spec.imageName`, which Renovate tracks:
 

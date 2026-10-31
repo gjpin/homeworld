@@ -2,8 +2,7 @@
 # Gateway OIDC in front of Houndarr's own login: Houndarr has no OIDC, so
 # Authelia gates the route to the platform group (docs/oidc.md) and the
 # built-in bcrypt login stays as a second layer. The Homepage widget calls
-# the in-cluster Service with Houndarr's widget API key. StrategicMerge
-# keeps this policy from overriding the Gateway-level CrowdSec extAuth.
+# the in-cluster Service with Houndarr's widget API key.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
@@ -12,7 +11,6 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  mergeType: StrategicMerge
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute

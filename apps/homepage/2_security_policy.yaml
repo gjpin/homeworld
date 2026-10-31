@@ -1,9 +1,8 @@
 ---
-# Gateway OIDC for the Homepage dashboard. Authelia is the only login:
-# the dashboard has no built-in authentication, and the route requires the
+# Gateway OIDC for the Homepage dashboard. Authelia is the only login: the
+# dashboard has no built-in authentication, and the route requires the
 # platform group (docs/oidc.md). Service widgets use app-native tokens on
-# other routes and are unaffected. StrategicMerge keeps this policy from
-# overriding the Gateway-level CrowdSec extAuth.
+# other routes and are unaffected.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
@@ -12,7 +11,6 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  mergeType: StrategicMerge
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute

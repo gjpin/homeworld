@@ -1,9 +1,8 @@
 ---
-# Gateway OIDC for the Zigbee2MQTT web UI. Authelia is the only login:
-# Z2M's optional frontend auth is not configured, and the route requires the
+# Gateway OIDC for the Zigbee2MQTT web UI. Authelia is the only login: Z2M's
+# optional frontend auth is not configured, and the route requires the
 # platform group (docs/oidc.md). The Home Assistant route above keeps its
-# native OIDC login (hass-oidc-auth). StrategicMerge keeps this policy from
-# overriding the Gateway-level CrowdSec extAuth.
+# native OIDC login (hass-oidc-auth).
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
@@ -12,7 +11,6 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  mergeType: StrategicMerge
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute

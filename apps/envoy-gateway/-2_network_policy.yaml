@@ -300,29 +300,6 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-envoy-backend-crowdsec-envoy-bouncer
-  namespace: envoy-gateway
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
-  egress:
-    # Gateway-level extAuth (failOpen: false) calls this gRPC backend.
-    - toServices:
-        - k8sService:
-            serviceName: crowdsec-envoy-bouncer
-            namespace: envoy-gateway
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
   name: allow-envoy-backend-argocd
   namespace: envoy-gateway
   annotations:

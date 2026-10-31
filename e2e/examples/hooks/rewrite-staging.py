@@ -157,9 +157,7 @@ E2E_IGNORE_ITEMS = (
     "      kind: SecurityPolicy\n"
     "      jqPathExpressions:\n"
     "        - .spec.targetRef.group\n"
-    "        - .spec.targetRefs[].group\n"
-    "        - .spec.extAuth.grpc.backendRefs[].group\n"
-    "        - .spec.extAuth.grpc.backendRefs[].weight\n",
+    "        - .spec.targetRefs[].group\n",
     "    - group: external-secrets.io\n"
     "      kind: ExternalSecret\n"
     "      jqPathExpressions:\n"
@@ -487,81 +485,6 @@ def rewrite_opencloud_web_extensions(root: pathlib.Path) -> None:
     print(f"[rewrite-staging] opencloud web-extensions path in {count} files")
 
 
-def rewrite_crowdsec_credential_secrets(root: pathlib.Path) -> None:
-    """store*InSecret mounts secrets that register jobs only create after LAPI is up."""
-    count = 0
-    for path in root.rglob("*.yaml"):
-        text = path.read_text()
-        new = text.replace(
-            "storeCAPICredentialsInSecret: true",
-            "storeCAPICredentialsInSecret: false",
-        ).replace(
-            "storeLAPICscliCredentialsInSecret: true",
-            "storeLAPICscliCredentialsInSecret: false",
-        )
-        if new != text:
-            path.write_text(new)
-            count += 1
-    print(f"[rewrite-staging] crowdsec store*CredentialsInSecret false in {count} files")
-
-
-def rewrite_crowdsec_skip_hooks(root: pathlib.Path) -> None:
-    """CrowdSec pre-upgrade hooks are a ServiceAccount + Jobs.
-
-    Argo waits forever for the SA hook when before-hook-creation deleted it
-    and SSA cannot recreate it under a stuck operation.
-    """
-    path = root / "apps" / "crowdsec" / "1_helm.yaml"
-    if not path.exists():
-        print("[rewrite-staging] crowdsec Application missing; skipping SkipHooks")
-        return
-    text = path.read_text()
-    docs = split_docs(text)
-    out = []
-    changed = False
-    for doc in docs:
-        if metadata_name(doc) == "crowdsec" and "SkipHooks=true" not in doc:
-            m = re.search(r"(?m)^( *)syncOptions:\n( *)- ", doc)
-            if m:
-                item_indent = m.group(2)
-                doc = (
-                    doc[: m.start(2)]
-                    + f"{item_indent}- SkipHooks=true\n"
-                    + doc[m.start(2) :]
-                )
-                changed = True
-        out.append(doc)
-    if changed:
-        path.write_text(join_docs(out))
-        print("[rewrite-staging] crowdsec Application SkipHooks=true")
-    else:
-        print("[rewrite-staging] crowdsec SkipHooks unchanged")
-
-
-def rewrite_crowdsec_disable_enroll(root: pathlib.Path) -> None:
-    """ENROLL_KEY from Infisical is not a CrowdSec console attachment key."""
-    pattern = (
-        r"(?m)^    - name: ENROLL_KEY\n"
-        r"      valueFrom:\n"
-        r"        secretKeyRef:\n"
-        r"          name: crowdsec-enrollment\n"
-        r"          key: ENROLL_KEY\n"
-        r"    - name: ENROLL_INSTANCE_NAME\n"
-        r"      value: homeworld\n"
-        r"    - name: ENROLL_TAGS\n"
-        r"      value: k8s linux homelab\n"
-    )
-    replacement = '    - name: DISABLE_ONLINE_API\n      value: "true"\n'
-    count = 0
-    for path in root.rglob("*.yaml"):
-        text = path.read_text()
-        new = re.sub(pattern, replacement, text)
-        if new != text:
-            path.write_text(new)
-            count += 1
-    print(f"[rewrite-staging] crowdsec console enroll disabled in {count} files")
-
-
 def rewrite_argocd_disable_extras(root: pathlib.Path) -> None:
     """Dex/ApplicationSet/notifications each hold inotify watches; rootless Docker cannot raise the 128 cap."""
     path = root / "apps" / "argocd" / "helm" / "values.yaml"
@@ -782,8 +705,6 @@ def rewrite_collabora_kind_jail(root: pathlib.Path) -> None:
         print("[rewrite-staging] collabora jail disabled (mount_jail_tree=false, /tmp child roots, uid 1001)")
     else:
         print("[rewrite-staging] collabora jail rewrite unchanged")
-
-
 
 
 def rewrite_immich_kind_storage(root: pathlib.Path) -> None:
@@ -1103,22 +1024,6 @@ def rewrite_cnpg_probes(root: pathlib.Path) -> None:
     print(f"[rewrite-staging] CNPG probe timeouts relaxed in {count} files")
 
 
-def rewrite_crowdsec_disable_agent(root: pathlib.Path) -> None:
-    """k8s 1.37 Baseline forbids hostPath; kind also has no useful /var/log tree."""
-    count = 0
-    for path in root.rglob("*.yaml"):
-        if "crowdsec" not in path.as_posix():
-            continue
-        text = path.read_text()
-        if "agent:\n  enabled: true\n" not in text:
-            continue
-        path.write_text(
-            text.replace("agent:\n  enabled: true\n", "agent:\n  enabled: false\n", 1)
-        )
-        count += 1
-    print(f"[rewrite-staging] crowdsec agent disabled in {count} files")
-
-
 def rewrite_otel_node_disable_kubeletstats(root: pathlib.Path) -> None:
     """Kind kubelet serving certs carry no IP SANs; kubeletstats TLS-verifies the node IP.
 
@@ -1282,9 +1187,6 @@ def main() -> int:
     rewrite_eso_decoding_none(root)
     rewrite_opencloud_web_extensions(root)
     rewrite_opencloud_collaboration_insecure(root)
-    rewrite_crowdsec_credential_secrets(root)
-    rewrite_crowdsec_disable_enroll(root)
-    rewrite_crowdsec_skip_hooks(root)
     rewrite_argocd_disable_extras(root)
     # Controller memory patch lives in rewrite_argocd_disable_extras.
     rewrite_collabora_kind_jail(root)
@@ -1293,7 +1195,6 @@ def main() -> int:
     rewrite_jellyfin_kind_gpu(root)
     rewrite_rustfs_map_hostusers(root)
     rewrite_route_sync_wave(root)
-    rewrite_crowdsec_disable_agent(root)
     rewrite_otel_node_disable_kubeletstats(root)
     rewrite_cnpg_probes(root)
     rewrite_authelia_rolling_update(root)

@@ -330,7 +330,6 @@ spec:
         - matchName: cloudnative-pg.github.io
         - matchName: collaboraonline.github.io
         - matchName: code.forgejo.org
-        - matchName: crowdsecurity.github.io
         - matchName: charts.external-secrets.io
         - matchName: charts.longhorn.io
         - matchName: victoriametrics.github.io

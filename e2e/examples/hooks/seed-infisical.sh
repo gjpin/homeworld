@@ -324,7 +324,7 @@ seed_secrets() {
   token=$(cat "${OUT_DIR}/token")
   project_id=$(cat "${OUT_DIR}/project_id")
 
-  for folder in grafana homepage authelia cloudflare immich forgejo rustfs rustfs-operator opencloud crowdsec velero-ui velero argocd longhorn notesnook woodpecker vaultwarden qbittorrent homeassistant coder prowlarr sonarr radarr lidarr bazarr bindery seerr cleanuparr streamystats audiobookshelf navidrome jellyfin-auto-collections unpackerr audiomuse-ai affine; do
+  for folder in grafana homepage authelia cloudflare immich forgejo rustfs rustfs-operator opencloud velero-ui velero argocd longhorn notesnook woodpecker vaultwarden qbittorrent homeassistant coder prowlarr sonarr radarr lidarr bazarr bindery seerr cleanuparr streamystats audiobookshelf navidrome jellyfin-auto-collections unpackerr audiomuse-ai affine; do
     ensure_folder "${token}" "${project_id}" "${folder}"
   done
 
@@ -403,9 +403,6 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/opencloud/COLLABORA_ADMIN_PASSWORD" "e2e-collabora-admin"
   put_secret "${token}" "${project_id}" "/opencloud/COLLABORA_PROOF_KEY" "${proof_key}"
   put_secret "${token}" "${project_id}" "/opencloud/COLLABORA_PROOF_KEY_PUB" "${proof_pub}"
-  put_secret "${token}" "${project_id}" "/crowdsec/DB_PASSWORD" "e2e-crowdsec-db"
-  put_secret "${token}" "${project_id}" "/crowdsec/ENROLL_KEY" "e2e-crowdsec-enroll"
-  put_secret "${token}" "${project_id}" "/crowdsec/BOUNCER_KEY_envoy" "e2e-crowdsec-bouncer"
   put_secret "${token}" "${project_id}" "/velero-ui/AUTH_SECRET_PASSPHRASE" "e2e-velero-ui"
   put_secret "${token}" "${project_id}" "/velero/B2_APPLICATION_KEY_ID" "e2e-b2-id"
   put_secret "${token}" "${project_id}" "/velero/B2_APPLICATION_KEY" "e2e-b2-key"

@@ -66,8 +66,6 @@
 * **Sync wave 5**
    * documentdb-operator: DocumentDB (MongoDB-compatible) operator and its
      CNPG-I sidecar injector plugin, after CloudNativePG
-   * crowdsec: PostgreSQL-backed CrowdSec LAPI, Envoy log agent, and AppSec WAF,
-     after CloudNativePG and External Secrets
    * victoria-metrics: VictoriaMetrics (metrics), VictoriaLogs (logs), and VictoriaTraces (traces) backend,
      plus vmalert, whose alerts gate kured's reboots
    * rustfs: shared S3-compatible storage Tenant, after the RustFS Operator,
@@ -78,9 +76,6 @@
      ServiceMonitor/PodMonitor CRDs, after cert-manager (admission webhook
      certificates) and ahead of the collector custom resource in wave 6
 * **Sync wave 6**
-   * crowdsec-envoy-bouncer: pinned community Envoy external-auth bouncer,
-     after CrowdSec and Envoy Gateway; the Gateway policies remain owned by
-     their respective application directories and are fail-closed
    * authelia: OpenCloud identity provider, after CloudNativePG, Dragonfly,
      External Secrets, and Prometheus Operator CRDs
    * homeassistant
@@ -113,15 +108,15 @@
      Authelia sign-in; its startup probe holds the pod un-Ready until the
      OpenID discovery against Authelia (same wave) succeeds
    * qbittorrent: torrent client with a gluetun VPN sidecar and a
-     port-forward sync job, after csi-driver-nfs (the shared media share),
-     External Secrets, and the CrowdSec Envoy bouncer
+     port-forward sync job, after csi-driver-nfs (the shared media share)
+     and External Secrets
 * **Sync wave 7**
    * collabora: standalone Collabora chart and WOPI endpoint
    * woodpecker: CI server and Kubernetes-backend agents, after Forgejo (the
      OAuth source and webhook target)
    * openchamber: routes and selectorless Services for the agents VM
-     ([docs/openchamber.md](openchamber.md)), after Envoy Gateway,
-     cert-manager, and the CrowdSec Envoy bouncer
+     ([docs/openchamber.md](openchamber.md)), after Envoy Gateway
+     and cert-manager
    * coder: Coder control plane (CloudNativePG-backed) and, through its
      intra-component wave-0 `coder-workspaces` application, the workspace
      namespace whose Role the wave-1 chart binds; after Authelia, whose OIDC
@@ -221,7 +216,7 @@ In `apps/app-of-apps.yaml`, CRD-providing infrastructure and operators are seque
 - **Wave 2:** `envoy-gateway` (Envoy Gateway CRDs; the Gateway API CRDs are installed by k3s before Argo CD exists) and `cilium` (Cilium CRDs applied from the pinned Git tag by the nested `cilium-crds` application; the Helm chart ships no CRDs, while the CiliumNetworkPolicy CRDs are consumed by every component's `-2_network_policy.yaml`)
 - **Wave 3:** `cert-manager` (Certificates and ClusterIssuers), `external-dns` (the `DNSEndpoint` CRD from its chart, ahead of its intra-component wave-2 `DNSEndpoint`), `snapshot-controller` (CSI volume snapshot CRDs from the pinned `external-snapshotter` Git tag plus the handwritten snapshot controller — the CSI snapshot API suite Velero's data movement drives, installed ahead of the wave 4 backup operator), `system-upgrade-controller` (the `Plan` CRD from the pinned release tag, ahead of its Plans), plus the `longhorn`, `csi-driver-nfs`, `kubelet-serving-cert-approver`, and `metrics-server` applications
 - **Wave 4:** `velero` (backup operator, after the snapshot-controller suite) and the datastore operators (`cloudnative-pg`, `mariadb-operator`, `rustfs-operator`, `grafana-operator`)
-- **Wave 5:** `velero-ui` (web interface for Velero), `crowdsec` (PostgreSQL-backed LAPI, log agent, and AppSec WAF), `rustfs` (shared S3-compatible Tenant), `victoria-metrics` (the metrics/logs/traces backends and vmalert), the `documentdb-operator` (DocumentDB CRDs plus the CNPG-I sidecar
+- **Wave 5:** `velero-ui` (web interface for Velero), `rustfs` (shared S3-compatible Tenant), `victoria-metrics` (the metrics/logs/traces backends and vmalert), the `documentdb-operator` (DocumentDB CRDs plus the CNPG-I sidecar
   injector plugin, which must live in the `cloudnative-pg` namespace for
   CloudNativePG plugin discovery), and the `opentelemetry-operator`
   (OpenTelemetryCollector/TargetAllocator CRDs, rendered through the chart's

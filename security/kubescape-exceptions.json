@@ -527,54 +527,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^crowdsec-agent$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-appsec$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-envoy-bouncer$",
-          "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-lapi$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-capi-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-lapi-cscli-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^DaemonSet$",
           "name": "^cilium$",
           "namespace": "^cilium$"
         }
@@ -837,14 +789,6 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^documentdb-operator-cluster-rolebinding$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
-          "name": "^crowdsec-configmap-updater-binding$",
-          "namespace": "^crowdsec$"
         }
       },
       {
@@ -1192,30 +1136,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^DaemonSet$",
-          "name": "^crowdsec-agent$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-appsec$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-lapi$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^Deployment$",
           "name": "^documentdb-operator$",
           "namespace": "^documentdb-operator$"
@@ -1227,22 +1147,6 @@
           "kind": "^Deployment$",
           "name": "^sidecar-injector$",
           "namespace": "^cloudnative-pg$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-capi-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-lapi-cscli-register-job$",
-          "namespace": "^crowdsec$"
         }
       },
       {
@@ -1473,22 +1377,6 @@
           "kind": "^Deployment$",
           "name": "^sidecar-injector$",
           "namespace": "^cloudnative-pg$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-capi-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-lapi-cscli-register-job$",
-          "namespace": "^crowdsec$"
         }
       },
       {
@@ -1812,38 +1700,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^DaemonSet$",
-          "name": "^crowdsec-agent$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-appsec$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-envoy-bouncer$",
-          "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-lapi$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^Deployment$",
           "name": "^documentdb-operator$",
           "namespace": "^documentdb-operator$"
@@ -1855,22 +1711,6 @@
           "kind": "^Deployment$",
           "name": "^sidecar-injector$",
           "namespace": "^cloudnative-pg$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-capi-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-lapi-cscli-register-job$",
-          "namespace": "^crowdsec$"
         }
       },
       {
@@ -2405,30 +2245,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^DaemonSet$",
-          "name": "^crowdsec-agent$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-appsec$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-lapi$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^Deployment$",
           "name": "^documentdb-operator$",
           "namespace": "^documentdb-operator$"
@@ -2440,22 +2256,6 @@
           "kind": "^Deployment$",
           "name": "^sidecar-injector$",
           "namespace": "^cloudnative-pg$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-capi-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-lapi-cscli-register-job$",
-          "namespace": "^crowdsec$"
         }
       },
       {
@@ -3028,14 +2828,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^crowdsec-agent$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^DaemonSet$",
           "name": "^cilium$",
           "namespace": "^cilium$"
         }
@@ -3430,14 +3222,6 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^velero-ui$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
-          "name": "^crowdsec-configmap-updater-binding$",
-          "namespace": "^crowdsec$"
         }
       },
       {
@@ -3920,22 +3704,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-capi-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-lapi-cscli-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^StatefulSet$",
           "name": "^woodpecker-agent$",
           "namespace": "^woodpecker$"
@@ -4327,14 +4095,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^crowdsec-envoy-bouncer$",
-          "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^documentdb-operator$",
           "namespace": "^documentdb-operator$"
         }
@@ -4580,30 +4340,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^DaemonSet$",
-          "name": "^crowdsec-agent$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-appsec$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-lapi$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^Deployment$",
           "name": "^documentdb-operator$",
           "namespace": "^documentdb-operator$"
@@ -4615,22 +4351,6 @@
           "kind": "^Deployment$",
           "name": "^sidecar-injector$",
           "namespace": "^cloudnative-pg$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-capi-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-lapi-cscli-register-job$",
-          "namespace": "^crowdsec$"
         }
       }
     ],
@@ -4843,14 +4563,6 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^documentdb-operator-cluster-rolebinding$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
-          "name": "^crowdsec-configmap-updater-binding$",
-          "namespace": "^crowdsec$"
         }
       },
       {
@@ -5321,30 +5033,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^DaemonSet$",
-          "name": "^crowdsec-agent$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-appsec$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-lapi$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^Deployment$",
           "name": "^documentdb-operator$",
           "namespace": "^documentdb-operator$"
@@ -5356,22 +5044,6 @@
           "kind": "^Deployment$",
           "name": "^sidecar-injector$",
           "namespace": "^cloudnative-pg$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-capi-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-lapi-cscli-register-job$",
-          "namespace": "^crowdsec$"
         }
       },
       {
@@ -5962,22 +5634,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^crowdsec-envoy-bouncer$",
-          "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-lapi$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^forgejo$",
           "namespace": "^forgejo$"
         }
@@ -5996,22 +5652,6 @@
           "kind": "^StatefulSet$",
           "name": "^woodpecker-server$",
           "namespace": "^woodpecker$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^DaemonSet$",
-          "name": "^crowdsec-agent$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-appsec$",
-          "namespace": "^crowdsec$"
         }
       },
       {
@@ -6477,38 +6117,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^DaemonSet$",
-          "name": "^crowdsec-agent$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-appsec$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-envoy-bouncer$",
-          "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-lapi$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^Deployment$",
           "name": "^documentdb-operator$",
           "namespace": "^documentdb-operator$"
@@ -6520,22 +6128,6 @@
           "kind": "^Deployment$",
           "name": "^sidecar-injector$",
           "namespace": "^cloudnative-pg$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-capi-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-lapi-cscli-register-job$",
-          "namespace": "^crowdsec$"
         }
       },
       {
@@ -6948,14 +6540,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^crowdsec-agent$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^DaemonSet$",
           "name": "^otel-collector-node-agent$",
           "namespace": "^otel-collector-node$"
         }
@@ -6972,48 +6556,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^crowdsec-appsec$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-envoy-bouncer$",
-          "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-lapi$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^otel-collector-cluster$",
           "namespace": "^otel-collector$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-capi-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-lapi-cscli-register-job$",
-          "namespace": "^crowdsec$"
         }
       },
       {
@@ -7322,38 +6866,6 @@
           "kind": "^StatefulSet$",
           "name": "^argocd-argocd-application-controller$",
           "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^DaemonSet$",
-          "name": "^crowdsec-agent$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-appsec$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-envoy-bouncer$",
-          "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-lapi$",
-          "namespace": "^crowdsec$"
         }
       },
       {
@@ -7715,38 +7227,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^DaemonSet$",
-          "name": "^crowdsec-agent$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-appsec$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-envoy-bouncer$",
-          "namespace": "^envoy-gateway$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-lapi$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^Deployment$",
           "name": "^documentdb-operator$",
           "namespace": "^documentdb-operator$"
@@ -7758,22 +7238,6 @@
           "kind": "^Deployment$",
           "name": "^sidecar-injector$",
           "namespace": "^cloudnative-pg$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-capi-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-lapi-cscli-register-job$",
-          "namespace": "^crowdsec$"
         }
       },
       {
@@ -8217,22 +7681,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-capi-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-lapi-cscli-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^DaemonSet$",
           "name": "^cilium$",
           "namespace": "^cilium$"
@@ -8530,22 +7978,6 @@
           "kind": "^Deployment$",
           "name": "^documentdb-operator$",
           "namespace": "^documentdb-operator$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-capi-register-job$",
-          "namespace": "^crowdsec$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Job$",
-          "name": "^crowdsec-lapi-cscli-register-job$",
-          "namespace": "^crowdsec$"
         }
       },
       {
@@ -9030,14 +8462,6 @@
           "kind": "^Deployment$",
           "name": "^argocd-argocd-notifications-controller$",
           "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^crowdsec-lapi$",
-          "namespace": "^crowdsec$"
         }
       },
       {

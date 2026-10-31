@@ -75,7 +75,7 @@ reason Envoy on it can reach the VM.
 
 - **Browser**: `https://openchamber.base-domain.invalid` and
   `https://paseo.base-domain.invalid` through Envoy Gateway (the
-  wildcard Let's Encrypt certificate, CrowdSec bouncer). Both apps authenticate on their own: the
+  wildcard Let's Encrypt certificate). Both apps authenticate on their own: the
   OpenChamber UI password and Paseo's bearer password ([docs/oidc.md](oidc.md)).
 - **ThinkRail**: `https://thinkrail.base-domain.invalid`, behind Envoy
   Gateway's Authelia sign-in (the `platform` group): ThinkRail has no

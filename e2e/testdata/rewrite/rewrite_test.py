@@ -24,8 +24,6 @@ def main() -> int:
             raise SystemExit("grafana-app should be kept")
         if "opencloud-app" not in apps:
             raise SystemExit("opencloud-app should be kept")
-        if "crowdsec-app" not in apps:
-            raise SystemExit("crowdsec-app should be kept")
         if "immich-app" not in apps:
             raise SystemExit("immich-app should be kept")
         if "authelia-app" not in apps:
@@ -126,10 +124,6 @@ def main() -> int:
             raise SystemExit("opencloud COLLABORATION_APP_INSECURE not flipped")
         if 'name: COLLABORATION_CS3API_DATAGATEWAY_INSECURE\n              value: "true"' not in oc_deploy:
             raise SystemExit("opencloud COLLABORATION_CS3API_DATAGATEWAY_INSECURE not flipped")
-        if "storeCAPICredentialsInSecret: true" in work:
-            raise SystemExit("crowdsec still stores CAPI credentials in a secret")
-        if "storeCAPICredentialsInSecret: false" not in work:
-            raise SystemExit("crowdsec storeCAPICredentialsInSecret not flipped")
         if "kind: SecurityPolicy" not in work:
             raise SystemExit("SecurityPolicy should be kept")
         g_k = (dest / "apps" / "grafana" / "kustomization.yaml").read_text()
@@ -139,18 +133,8 @@ def main() -> int:
             raise SystemExit("grafana kustomization dropped unrelated resource")
         if not (dest / "apps" / "grafana" / "2_security_policy.yaml").exists():
             raise SystemExit("grafana SecurityPolicy file missing")
-        if "crowdsec-envoy-bouncer-app" not in apps:
-            raise SystemExit("crowdsec-envoy-bouncer-app should be kept")
         if "otel-collector-app" not in apps:
             raise SystemExit("otel-collector-app should be kept")
-        cs = (dest / "apps" / "crowdsec" / "-1_secrets.yaml").read_text()
-        if '{{ .password }}' not in cs:
-            raise SystemExit("crowdsec postgres template missing password")
-        token = (dest / "apps" / "crowdsec" / "helm" / "values.yaml").read_text()
-        if "ENROLL_KEY" in token:
-            raise SystemExit("crowdsec ENROLL_KEY should be removed")
-        if "DISABLE_ONLINE_API" not in token:
-            raise SystemExit("crowdsec DISABLE_ONLINE_API missing")
         argocd_vals = (dest / "apps" / "argocd" / "helm" / "values.yaml").read_text()
         if "enabled: false" not in argocd_vals.split("dex:", 1)[1].split("\n", 2)[1]:
             raise SystemExit("argocd dex not disabled")
@@ -251,11 +235,6 @@ def main() -> int:
         secpolicy = work.split("kind: SecurityPolicy", 1)[1].split("---")[0]
         if 'argocd.argoproj.io/sync-wave: "2"' not in secpolicy:
             raise SystemExit("SecurityPolicy missing sync-wave 2")
-        cs_vals = (dest / "apps" / "crowdsec" / "helm" / "values.yaml").read_text()
-        if "agent:\n  enabled: true\n" in cs_vals:
-            raise SystemExit("crowdsec agent still enabled")
-        if "agent:\n  enabled: false\n" not in cs_vals:
-            raise SystemExit("crowdsec agent not disabled")
         ms_vals = (
             dest / "apps" / "metrics-server" / "helm" / "values.yaml"
         ).read_text()
@@ -266,9 +245,6 @@ def main() -> int:
         ).read_text()
         if "kubeletMetrics:\n    enabled: false" not in otel_node:
             raise SystemExit("otel node kubeletstats not disabled for kind")
-        cs_app = (dest / "apps" / "crowdsec" / "1_helm.yaml").read_text()
-        if "SkipHooks=true" not in cs_app:
-            raise SystemExit("crowdsec Application missing SkipHooks")
         cnpg = work.split("kind: Cluster", 1)[1].split("---")[0]
         if "timeoutSeconds: 10" not in cnpg:
             raise SystemExit("CNPG cluster probes not relaxed")

@@ -617,41 +617,13 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-otel-pod-scrape-crowdsec
-  namespace: otel-collector
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  # The chart's ServiceMonitors scrape the LAPI/agent/AppSec metrics port
-  # (6060) and the handwritten PodMonitor scrapes the CloudNativePG instance
-  # metrics port (9187).
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
-      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
-      k8s:app.kubernetes.io/component: opentelemetry-collector
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: crowdsec
-      toPorts:
-        - ports:
-            - port: "6060"
-              protocol: TCP
-            - port: "9187"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
   name: allow-otel-pod-scrape-envoy-gateway
   namespace: otel-collector
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   # Envoy Gateway's ServiceMonitor scrapes the controller and its PodMonitor
-  # scrapes the Envoy data-plane pods on /stats/prometheus; the CrowdSec
-  # bouncer deployed into the same namespace exposes its own monitor.
+  # scrapes the Envoy data-plane pods on /stats/prometheus.
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -663,8 +635,6 @@ spec:
             k8s:io.kubernetes.pod.namespace: envoy-gateway
       toPorts:
         - ports:
-            - port: "9090"
-              protocol: TCP
             - port: "19001"
               protocol: TCP
 ---

@@ -32,7 +32,7 @@ configs:
     resource.customizations.health.gateway.envoyproxy.io_SecurityPolicy: |
       hs = {}
       hs.status = "Healthy"
-      hs.message = "kind e2e: the bouncer is deployed and the route-scoped SecurityPolicies are kept; Argo health for the CRD is not wait-argo relevant"
+      hs.message = "kind e2e: the route-scoped SecurityPolicies are kept; Argo health for the CRD is not wait-argo relevant"
       return hs
     resource.customizations.health.gateway.networking.k8s.io_HTTPRoute: |
       hs = {}

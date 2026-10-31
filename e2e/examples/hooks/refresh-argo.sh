@@ -93,7 +93,7 @@ fi
 kretry scale deploy/argocd-argocd-applicationset-controller -n argocd --replicas=0 >/dev/null \
   || log "WARN could not scale applicationset to 0"
 
-# Nested helm Applications (argocd, rustfs-operator, crowdsec, ...) do not
+# Nested helm Applications (argocd, rustfs-operator, ...) do not
 # carry part-of=homeworld. Hard-refresh every Application so a restage that
 # rewrites git history does not leave them fetching a vanished SHA. Force a
 # sync only on the apps whose manifests must land immediately; nested

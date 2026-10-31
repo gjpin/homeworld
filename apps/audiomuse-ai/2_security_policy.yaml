@@ -3,8 +3,7 @@
 # front of AudioMuse-AI's own login: the UI drives the analysis jobs, holds
 # the Navidrome credentials and writes playlists into Navidrome. The
 # Navidrome plugin calls the in-cluster Service with an API token and never
-# passes through this route. StrategicMerge keeps this policy from
-# overriding the Gateway-level CrowdSec extAuth.
+# passes through this route.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
@@ -13,7 +12,6 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  mergeType: StrategicMerge
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute

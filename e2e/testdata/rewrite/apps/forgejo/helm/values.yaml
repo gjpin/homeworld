@@ -108,8 +108,8 @@ gitea:
           key: password
   metrics:
     # The chart scrapes (and exposes) gitea's /metrics on the same :3000 port
-    # the public route backs onto, so the endpoint is world-reachable behind
-    # the Gateway-level CrowdSec WAF only. Accepted residual: /metrics
+    # the public route backs onto, so the endpoint is reachable by every
+    # Gateway client. Accepted residual: /metrics
     # carries no secrets (counters and durations), and restricting it at the
     # gateway would need a path-scoped policy Woodpecker-style clients never
     # touch. Documented in docs/network-policies.md (forgejo row).

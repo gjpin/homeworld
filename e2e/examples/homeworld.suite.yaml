@@ -35,7 +35,7 @@ spec:
       # kind node doubles kubelet/containerd inotify usage. Raise
       # fs.inotify.max_user_instances on the Docker VM (Lima) to 1024
       # before covering Grafana/Victoria/Collabora/OpenCloud/
-      # Radicale/CrowdSec/Forgejo/Immich.
+      # Radicale/Forgejo/Immich.
       nodes:
       - role: control-plane
         kubeadmConfigPatches:
@@ -187,9 +187,6 @@ spec:
     #     can only assert connections that SUCCEED, so a default-deny probe
     #     is not expressible; production policies are instead covered by the
     #     CI render pass and the security scans.
-    #   * The CrowdSec log agent is staging-disabled on kind (the LAPI and
-    #     AppSec health is probed below; log acquisition itself stays
-    #     untested).
     #   * No browser/OIDC login flows or git-SSH (see e2e/README.md).
     #   * No publicly trusted certificates: kind cannot answer Let's Encrypt
     #     DNS-01 challenges, so the Gateway serves a self-signed certificate
@@ -249,7 +246,6 @@ spec:
             - collabora
             - opencloud
             - radicale
-            - crowdsec
             - forgejo
             - immich
             - documentdb-operator
@@ -362,15 +358,6 @@ spec:
           kind: Cluster
           name: forgejo
           namespace: forgejo
-          condition: Ready
-          status: "True"
-          timeout: 10m
-      - name: cnpg-crowdsec
-        resourceCondition:
-          apiVersion: postgresql.cnpg.io/v1
-          kind: Cluster
-          name: crowdsec
-          namespace: crowdsec
           condition: Ready
           status: "True"
           timeout: 10m
@@ -590,15 +577,6 @@ spec:
           namespace: notesnook
           service: notesnook-sse
           port: 7264
-          path: "/health"
-          timeout: 10m
-      # CrowdSec's LAPI is the brain of the acquisition/AppSec chain; the
-      # agent is kind-disabled, but the LAPI API itself must serve.
-      - name: crowdsec-lapi-health
-        serviceProbe:
-          namespace: crowdsec
-          service: crowdsec-service
-          port: 8080
           path: "/health"
           timeout: 10m
       # Argo CD's own API server must serve (the suite drives it via Argo,
