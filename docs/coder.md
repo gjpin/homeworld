@@ -120,7 +120,7 @@ statistics and update check (`CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS`,
 check (`GLAB_SEND_TELEMETRY`, `GLAB_CHECK_UPDATE`, which also gates its
 remote skill-update check), and the Infisical CLI's telemetry and release
 check (`INFISICAL_DISABLE_TELEMETRY`, `INFISICAL_DISABLE_UPDATE_CHECK`),
-and the template's startup
+the Playwright CLI's npm release check (`NO_UPDATE_NOTIFIER`), and the template's startup
 script, `homeworld-workspace-init`, sets the file-based ones in the home
 volume on every start: Codex `check_for_update_on_startup` and analytics and
 feedback, OpenCode `autoupdate` and sharing, Pi install telemetry,
@@ -208,6 +208,7 @@ already permits.
 | Coding-agent switches in the image and `homeworld-workspace-init` | No agent telemetry or self-updates ([above](#workspace-image)) |
 | `GLAB_SEND_TELEMETRY=false`, `GLAB_CHECK_UPDATE=false` | No glab usage data to the GitLab instance, no glab release or skill-update check |
 | `INFISICAL_DISABLE_TELEMETRY=1`, `INFISICAL_DISABLE_UPDATE_CHECK=true` | No Infisical CLI telemetry to PostHog, no release check |
+| `NO_UPDATE_NOTIFIER=1` | No Playwright CLI release check against the npm registry |
 
 ## Observability
 
