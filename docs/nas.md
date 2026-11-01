@@ -6,6 +6,37 @@ storage. Node disks hold Longhorn's small application volumes; the photo
 library, the OpenCloud users' files and the media library with its torrents live on the NAS
 over NFSv4.1 through [csi-driver-nfs](https://github.com/kubernetes-csi/csi-driver-nfs).
 
+## Hardware setup
+
+The disks hang off a Radxa Penta SATA HAT on the Raspberry Pi 5's PCIe
+connector. Before installing OpenMediaVault, enable the PCIe x1 port at
+Gen 3, turn off the unused Wi-Fi and Bluetooth radios, and load the
+32-bit DMA overlay the HAT's SATA controller needs on the Pi 5
+(references:
+[raspberry-pi-pcie-devices#615](https://github.com/geerlingguy/raspberry-pi-pcie-devices/issues/615),
+[Radxa Penta SATA HAT for Raspberry Pi 5](https://docs.radxa.com/en/accessories/storage/penta-sata-hat/penta-for-rpi5)):
+
+```bash
+# On the NAS:
+f=/boot/firmware/config.txt
+changed=
+for line in dtparam=pciex1 dtparam=pciex1_gen=3 \
+  dtoverlay=disable-wifi dtoverlay=disable-bt dtoverlay=pcie-32bit-dma-pi5; do
+  grep -qxF "$line" "$f" && continue
+  # Append under an [all] filter, opening one unless the last section already is.
+  [ "$(grep '^\[' "$f" | tail -n 1)" = '[all]' ] ||
+    echo '[all]' | sudo tee -a "$f" >/dev/null
+  echo "$line" | sudo tee -a "$f" >/dev/null
+  changed=1
+done
+[ -z "$changed" ] || sudo reboot
+```
+
+The script appends only the missing lines and reboots only when it changed
+something, so it is safe to re-run. A line that already sits under a
+narrower filter (for example `[cm5]`) counts as present; move it under
+`[all]` by hand. After the reboot, `lsblk` lists every disk on the HAT.
+
 ## Shares
 
 One shared folder and one NFS export per app, each owned by a dedicated
