@@ -42,7 +42,7 @@ spec:
           containers:
             - name: recyclarr
               # Renovate tracks the image tag below.
-              image: ghcr.io/recyclarr/recyclarr:8.8.0
+              image: ghcr.io/recyclarr/recyclarr:8.8.1
               imagePullPolicy: IfNotPresent
               args:
                 - sync
