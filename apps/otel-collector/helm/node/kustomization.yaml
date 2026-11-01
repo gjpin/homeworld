@@ -35,4 +35,4 @@ patches:
         value: The upstream chart probes the collector health endpoint on undeclared port 13133 instead of a declared containerPort.
       - op: add
         path: /metadata/annotations/ignore-check.kube-linter.io~1sensitive-host-mounts
-        value: The node collector mounts the host filesystem root and /var/log/pods read-only for node telemetry and log collection; the host integration is documented in docs/pod-security.md.
+        value: The node collector mounts the host /proc, /sys and /var/log/pods read-only for host metrics and log collection; the host integration is documented in docs/pod-security.md.
