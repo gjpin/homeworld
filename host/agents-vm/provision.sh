@@ -94,7 +94,7 @@ npm install -g --ignore-scripts \
   "skills@$SKILLS_VERSION"
 
 # Playwright's Chromium, outside HOME.
-export PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
+export PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright NO_UPDATE_NOTIFIER=1
 playwright install chromium
 playwright-cli install-browser chromium
 
@@ -188,7 +188,7 @@ done
 # --- environment ----------------------------------------------------------
 # Self-update and telemetry switches (docs/openchamber.md). OpenChamber has
 # no switch for its update check, and ThinkRail none for its basic usage
-# events, so both point at an unreachable port.
+# events, error reports and surveys, so both point at an unreachable port.
 cat >/etc/profile.d/agents.sh <<'EOF'
 export PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 export PI_SKIP_VERSION_CHECK=1
@@ -199,6 +199,7 @@ export DISABLE_UPDATES=1
 export DISABLE_TELEMETRY=1
 export INFISICAL_DISABLE_TELEMETRY=1
 export INFISICAL_DISABLE_UPDATE_CHECK=1
+export NO_UPDATE_NOTIFIER=1
 export NPM_CONFIG_PREFIX=$HOME/.local
 case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) PATH=$HOME/.local/bin:$PATH ;; esac
 export PATH
@@ -206,7 +207,7 @@ EOF
 install -d -m 0755 /etc/systemd/user.conf.d
 cat >/etc/systemd/user.conf.d/agents.conf <<'EOF'
 [Manager]
-DefaultEnvironment=PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright PI_SKIP_VERSION_CHECK=1 OPENCHAMBER_UPDATE_API_URL=http://127.0.0.1:9/ THINKRAIL_NO_ANALYTICS=1 THINKRAIL_POSTHOG_HOST=http://127.0.0.1:9 DISABLE_UPDATES=1 DISABLE_TELEMETRY=1 INFISICAL_DISABLE_TELEMETRY=1 INFISICAL_DISABLE_UPDATE_CHECK=1 "PATH=/home/agent/.local/bin:/usr/local/bin:/usr/bin"
+DefaultEnvironment=PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright PI_SKIP_VERSION_CHECK=1 OPENCHAMBER_UPDATE_API_URL=http://127.0.0.1:9/ THINKRAIL_NO_ANALYTICS=1 THINKRAIL_POSTHOG_HOST=http://127.0.0.1:9 DISABLE_UPDATES=1 DISABLE_TELEMETRY=1 INFISICAL_DISABLE_TELEMETRY=1 INFISICAL_DISABLE_UPDATE_CHECK=1 NO_UPDATE_NOTIFIER=1 "PATH=/home/agent/.local/bin:/usr/local/bin:/usr/bin"
 EOF
 
 # --- secrets: Infisical /agents/* into tmpfs ---------------------------------
