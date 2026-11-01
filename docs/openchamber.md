@@ -124,7 +124,8 @@ everything else the agents or you add:
 - Self-update and update checks are off for every agent (and inert anyway,
   `/usr/local` being read-only): Codex `check_for_update_on_startup`,
   OpenCode `update: "disable"`, Pi `PI_SKIP_VERSION_CHECK`, Copilot `autoUpdate`,
-  Claude Code `DISABLE_UPDATES`, Infisical CLI `INFISICAL_DISABLE_UPDATE_CHECK`.
+  Claude Code `DISABLE_UPDATES`, Infisical CLI `INFISICAL_DISABLE_UPDATE_CHECK`,
+  Playwright CLI `NO_UPDATE_NOTIFIER`.
   OpenChamber has no switch for its update
   check, so `OPENCHAMBER_UPDATE_API_URL` points at an unreachable local port.
   ThinkRail's release check only runs from an installer layout
@@ -136,5 +137,5 @@ everything else the agents or you add:
   `INFISICAL_DISABLE_TELEMETRY` (also set in the secrets loader). Copilot CLI has no telemetry switch short of offline mode, which
   also disables GitHub sign-in; that is an accepted upstream limitation.
   ThinkRail's additional analytics are off (`THINKRAIL_NO_ANALYTICS`), and
-  its basic usage events have no switch outside CI, so
-  `THINKRAIL_POSTHOG_HOST` points them at an unreachable local port.
+  its basic usage events, error reports and surveys have no switch outside
+  CI, so `THINKRAIL_POSTHOG_HOST` points them at an unreachable local port.
