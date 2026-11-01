@@ -41,7 +41,7 @@ spec:
         - name: sonarr
           # Renovate tracks the image tag below. home-operations builds the
           # upstream release rootless, with the in-app updater removed.
-          image: ghcr.io/home-operations/sonarr:5.0.0.2800
+          image: ghcr.io/home-operations/sonarr:5.0.0.2907
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
