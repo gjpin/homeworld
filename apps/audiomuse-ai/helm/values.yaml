@@ -8,7 +8,7 @@ image:
   repository: ghcr.io/neptunehub/audiomuse-ai
   pullPolicy: IfNotPresent
   # Renovate tracks the tag below; the chart's appVersion is "latest".
-  tag: "3.6.4"
+  tag: "3.7.0"
 
 flask:
   service:
