@@ -1334,8 +1334,9 @@ dig -p 54 @10.10.0.1 openwrt.org      # must fail: dnsmasq is not reachable dire
 ## 17. Homeworld cluster
 
 Run this once, from the `192.168.8.1` session, before installing the nodes
-([docs/k3s.md](k3s.md)). It gives the three nodes and the NAS static leases,
-routes the agents VM subnet through the Ryzen node, rejects that subnet
+([docs/k3s.md](k3s.md)). It gives the three nodes, the NAS and the switch
+(section 18) static leases, routes the agents VM subnet through the Ryzen
+node, rejects that subnet
 everywhere but the internet, and runs the Tang server the nodes' LUKS roots
 are bound to ([docs/fedora.md](fedora.md)).
 
@@ -1354,6 +1355,7 @@ RYZEN_MAC='aa:bb:cc:dd:ee:10'
 COREBOX_MAC='aa:bb:cc:dd:ee:11'
 RADXA_MAC='aa:bb:cc:dd:ee:12'
 NAS_MAC='aa:bb:cc:dd:ee:20'
+SWITCH_MAC='aa:bb:cc:dd:ee:02' # printed on the switch's label
 
 uci -q batch <<EOF
 set dhcp.ryzen='host'
@@ -1372,6 +1374,10 @@ set dhcp.nas='host'
 set dhcp.nas.name='nas'
 set dhcp.nas.mac='$NAS_MAC'
 set dhcp.nas.ip='192.168.8.20'
+set dhcp.switch='host'
+set dhcp.switch.name='switch'
+set dhcp.switch.mac='$SWITCH_MAC'
+set dhcp.switch.ip='192.168.8.2'
 
 set network.agents='route'
 set network.agents.interface='pixel'
@@ -1430,7 +1436,7 @@ WireGuard clients are established traffic and pass before these rules.
 Verify:
 
 ```sh
-uci show dhcp | grep -E '^dhcp\.(ryzen|corebox|radxa|nas)\.'
+uci show dhcp | grep -E '^dhcp\.(ryzen|corebox|radxa|nas|switch)\.'
 ip route show 10.20.0.0/24             # via 192.168.8.10
 fw4 print | grep -F 10.20.0.0/24       # the two reject rules
 ss -lnt | grep -F ':7500'              # tangd
@@ -1449,3 +1455,35 @@ the Ryzen straight back on the LAN. WireGuard clients are symmetric. From a
 Pixel client, connect to `10.20.0.10:6767` (Paseo) directly; if the
 connection stalls after the handshake, check `logread -e firewall` for
 invalid-state drops.
+
+## 18. Switch (TP-Link TL-SG108E)
+
+The three nodes and the NAS are wired to a TP-Link TL-SG108E, whose uplink
+goes to the router. The switch stays a plain, unconfigured Pixel segment:
+802.1Q VLANs off, every port untagged in its default VLAN.
+
+1. Plug the uplink into one of `lan2`–`lan5`, never `lan1`: `lan1` also
+   carries the tagged PixelGuest, PixelIoT and PixelThings VLANs (section 3),
+   which have no business on the server switch.
+2. The switch ships with the static management address `192.168.0.1`
+   (DHCP off), unreachable from Pixel. Connect a computer to any of its
+   ports, give the computer a static `192.168.0.2/24` address, and open
+   `http://192.168.0.1`.
+3. Sign in with the default `admin`/`admin` and replace the password when
+   prompted (or under **System → User Account**). Keep it offline with the
+   other recovery material, not only in Vaultwarden.
+4. Under **System → IP Setting**, enable DHCP and apply. The switch then
+   takes its static lease `192.168.8.2` from section 17. Return the
+   computer to DHCP.
+5. Leave **VLAN → 802.1Q VLAN** disabled.
+
+Verify from a Pixel client:
+
+```sh
+ping -c 3 192.168.8.2
+curl -sI http://192.168.8.2 | head -n1 # the switch's web UI answers
+```
+
+The web UI and TP-Link's Easy Smart utility manage the switch over plain
+HTTP and UDP broadcast, so only Pixel and WireGuard clients reach it; the
+other VLANs' zones reject forwarding into Pixel (section 4).

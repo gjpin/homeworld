@@ -27,6 +27,79 @@
 - [Coder](docs/coder.md) cloud development workspaces on Kubernetes, with Coder Agents running AI coding agents from the control plane
 - AI agent [virtual machine](docs/openchamber.md) (OpenChamber, Paseo, ThinkRail, OpenCode, Claude Code, Codex CLI, Pi agent, Antigravity CLI, Copilot CLI on Fedora) with a rebuildable root and pinned tools
 
+## Network
+The OpenWrt router ([docs/openwrt.md](docs/openwrt.md)) sits behind the ISP router and splits the home into four VLANs. The three nodes and the NAS are wired to a TP-Link TL-SG108E switch on one of the router's LAN ports. The cluster, the NAS and trusted clients share the Pixel network; WireGuard clients join it remotely.
+
+```mermaid
+flowchart TB
+  internet(("Internet"))
+  remote["WireGuard clients<br/>10.10.0.2–.254"]
+  isp["ISP router<br/>192.168.2.1"]
+
+  subgraph router["OpenWrt router · GL.iNet GL-MT6000 (Flint 2)"]
+    wan["WAN<br/>192.168.2.2"]
+    wg["WireGuard server<br/>10.10.0.1/24"]
+    rsvc["AdGuard Home :53<br/>dnsmasq :54<br/>Tang :7500<br/>LuCI/SSH from Pixel only"]
+  end
+
+  subgraph pixel["Pixel · VLAN 1 · 192.168.8.0/24 · gateway .1<br/>Wi-Fi 'Pixel' (5 GHz) · untagged on lan1–lan5"]
+    sw["TP-Link<br/>TL-SG108E switch<br/>192.168.8.2<br/>uplink on lan2–lan5"]
+    subgraph ryzen["ryzen 192.168.8.10<br/>k3s server · Ryzen 7 3700X"]
+      vm["Agents VM<br/>10.20.0.10<br/>virbr-agents 10.20.0.0/24<br/>gateway 10.20.0.1"]
+    end
+    corebox["corebox<br/>192.168.8.11<br/>k3s server<br/>Intel iGPU (Jellyfin)"]
+    radxa["radxa<br/>192.168.8.12<br/>k3s server<br/>Qualcomm arm64"]
+    nas["NAS<br/>192.168.8.20<br/>Raspberry Pi 5<br/>OpenMediaVault NFS"]
+    gwvip{{"Gateway VIP<br/>192.168.8.50<br/>Envoy Gateway"}}
+    apivip{{"Kubernetes API VIP<br/>192.168.8.51<br/>kube-vip on all servers"}}
+    clients["Trusted clients<br/>DHCP .100–.249"]
+  end
+
+  subgraph guest["PixelGuest · VLAN 2 · 192.168.9.0/24<br/>Wi-Fi 'PixelGuest' (5 GHz) · tagged on lan1"]
+    gclients["Guests<br/>DHCP .100–.249<br/>internet only"]
+  end
+  subgraph iot["PixelIoT · VLAN 3 · 192.168.10.0/24<br/>Wi-Fi 'PixelIoT' (2.4 GHz) · tagged on lan1"]
+    iclients["IoT devices<br/>DHCP .100–.249<br/>no internet"]
+  end
+  subgraph things["PixelThings · VLAN 4 · 192.168.11.0/24<br/>Wi-Fi 'PixelThings' (5 GHz) · tagged on lan1"]
+    tclients["Things<br/>DHCP .100–.249<br/>internet only"]
+  end
+
+  internet --- isp --- wan
+  remote -. "UDP port forward on the ISP router" .-> wg
+  wg -- "Pixel and agents VM routes" --> pixel
+  pixel == "may open connections to" ==> guest
+  pixel == "may open connections to" ==> iot
+  pixel == "may open connections to" ==> things
+
+  sw --- ryzen
+  sw --- corebox
+  sw --- radxa
+  sw --- nas
+  corebox -. "L2 announce" .- gwvip
+  radxa -. "L2 announce" .- gwvip
+  clients -- "HTTPS :443 · git SSH :22" --> gwvip
+
+  style ryzen fill:#202020,stroke:#226B8E
+  style vm fill:#474949,stroke:#6E6E6E
+```
+
+| Device or address | IP | Notes |
+| --- | --- | --- |
+| ISP router | `192.168.2.1` | Forwards the WireGuard UDP port to the OpenWrt WAN; guest, IoT and things VLANs cannot reach its subnet |
+| OpenWrt router | WAN `192.168.2.2`; Pixel `192.168.8.1`, PixelGuest `192.168.9.1`, PixelIoT `192.168.10.1`, PixelThings `192.168.11.1`; WireGuard `10.10.0.1` | DHCP, AdGuard Home DNS, Tang for the nodes' LUKS unlock, static route `10.20.0.0/24` via the Ryzen |
+| TP-Link TL-SG108E switch | `192.168.8.2` | Wires the three nodes and the NAS to the router; uplink on `lan2`–`lan5` (untagged Pixel only), web UI on Pixel ([docs/openwrt.md](docs/openwrt.md) section 18) |
+| ryzen | `192.168.8.10` | k3s server; hosts the agents VM ([docs/openchamber.md](docs/openchamber.md)); never holds the Gateway VIP |
+| corebox | `192.168.8.11` | k3s server; Intel iGPU for Jellyfin transcoding |
+| radxa | `192.168.8.12` | k3s server (arm64) |
+| NAS | `192.168.8.20` | NFSv4.2 exports to the three node addresses only ([docs/nas.md](docs/nas.md)) |
+| Gateway VIP | `192.168.8.50` | Every `*.<domain>` name; Cilium L2 announcement from the CoreBox or the Radxa ([docs/cilium.md](docs/cilium.md)) |
+| Kubernetes API VIP | `192.168.8.51` | kube-vip, leader-elected across all three servers ([docs/k3s.md](docs/k3s.md)) |
+| Agents VM | `10.20.0.10` (gateway `10.20.0.1`) | Routed `10.20.0.0/24` on the Ryzen; internet only, rejected from every private range by the router |
+| WireGuard clients | `10.10.0.2`–`.254` | One `/32` per peer; tunnel `10.10.0.0/24`, `192.168.8.0/24` and `10.20.0.0/24` |
+| DHCP clients | `.100`–`.249` in each VLAN | Everything below `.100` is reserved for static leases and VIPs |
+| Pods and Services | `10.42.0.0/16`, `10.43.0.0/16` | In-cluster only (Cilium cluster-pool IPAM); pod traffic leaves masqueraded as its node |
+
 ## Apps
 User-facing applications:
 | App | Domain(s) | Description |
@@ -126,6 +199,7 @@ This is a fresh-install runbook, in order. Every cluster coordinate except the d
 | Gateway VIP | `192.168.8.50` | The Gateway's `spec.addresses`; the ExternalDNS wildcard record (`apps/external-dns/2_dns_endpoint.yaml`); `host/cluster.env`; outside the router's DHCP pool ([docs/openwrt.md](docs/openwrt.md) section 17) |
 | Kubernetes API VIP | `192.168.8.51` | `host/cluster.env` (kube-vip and the k3s `tls-san`); outside the router's DHCP pool |
 | Node addresses | `192.168.8.10`–`.12` | The router's static leases; entered at bootstrap and kept on each node in `/etc/homeworld/env` (never in git) |
+| Switch | `192.168.8.2` | The router's static lease ([docs/openwrt.md](docs/openwrt.md) sections 17 and 18) |
 | NAS | `192.168.8.20` | `host/cluster.env`; the static NFS PersistentVolumes (Immich, OpenCloud, the media stack); the router's static lease ([docs/nas.md](docs/nas.md)) |
 | Agents VM subnet | `10.20.0.0/24` (VM `10.20.0.10`) | `host/cluster.env`; `host/agents-vm/network.xml`; the router's static route; the OpenChamber EndpointSlices; Home Assistant's LAN egress exceptions |
 | Tang | `http://192.168.8.1:7500` | `host/cluster.env`; the router ([docs/openwrt.md](docs/openwrt.md) section 17) |
@@ -139,7 +213,7 @@ ssh-keygen -t ed25519 -a 100 -C ""
 ```
 
 ### 1. Configure the Router
-Set up the OpenWrt router before anything else. Follow [docs/openwrt.md](docs/openwrt.md), including its section 17 for the cluster: the nodes' and the NAS's static leases, the agents VM route, and the Tang server the nodes' encrypted disks unlock through. Set `DNS_REBIND_DOMAIN` to your domain: its public wildcard record answers with the private Gateway VIP, which AdGuard Home's rebind protection would otherwise drop.
+Set up the OpenWrt router before anything else. Follow [docs/openwrt.md](docs/openwrt.md), including its section 17 for the cluster (the nodes', the NAS's and the switch's static leases, the agents VM route, and the Tang server the nodes' encrypted disks unlock through) and section 18 for the TP-Link switch the nodes and the NAS are wired to (uplink on `lan2`–`lan5`, management address moved onto Pixel). Set `DNS_REBIND_DOMAIN` to your domain: its public wildcard record answers with the private Gateway VIP, which AdGuard Home's rebind protection would otherwise drop.
 
 ### 2. Prepare the NAS
 Enable the Raspberry Pi's PCIe port for the SATA HAT, then create the per-app NFS shares, their owners, and the exports on OpenMediaVault, and restrict NFS to the nodes. Follow [docs/nas.md](docs/nas.md).
