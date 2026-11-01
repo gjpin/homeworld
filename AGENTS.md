@@ -182,7 +182,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `rw,sync,no_subtree_check,all_squash,anonuid=<ID>,anongid=<ID>,sec=sys` to
   the node addresses only (never `no_root_squash`), owned by a dedicated
   numeric ID (`2000x`); a static `Retain` PersistentVolume on the
-  `nfs.csi.k8s.io` driver, mounted by IP (`192.168.8.20`) with `nfsvers=4.1`
+  `nfs.csi.k8s.io` driver, mounted by IP (`192.168.8.20`) with `nfsvers=4.2`
   and bound to its claim by `volumeName`; Pods that mount it run as the
   share's ID (`runAsUser`/`runAsGroup`, plus `fsGroup` for their Longhorn
   volumes) with `hostUsers: true` and a resource-scoped exception (NFS has no

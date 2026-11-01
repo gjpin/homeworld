@@ -36,7 +36,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   mountOptions:
-    - nfsvers=4.1
+    - nfsvers=4.2
   csi:
     driver: nfs.csi.k8s.io
     # Unique per PersistentVolume; the node plugin mounts the export named

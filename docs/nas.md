@@ -4,7 +4,7 @@ The NAS (`192.168.8.20`, a Raspberry Pi running Raspberry Pi OS and
 OpenMediaVault on a btrfs RAID10 filesystem) is the cluster's only bulk
 storage. Node disks hold Longhorn's small application volumes; the photo
 library, the OpenCloud users' files and the media library with its torrents live on the NAS
-over NFSv4.1 through [csi-driver-nfs](https://github.com/kubernetes-csi/csi-driver-nfs).
+over NFSv4.2 through [csi-driver-nfs](https://github.com/kubernetes-csi/csi-driver-nfs).
 
 ## Hardware setup
 
@@ -70,8 +70,7 @@ In OpenMediaVault:
 2. **Storage → Shared Folders**: create each share on the btrfs filesystem,
    then on the NAS shell set its root to the owner with the setgid bit:
    `chown 20001:20001 <path>` and `chmod 2770 <path>`.
-3. **Services → NFS → Settings**: enable NFS with versions 4.1 and 4.2
-   only.
+3. **Services → NFS → Settings**: enable NFS with version 4.2 only.
 4. **Services → NFS → Shares**: one entry per share and node address
    (`192.168.8.10`, `.11`, `.12`), each with
    `rw,sync,no_subtree_check,all_squash,anonuid=<ID>,anongid=<ID>,sec=sys`.
@@ -84,7 +83,7 @@ Clients mount through the NFSv4 pseudo-root, so the path a node sees is
 
 ```bash
 # From a node:
-sudo mount -t nfs -o nfsvers=4.1 192.168.8.20:/homeworld-immich /mnt
+sudo mount -t nfs -o nfsvers=4.2 192.168.8.20:/homeworld-immich /mnt
 sudo touch /mnt/probe && ls -ln /mnt/probe   # owned by 20001:20001
 sudo rm /mnt/probe && sudo umount /mnt
 ```
@@ -328,7 +327,7 @@ table inet filter {
 ## Kubernetes side
 
 - Each share is a **static** `PersistentVolume` (`Retain`, `storageClassName:
-  ""`) mounted by IP (`192.168.8.20`) with `nfsvers=4.1`, bound to its claim
+  ""`) mounted by IP (`192.168.8.20`) with `nfsvers=4.2`, bound to its claim
   by `volumeName`. Deleting the claim keeps the data.
 - The `nfs.csi.k8s.io` CSIDriver has `fsGroupPolicy: None`, so kubelet never
   walks a share to chown it; only the node plugin DaemonSet runs (static PVs
@@ -336,7 +335,8 @@ table inet filter {
 - Pods mounting a share run as its owner (`runAsUser`/`runAsGroup` = the
   share ID) and keep `hostUsers: true`: NFS has no idmapped mounts.
 - SELinux: NFS files keep their `nfs_t` label (the CSI driver drops
-  `context=` mount options); confined containers reach them through the
+  `context=` mount options, and no export sets `security_label`, so NFSv4.2
+  labeled NFS stays off); confined containers reach them through the
   `virt_use_nfs` boolean, which apply.sh keeps on.
 - Velero skips every `nfs.csi.k8s.io` volume through its volume policy
   ([docs/velero.md](velero.md)).

@@ -45,7 +45,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   mountOptions:
-    - nfsvers=4.1
+    - nfsvers=4.2
   csi:
     driver: nfs.csi.k8s.io
     volumeHandle: 192.168.8.20#homeworld-opencloud##
