@@ -47,10 +47,11 @@ spec:
     # Home Assistant integrations may reach the home LAN, but never the
     # cluster's pod or service CIDRs (the k3s defaults, 10.42.0.0/16 and
     # 10.43.0.0/16), the agents VM subnet (10.20.0.0/24, docs/k3s.md), or
-    # the infrastructure in host/cluster.env: the router and its Tang
-    # server (.1), the nodes (.10-.12), the NAS (.20, whose NFS exports
-    # trust the node addresses this pod's masqueraded traffic carries),
-    # and the Gateway and API VIPs (.50, .51).
+    # the home infrastructure: the router and its Tang server (.1), the
+    # switch's management address (.2, docs/openwrt.md section 18), the
+    # nodes (.10-.12), the NAS (.20, whose NFS exports trust the node
+    # addresses this pod's masqueraded traffic carries), and the Gateway
+    # and API VIPs (.50, .51), all in host/cluster.env but the switch.
     - toCIDRSet:
         - cidr: 10.0.0.0/8
           except:
@@ -61,6 +62,7 @@ spec:
         - cidr: 192.168.0.0/16
           except:
             - 192.168.8.1/32
+            - 192.168.8.2/32
             - 192.168.8.10/31
             - 192.168.8.12/32
             - 192.168.8.20/32
@@ -259,6 +261,7 @@ spec:
         - cidr: 192.168.0.0/16
           except:
             - 192.168.8.1/32
+            - 192.168.8.2/32
             - 192.168.8.10/31
             - 192.168.8.12/32
             - 192.168.8.20/32
