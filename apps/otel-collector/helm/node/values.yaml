@@ -6,9 +6,8 @@ image:
 # Documented privileged exception (docs/pod-security.md). Pod logs are
 # 0640 root:root under /var/log/pods (0750), so only host root can read them:
 # the agent runs as UID 0 in the host user namespace, with every capability
-# dropped and read-only hostPath mounts. It also reads the host through
-# /hostfs (init_t's /proc/1, host /etc); container_t may read neither under
-# SELinux enforcing, so it runs as spc_t.
+# dropped and read-only hostPath mounts. container_t may not read the
+# container_log_t log directories under SELinux enforcing, so it runs as spc_t.
 podSecurityContext:
   runAsNonRoot: false
   runAsUser: 0
@@ -64,6 +63,10 @@ presets:
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver
   hostMetrics:
     enabled: true
+    # Mount only the host /proc and /sys under /hostfs instead of the host
+    # root; this drops the filesystem scraper (and its /proc/1/mountinfo and
+    # host /etc reads), whose system.filesystem.* series nothing consumes.
+    hardenedMode: true
   # kubeletstats receiver
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kubeletstatsreceiver
   kubeletMetrics:
