@@ -94,3 +94,26 @@ spec:
         - ports:
             - port: "443"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-velero-ui-b2
+  namespace: velero-ui
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The API server fetches the presigned DownloadRequest URLs itself (backup
+  # and restore downloads, logs, snapshot metadata); they point at the B2
+  # endpoint of the Velero BackupStorageLocation (apps/velero/helm values).
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: velero-ui
+      k8s:app.kubernetes.io/instance: velero-ui
+  egress:
+    - toFQDNs:
+        - matchName: "s3.eu-central-003.backblazeb2.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
