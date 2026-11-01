@@ -6,6 +6,50 @@ storage. Node disks hold Longhorn's small application volumes; the photo
 library, the OpenCloud users' files and the media library with its torrents live on the NAS
 over NFSv4.1 through [csi-driver-nfs](https://github.com/kubernetes-csi/csi-driver-nfs).
 
+## Hardware setup
+
+The disks hang off a Radxa Penta SATA HAT on the Raspberry Pi 5's PCIe
+connector. Before installing OpenMediaVault, enable the PCIe x1 port at
+Gen 3, turn off the unused Wi-Fi and Bluetooth radios, load the
+32-bit DMA overlay the HAT's SATA controller needs on the Pi 5, and let
+the kernel drive the external fan
+(references:
+[raspberry-pi-pcie-devices#615](https://github.com/geerlingguy/raspberry-pi-pcie-devices/issues/615),
+[Radxa Penta SATA HAT for Raspberry Pi 5](https://docs.radxa.com/en/accessories/storage/penta-sata-hat/penta-for-rpi5)).
+
+The fan's PWM line is GPIO 27, active-high, as in Radxa's own Pi 5
+configuration
+([`rpi5.env`](https://github.com/radxa/rockpi-penta/blob/master/rockpi-penta/usr/bin/rockpi-penta/env/rpi5.env)).
+The firmware's
+[`pwm-gpio-fan`](https://github.com/raspberrypi/linux/blob/rpi-6.12.y/arch/arm/boot/dts/overlays/README)
+overlay steps it through 45, 60, 80 and 100 % at CPU temperatures of 55,
+60, 67.5 and 75 °C (5 °C hysteresis; tune with `fan_temp0`–`fan_temp3` and
+`fan_temp0_speed`–`fan_temp3_speed`). It replaces Radxa's `rockpi-penta`
+package, whose fan service targets libgpiod v1 and fails on the Pi 5's
+Raspberry Pi OS; do not install both.
+
+```bash
+# On the NAS:
+f=/boot/firmware/config.txt
+changed=
+for line in dtparam=pciex1 dtparam=pciex1_gen=3 \
+  dtoverlay=disable-wifi dtoverlay=disable-bt dtoverlay=pcie-32bit-dma-pi5 \
+  dtoverlay=pwm-gpio-fan,fan_gpio=27; do
+  grep -qxF "$line" "$f" && continue
+  # Append under an [all] filter, opening one unless the last section already is.
+  [ "$(grep '^\[' "$f" | tail -n 1)" = '[all]' ] ||
+    echo '[all]' | sudo tee -a "$f" >/dev/null
+  echo "$line" | sudo tee -a "$f" >/dev/null
+  changed=1
+done
+[ -z "$changed" ] || sudo reboot
+```
+
+The script appends only the missing lines and reboots only when it changed
+something, so it is safe to re-run. A line that already sits under a
+narrower filter (for example `[cm5]`) counts as present; move it under
+`[all]` by hand. After the reboot, `lsblk` lists every disk on the HAT.
+
 ## Shares
 
 One shared folder and one NFS export per app, each owned by a dedicated
