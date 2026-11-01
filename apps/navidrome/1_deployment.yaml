@@ -54,8 +54,8 @@ spec:
               # refreshes the sha256 on bumps via postUpgradeTasks
               # (scripts/refresh-navidrome-audiomuse-plugin-sha.sh).
               wget -O /tmp/audiomuseai.ndp \
-                https://github.com/NeptuneHub/AudioMuse-AI-NV-plugin/releases/download/v10/audiomuseai.ndp
-              echo 'c138e9af16f097d8cd07ac957fb8a49d91a7da066e5b4a1457cadbd479aa10a7  /tmp/audiomuseai.ndp' | sha256sum -c -
+                https://github.com/NeptuneHub/AudioMuse-AI-NV-plugin/releases/download/v11/audiomuseai.ndp
+              echo '3be93eebfe573f195a3696c5e4f411a24fe22ae47999b41249ff3cbec9b19ba0  /tmp/audiomuseai.ndp' | sha256sum -c -
               mv /tmp/audiomuseai.ndp /plugins/audiomuseai.ndp
           securityContext:
             allowPrivilegeEscalation: false
