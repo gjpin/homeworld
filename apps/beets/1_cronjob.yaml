@@ -49,7 +49,7 @@ spec:
               # Renovate tracks the image tag below. The LinuxServer image
               # bundles beets with ffmpeg (ReplayGain) and ImageMagick (art
               # resizing); its s6 init is bypassed and beet runs directly.
-              image: ghcr.io/linuxserver/beets:2.14.1-ls357
+              image: ghcr.io/linuxserver/beets:2.14.1-ls358
               imagePullPolicy: IfNotPresent
               command:
                 - /bin/sh
