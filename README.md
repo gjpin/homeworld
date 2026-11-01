@@ -133,11 +133,16 @@ This is a fresh-install runbook, in order. Every cluster coordinate except the d
 | Velero B2 target | bucket `homeworld-velero` in `eu-central-003` | `apps/velero/helm/values.yaml` and its egress policies |
 | Git source | `https://github.com/gjpin/homeworld.git` at `HEAD` (`main`) | Every Argo CD `Application` (`apps/app-of-apps.yaml` and the child Applications); the hosts' hourly pull (`REPO_TARBALL` in `host/cluster.env`) |
 
+Before the first step, generate the SSH key pair you log in to the router, the NAS, and the nodes with:
+```bash
+ssh-keygen -t ed25519 -a 100 -C ""
+```
+
 ### 1. Configure the Router
 Set up the OpenWrt router before anything else. Follow [docs/openwrt.md](docs/openwrt.md), including its section 17 for the cluster: the nodes' and the NAS's static leases, the agents VM route, and the Tang server the nodes' encrypted disks unlock through. Set `DNS_REBIND_DOMAIN` to your domain: its public wildcard record answers with the private Gateway VIP, which AdGuard Home's rebind protection would otherwise drop.
 
 ### 2. Prepare the NAS
-Create the per-app NFS shares, their owners, and the exports on OpenMediaVault, and restrict NFS to the nodes. Follow [docs/nas.md](docs/nas.md).
+Enable the Raspberry Pi's PCIe port for the SATA HAT, then create the per-app NFS shares, their owners, and the exports on OpenMediaVault, and restrict NFS to the nodes. Follow [docs/nas.md](docs/nas.md).
 
 ### 3. Set Up the Domain
 Every app is served on `<app>.<domain>` from one wildcard DNS record and one wildcard certificate. The domain's DNS must be hosted on Cloudflare:
