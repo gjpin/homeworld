@@ -97,8 +97,8 @@ spec:
                   # Renovate tracks both plugin versions below (github-releases).
                   # When bumping a version, refresh the sha256 from the release assets page.
                   wget -O /var/lib/grafana/plugins/vm-metrics.tar.gz \
-                    https://github.com/VictoriaMetrics/victoriametrics-datasource/releases/download/v0.26.1/victoriametrics-metrics-datasource-v0.26.1.tar.gz
-                  echo '682363839837b6fbed3a9a79a7c84228b43cec46cabacd1380bc695ec25adda4  /var/lib/grafana/plugins/vm-metrics.tar.gz' | sha256sum -c -
+                    https://github.com/VictoriaMetrics/victoriametrics-datasource/releases/download/v1.0.0/victoriametrics-metrics-datasource-v1.0.0.tar.gz
+                  echo 'fef0cc0119d5340efabffa164a5e1fe9ebddfb04f9633f4c954cbc1b95e1f058  /var/lib/grafana/plugins/vm-metrics.tar.gz' | sha256sum -c -
                   tar -xzf /var/lib/grafana/plugins/vm-metrics.tar.gz -C /var/lib/grafana/plugins
                   rm /var/lib/grafana/plugins/vm-metrics.tar.gz
 
