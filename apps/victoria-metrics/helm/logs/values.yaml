@@ -1,6 +1,5 @@
 # https://docs.victoriametrics.com/helm/victoria-logs-single/
 server:
-  enabled: true
   fullnameOverride: victoria-logs
   image:
     registry: docker.io
@@ -25,7 +24,6 @@ server:
         - ALL
     readOnlyRootFilesystem: true
   persistentVolume:
-    enabled: true
     storageClassName: longhorn-crypto
     size: 5Gi
   serviceMonitor:
@@ -41,7 +39,3 @@ server:
       cpu: "1"
       memory: 2Gi
       ephemeral-storage: 2Gi
-dashboards:
-  enabled: false
-vector:
-  enabled: false
