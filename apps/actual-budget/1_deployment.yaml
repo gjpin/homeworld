@@ -37,7 +37,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: actual-budget
-          image: docker.io/actualbudget/actual-server:26.10.0
+          image: docker.io/actualbudget/actual-server:26.11.0
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
