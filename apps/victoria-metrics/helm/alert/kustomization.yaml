@@ -5,7 +5,7 @@ commonAnnotations:
 helmCharts:
   - name: victoria-metrics-alert
     repo: https://victoriametrics.github.io/helm-charts/
-    version: 0.52.0
+    version: 0.52.1
     releaseName: vmalert
     namespace: victoria-metrics
     includeCRDs: true
