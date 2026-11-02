@@ -38,7 +38,7 @@ claude = "2.1.316"
 codex = "0.163.0"
 opencode = "2.2.5"
 copilot = "1.0.105"
-pi = "1.4.0"
+pi = "1.5.0"
 antigravity-cli = "1.4.12"
 
 # Browser automation; the Dockerfile installs Playwright's Chromium.
