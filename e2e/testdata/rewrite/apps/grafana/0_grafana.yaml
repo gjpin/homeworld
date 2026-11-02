@@ -92,14 +92,14 @@ spec:
                   # Renovate tracks both plugin versions below (github-releases).
                   # When bumping a version, refresh the sha256 from the release assets page.
                   wget -O /var/lib/grafana/plugins/vm-metrics.tar.gz \
-                    https://github.com/VictoriaMetrics/victoriametrics-datasource/releases/download/v0.26.1/victoriametrics-metrics-datasource-v0.26.1.tar.gz
-                  echo '682363839837b6fbed3a9a79a7c84228b43cec46cabacd1380bc695ec25adda4  /var/lib/grafana/plugins/vm-metrics.tar.gz' | sha256sum -c -
+                    https://github.com/VictoriaMetrics/victoriametrics-datasource/releases/download/v1.0.0/victoriametrics-metrics-datasource-v1.0.0.tar.gz
+                  echo 'fef0cc0119d5340efabffa164a5e1fe9ebddfb04f9633f4c954cbc1b95e1f058  /var/lib/grafana/plugins/vm-metrics.tar.gz' | sha256sum -c -
                   tar -xzf /var/lib/grafana/plugins/vm-metrics.tar.gz -C /var/lib/grafana/plugins
                   rm /var/lib/grafana/plugins/vm-metrics.tar.gz
 
                   wget -O /var/lib/grafana/plugins/vm-logs.tar.gz \
-                    https://github.com/VictoriaMetrics/victorialogs-datasource/releases/download/v0.32.0/victoriametrics-logs-datasource-v0.32.0.tar.gz
-                  echo 'e100b767f19cd614ac8ac3860458a3fb33f5aa7a876e924d0340010e40d1c0d4  /var/lib/grafana/plugins/vm-logs.tar.gz' | sha256sum -c -
+                    https://github.com/VictoriaMetrics/victorialogs-datasource/releases/download/v0.33.1/victoriametrics-logs-datasource-v0.33.1.tar.gz
+                  echo '849edf4d86a6555bbf3fdbe1c53ed719a6c51c3d69965dcc0384e2c129ad991a  /var/lib/grafana/plugins/vm-logs.tar.gz' | sha256sum -c -
                   tar -xzf /var/lib/grafana/plugins/vm-logs.tar.gz -C /var/lib/grafana/plugins
                   rm /var/lib/grafana/plugins/vm-logs.tar.gz
               securityContext:

@@ -24,6 +24,7 @@ server:
         - ALL
     readOnlyRootFilesystem: true
   persistentVolume:
+    enabled: true
     storageClassName: longhorn-crypto
     size: 5Gi
   serviceMonitor:
