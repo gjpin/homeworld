@@ -8,8 +8,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector: {}
-  ingress: []
-  egress: []
+  ingress:
+    - {}
+  egress:
+    - {}
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -31,6 +33,9 @@ spec:
               protocol: UDP
             - port: "53"
               protocol: TCP
+          rules:
+            dns:
+              - matchPattern: "*"
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -175,11 +180,15 @@ spec:
     matchLabels:
       k8s:app.kubernetes.io/name: affine
   egress:
-    - toFQDNs:
-        - matchName: "auth.base-domain.invalid"
+    # auth.base-domain.invalid through envoy-node-access (docs/network-policies.md).
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
       toPorts:
         - ports:
-            - port: "443"
+            - port: "10443"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -196,11 +205,15 @@ spec:
     matchLabels:
       k8s:app.kubernetes.io/name: affine
   egress:
-    - toFQDNs:
-        - matchName: "cloud.base-domain.invalid"
+    # cloud.base-domain.invalid through envoy-node-access (docs/network-policies.md).
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
       toPorts:
         - ports:
-            - port: "443"
+            - port: "10443"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -387,7 +400,7 @@ spec:
         - kube-apiserver
       toPorts:
         - ports:
-            - port: "443"
+            - port: "6443"
               protocol: TCP
     - toEndpoints:
         - matchLabels:

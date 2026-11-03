@@ -105,6 +105,18 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   needs a matching per-service `allow-envoy-backend-<service>` egress CiliumNetworkPolicy
   in `apps/envoy-gateway` (one port per rule — Cilium applies `toPorts` to every
   `toServices` entry) plus an ingress rule on the app side, and a `docs/network-policies.md` row.
+- Cilium enforces policy after Service translation, so every `toPorts` entry is
+  the backend's container port, never the Service port: `allow-envoy-backend-*`
+  and other `toServices` rules use the Service's `targetPort`, and
+  `kube-apiserver` egress uses `6443`. `toFQDNs` needs `rules.dns` on the same
+  pods' `kube-dns` egress (`matchPattern: "*"`), or the DNS proxy never learns
+  the addresses. Default deny is `ingress: [{}]` and `egress: [{}]`: Cilium
+  rejects a policy with an empty list as invalid. Webhook and aggregated-API
+  ingress lists `kube-apiserver` and `remote-node`, because an API server on
+  another node arrives from its `cilium_host` address, which is only
+  `remote-node`; egress to a host-network pod or kubelet on every node lists
+  `host` and `remote-node`. `scripts/check-network-policies.sh` enforces what it
+  can of this.
 - Every browser web UI gets a Homepage entry in `apps/homepage/0_config.yaml`
   (`services.yaml`, in the fitting group) linking its public hostname, with a
   `siteMonitor` unless the route sits behind gateway OIDC or the app
@@ -131,10 +143,13 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   (SMTP relays, sender addresses) comes from Infisical. Runtime expansions owned
   by an application stay verbatim.
 - `*.base-domain.invalid` certificates are publicly trusted, so in-cluster HTTPS
-  calls need no CA mounts. The names resolve to the private Gateway VIP: apps
+  calls need no CA mounts. Pods resolve the names to the `envoy-node-access`
+  ClusterIP (`apps/envoy-gateway/0_coredns_custom.yaml`), because the pods on
+  the node announcing the Gateway VIP cannot reach it. That address is private: apps
   with SSRF guards that refuse private destinations need the exact origin
   allowlisted (RustFS `RUSTFS_OUTBOUND_ALLOW_ORIGINS`), and the egress
-  CiliumNetworkPolicy allows `toFQDNs: <host>.base-domain.invalid` on `443`.
+  CiliumNetworkPolicy allows `toEndpoints` on the Envoy pods at `10443` (Envoy's
+  container port for `443`; `10022` for git SSH), never `toFQDNs`.
   Never work around TLS errors with `insecureSkipVerify` or similar switches.
 - Never place real credentials, tokens, passwords, private keys, or substituted
   secret values in the repository. Prefer the existing External Secrets /
@@ -271,7 +286,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `!env_var` tag so the secret never lands on the PVC.
 - List every OIDC app origin explicitly in the provider's `cors.allowed_origins`.
 - Apps doing server-side token exchange get an `allow-<app>-authelia`
-  CiliumNetworkPolicy egress (`toFQDNs: auth.base-domain.invalid:443`) and a
+  CiliumNetworkPolicy egress (`toEndpoints` on the Envoy pods at `10443`, the
+  same as any cluster hostname) and a
   matching `docs/network-policies.md` egress entry.
 - Public browser-UI routes for workloads with no usable app-native OIDC or
   login must be authenticated by Envoy Gateway itself as the shared `envoy`
@@ -509,6 +525,10 @@ scripts/check-yaml-duplicates.sh
 # External Secrets' template rules: templated targets hold only templated
 # keys unless mergePolicy is Merge).
 scripts/check-secret-refs.sh
+
+# Fail on CiliumNetworkPolicy rules that can never match. Pass a directory of
+# rendered charts to include their Services (scripts/scan-security.sh does).
+scripts/check-network-policies.sh
 
 # Shell syntax of the host scripts (shellcheck as well when it is installed).
 for f in host/*.sh host/agents-vm/*.sh; do bash -n "$f"; done

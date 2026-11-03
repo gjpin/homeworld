@@ -78,7 +78,8 @@ is identical on every server apart from the node address and profile label:
   `envoy-node-access` ClusterIP (`GATEWAY_CLUSTER_IP`), which `apply.sh` maps to
   `auth.<domain>` in `/etc/hosts`: a node cannot use the Gateway VIP, because the
   one announcing it gets no ARP answer and Cilium's socket load balancer skips
-  external IPs that are not local to the host. It retries in the background, so it starts without Authelia and
+  external IPs that are not local to the host. Pods get the same address through
+  CoreDNS ([network-policies.md](network-policies.md#how-policy-matches)). It retries in the background, so it starts without Authelia and
   only rejects these tokens until Authelia is up; the k3s admin kubeconfig
   works regardless. It reloads the file while running, so changes need no
   reboot.

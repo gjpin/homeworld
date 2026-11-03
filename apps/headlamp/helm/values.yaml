@@ -4,13 +4,6 @@ fullnameOverride: headlamp
 # the chart's default cluster-admin binding.
 clusterRoleBinding:
   create: false
-# The backend fetches the issuer through envoy-node-access: a pod on the node
-# announcing the Gateway VIP cannot reach the VIP
-# (apps/envoy-gateway/0_node_access_service.yaml).
-hostAliases:
-  - ip: 10.43.0.50
-    hostnames:
-      - auth.base-domain.invalid
 # gVisor Pods keep the host user namespace (AGENTS.md).
 hostUsers: true
 config:

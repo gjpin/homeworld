@@ -94,7 +94,7 @@ flowchart TB
 | radxa | `192.168.8.12` | k3s server (arm64) |
 | NAS | `192.168.8.20` | NFSv4.2 exports to the three node addresses only ([docs/nas.md](docs/nas.md)) |
 | Gateway VIP | `192.168.8.50` | Every `*.<domain>` name; Cilium L2 announcement from the CoreBox or the Radxa ([docs/cilium.md](docs/cilium.md)) |
-| Gateway node address | `10.43.0.50` | `host/cluster.env` and `apps/envoy-gateway/0_node_access_service.yaml`: the fixed ClusterIP through which the API server reaches Authelia ([docs/k3s.md](docs/k3s.md)) |
+| Gateway node address | `10.43.0.50` | `host/cluster.env` and `apps/envoy-gateway/0_node_access_service.yaml`: the fixed ClusterIP through which pods and the API server reach Envoy ([docs/envoy-gateway.md](docs/envoy-gateway.md)) |
 | Kubernetes API VIP | `192.168.8.51` | kube-vip, leader-elected across all three servers ([docs/k3s.md](docs/k3s.md)) |
 | Agents VM | `10.20.0.10` (gateway `10.20.0.1`) | Routed `10.20.0.0/24` on the Ryzen; internet only, rejected from every private range by the router |
 | WireGuard clients | `10.10.0.2`–`.254` | One `/32` per peer; tunnel `10.10.0.0/24`, `192.168.8.0/24` and `10.20.0.0/24` |

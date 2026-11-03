@@ -1,9 +1,10 @@
-# How the nodes reach the Gateway. A node cannot use the Gateway VIP: the one
-# announcing it gets no ARP answer for its own announcement, and Cilium's socket
-# load balancer skips external IPs that are not local to the host. host/apply.sh
-# points the issuer's name at this fixed address (GATEWAY_CLUSTER_IP in
-# host/cluster.env) for the API server's OIDC fetches (docs/k3s.md), and
-# Headlamp's pod does the same through hostAliases.
+# How pods and nodes reach the Gateway. Neither can use the Gateway VIP: the
+# node announcing it gets no ARP answer for its own announcement, so its pods
+# and processes time out, and Cilium's socket load balancer skips external IPs
+# that are not local to the host. 0_coredns_custom.yaml resolves every cluster
+# hostname to this Service for pods. host/apply.sh maps the issuer's name to
+# this fixed address (GATEWAY_CLUSTER_IP in host/cluster.env) for the API
+# server's OIDC fetches (docs/k3s.md).
 ---
 apiVersion: v1
 kind: Service
@@ -20,4 +21,8 @@ spec:
     - name: https
       port: 443
       targetPort: 10443
+      protocol: TCP
+    - name: ssh
+      port: 22
+      targetPort: 10022
       protocol: TCP

@@ -8,8 +8,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector: {}
-  ingress: []
-  egress: []
+  ingress:
+    - {}
+  egress:
+    - {}
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -89,9 +91,8 @@ spec:
     matchLabels:
       k8s:app.kubernetes.io/name: headlamp
       k8s:app.kubernetes.io/instance: headlamp
-  # The issuer's name maps to envoy-node-access (helm/values.yaml hostAliases),
-  # so the destination is an Envoy pod on its container port, not an FQDN.
   egress:
+    # auth.base-domain.invalid through envoy-node-access (docs/network-policies.md).
     - toEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: envoy-gateway

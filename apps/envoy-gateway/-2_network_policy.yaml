@@ -8,8 +8,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector: {}
-  ingress: []
-  egress: []
+  ingress:
+    - {}
+  egress:
+    - {}
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -50,7 +52,7 @@ spec:
         - kube-apiserver
       toPorts:
         - ports:
-            - port: "443"
+            - port: "6443"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -69,7 +71,7 @@ spec:
         - kube-apiserver
       toPorts:
         - ports:
-            - port: "443"
+            - port: "6443"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -88,6 +90,7 @@ spec:
   ingress:
     - fromEntities:
         - kube-apiserver
+        - remote-node
       toPorts:
         - ports:
             - port: "9443"
@@ -159,42 +162,19 @@ spec:
       k8s:app.kubernetes.io/name: envoy
       k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   ingress:
-    # The merged Gateway's public listener is the only world-facing workload.
+    # The merged Gateway is the only world-facing workload. LAN clients arrive
+    # through the VIP; pods and nodes through envoy-node-access
+    # (0_node_access_service.yaml), and each pod's own egress policy decides
+    # whether it may connect. Cilium enforces policy after Service translation,
+    # so these are Envoy's container ports for listeners 443 and 22.
     - fromEntities:
         - world
-      toPorts:
-        - ports:
-            - port: "443"
-              protocol: TCP
-    # The API server fetches Authelia's OIDC discovery document and signing
-    # keys through envoy-node-access (0_node_access_service.yaml), which may
-    # pick the Envoy on another node. Its own node's Envoy is covered by
-    # Cilium's implicit local-host allow. The port is the container port:
-    # Cilium enforces policy after Service translation.
-    - fromEntities:
-        - remote-node
+        - cluster
       toPorts:
         - ports:
             - port: "10443"
               protocol: TCP
-    # Forgejo git-SSH TCP listener on the merged gateway.
-    - fromEntities:
-        - world
-      toPorts:
-        - ports:
-            - port: "22"
-              protocol: TCP
-    # OIDC hairpin: Envoy's own token calls to auth.base-domain.invalid resolve to
-    # the gateway's public address and re-enter this listener from the data
-    # plane pod itself (allow-envoy-authelia-oidc egress).
-    - fromEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: envoy-gateway
-            k8s:app.kubernetes.io/name: envoy
-            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
-      toPorts:
-        - ports:
-            - port: "443"
+            - port: "10022"
               protocol: TCP
     - fromEndpoints:
         - matchLabels:
@@ -298,14 +278,17 @@ spec:
       k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
   egress:
     # Envoy's OIDC filter calls the Authelia authorization and token
-    # endpoints on auth.base-domain.invalid. The name resolves to the gateway's
-    # own public address, so the connection hairpins through the merged
+    # endpoints on auth.base-domain.invalid. The name resolves to
+    # envoy-node-access, so the connection hairpins through the merged
     # listener back to the Authelia HTTPRoute (docs/network-policies.md).
-    - toFQDNs:
-        - matchName: "auth.base-domain.invalid"
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
       toPorts:
         - ports:
-            - port: "443"
+            - port: "10443"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -327,7 +310,7 @@ spec:
             namespace: argocd
       toPorts:
         - ports:
-            - port: "80"
+            - port: "8080"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -349,7 +332,7 @@ spec:
             namespace: authelia
       toPorts:
         - ports:
-            - port: "80"
+            - port: "9091"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -417,7 +400,7 @@ spec:
             namespace: forgejo
       toPorts:
         - ports:
-            - port: "22"
+            - port: "2222"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -483,7 +466,7 @@ spec:
             namespace: immich
       toPorts:
         - ports:
-            - port: "80"
+            - port: "2283"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -505,7 +488,7 @@ spec:
             namespace: longhorn-system
       toPorts:
         - ports:
-            - port: "80"
+            - port: "8000"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -707,29 +690,6 @@ spec:
       toPorts:
         - ports:
             - port: "9001"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: allow-envoy-headlamp-oidc
-  namespace: envoy-gateway
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  # Headlamp's OIDC calls through envoy-node-access (apps/headlamp/helm/values.yaml).
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/name: envoy
-      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: headlamp
-            k8s:app.kubernetes.io/name: headlamp
-      toPorts:
-        - ports:
-            - port: "10443"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -1061,7 +1021,7 @@ spec:
             namespace: coder
       toPorts:
         - ports:
-            - port: "80"
+            - port: "8080"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -1083,7 +1043,7 @@ spec:
             namespace: woodpecker
       toPorts:
         - ports:
-            - port: "80"
+            - port: "8000"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
