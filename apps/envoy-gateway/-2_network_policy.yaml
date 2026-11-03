@@ -166,6 +166,17 @@ spec:
         - ports:
             - port: "443"
               protocol: TCP
+    # The API server fetches Authelia's OIDC discovery document and signing
+    # keys through envoy-node-access (0_node_access_service.yaml), which may
+    # pick the Envoy on another node. Its own node's Envoy is covered by
+    # Cilium's implicit local-host allow. The port is the container port:
+    # Cilium enforces policy after Service translation.
+    - fromEntities:
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "10443"
+              protocol: TCP
     # Forgejo git-SSH TCP listener on the merged gateway.
     - fromEntities:
         - world
@@ -696,6 +707,51 @@ spec:
       toPorts:
         - ports:
             - port: "9001"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-headlamp-oidc
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Headlamp's OIDC calls through envoy-node-access (apps/headlamp/helm/values.yaml).
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: headlamp
+            k8s:app.kubernetes.io/name: headlamp
+      toPorts:
+        - ports:
+            - port: "10443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-envoy-backend-headlamp
+  namespace: envoy-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: envoy
+      k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: headlamp
+            namespace: headlamp
+      toPorts:
+        - ports:
+            - port: "4466"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2

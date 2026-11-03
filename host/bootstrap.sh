@@ -62,11 +62,22 @@ if [ ! -f /etc/homeworld/env ]; then
   ask vm_host_ip "Address of the node running the agents VM (ryzen profile)"
   ask role "First server of a new cluster (init) or joining one (join)" join
   case "$role" in init | join) ;; *) echo "role must be init or join" >&2; exit 1 ;; esac
+  # k3s needs the domain for its first start (authentication.yaml), before
+  # this script reads Infisical.
+  ask base_domain "Cluster domain (Infisical /argocd/BASE_DOMAIN)"
+  case "$base_domain" in
+    *.*) ;;
+    *) echo "$base_domain is not a domain" >&2; exit 1 ;;
+  esac
+  case "$base_domain" in
+    *[!a-z0-9.-]* | .* | *. | *..*) echo "$base_domain is not a domain" >&2; exit 1 ;;
+  esac
   cat >/etc/homeworld/env <<EOF
 NODE_IP=$node_ip
 NODE_IPS="$node_ips"
 AGENTS_VM_HOST_IP=$vm_host_ip
 K3S_ROLE=$role
+BASE_DOMAIN=$base_domain
 EOF
   chmod 0644 /etc/homeworld/env
 fi
@@ -229,6 +240,10 @@ esac
 case "$domain" in
   *[!a-z0-9.-]* | .* | *. | *..*) echo "/argocd/BASE_DOMAIN in Infisical is not a domain" >&2; exit 1 ;;
 esac
+if [ "$domain" != "$BASE_DOMAIN" ]; then
+  echo "/argocd/BASE_DOMAIN in Infisical ($domain) differs from BASE_DOMAIN in /etc/homeworld/env ($BASE_DOMAIN)" >&2
+  exit 1
+fi
 echo "Cluster domain: $domain"
 k3s kubectl create secret generic homeworld-domain --namespace argocd \
   --from-literal=BASE_DOMAIN="$domain" --dry-run=client -o yaml >"$work/homeworld-argocd-domain.yaml"

@@ -1437,6 +1437,29 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: allow-otel-pod-scrape-headlamp
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Headlamp's ServiceMonitor scrapes /metrics on the application port.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: headlamp
+      toPorts:
+        - ports:
+            - port: "4466"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-otel-pod-scrape-bindery
   namespace: otel-collector
   annotations:

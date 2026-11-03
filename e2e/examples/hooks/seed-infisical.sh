@@ -368,6 +368,7 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_CODER" "e2e-oidc-coder"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_IMMICH" "e2e-oidc-immich"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_VELERO_UI" "e2e-oidc-velero-ui"
+  put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_HEADLAMP" "e2e-oidc-headlamp"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_RUSTFS" "e2e-oidc-rustfs"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_VAULTWARDEN" "e2e-oidc-vaultwarden"
   put_secret "${token}" "${project_id}" "/authelia/OIDC_CLIENT_SECRET_ACTUAL_BUDGET" "e2e-oidc-actual-budget"

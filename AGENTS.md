@@ -123,7 +123,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   Infisical `/argocd/BASE_DOMAIN` at render time (docs/argocd.md, "Homeworld
   plugin"). Every Application sourced from this repository sets
   `spec.source.plugin.name: homeworld`. Files that reach a system outside Argo
-  CD need their own substitution (the agents VM seed, `host/agents-vm/rebuild.sh`)
+  CD need their own substitution (the agents VM seed, `host/agents-vm/rebuild.sh`;
+  the API server's `host/files/k3s/authentication.yaml.in`, `host/apply.sh`)
   or must avoid the placeholder (the hand-pushed Coder template). All other
   cluster coordinates (Gateway VIP, Infisical endpoint, Velero target) are
   literal values, and anything operator-specific that is not a fixed coordinate

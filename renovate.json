@@ -1024,6 +1024,20 @@
     },
     {
       "customType": "regex",
+      "description": "Update the Headlamp Helm chart",
+      "managerFilePatterns": [
+        "/^apps/headlamp/helm/kustomization\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^\\s+- name:\\s+headlamp\\s+repo:\\s+https://kubernetes-sigs\\.github\\.io/headlamp/\\s+version:\\s*(?<currentValue>[^\\s#]+)"
+      ],
+      "depNameTemplate": "headlamp",
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm",
+      "registryUrlTemplate": "https://kubernetes-sigs.github.io/headlamp/"
+    },
+    {
+      "customType": "regex",
       "description": "Update the Velero-UI Helm chart",
       "managerFilePatterns": [
         "/^apps/velero-ui/helm/kustomization\\.yaml$/"

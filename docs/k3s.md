@@ -40,8 +40,8 @@ dnf5-automatic and kured helpers, the Longhorn disk annotation, and the
 agents subnet route. Files k3s or containerd read only at start are written
 but not reloaded: apply.sh leaves `/var/lib/homeworld/reboot-required`, and
 kured reboots the node in its window ([docs/fedora.md](fedora.md)). Node
-addresses never live in git: bootstrap.sh records them in
-`/etc/homeworld/env`.
+addresses and the cluster domain never live in git: bootstrap.sh records them
+in `/etc/homeworld/env`.
 
 apply.sh never changes the k3s version. bootstrap.sh installs
 `K3S_VERSION`, and from then on the system-upgrade-controller Plans in
@@ -69,7 +69,19 @@ is identical on every server apart from the node address and profile label:
   ScrapeConfigs;
 - a Pod Security Admission configuration (`host/files/k3s/psa.yaml`):
   enforce baseline and audit/warn restricted for namespaces without labels,
-  with `kube-system` exempt (kube-vip and the k3s-managed CoreDNS).
+  with `kube-system` exempt (kube-vip and the k3s-managed CoreDNS);
+- an authentication configuration (`host/files/k3s/authentication.yaml.in`)
+  that trusts ID tokens Authelia issues to the `headlamp` client, mapping
+  `preferred_username` and `groups` with an `oidc:` prefix, and keeps anonymous
+  requests off, which k3s leaves to this file once it exists. The API server
+  fetches the issuer's discovery document and keys through the
+  `envoy-node-access` ClusterIP (`GATEWAY_CLUSTER_IP`), which `apply.sh` maps to
+  `auth.<domain>` in `/etc/hosts`: a node cannot use the Gateway VIP, because the
+  one announcing it gets no ARP answer and Cilium's socket load balancer skips
+  external IPs that are not local to the host. It retries in the background, so it starts without Authelia and
+  only rejects these tokens until Authelia is up; the k3s admin kubeconfig
+  works regardless. It reloads the file while running, so changes need no
+  reboot.
 
 The node label `node.homeworld/profile=<profile>` selects the
 Ryzen for the Gateway VIP exclusion and its Cilium node configuration, and
@@ -111,12 +123,15 @@ The script checks the profile against the hardware and asks for:
 - this node's address, all three node addresses, and the Ryzen's address
   (the agents VM host);
 - the role: `init` on the first server;
+- the cluster domain (`/argocd/BASE_DOMAIN`), which the API server's
+  authentication configuration needs from the first start;
 - on the Ryzen only: the agents VM's Infisical client ID, client secret and
   project ID, and the SSH public keys for the VM's `agent` user;
 - the LUKS passphrase, once per encrypted device, to bind it to Tang (compare
   the key thumbprint it prints with the router's first);
 - the External Secrets Operator's Infisical Universal Auth client ID and
-  secret, with which it reads the cluster domain from Infisical.
+  secret, with which it reads the cluster domain from Infisical and checks it
+  against the one you entered.
 
 It prints the cluster token (also in `/etc/rancher/k3s/token`), grows the
 root LV, binds Clevis, runs apply.sh, installs the pinned k3s and starts it.

@@ -44,6 +44,7 @@ render() {
     -e "s|@KUBE_VIP_VERSION@|$KUBE_VIP_VERSION|g" \
     -e "s|@LAN_IFACE@|$lan_iface|g" \
     -e "s|@JOIN@|$join|g" \
+    -e "s|@BASE_DOMAIN@|$BASE_DOMAIN|g" \
     "$1"
 }
 
@@ -248,6 +249,17 @@ put 0644 "$files/containerd/devices.toml" /var/lib/rancher/k3s/agent/etc/contain
 
 # --- k3s ------------------------------------------------------------------
 put 0644 "$files/k3s/psa.yaml" /etc/rancher/k3s/psa.yaml && needs_reboot "Pod Security Admission defaults" || true
+# The API server reloads this file itself; no reboot.
+render "$files/k3s/authentication.yaml.in" >"$tmp"
+put 0600 "$tmp" /etc/rancher/k3s/authentication.yaml || true
+# The API server reaches the issuer through a ClusterIP, because a node cannot
+# use the Gateway VIP (apps/envoy-gateway/0_node_access_service.yaml).
+issuer_host="$GATEWAY_CLUSTER_IP auth.$BASE_DOMAIN"
+if ! grep -qxF "$issuer_host" /etc/hosts; then
+  sed -i "/ auth\.${BASE_DOMAIN//./\\.}\$/d" /etc/hosts
+  echo "$issuer_host" >>/etc/hosts
+  log "updated /etc/hosts for auth.$BASE_DOMAIN"
+fi
 render "$files/k3s/config.yaml.in" >"$tmp"
 put 0600 "$tmp" /etc/rancher/k3s/config.yaml && needs_reboot "k3s configuration" || true
 if [ "$k3s_installed" = 1 ]; then
