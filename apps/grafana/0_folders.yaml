@@ -170,6 +170,17 @@ spec:
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
 metadata:
+  name: folder-headlamp
+  namespace: grafana
+spec:
+  title: Headlamp
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
   name: folder-homeassistant
   namespace: grafana
 spec:

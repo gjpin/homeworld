@@ -89,6 +89,7 @@ dashboard's JSON `description` cites its provenance.
 | Forgejo | Forgejo | custom (forgejo `modules/metrics/collector.go`; the project publishes no dashboard — the gitea-monitoring mixin is a third-party fork) |
 | Grafana | Grafana Overview | official: grafana/grafana repo `grafana-mixin/dashboards/grafana-overview.json` |
 | Grafana Operator | Grafana Operator | custom (grafana-operator `controllers/metrics/metrics.go` plus controller-runtime metrics; no official dashboard) |
+| Headlamp | Headlamp | custom (headlamp `backend/pkg/telemetry/metrics.go`: `http_server_request_count_total`, `http_server_duration_milliseconds`, `http_server_active_requests`, `headlamp_cluster_proxy_requests_total`, `headlamp_errors_total`, plus go_/process_; the project publishes no dashboard) |
 | Home Assistant | Home Assistant | custom (HA prometheus integration, `components/prometheus`; no official dashboard) |
 | Immich | Immich | custom (OTel `http_server_duration` metrics and `immich_queues_*` gauges verified in the immich source; the project publishes no dashboard) |
 | Jellyfin | Jellyfin | custom (Jellyfin `EnableMetrics`: prometheus-net.AspNetCore `http_*` and prometheus-net `process_*`/`dotnet_*` families; Jellyfin publishes no dashboard and no media-level metrics) |

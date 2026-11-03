@@ -63,7 +63,6 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: dragonfly
-      app.kubernetes.io/instance: dragonfly
   podMetricsEndpoints:
     - port: admin
       interval: 60s

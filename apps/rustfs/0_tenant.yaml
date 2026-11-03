@@ -44,8 +44,8 @@ spec:
       value: Authelia
     - name: RUSTFS_BROWSER_REDIRECT_URL
       value: https://console.rustfs.base-domain.invalid
-    # auth.base-domain.invalid resolves to the private Gateway VIP, which the
-    # OIDC outbound SSRF policy rejects unless the exact origin is allowed.
+    # auth.base-domain.invalid resolves to a private address, which the OIDC
+    # outbound SSRF policy rejects unless the exact origin is allowed.
     - name: RUSTFS_OUTBOUND_ALLOW_ORIGINS
       value: https://auth.base-domain.invalid
     # RustFS exposes no Prometheus scrape endpoint (upstream ships OTLP push

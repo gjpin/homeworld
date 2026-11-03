@@ -12,8 +12,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector: {}
-  ingress: []
-  egress: []
+  ingress:
+    - {}
+  egress:
+    - {}
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy

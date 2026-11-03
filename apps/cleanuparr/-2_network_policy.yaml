@@ -8,8 +8,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector: {}
-  ingress: []
-  egress: []
+  ingress:
+    - {}
+  egress:
+    - {}
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -31,6 +33,9 @@ spec:
               protocol: UDP
             - port: "53"
               protocol: TCP
+          rules:
+            dns:
+              - matchPattern: "*"
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -220,12 +225,18 @@ spec:
     matchLabels:
       k8s:app.kubernetes.io/name: cleanuparr
   egress:
-    - toFQDNs:
-        - matchName: "auth.base-domain.invalid"
+    # auth.base-domain.invalid through envoy-node-access (docs/network-policies.md).
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
       toPorts:
         - ports:
-            - port: "443"
+            - port: "10443"
               protocol: TCP
+          serverNames:
+            - auth.base-domain.invalid
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -249,4 +260,53 @@ spec:
       toPorts:
         - ports:
             - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # CloudNativePG's instance manager watches its Cluster through the API server,
+  # the operator reads each instance's status port, and instances and their
+  # bootstrap Jobs replicate from each other.
+  name: allow-cleanuparr-postgres-instance
+  namespace: cleanuparr
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: cleanuparr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: cloudnative-pg
+            k8s:app.kubernetes.io/name: cloudnative-pg
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:cnpg.io/cluster: cleanuparr
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:cnpg.io/cluster: cleanuparr
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8000"
               protocol: TCP
