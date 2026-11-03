@@ -18,6 +18,12 @@ if [ -e "$state/fedora-upgrade-attempted" ]; then
 fi
 [ "$(getenforce)" = Enforcing ] || fail="$fail selinux-not-enforcing"
 semodule -l | grep -qx k3s || fail="$fail k3s-selinux-module-missing"
+if [ -f /etc/homeworld/storage.env ]; then
+  . /etc/homeworld/storage.env
+  for m in ${STORAGE_MOUNTS:-}; do
+    mountpoint -q "$m" || fail="$fail not-mounted:$m"
+  done
+fi
 ready() {
   [ "$(k3s kubectl get node "$(hostname)" \
     -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null)" = True ]

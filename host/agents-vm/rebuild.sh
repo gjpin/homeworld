@@ -21,6 +21,15 @@ fi
 . /etc/homeworld/agents-vm.env
 release=$FEDORA_RELEASE
 arch=$(uname -m)
+# With the VM on a chosen data disk, a missing mount would otherwise give the
+# VM a new, empty /home.
+if [ -f /etc/homeworld/storage.env ]; then
+  . /etc/homeworld/storage.env
+  if [ "${AGENTS_VM_ON_DISK:-0}" = 1 ] && ! mountpoint -q "$images"; then
+    echo "agents-vm-rebuild: the VM disk is not mounted at $images" >&2
+    exit 1
+  fi
+fi
 mkdir -p "$images"
 
 # --- base image: Fedora Cloud Base, CHECKSUM signed by the release key ----

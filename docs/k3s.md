@@ -24,6 +24,7 @@ Everything on the hosts comes from the `host/` tree:
 | Path | Purpose |
 | --- | --- |
 | `host/bootstrap.sh <profile>` | One-time node bootstrap, run by hand (below) |
+| `host/disks.sh` | Interactive choice of the data disks for Longhorn and the agents VM, run by bootstrap.sh or by hand ([docs/fedora.md](fedora.md#data-disks)) |
 | `host/apply.sh` | Idempotent converger, run hourly by `homeworld-pull.timer` |
 | `host/cluster.env` | Cluster coordinates (literal values, as everywhere in git) |
 | `host/versions.env` | Fedora release, the k3s version bootstrap installs, gVisor, kube-vip, helm |
@@ -128,14 +129,16 @@ The script checks the profile against the hardware and asks for:
   authentication configuration needs from the first start;
 - on the Ryzen only: the agents VM's Infisical client ID, client secret and
   project ID, and the SSH public keys for the VM's `agent` user;
-- the LUKS passphrase, once per encrypted device, to bind it to Tang (compare
-  the key thumbprint it prints with the router's first);
+- the LUKS passphrase of the root device, to bind it to Tang (compare the key
+  thumbprint it prints with the router's first);
+- the data disks for Longhorn and the agents VM, and a recovery passphrase for
+  any it encrypts ([docs/fedora.md](fedora.md#data-disks));
 - the External Secrets Operator's Infisical Universal Auth client ID and
   secret, with which it reads the cluster domain from Infisical and checks it
   against the one you entered.
 
 It prints the cluster token (also in `/etc/rancher/k3s/token`), grows the
-root LV, binds Clevis, runs apply.sh, installs the pinned k3s and starts it.
+root LV, binds Clevis, sets up the chosen data disks, runs apply.sh, installs the pinned k3s and starts it.
 On the first server it then renders the Cilium CRDs (from the tag in
 `apps/cilium/0_crds.yaml`), the Cilium release (`apps/cilium/helm`), a
 minimal Argo CD (the chart pinned in `apps/argocd/helm` with
@@ -176,12 +179,19 @@ VIP is in the API server certificate's SANs).
 
 ## Longhorn
 
-Longhorn keeps its data in `/var/lib/longhorn` on each node's encrypted root
-filesystem (bootstrap.sh grows the root LV to the whole volume group). The
-`node.longhorn.io/create-default-disk=config` node label and the
-`node.longhorn.io/default-disks-config` annotation, which apply.sh sets from
-the profile's `LONGHORN_RESERVED_GIB`, create that disk with a per-node
-reserve: on the Ryzen the reserve also covers the agents VM disks.
+Longhorn keeps its data on the disks chosen with `host/disks.sh`
+([docs/fedora.md](fedora.md#data-disks)), or without any in `/var/lib/longhorn`
+on the node's encrypted root filesystem (bootstrap.sh grows the root LV to the
+whole volume group). The `node.longhorn.io/create-default-disk=config` node label
+and the `node.longhorn.io/default-disks-config` annotation, which apply.sh sets,
+create those disks. On root, the profile's `LONGHORN_RESERVED_GIB` sets the
+per-node reserve: on the Ryzen it also covers the agents VM disks unless they
+have a data disk. A disk of its own gets a token 1 GiB, because Longhorn takes a
+reserve of 0 as unset and holds back 30%.
+
+Longhorn reads the annotation only for a node with no disks yet. To add a data
+disk to a node that already has one, run disks.sh, then add the path it prints to
+`spec.disks` of the node's `nodes.longhorn.io` resource.
 
 ## etcd snapshots
 

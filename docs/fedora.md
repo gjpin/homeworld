@@ -10,7 +10,7 @@ The Fedora release is pinned in `host/versions.env` (`FEDORA_RELEASE`).
    (`x86_64` for the Ryzen and the CoreBox, `aarch64` for the Radxa) and boot
    it.
 2. In the installer:
-   - **Installation Destination**: the node's single disk, automatic
+   - **Installation Destination**: the node's system disk, automatic
      partitioning, **Encrypt my data**. The passphrase becomes the LUKS
      recovery slot: store it offline (below).
    - **Network & Host Name**: the hostname (`ryzen`, `corebox`, `radxa`);
@@ -30,19 +30,87 @@ Then run `host/bootstrap.sh <profile>` ([docs/k3s.md](k3s.md#bootstrap)).
 Fedora Server's automatic partitioning gives the root LV about 15 GiB and
 leaves the rest of the volume group free. bootstrap.sh grows the root LV to
 the whole volume group (`lvextend -r -l +100%FREE`) before anything else
-lands on it: root holds `/var/lib/longhorn`, the container images and, on the
-Ryzen, the agents VM disks. Longhorn's per-node reserve
-(`LONGHORN_RESERVED_GIB` in `host/nodes/<profile>.env`) keeps that space
-free for the OS and the VM.
+lands on it: root holds etcd, the container images and whatever has no data
+disk of its own (below): `/var/lib/longhorn` and, on the Ryzen, the agents VM
+disks. Longhorn's per-node reserve (`LONGHORN_RESERVED_GIB` in
+`host/nodes/<profile>.env`) keeps that space free for the OS and, while it
+lives on root, the VM.
+
+## Data disks
+
+`host/disks.sh`, which bootstrap.sh runs before k3s is installed, lists the
+attached disks and lets you put Longhorn and, on the Ryzen, the agents VM disks
+on them. It takes SSD and NVMe disks only: spinning disks are listed but cannot
+be chosen. USB enclosures can report an SSD as spinning, so name such a disk
+explicitly with `--treat-as-ssd <serial>` (bootstrap.sh passes the option on).
+A USB disk gets a warning, because a brief disconnect can fault every replica
+on it.
+
+Longhorn takes over completely once it has a data disk: root is no longer one
+of its disks. Choosing no disk at all keeps both on root.
+
+Skip is the default for every disk. Nothing is erased unless you pick the format
+option and type the disk's serial, which every format and every new partition
+asks for. The system disks are never offered. A disk with anything mounted, a
+mapping open, LVM or RAID on it, or an `/etc/fstab` or `/etc/crypttab` entry is
+not selectable until you free it.
+
+| On the disk | Options besides skipping |
+| --- | --- |
+| Nothing | Format and encrypt |
+| At least 20 GiB unallocated (GPT) | Add an encrypted partition there, or erase the disk and format it |
+| LUKS with ext4 or XFS | Unlock it and use its free space, or erase the disk and format it |
+| Unencrypted ext4 or XFS | Use its free space for Longhorn only, or erase the disk and format it |
+| Anything else | Erase the disk and format it |
+
+Formatting creates LUKS2 with XFS. Erasing removes the signatures and partition
+table and runs `blkdiscard`; the script warns when the disk does not support
+discard, because old unencrypted data may then stay recoverable. It never
+shrinks a partition or converts one to LUKS in place.
+
+A disk can hold Longhorn, the agents VM disks (at least 200 GiB) or both. On new
+space, both means two partitions, so neither can take the other's room. On a
+filesystem that keeps your data, each gets a subfolder, and the script asks how
+many GiB Longhorn may use and reserves the rest. That reserve is fixed, so leave
+room for your files to grow. Longhorn also stops placing replicas once under 25%
+of the filesystem is free. Your files stay reachable by anything with host
+access, such as Longhorn's privileged pods, and they need a backup of their own:
+Longhorn can rebuild its replicas from other nodes, but not your files or the
+VM's `home.qcow2`.
+
+Unencrypted disks are for Longhorn only, because both StorageClasses encrypt
+their volumes: a stolen disk shows volume names and sizes, not their contents.
+
+The choices stay on the node:
+
+| Path | Purpose |
+| --- | --- |
+| `/etc/homeworld/storage.env` | Longhorn disks, mounts and whether the VM has its own disk; read by apply.sh, the agents VM scripts and the post-boot check |
+| `/etc/cryptsetup-keys.d/hw-<name>.key` | Key file that unlocks the disk at boot, root-only on the encrypted root |
+| `/etc/crypttab`, `/etc/fstab` | Unlocks by LUKS UUID and mounts by mapper name or filesystem UUID, so device renumbering is harmless |
+| `/var/lib/homeworld-disks/<name>/longhorn` | Longhorn's disk path |
+| `/var/lib/homeworld-disks/<name>/agents-vm` | Bind-mounted at `/var/lib/libvirt/images/agents` |
+
+apply.sh never formats, mounts or changes a disk. Rerunning disks.sh leaves
+configured disks alone, and it has no way to undo a choice.
+
+A missing disk does not stop the boot (`nofail`). Its mountpoints are immutable
+(`chattr +i`), so nothing can land on the root disk in its place, the VM rebuild
+refuses to run, and the post-boot check fails (below).
 
 ## Disk encryption: LUKS, Clevis and Tang
 
-The root filesystem is LUKS-encrypted. bootstrap.sh binds every LUKS device
-to the Tang server on the router (`http://192.168.8.1:7500`, from
+The root filesystem is LUKS-encrypted. bootstrap.sh binds the LUKS device under
+it to the Tang server on the router (`http://192.168.8.1:7500`, from
 `host/cluster.env`) with Clevis and adds `rd.neednet=1` to the kernel
 command line, so the initramfs fetches the network key and unlocks the disk
 unattended while the node is on the home network. A disk removed from the
 network (a stolen node, a disk sent for repair) does not unlock.
+
+New data disks unlock with a key file on that encrypted root, not with Tang, so
+they cannot unlock without it and their boot adds no second network dependency.
+Each has a recovery passphrase in a second slot, the one you enter in disks.sh; a
+disk you kept stays openable with its existing passphrase.
 
 The installer passphrase stays as a second key slot. When Tang is
 unreachable (router down, Tang keys lost), the boot waits for that
@@ -53,13 +121,13 @@ Keep these offline, never only in Vaultwarden (it runs on this cluster):
 | Item | How |
 | --- | --- |
 | Tang keys | Copy `/usr/share/tang/db` from the router ([docs/openwrt.md](openwrt.md) section 17) |
-| Each node's LUKS recovery passphrase | The one entered in the installer |
-| Each node's LUKS header | `sudo cryptsetup luksHeaderBackup <device> --header-backup-file <node>-luks-header.img` (`lsblk -o NAME,FSTYPE` shows the `crypto_LUKS` device) |
+| Each node's LUKS recovery passphrases | The ones entered in the installer and in disks.sh |
+| Each LUKS header, data disks included | `sudo cryptsetup luksHeaderBackup <device> --header-backup-file <node>-<device>-luks-header.img` (`lsblk -o NAME,FSTYPE` shows the `crypto_LUKS` devices) |
 
 After replacing the router or restoring Tang keys from backup, check that
 `clevis luks list -d <device>` still names `http://192.168.8.1:7500`. A new
 Tang key pair needs a rebind: `clevis luks unbind -d <device> -s <slot>` and
-run bootstrap.sh again (it binds every unbound device).
+run bootstrap.sh again (it binds the root device when unbound).
 
 ## SELinux
 
@@ -116,8 +184,8 @@ node waits.
 ### Post-boot check
 
 `homeworld-postboot.service` runs on every boot and checks that SELinux is
-enforcing, the `k3s` SELinux module is loaded, k3s is active and the node is
-Ready, and, after an offline upgrade, that the node runs the target release.
+enforcing, the `k3s` SELinux module is loaded, every chosen data disk is mounted,
+k3s is active and the node is Ready, and, after an offline upgrade, that the node runs the target release.
 On failure it taints the node `node.homeworld/postboot-failed` and
 cordons it: `NodePostbootFailed` fires and no further node reboots. (kured
 uncordons the node it rebooted, but never touches the taint.) Fix the cause,

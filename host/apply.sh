@@ -15,6 +15,13 @@ here=$(cd "$(dirname "$0")" && pwd)
 # shellcheck source=/dev/null
 . "$here/nodes/$PROFILE.env"
 . /etc/homeworld/env
+# The data disks chosen with host/disks.sh; Longhorn and the agents VM stay on
+# the root disk without it.
+LONGHORN_DISKS=""
+AGENTS_VM_ON_DISK=0
+if [ -f /etc/homeworld/storage.env ]; then
+  . /etc/homeworld/storage.env
+fi
 
 files=$here/files
 state=/var/lib/homeworld
@@ -299,7 +306,19 @@ fi
 
 # --- cluster-side node settings ---------------------------------------------
 if [ "$k3s_installed" = 1 ] && systemctl is-active -q k3s; then
-  disks="[{\"path\":\"/var/lib/longhorn\",\"allowScheduling\":true,\"storageReserved\":$((LONGHORN_RESERVED_GIB * 1024 * 1024 * 1024))}]"
+  if [ -n "$LONGHORN_DISKS" ]; then
+    disks=$(for d in $LONGHORN_DISKS; do
+      IFS='=' read -r name path reserved <<<"$d"
+      jq -cn --arg name "$name" --arg path "$path" --argjson reserved "$reserved" \
+        '{name: $name, path: $path, allowScheduling: true, storageReserved: $reserved}'
+    done | jq -cs .)
+  else
+    reserved_gib=$LONGHORN_RESERVED_GIB
+    if [ "$AGENTS_VM_ON_DISK" = 1 ]; then
+      reserved_gib=$((reserved_gib - AGENTS_VM_RESERVED_GIB))
+    fi
+    disks="[{\"path\":\"/var/lib/longhorn\",\"allowScheduling\":true,\"storageReserved\":$((reserved_gib * 1024 * 1024 * 1024))}]"
+  fi
   k3s kubectl annotate node "$(hostname)" --overwrite \
     "node.longhorn.io/default-disks-config=$disks" >/dev/null 2>&1 || true
 fi

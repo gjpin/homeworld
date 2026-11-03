@@ -19,12 +19,12 @@ defaultSettings:
   # reboot) of any node.
   defaultReplicaCount: 3
   concurrentAutomaticEngineUpgradePerNodeLimit: 2
-  # Each node's single LUKS disk (the root logical volume, grown to the
-  # whole disk by host/bootstrap.sh).
+  # The root logical volume (grown to the whole disk by host/bootstrap.sh),
+  # on a node with no data disks chosen by host/disks.sh.
   defaultDataPath: /var/lib/longhorn
-  # The default disk comes from each node's
-  # node.longhorn.io/default-disks-config annotation (host/apply.sh), whose
-  # storageReserved keeps room for the OS, container images and, on the
+  # Each node's disks come from its node.longhorn.io/default-disks-config
+  # annotation (host/apply.sh): the chosen data disks, or the root volume with
+  # a storageReserved that keeps room for the OS, container images and, on the
   # agents VM host, the VM's disks (host/nodes/<profile>.env).
   createDefaultDiskLabeledNodes: true
   storageOverProvisioningPercentage: 150

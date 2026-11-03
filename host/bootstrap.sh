@@ -4,10 +4,11 @@
 # One-time node bootstrap (docs/k3s.md). Run as root on a fresh Fedora Server
 # install, from a checkout of this repository:
 #
-#   sudo host/bootstrap.sh <ryzen|corebox|radxa>
+#   sudo host/bootstrap.sh <ryzen|corebox|radxa> [--treat-as-ssd SERIAL]...
 #
 # It validates the profile against the hardware, records the node's local
-# settings, grows the root LV, binds the LUKS root to Tang, applies the host
+# settings, grows the root LV, binds the LUKS root to Tang, lets you choose
+# the data disks (host/disks.sh, which takes the extra options), applies the host
 # configuration, installs the pinned k3s, and on the first server hands the
 # cluster to Argo CD through the k3s auto-deploying manifests directory.
 set -euo pipefail
@@ -115,7 +116,8 @@ fi
 
 # --- disk ---------------------------------------------------------------------
 # Fedora Server's automatic partitioning leaves most of the volume group
-# free; Longhorn (/var/lib/longhorn) and the agents VM disks live on root.
+# free; it holds the container images, etcd and, unless disks.sh below moves
+# them, Longhorn (/var/lib/longhorn) and the agents VM disks.
 root_dev=$(findmnt -no SOURCE /)
 if lvs "$root_dev" >/dev/null 2>&1; then
   vg=$(lvs --noheadings -o vg_name "$root_dev" | tr -d ' ')
@@ -127,7 +129,9 @@ fi
 
 log "Binding the LUKS root to Tang ($TANG_URL)"
 dnf -y -q install clevis-luks clevis-dracut
-for dev in $(lsblk -lnpo NAME,FSTYPE | awk '$2 == "crypto_LUKS" {print $1}'); do
+# Only what root sits on: any other encrypted disk is the data disk step's, or
+# not ours at all.
+for dev in $(lsblk -nsrpo NAME,FSTYPE "$(findmnt -nvo SOURCE /)" | awk '$2 == "crypto_LUKS" {print $1}'); do
   if clevis luks list -d "$dev" 2>/dev/null | grep tang >/dev/null; then
     echo "$dev: already bound"
     continue
@@ -137,6 +141,10 @@ for dev in $(lsblk -lnpo NAME,FSTYPE | awk '$2 == "crypto_LUKS" {print $1}'); do
 done
 grubby --update-kernel=ALL --args=rd.neednet=1
 dracut -f --regenerate-all
+
+# --- data disks -------------------------------------------------------------
+log "Choosing the data disks"
+"$here/disks.sh" "${@:2}"
 
 # --- host configuration and k3s ---------------------------------------------
 log "Applying the host configuration"

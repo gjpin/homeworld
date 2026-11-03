@@ -13,7 +13,7 @@ CLI, kind, kubectl and rootless Podman on Fedora.
 | :--- | :--- |
 | Host | The `ryzen` profile (`AGENTS_VM=1` in `host/nodes/ryzen.env`) |
 | Definition | `host/agents-vm/` (applied by `host/apply.sh` through `host.sh`) |
-| Size | 8 vCPU, 16 GiB RAM, 40 GiB root and 160 GiB `/home` (thin qcow2 on the encrypted root) |
+| Size | 8 vCPU, 16 GiB RAM, 40 GiB root and 160 GiB `/home` (thin qcow2 on the encrypted root, or on a data disk chosen with `host/disks.sh`, [docs/fedora.md](fedora.md#data-disks)) |
 | Address | `10.20.0.10` on the routed network `10.20.0.0/24` (`virbr-agents`) |
 | Domains | `openchamber.base-domain.invalid` (port `3000`), `paseo.base-domain.invalid` (port `6767`), `thinkrail.base-domain.invalid` (port `24242`) |
 | Cluster side | `apps/openchamber`: HTTPRoutes, ThinkRail's gateway sign-in and selectorless Services with EndpointSlices to `10.20.0.10` |

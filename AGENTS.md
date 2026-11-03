@@ -21,7 +21,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `0_postgres.yaml`, `1_helm.yaml`, `2_http_route.yaml`).
 - `apps/grafana/dashboards/<app>/`: dashboard JSON for the app's Grafana folder.
 - `host/`: the Fedora/k3s hosts, outside Argo CD (docs/k3s.md, docs/fedora.md):
-  `bootstrap.sh` (one-time node bootstrap), `apply.sh` (idempotent converger
+  `bootstrap.sh` (one-time node bootstrap), `disks.sh` (interactive choice of
+  the data disks, node-local and never run by apply.sh), `apply.sh` (idempotent converger
   run hourly from `main` on every node), `cluster.env` and `versions.env`
   (coordinates and pins), `nodes/<profile>.env` (per-hardware profiles),
   `files/` (k3s, containerd, firewalld, systemd, kured helpers), and

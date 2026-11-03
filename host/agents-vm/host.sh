@@ -52,6 +52,16 @@ if [ ! -e /etc/homeworld/agents-vm.env ]; then
   exit 0
 fi
 
+# On a chosen data disk, a missing mount must never build a VM on the root
+# disk (rebuild.sh refuses too).
+if [ -f /etc/homeworld/storage.env ]; then
+  . /etc/homeworld/storage.env
+  if [ "${AGENTS_VM_ON_DISK:-0}" = 1 ] && ! mountpoint -q /var/lib/libvirt/images/agents; then
+    log "the VM disk is not mounted at /var/lib/libvirt/images/agents; not building the VM"
+    exit 0
+  fi
+fi
+
 # The rebuild works from a copy of this checkout, so a later pull cannot
 # change the inputs between scheduling and the nightly window.
 inputs=$( (cat "$here"/*; echo "FEDORA_RELEASE=$FEDORA_RELEASE") | sha256sum | cut -d' ' -f1)
