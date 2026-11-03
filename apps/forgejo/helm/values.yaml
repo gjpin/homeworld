@@ -67,10 +67,10 @@ gitea:
       ROOT_URL: https://git.base-domain.invalid/
       SSH_DOMAIN: git.base-domain.invalid
     webhook:
-      # Upstream default is `external`; Woodpecker's Forgejo guide adds
-      # `loopback` for same-cluster delivery. `private` would additionally
-      # allow webhooks to cluster-internal endpoints (SSRF surface).
-      ALLOWED_HOST_LIST: "external,loopback"
+      # Upstream default is `external`. Woodpecker's hostname resolves to a
+      # private address, so it is allowed by name; `private` would allow
+      # webhooks to every cluster-internal endpoint (SSRF surface).
+      ALLOWED_HOST_LIST: "external,loopback,ci.base-domain.invalid"
     cron.update_checker:
       ENABLED: false
     # Woodpecker is this cluster's CI: Forgejo Actions stays disabled so the

@@ -1,0 +1,30 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: headlamp
+  namespace: headlamp
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  parentRefs:
+    - name: envoy
+      namespace: envoy-gateway
+      group: gateway.networking.k8s.io
+      kind: Gateway
+  hostnames:
+    - "headlamp.base-domain.invalid"
+  rules:
+    # The backend serves /metrics unauthenticated on the application port, for
+    # the in-cluster scrape only. A rule without backends answers with an error.
+    - matches:
+        - path:
+            type: Exact
+            value: /metrics
+    - backendRefs:
+      - name: headlamp
+        namespace: headlamp
+        kind: Service
+        port: 80
+        group: ""
+        weight: 1

@@ -44,6 +44,7 @@ render() {
     -e "s|@KUBE_VIP_VERSION@|$KUBE_VIP_VERSION|g" \
     -e "s|@LAN_IFACE@|$lan_iface|g" \
     -e "s|@JOIN@|$join|g" \
+    -e "s|@BASE_DOMAIN@|$BASE_DOMAIN|g" \
     "$1"
 }
 
@@ -120,8 +121,8 @@ systemctl disable --now cockpit.socket >/dev/null 2>&1 || true
 fw_zone homeworld-lan
 fw --zone=homeworld-lan --query-service --add-service ssh
 fw --zone=homeworld-lan --query-port --add-port 6443/tcp
-# The other nodes: etcd, kubelet, control-plane metrics, Cilium health and
-# Hubble peers, Cilium WireGuard and VXLAN.
+# The other nodes: etcd, kubelet, control-plane metrics, Cilium health,
+# metrics and Hubble peers, Cilium WireGuard and VXLAN.
 fw_zone homeworld-nodes
 for ip in $NODE_IPS; do
   fw --zone=homeworld-nodes --query-source --add-source "$ip/32"
@@ -133,7 +134,7 @@ for src in $(firewall-cmd --permanent --zone=homeworld-nodes --list-sources); do
   esac
 done
 fw --zone=homeworld-nodes --query-service --add-service ssh
-for p in 2379-2380/tcp 2381/tcp 6443/tcp 10250/tcp 10257/tcp 10259/tcp 4240/tcp 4244/tcp 51871/udp 8472/udp; do
+for p in 2379-2380/tcp 2381/tcp 6443/tcp 10250/tcp 10257/tcp 10259/tcp 4240/tcp 4244/tcp 9962-9965/tcp 51871/udp 8472/udp; do
   fw --zone=homeworld-nodes --query-port --add-port "$p"
 done
 # Pod and service traffic, and Cilium's own devices.
@@ -248,6 +249,17 @@ put 0644 "$files/containerd/devices.toml" /var/lib/rancher/k3s/agent/etc/contain
 
 # --- k3s ------------------------------------------------------------------
 put 0644 "$files/k3s/psa.yaml" /etc/rancher/k3s/psa.yaml && needs_reboot "Pod Security Admission defaults" || true
+# The API server reloads this file itself; no reboot.
+render "$files/k3s/authentication.yaml.in" >"$tmp"
+put 0600 "$tmp" /etc/rancher/k3s/authentication.yaml || true
+# The API server reaches the issuer through a ClusterIP, because a node cannot
+# use the Gateway VIP (apps/envoy-gateway/0_node_access_service.yaml).
+issuer_host="$GATEWAY_CLUSTER_IP auth.$BASE_DOMAIN"
+if ! grep -qxF "$issuer_host" /etc/hosts; then
+  sed -i "/ auth\.${BASE_DOMAIN//./\\.}\$/d" /etc/hosts
+  echo "$issuer_host" >>/etc/hosts
+  log "updated /etc/hosts for auth.$BASE_DOMAIN"
+fi
 render "$files/k3s/config.yaml.in" >"$tmp"
 put 0600 "$tmp" /etc/rancher/k3s/config.yaml && needs_reboot "k3s configuration" || true
 if [ "$k3s_installed" = 1 ]; then
@@ -261,6 +273,8 @@ rm -f "$tmp"
 
 # --- updates and reboots --------------------------------------------------
 put 0644 "$files/dnf/automatic.conf" /etc/dnf/automatic.conf || true
+# Longhorn attaches volumes through the host's iSCSI initiator.
+systemctl enable --now iscsid.socket >/dev/null 2>&1
 systemctl enable --now dnf5-automatic.timer >/dev/null 2>&1
 for f in kured-sentinel kured-reboot homeworld-postboot homeworld-pull; do
   put 0755 "$files/libexec/$f" "$libexec/$f" || true

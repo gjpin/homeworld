@@ -104,6 +104,10 @@ configMapGenerator:
   - name: grafana-dashboard-grafana-operator
     files:
       - json=dashboards/grafana-operator/grafana-operator.json
+  # headlamp
+  - name: grafana-dashboard-headlamp
+    files:
+      - json=dashboards/headlamp/headlamp.json
   # homeassistant
   - name: grafana-dashboard-homeassistant
     files:
@@ -258,6 +262,7 @@ resources:
   - 1_dashboards_forgejo.yaml
   - 1_dashboards_grafana.yaml
   - 1_dashboards_grafana-operator.yaml
+  - 1_dashboards_headlamp.yaml
   - 1_dashboards_homeassistant.yaml
   - 1_dashboards_immich.yaml
   - 1_dashboards_kube-control-plane.yaml

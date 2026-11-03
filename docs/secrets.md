@@ -18,7 +18,7 @@ The same credentials read `/argocd/BASE_DOMAIN` once during bootstrap: Argo CD's
 
 The agents VM ([openchamber.md](openchamber.md)) is not a cluster workload and does not use the External Secrets Operator: it has its own read-only Machine Identity (Universal Auth), granted read access to the `/agents` folder only. `host/bootstrap.sh` asks for its client ID, client secret and the project ID on the Ryzen and stores them root-only in `/etc/homeworld/agents-vm.env`; the VM fetches the `/agents/*` keys below at every boot.
 
-The cluster domain is the one coordinate kept out of git: manifests carry the `base-domain.invalid` placeholder, and Argo CD's homeworld plugin replaces it with `/argocd/BASE_DOMAIN` at render time ([argocd.md](argocd.md#homeworld-plugin)). The other non-secret cluster coordinates are committed as literal values: the `192.168.8.50` Gateway VIP, the Infisical endpoint (`https://eu.infisical.com`, project `homeworld`, environment `prod`) in `apps/external-secrets/2_secret_store.yaml`, and the Velero B2 target (`homeworld-velero` in `eu-central-003`) in `apps/velero/helm/values.yaml`.
+The cluster domain is the one coordinate kept out of git: manifests carry the `base-domain.invalid` placeholder, and Argo CD's homeworld plugin replaces it with `/argocd/BASE_DOMAIN` at render time ([argocd.md](argocd.md#homeworld-plugin)). The API server needs it outside Argo CD, so `host/bootstrap.sh` also records it in each node's `/etc/homeworld/env` ([k3s.md](k3s.md)). The other non-secret cluster coordinates are committed as literal values: the `192.168.8.50` Gateway VIP, the Infisical endpoint (`https://eu.infisical.com`, project `homeworld`, environment `prod`) in `apps/external-secrets/2_secret_store.yaml`, and the Velero B2 target (`homeworld-velero` in `eu-central-003`) in `apps/velero/helm/values.yaml`.
 
 | Component | Infisical path | Description | Generation |
 | :--- | :--- | :--- | :--- |
@@ -63,6 +63,7 @@ The cluster domain is the one coordinate kept out of git: manifests carry the `b
 | | `/authelia/OIDC_CLIENT_SECRET_CLEANUPARR` | Cleanuparr OIDC client secret (entered once in Cleanuparr's account settings). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_FORGEJO` | Forgejo OIDC client secret. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_GRAFANA` | Grafana OIDC client secret. | `openssl rand -hex 32` |
+| | `/authelia/OIDC_CLIENT_SECRET_HEADLAMP` | Headlamp OIDC client secret. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_HOMEASSISTANT` | Home Assistant OIDC client secret. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_IMMICH` | Immich OIDC client secret. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_RUSTFS` | RustFS console OIDC client secret. | `openssl rand -hex 32` |
