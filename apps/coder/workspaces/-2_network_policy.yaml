@@ -13,8 +13,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector: {}
-  ingress: []
-  egress: []
+  ingress:
+    - {}
+  egress:
+    - {}
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -49,12 +51,18 @@ metadata:
 spec:
   endpointSelector: {}
   egress:
-    - toFQDNs:
-        - matchName: "coder.base-domain.invalid"
+    # coder.base-domain.invalid through envoy-node-access (docs/network-policies.md).
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
       toPorts:
         - ports:
-            - port: "443"
+            - port: "10443"
               protocol: TCP
+          serverNames:
+            - coder.base-domain.invalid
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -86,11 +94,18 @@ spec:
               protocol: TCP
             - port: "22"
               protocol: TCP
-    - toFQDNs:
-        - matchName: "git.base-domain.invalid"
+    # git.base-domain.invalid through envoy-node-access (docs/network-policies.md).
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
       toPorts:
         - ports:
-            - port: "443"
+            - port: "10443"
               protocol: TCP
-            - port: "22"
+          serverNames:
+            - git.base-domain.invalid
+        - ports:
+            - port: "10022"
               protocol: TCP

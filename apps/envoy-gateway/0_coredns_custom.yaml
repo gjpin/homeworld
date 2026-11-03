@@ -1,0 +1,15 @@
+# Split-horizon DNS: pods resolve every cluster hostname to envoy-node-access
+# instead of the public record for the Gateway VIP, which the pods on the node
+# announcing it cannot reach (0_node_access_service.yaml). k3s's CoreDNS imports
+# *.override from this ConfigMap into its main server block. The unescaped dot
+# of the domain is deliberate: the homeworld plugin matches the placeholder
+# literally (docs/argocd.md).
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: kube-system
+data:
+  gateway.override: |
+    rewrite name regex ^.+\.base-domain.invalid\.$ envoy-node-access.envoy-gateway.svc.cluster.local answer auto
