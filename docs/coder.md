@@ -113,8 +113,8 @@ template after merging that bump.
 
 Everything in the image is root-owned and read-only to the workspace user,
 so no tool updates itself. The image switches off the same telemetry and
-update checks as the agents VM (Claude Code `DISABLE_TELEMETRY` and
-`DISABLE_UPDATES`, `PI_SKIP_VERSION_CHECK`) and chrome-devtools-mcp's usage
+update checks as the agents VM (Claude Code `DISABLE_TELEMETRY`,
+`DISABLE_ERROR_REPORTING` and `DISABLE_UPDATES`, `PI_SKIP_VERSION_CHECK`) and chrome-devtools-mcp's usage
 statistics and update check (`CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS`,
 `CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS`), glab's usage data and release
 check (`GLAB_SEND_TELEMETRY`, `GLAB_CHECK_UPDATE`, which also gates its

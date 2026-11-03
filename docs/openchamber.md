@@ -133,7 +133,7 @@ everything else the agents or you add:
   `/usr/local/libexec/thinkrail` behind a wrapper.
 - Telemetry is off where the vendor allows it: Codex analytics and feedback,
   OpenCode sharing, Pi install telemetry, Antigravity telemetry, Claude Code
-  `DISABLE_TELEMETRY` (its error reporting stays on), Infisical CLI
+  `DISABLE_TELEMETRY` and `DISABLE_ERROR_REPORTING`, Infisical CLI
   `INFISICAL_DISABLE_TELEMETRY` (also set in the secrets loader). Copilot CLI has no telemetry switch short of offline mode, which
   also disables GitHub sign-in; that is an accepted upstream limitation.
   ThinkRail's additional analytics are off (`THINKRAIL_NO_ANALYTICS`), and
