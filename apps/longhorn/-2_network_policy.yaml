@@ -8,8 +8,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector: {}
-  ingress: []
-  egress: []
+  ingress:
+    - {}
+  egress:
+    - {}
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -35,20 +37,38 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  # Managers, instance managers, CSI plugins and share managers talk to each
+  # other on many ports, including the engine and replica processes' dynamic
+  # range. The namespace holds only Longhorn.
+  name: allow-longhorn-internal
+  namespace: longhorn-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - {}
+  egress:
+    - toEndpoints:
+        - {}
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-longhorn-kubernetes-api
   namespace: longhorn-system
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/instance: longhorn
+  # Every pod: the CSI sidecars and operator-created pods carry no instance label.
+  endpointSelector: {}
   egress:
     - toEntities:
         - kube-apiserver
       toPorts:
         - ports:
-            - port: "443"
+            - port: "6443"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -118,6 +138,7 @@ spec:
   ingress:
     - fromEntities:
         - kube-apiserver
+        - remote-node
       toPorts:
         - ports:
             - port: "9502"

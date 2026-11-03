@@ -52,15 +52,15 @@ podLabels:
   app: collabora
 podSecurityContext:
   # Hardened over the chart's deliberately-empty defaults (podSecurityContext
-  # and securityContext both ship as {}): UID/GID 1000, RuntimeDefault seccomp,
+  # and securityContext both ship as {}): UID/GID 1001 (the image's cool user, which owns /opt/cool), RuntimeDefault seccomp,
   # drop ALL, no privilege escalation, plus gVisor via the
   # kustomization patches. coolwsd runs its own internal forkit sandboxing, so
   # smoke-test document editing live after deploy; if kit-namespace failures
   # occur, scope a documented exception instead of weakening the namespace.
   runAsNonRoot: true
-  runAsUser: 1000
-  runAsGroup: 1000
-  fsGroup: 1000
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
   fsGroupChangePolicy: OnRootMismatch
   seccompProfile:
     type: RuntimeDefault
@@ -68,8 +68,8 @@ securityContext:
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: false
   runAsNonRoot: true
-  runAsUser: 1000
-  runAsGroup: 1000
+  runAsUser: 1001
+  runAsGroup: 1001
   capabilities:
     drop:
       - ALL
