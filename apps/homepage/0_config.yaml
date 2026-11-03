@@ -299,6 +299,11 @@ data:
             href: https://rustfs.base-domain.invalid
             description: Storage operator console
             siteMonitor: https://rustfs.base-domain.invalid
+        - Headlamp:
+            icon: headlamp
+            href: https://headlamp.base-domain.invalid
+            description: Kubernetes web UI
+            siteMonitor: https://headlamp.base-domain.invalid
         - Velero UI:
             icon: velero
             href: https://velero.base-domain.invalid
