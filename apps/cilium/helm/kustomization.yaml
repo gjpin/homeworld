@@ -14,6 +14,29 @@ helmCharts:
 resources:
   - agents_vm_host_node_config.yaml
 patches:
+  # bpf.autoMount.enabled: false also drops this mount from the chart's Envoy,
+  # which then cannot read the ipcache, so every rule proxied through it fails
+  # (serverNames here).
+  - target:
+      group: apps
+      version: v1
+      kind: DaemonSet
+      name: ^cilium-envoy$
+      namespace: ^cilium$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/volumes/-
+        value:
+          name: bpf-maps
+          hostPath:
+            path: /sys/fs/bpf
+            type: Directory
+      - op: add
+        path: /spec/template/spec/containers/0/volumeMounts/-
+        value:
+          name: bpf-maps
+          mountPath: /sys/fs/bpf
+          mountPropagation: HostToContainer
   # --- gVisor for the pod-network Hubble control-plane components (the
   # chart has no runtimeClassName value). The cilium-agent and cilium-envoy
   # DaemonSets and the cilium-operator Deployment run hostNetwork and keep

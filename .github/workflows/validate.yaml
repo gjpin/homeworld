@@ -58,6 +58,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: scripts/check-secret-refs.sh
 
+      - name: Check network policy rules
+        if: ${{ !cancelled() }}
+        run: scripts/check-network-policies.sh
+
       - name: Validate Grafana dashboards
         if: ${{ !cancelled() }}
         # jq ships preinstalled on the runner image, so no install step needed.

@@ -1,0 +1,19 @@
+# -metrics-enabled serves the backend's own metrics on the application port
+# (backend/pkg/telemetry/metrics.go).
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: headlamp
+  namespace: headlamp
+  labels:
+    app.kubernetes.io/name: headlamp
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: headlamp
+      app.kubernetes.io/instance: headlamp
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 60s
