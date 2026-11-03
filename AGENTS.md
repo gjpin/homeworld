@@ -105,6 +105,18 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   needs a matching per-service `allow-envoy-backend-<service>` egress CiliumNetworkPolicy
   in `apps/envoy-gateway` (one port per rule — Cilium applies `toPorts` to every
   `toServices` entry) plus an ingress rule on the app side, and a `docs/network-policies.md` row.
+- Cilium enforces policy after Service translation, so every `toPorts` entry is
+  the backend's container port, never the Service port: `allow-envoy-backend-*`
+  and other `toServices` rules use the Service's `targetPort`, and
+  `kube-apiserver` egress uses `6443`. `toFQDNs` needs `rules.dns` on the same
+  pods' `kube-dns` egress (`matchPattern: "*"`), or the DNS proxy never learns
+  the addresses. Default deny is `ingress: [{}]` and `egress: [{}]`: Cilium
+  rejects a policy with an empty list as invalid. Webhook and aggregated-API
+  ingress lists `kube-apiserver` and `remote-node`, because an API server on
+  another node arrives from its `cilium_host` address, which is only
+  `remote-node`; egress to a host-network pod or kubelet on every node lists
+  `host` and `remote-node`. `scripts/check-network-policies.sh` enforces what it
+  can of this.
 - Every browser web UI gets a Homepage entry in `apps/homepage/0_config.yaml`
   (`services.yaml`, in the fitting group) linking its public hostname, with a
   `siteMonitor` unless the route sits behind gateway OIDC or the app
@@ -123,17 +135,22 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   Infisical `/argocd/BASE_DOMAIN` at render time (docs/argocd.md, "Homeworld
   plugin"). Every Application sourced from this repository sets
   `spec.source.plugin.name: homeworld`. Files that reach a system outside Argo
-  CD need their own substitution (the agents VM seed, `host/agents-vm/rebuild.sh`)
+  CD need their own substitution (the agents VM seed, `host/agents-vm/rebuild.sh`;
+  the API server's `host/files/k3s/authentication.yaml.in`, `host/apply.sh`)
   or must avoid the placeholder (the hand-pushed Coder template). All other
   cluster coordinates (Gateway VIP, Infisical endpoint, Velero target) are
   literal values, and anything operator-specific that is not a fixed coordinate
   (SMTP relays, sender addresses) comes from Infisical. Runtime expansions owned
   by an application stay verbatim.
 - `*.base-domain.invalid` certificates are publicly trusted, so in-cluster HTTPS
-  calls need no CA mounts. The names resolve to the private Gateway VIP: apps
+  calls need no CA mounts. Pods resolve the names to the `envoy-node-access`
+  ClusterIP (`apps/envoy-gateway/0_coredns_custom.yaml`), because the pods on
+  the node announcing the Gateway VIP cannot reach it. That address is private: apps
   with SSRF guards that refuse private destinations need the exact origin
   allowlisted (RustFS `RUSTFS_OUTBOUND_ALLOW_ORIGINS`), and the egress
-  CiliumNetworkPolicy allows `toFQDNs: <host>.base-domain.invalid` on `443`.
+  CiliumNetworkPolicy allows `toEndpoints` on the Envoy pods at `10443` (Envoy's
+  container port for `443`) with `serverNames` listing the hostnames, or `10022`
+  for git SSH, never `toFQDNs`.
   Never work around TLS errors with `insecureSkipVerify` or similar switches.
 - Never place real credentials, tokens, passwords, private keys, or substituted
   secret values in the repository. Prefer the existing External Secrets /
@@ -153,10 +170,15 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   phase with the fresh image and self-deletes instead of blocking upgrades.
   Never let an upgrade-checker or uninstall job run from a synced manifest.
 - Every PostgreSQL database must be provisioned as a CloudNativePG `Cluster`
-  instance; do not deploy application-bundled PostgreSQL.
+  instance; do not deploy application-bundled PostgreSQL. Its namespace carries
+  an `allow-<cluster>-postgres-instance` policy (API server, operator status,
+  replication).
 - Every Redis or Redis-compatible datastore (including Valkey) must be provisioned
   using the Dragonfly Operator (`Dragonfly` resource); do not deploy
   application-bundled Redis or Valkey.
+  Its ingress policy admits the operator on `9999`, the namespace is listed in
+  `allow-dragonfly-operator-instances`, and pod selectors use only
+  `app.kubernetes.io/name: dragonfly` (the operator sets no instance label).
 - Every MongoDB or document database must be provisioned using the DocumentDB
   Kubernetes Operator (`DocumentDB` resource); do not deploy application-bundled
   MongoDB, standalone `mongod` StatefulSets, or unmanaged document datastores.
@@ -270,7 +292,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `!env_var` tag so the secret never lands on the PVC.
 - List every OIDC app origin explicitly in the provider's `cors.allowed_origins`.
 - Apps doing server-side token exchange get an `allow-<app>-authelia`
-  CiliumNetworkPolicy egress (`toFQDNs: auth.base-domain.invalid:443`) and a
+  CiliumNetworkPolicy egress (`toEndpoints` on the Envoy pods at `10443` with
+  `serverNames: [auth.base-domain.invalid]`, like any cluster hostname) and a
   matching `docs/network-policies.md` egress entry.
 - Public browser-UI routes for workloads with no usable app-native OIDC or
   login must be authenticated by Envoy Gateway itself as the shared `envoy`
@@ -409,6 +432,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - Application telemetry, anonymous usage metrics, and upgrade checkers disabled
   (without breaking functionality)
 - Autoscaling (HPA/KEDA) is intentionally disabled unless the user requests a policy change.
+- End-to-end test in a VM (Validation, "New applications").
 
 ## Adding or changing a component
 
@@ -509,6 +533,10 @@ scripts/check-yaml-duplicates.sh
 # keys unless mergePolicy is Merge).
 scripts/check-secret-refs.sh
 
+# Fail on CiliumNetworkPolicy rules that can never match. Pass a directory of
+# rendered charts to include their Services (scripts/scan-security.sh does).
+scripts/check-network-policies.sh
+
 # Shell syntax of the host scripts (shellcheck as well when it is installed).
 for f in host/*.sh host/agents-vm/*.sh; do bash -n "$f"; done
 for f in host/files/libexec/*; do sh -n "$f"; done
@@ -525,6 +553,13 @@ Also inspect the diff for accidental secret substitution and verify cross-file
 references manually. Cluster-side schema validation is useful only when the
 required CRDs are installed; report when validation could not cover custom
 resources rather than claiming full cluster compatibility.
+
+### New applications
+
+When the user asks for a new application, finish the implementation and then
+test it end to end in a VM running a k3s cluster, with the affected resources
+and their dependencies deployed. If any part of that test is not possible,
+state which part and why.
 
 ## Change discipline
 
