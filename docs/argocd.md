@@ -78,6 +78,7 @@
 * **Sync wave 6**
    * authelia: OpenCloud identity provider, after CloudNativePG, Dragonfly,
      External Secrets, and Prometheus Operator CRDs
+   * headlamp: Kubernetes web UI, alongside its identity provider
    * homeassistant
    * immich
    * otel-collector: operator-managed collector with its Target Allocator,

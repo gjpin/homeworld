@@ -53,6 +53,9 @@ env:
   - name: DEFAULT_TIMEZONE
     value: Europe/Lisbon
 podSecurityContext:
+  # The image's user is named (node), which runAsNonRoot cannot verify.
+  runAsUser: 1000
+  runAsGroup: 1000
   runAsNonRoot: true
   seccompProfile:
     type: RuntimeDefault

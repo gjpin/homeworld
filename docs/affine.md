@@ -51,7 +51,7 @@ AI web search uses the Exa key (`/affine/EXA_API_KEY`) and image search in docum
 
 ## Calendar
 
-CalDAV sync offers one provider, OpenCloud (`https://cloud.base-domain.invalid/caldav/`, the DAV proxy in front of Radicale). Users connect it with their OpenCloud username and an OpenCloud app token. `blockPrivateNetwork` is off because the hostname resolves to the private Gateway VIP; `allowedHosts` limits CalDAV requests to that one host. Google Calendar sync is not configured (it needs a Google OAuth application).
+CalDAV sync offers one provider, OpenCloud (`https://cloud.base-domain.invalid/caldav/`, the DAV proxy in front of Radicale). Users connect it with their OpenCloud username and an OpenCloud app token. `blockPrivateNetwork` is off because the hostname resolves to a private address; `allowedHosts` limits CalDAV requests to that one host. Google Calendar sync is not configured (it needs a Google OAuth application).
 
 ## Telemetry
 

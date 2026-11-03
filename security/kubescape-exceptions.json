@@ -1485,6 +1485,14 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
+          "name": "^headlamp$",
+          "namespace": "^headlamp$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
           "name": "^velero-ui$",
           "namespace": "^velero-ui$"
         }
@@ -2032,6 +2040,14 @@
           "kind": "^DaemonSet$",
           "name": "^node-agent$",
           "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^headlamp$",
+          "namespace": "^headlamp$"
         }
       },
       {
@@ -3943,6 +3959,14 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
+          "name": "^headlamp$",
+          "namespace": "^headlamp$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
           "name": "^velero-ui$",
           "namespace": "^velero-ui$"
         }
@@ -4834,6 +4858,14 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
+          "name": "^headlamp$",
+          "namespace": "^headlamp$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
           "name": "^velero-ui$",
           "namespace": "^velero-ui$"
         }
@@ -5570,6 +5602,14 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
+          "name": "^headlamp$",
+          "namespace": "^headlamp$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
           "name": "^velero-ui$",
           "namespace": "^velero-ui$"
         }
@@ -5904,6 +5944,14 @@
           "kind": "^DaemonSet$",
           "name": "^node-agent$",
           "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^headlamp$",
+          "namespace": "^headlamp$"
         }
       },
       {
@@ -6406,6 +6454,14 @@
           "kind": "^DaemonSet$",
           "name": "^node-agent$",
           "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^headlamp$",
+          "namespace": "^headlamp$"
         }
       },
       {
@@ -7014,6 +7070,14 @@
           "kind": "^DaemonSet$",
           "name": "^node-agent$",
           "namespace": "^velero$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^headlamp$",
+          "namespace": "^headlamp$"
         }
       },
       {

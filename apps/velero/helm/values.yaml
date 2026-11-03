@@ -20,6 +20,10 @@ initContainers:
       seccompProfile:
         type: RuntimeDefault
 podSecurityContext:
+  # The image's user is named (cnb), which runAsNonRoot cannot verify.
+  runAsUser: 1002
+  runAsGroup: 1000
+  fsGroup: 1000
   runAsNonRoot: true
   seccompProfile:
     type: RuntimeDefault
