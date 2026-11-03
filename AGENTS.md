@@ -149,7 +149,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   with SSRF guards that refuse private destinations need the exact origin
   allowlisted (RustFS `RUSTFS_OUTBOUND_ALLOW_ORIGINS`), and the egress
   CiliumNetworkPolicy allows `toEndpoints` on the Envoy pods at `10443` (Envoy's
-  container port for `443`; `10022` for git SSH), never `toFQDNs`.
+  container port for `443`) with `serverNames` listing the hostnames, or `10022`
+  for git SSH, never `toFQDNs`.
   Never work around TLS errors with `insecureSkipVerify` or similar switches.
 - Never place real credentials, tokens, passwords, private keys, or substituted
   secret values in the repository. Prefer the existing External Secrets /
@@ -169,10 +170,15 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   phase with the fresh image and self-deletes instead of blocking upgrades.
   Never let an upgrade-checker or uninstall job run from a synced manifest.
 - Every PostgreSQL database must be provisioned as a CloudNativePG `Cluster`
-  instance; do not deploy application-bundled PostgreSQL.
+  instance; do not deploy application-bundled PostgreSQL. Its namespace carries
+  an `allow-<cluster>-postgres-instance` policy (API server, operator status,
+  replication).
 - Every Redis or Redis-compatible datastore (including Valkey) must be provisioned
   using the Dragonfly Operator (`Dragonfly` resource); do not deploy
   application-bundled Redis or Valkey.
+  Its ingress policy admits the operator on `9999`, the namespace is listed in
+  `allow-dragonfly-operator-instances`, and pod selectors use only
+  `app.kubernetes.io/name: dragonfly` (the operator sets no instance label).
 - Every MongoDB or document database must be provisioned using the DocumentDB
   Kubernetes Operator (`DocumentDB` resource); do not deploy application-bundled
   MongoDB, standalone `mongod` StatefulSets, or unmanaged document datastores.
@@ -286,8 +292,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `!env_var` tag so the secret never lands on the PVC.
 - List every OIDC app origin explicitly in the provider's `cors.allowed_origins`.
 - Apps doing server-side token exchange get an `allow-<app>-authelia`
-  CiliumNetworkPolicy egress (`toEndpoints` on the Envoy pods at `10443`, the
-  same as any cluster hostname) and a
+  CiliumNetworkPolicy egress (`toEndpoints` on the Envoy pods at `10443` with
+  `serverNames: [auth.base-domain.invalid]`, like any cluster hostname) and a
   matching `docs/network-policies.md` egress entry.
 - Public browser-UI routes for workloads with no usable app-native OIDC or
   login must be authenticated by Envoy Gateway itself as the shared `envoy`

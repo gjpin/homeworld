@@ -258,8 +258,16 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: dragonfly
-      k8s:app.kubernetes.io/instance: dragonfly
   ingress:
+    # The operator's readiness and role checks use the admin port.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: dragonfly-operator
+            k8s:app.kubernetes.io/name: dragonfly-operator
+      toPorts:
+        - ports:
+            - port: "9999"
+              protocol: TCP
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: argocd
@@ -384,6 +392,8 @@ spec:
         - ports:
             - port: "10443"
               protocol: TCP
+          serverNames:
+            - auth.base-domain.invalid
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy

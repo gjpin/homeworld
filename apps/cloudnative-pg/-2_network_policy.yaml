@@ -120,3 +120,28 @@ spec:
         - ports:
             - port: "9090"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The operator reads every instance's status port, in any namespace. Each
+  # instance's namespace carries the matching ingress rule.
+  name: allow-cloudnative-pg-instances
+  namespace: cloudnative-pg
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: cloudnative-pg
+  egress:
+    - toEndpoints:
+        - matchExpressions:
+            - key: k8s:io.kubernetes.pod.namespace
+              operator: Exists
+            - key: k8s:cnpg.io/cluster
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP

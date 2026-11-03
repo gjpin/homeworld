@@ -61,6 +61,8 @@ spec:
         - ports:
             - port: "10443"
               protocol: TCP
+          serverNames:
+            - coder.base-domain.invalid
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -102,5 +104,8 @@ spec:
         - ports:
             - port: "10443"
               protocol: TCP
+          serverNames:
+            - git.base-domain.invalid
+        - ports:
             - port: "10022"
               protocol: TCP

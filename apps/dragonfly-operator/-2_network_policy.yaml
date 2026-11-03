@@ -102,3 +102,38 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # The operator's readiness and role checks use each instance's admin port.
+  # Each instance's namespace carries the matching ingress rule.
+  name: allow-dragonfly-operator-instances
+  namespace: dragonfly-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: dragonfly-operator
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: affine
+            k8s:app.kubernetes.io/name: dragonfly
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: argocd
+            k8s:app.kubernetes.io/name: dragonfly
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: authelia
+            k8s:app.kubernetes.io/name: dragonfly
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: immich
+            k8s:app.kubernetes.io/name: dragonfly
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: supernote
+            k8s:app.kubernetes.io/name: dragonfly
+      toPorts:
+        - ports:
+            - port: "9999"
+              protocol: TCP

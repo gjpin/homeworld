@@ -70,7 +70,7 @@ if [ ! -f /etc/homeworld/env ]; then
     *) echo "$base_domain is not a domain" >&2; exit 1 ;;
   esac
   case "$base_domain" in
-    *[!a-z0-9.-]* | .* | *. | *..*) echo "$base_domain is not a domain" >&2; exit 1 ;;
+    *[!a-z0-9.-]* | .* | *. | *..* | base-domain.invalid) echo "$base_domain is not a domain" >&2; exit 1 ;;
   esac
   cat >/etc/homeworld/env <<EOF
 NODE_IP=$node_ip

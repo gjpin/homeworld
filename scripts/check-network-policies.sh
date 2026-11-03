@@ -13,6 +13,8 @@
 #   node arrives from its cilium_host address, which is only remote-node.
 # - toFQDNs on a cluster hostname: in-cluster clients resolve those names to the
 #   envoy-node-access Service, so the rule must select the Envoy pods.
+# - toEndpoints on the Envoy pods at 10443 without serverNames, which would
+#   open every route (only Homepage and Envoy's own OIDC calls need that).
 # - toFQDNs without a DNS rule: no rules.dns on the pods' kube-dns egress means
 #   the DNS proxy never sees a lookup, and the rule stays empty.
 #
@@ -118,6 +120,15 @@ for file, name, namespace, spec in policies:
         ports = rule_ports(rule)
         if "kube-apiserver" in (rule.get("toEntities") or []) and "443" in ports:
             errors.append(f"{where}: kube-apiserver egress must use 6443, not 443")
+        to_envoy = any(
+            (endpoint.get("matchLabels") or {}).get("k8s:gateway.envoyproxy.io/owning-gatewayclass")
+            for endpoint in rule.get("toEndpoints") or []
+        )
+        if to_envoy and name not in ("allow-homepage-apps-egress", "allow-envoy-authelia-oidc"):
+            for to_port in rule.get("toPorts") or []:
+                numbers = [port.get("port") for port in to_port.get("ports") or []]
+                if "10443" in numbers and not to_port.get("serverNames"):
+                    errors.append(f"{where}: Envoy 10443 egress needs serverNames")
         fqdns = rule.get("toFQDNs") or []
         if fqdns:
             for fqdn in fqdns:

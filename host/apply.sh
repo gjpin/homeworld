@@ -121,8 +121,8 @@ systemctl disable --now cockpit.socket >/dev/null 2>&1 || true
 fw_zone homeworld-lan
 fw --zone=homeworld-lan --query-service --add-service ssh
 fw --zone=homeworld-lan --query-port --add-port 6443/tcp
-# The other nodes: etcd, kubelet, control-plane metrics, Cilium health and
-# Hubble peers, Cilium WireGuard and VXLAN.
+# The other nodes: etcd, kubelet, control-plane metrics, Cilium health,
+# metrics and Hubble peers, Cilium WireGuard and VXLAN.
 fw_zone homeworld-nodes
 for ip in $NODE_IPS; do
   fw --zone=homeworld-nodes --query-source --add-source "$ip/32"
@@ -134,7 +134,7 @@ for src in $(firewall-cmd --permanent --zone=homeworld-nodes --list-sources); do
   esac
 done
 fw --zone=homeworld-nodes --query-service --add-service ssh
-for p in 2379-2380/tcp 2381/tcp 6443/tcp 10250/tcp 10257/tcp 10259/tcp 4240/tcp 4244/tcp 51871/udp 8472/udp; do
+for p in 2379-2380/tcp 2381/tcp 6443/tcp 10250/tcp 10257/tcp 10259/tcp 4240/tcp 4244/tcp 9962-9965/tcp 51871/udp 8472/udp; do
   fw --zone=homeworld-nodes --query-port --add-port "$p"
 done
 # Pod and service traffic, and Cilium's own devices.
@@ -273,6 +273,8 @@ rm -f "$tmp"
 
 # --- updates and reboots --------------------------------------------------
 put 0644 "$files/dnf/automatic.conf" /etc/dnf/automatic.conf || true
+# Longhorn attaches volumes through the host's iSCSI initiator.
+systemctl enable --now iscsid.socket >/dev/null 2>&1
 systemctl enable --now dnf5-automatic.timer >/dev/null 2>&1
 for f in kured-sentinel kured-reboot homeworld-postboot homeworld-pull; do
   put 0755 "$files/libexec/$f" "$libexec/$f" || true

@@ -186,6 +186,8 @@ spec:
         - ports:
             - port: "10443"
               protocol: TCP
+          serverNames:
+            - auth.base-domain.invalid
 ---
 # The RustFS server pushes its metrics via OTLP/HTTP to the cluster
 # collector's OTLP receiver (RUSTFS_OBS_ENDPOINT in 0_tenant.yaml; RustFS

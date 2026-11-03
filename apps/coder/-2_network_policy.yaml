@@ -151,6 +151,8 @@ spec:
         - ports:
             - port: "10443"
               protocol: TCP
+          serverNames:
+            - auth.base-domain.invalid
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -177,6 +179,8 @@ spec:
         - ports:
             - port: "10443"
               protocol: TCP
+          serverNames:
+            - coder.base-domain.invalid
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -280,4 +284,53 @@ spec:
       toPorts:
         - ports:
             - port: "9187"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  # CloudNativePG's instance manager watches its Cluster through the API server,
+  # the operator reads each instance's status port, and instances and their
+  # bootstrap Jobs replicate from each other.
+  name: allow-coder-postgres-instance
+  namespace: coder
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: coder
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: cloudnative-pg
+            k8s:app.kubernetes.io/name: cloudnative-pg
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:cnpg.io/cluster: coder
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:cnpg.io/cluster: coder
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8000"
               protocol: TCP
