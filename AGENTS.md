@@ -432,6 +432,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - Application telemetry, anonymous usage metrics, and upgrade checkers disabled
   (without breaking functionality)
 - Autoscaling (HPA/KEDA) is intentionally disabled unless the user requests a policy change.
+- End-to-end test in a VM (Validation, "New applications").
 
 ## Adding or changing a component
 
@@ -552,6 +553,13 @@ Also inspect the diff for accidental secret substitution and verify cross-file
 references manually. Cluster-side schema validation is useful only when the
 required CRDs are installed; report when validation could not cover custom
 resources rather than claiming full cluster compatibility.
+
+### New applications
+
+When the user asks for a new application, finish the implementation and then
+test it end to end in a VM running a k3s cluster, with the affected resources
+and their dependencies deployed. If any part of that test is not possible,
+state which part and why.
 
 ## Change discipline
 
