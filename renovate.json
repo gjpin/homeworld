@@ -462,7 +462,7 @@
       ]
     },
     {
-      "description": "Servarr apps (home-operations images track the develop branch): read the release notes and back up the CNPG cluster before a major",
+      "description": "Servarr apps (home-operations images track the develop branch): read the release notes and back up the CNPG cluster before any release that adds a migration",
       "matchPackageNames": [
         "ghcr.io/home-operations/prowlarr",
         "ghcr.io/home-operations/sonarr",
@@ -471,7 +471,7 @@
       ],
       "separateMajorMinor": true,
       "prBodyNotes": [
-        "⚠️ **Servarr Upgrade**: home-operations builds the develop branch. Database migrations are one-way: take a CNPG on-demand `Backup` (docs/upgrades.md) before a major, and read the release notes for removed settings or environment variables."
+        "⚠️ **Servarr Upgrade**: home-operations builds the develop branch. Database migrations are one-way and can ship in any release, patches included: check the upstream compare for new files under `src/NzbDrone.Core/Datastore/Migration`, take a CNPG on-demand `Backup` (docs/upgrades.md) before merging one, and read the release notes for removed settings or environment variables."
       ]
     }
   ],
