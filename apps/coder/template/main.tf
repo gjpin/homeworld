@@ -12,7 +12,7 @@ terraform {
   required_providers {
     coder = {
       source  = "coder/coder"
-      version = "2.19.0"
+      version = "2.20.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
@@ -32,7 +32,7 @@ locals {
   namespace = "coder-workspaces"
   # The agents VM's toolset on Debian (apps/coder/image), built by
   # .github/workflows/coder-workspace-image.yaml.
-  image = "ghcr.io/gjpin/homeworld/coder-workspace:20261102.19"
+  image = "ghcr.io/gjpin/homeworld/coder-workspace:20261102.21"
   home  = "/home/coder"
 
   labels = {
