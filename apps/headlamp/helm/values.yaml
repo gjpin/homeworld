@@ -1,0 +1,46 @@
+fullnameOverride: headlamp
+# Each user acts under their own RBAC (apps/headlamp/0_rbac.yaml). The service
+# account only supplies the in-cluster API endpoint and CA, so it must not get
+# the chart's default cluster-admin binding.
+clusterRoleBinding:
+  create: false
+# gVisor Pods keep the host user namespace (AGENTS.md).
+hostUsers: true
+config:
+  # The callback is explicit so it cannot fall back to http behind the Gateway.
+  extraArgs:
+    - -metrics-enabled
+    - -oidc-callback-url=https://headlamp.base-domain.invalid/oidc-callback
+  oidc:
+    secret:
+      create: false
+    externalSecret:
+      enabled: true
+      name: headlamp-oidc
+      hasScopes: true
+    usePKCE: true
+    useCookie: true
+    autoLogin: true
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  privileged: false
+  readOnlyRootFilesystem: true
+  runAsGroup: 101
+  runAsNonRoot: true
+  runAsUser: 100
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+    ephemeral-storage: 64Mi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+    ephemeral-storage: 2Gi

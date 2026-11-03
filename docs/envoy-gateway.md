@@ -2,6 +2,10 @@
 
 One Gateway (`apps/envoy-gateway/2_gateway.yaml`) serves every app behind the Gateway VIP `192.168.8.50`: its HTTPS listeners cover `*.base-domain.invalid` and the `*.notes`, `*.rustfs` and `*.coder` second-level wildcards with a single Let's Encrypt certificate (cert-manager's Gateway shim, DNS-01), and a TCP listener on port 22 carries Forgejo's git SSH. Components attach HTTPRoutes (and Forgejo its TCPRoute) to it from their own namespaces; route-level SecurityPolicies add gateway OIDC for apps without a usable login of their own ([oidc.md](oidc.md)). The `envoy-merged` GatewayClass keeps `mergeGateways: true` (`apps/envoy-gateway/2_envoy_proxy.yaml`).
 
+## In-cluster clients
+
+Pods do not use the VIP: those on the node announcing it get no ARP answer, so their connections time out. `apps/envoy-gateway/0_coredns_custom.yaml` makes CoreDNS answer every `*.base-domain.invalid` name with the `envoy-node-access` Service (`10.43.0.50`), so pods reach Envoy with the same hostnames and certificate as any client. Egress rules select the Envoy pods on `10443` and `10022` ([network-policies.md](network-policies.md#how-policy-matches)). The nodes use the same Service through `/etc/hosts` ([k3s.md](k3s.md)).
+
 ## Why Envoy runs as a DaemonSet
 
 - **The VIP lives on one node.** Cilium answers ARP for `192.168.8.50` from a single node at a time, the holder of the `cilium-l2announce-envoy-gateway-*` lease ([docs/cilium.md](cilium.md)). All Gateway traffic enters the cluster on that node.

@@ -16,8 +16,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector: {}
-  ingress: []
-  egress: []
+  ingress:
+    - {}
+  egress:
+    - {}
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -57,7 +59,7 @@ spec:
         - kube-apiserver
       toPorts:
         - ports:
-            - port: "443"
+            - port: "6443"
               protocol: TCP
 ---
 # hubble-relay dials every cilium-agent's hubble peer port (hostPort 4244)
@@ -74,16 +76,11 @@ spec:
     matchLabels:
       k8s:k8s-app: hubble-relay
   egress:
-    - toServices:
-        - k8sService:
-            serviceName: hubble-peer
-            namespace: cilium
-      toPorts:
-        - ports:
-            - port: "443"
-              protocol: TCP
+    # hubble-peer's backends are the host-network agents, which carry node
+    # identities rather than a Service's addresses.
     - toEntities:
         - host
+        - remote-node
       toPorts:
         - ports:
             - port: "4244"
@@ -108,7 +105,7 @@ spec:
             namespace: cilium
       toPorts:
         - ports:
-            - port: "80"
+            - port: "4245"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2

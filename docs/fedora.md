@@ -153,7 +153,7 @@ firewalld (nftables backend) stays enabled; Cockpit is disabled.
 | Zone | Sources or interfaces | Allowed |
 | --- | --- | --- |
 | `homeworld-lan` (default) | the LAN NIC | SSH, Kubernetes API (`6443`) |
-| `homeworld-nodes` | the three node addresses | SSH, etcd (`2379`–`2381`), Kubernetes API, kubelet (`10250`), scheduler and controller-manager metrics (`10257`, `10259`), Cilium health and Hubble peers (`4240`, `4244`), Cilium WireGuard (`51871/udp`), VXLAN (`8472/udp`) |
+| `homeworld-nodes` | the three node addresses | SSH, etcd (`2379`–`2381`), Kubernetes API, kubelet (`10250`), scheduler and controller-manager metrics (`10257`, `10259`), Cilium health, Hubble peers and metrics (`4240`, `4244`, `9962`–`9965`), Cilium WireGuard (`51871/udp`), VXLAN (`8472/udp`) |
 | `trusted` | Pod and Service CIDRs, `cilium_*` and `lxc*` interfaces | everything |
 | `homeworld-agents` (Ryzen) | `virbr-agents` | DHCP and DNS to libvirt's dnsmasq |
 
