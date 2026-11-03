@@ -78,6 +78,11 @@ spec:
       strategy:
         type: Recreate
       template:
+        # The operator's own pod label is only app=grafana; the network
+        # policies and the ServiceMonitor select this one.
+        metadata:
+          labels:
+            app.kubernetes.io/name: grafana
         spec:
           runtimeClassName: gvisor
           automountServiceAccountToken: false

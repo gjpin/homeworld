@@ -21,7 +21,8 @@ config:
   # would be dropped and the challenge would never validate. With this flag
   # set (and dns01RecursiveNameservers left empty), the self-check resolves
   # through the pod's resolver — kube-dns — which the policy admits.
-  dns01RecursiveNameserversOnly: true
+  acmeDNS01Config:
+    recursiveNameserversOnly: true
   kubernetesAPIQPS: 10000
   kubernetesAPIBurst: 10000
 prometheus:
