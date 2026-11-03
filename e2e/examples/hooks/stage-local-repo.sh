@@ -78,6 +78,7 @@ rewrite_coordinates() {
       -e "s#${PROD_INFISICAL_HOST//./\\.}#${INFISICAL_HOST}#g" \
       -e "s#${PROD_INFISICAL_HOSTNAME//./\\.}#${INFISICAL_HOSTNAME}#g" \
       -e "s#${PROD_GATEWAY_VIP//./\\.}#${KIND_GATEWAY_IP}#g" \
+      -e "s#10\.43\.0\.50#10.96.0.50#g" \
       "${f}"
     rm -f "${f}.bak"
   done < <(find "${STAGING}/apps" \( -name '*.yaml' -o -name '*.yml' -o -name '*.tmpl' \) -print0)

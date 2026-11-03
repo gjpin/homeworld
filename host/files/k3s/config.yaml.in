@@ -36,3 +36,4 @@ kube-controller-manager-arg:
   - bind-address=0.0.0.0
 kube-apiserver-arg:
   - admission-control-config-file=/etc/rancher/k3s/psa.yaml
+  - authentication-config=/etc/rancher/k3s/authentication.yaml
