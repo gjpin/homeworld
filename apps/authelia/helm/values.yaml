@@ -15,8 +15,10 @@ pod:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: "1"
-      maxUnavailable: "0"
+      # Percentages: the chart's schema requires strings, and the API rejects
+      # any string that is not a percentage. One replica: surge one, keep it up.
+      maxSurge: 100%
+      maxUnavailable: 0%
   resources:
     requests:
       cpu: 10m

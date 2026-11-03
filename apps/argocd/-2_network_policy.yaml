@@ -8,8 +8,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector: {}
-  ingress: []
-  egress: []
+  ingress:
+    - {}
+  egress:
+    - {}
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -31,6 +33,9 @@ spec:
               protocol: UDP
             - port: "53"
               protocol: TCP
+          rules:
+            dns:
+              - matchPattern: "*"
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -48,7 +53,7 @@ spec:
         - kube-apiserver
       toPorts:
         - ports:
-            - port: "443"
+            - port: "6443"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -253,8 +258,16 @@ spec:
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: dragonfly
-      k8s:app.kubernetes.io/instance: dragonfly
   ingress:
+    # The operator's readiness and role checks use the admin port.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: dragonfly-operator
+            k8s:app.kubernetes.io/name: dragonfly-operator
+      toPorts:
+        - ports:
+            - port: "9999"
+              protocol: TCP
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: argocd
@@ -369,12 +382,18 @@ spec:
       k8s:app.kubernetes.io/component: argocd-server
       k8s:app.kubernetes.io/instance: argocd
   egress:
-    - toFQDNs:
-        - matchName: "auth.base-domain.invalid"
+    # auth.base-domain.invalid through envoy-node-access (docs/network-policies.md).
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: envoy-gateway
+            k8s:app.kubernetes.io/name: envoy
+            k8s:gateway.envoyproxy.io/owning-gatewayclass: envoy-merged
       toPorts:
         - ports:
-            - port: "443"
+            - port: "10443"
               protocol: TCP
+          serverNames:
+            - auth.base-domain.invalid
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -387,7 +406,7 @@ spec:
   # The application-controller ServiceMonitor scrapes the metrics port.
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/name: argocd-application-controller
+      k8s:app.kubernetes.io/component: argocd-application-controller
       k8s:app.kubernetes.io/instance: argocd
   ingress:
     - fromEndpoints:
@@ -411,7 +430,7 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/name: argocd-server
+      k8s:app.kubernetes.io/component: argocd-server
       k8s:app.kubernetes.io/instance: argocd
   ingress:
     - fromEndpoints:
@@ -435,7 +454,7 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/name: argocd-repo-server
+      k8s:app.kubernetes.io/component: argocd-repo-server
       k8s:app.kubernetes.io/instance: argocd
   ingress:
     - fromEndpoints:
@@ -459,7 +478,7 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/name: argocd-applicationset-controller
+      k8s:app.kubernetes.io/component: argocd-applicationset-controller
       k8s:app.kubernetes.io/instance: argocd
   ingress:
     - fromEndpoints:
@@ -483,7 +502,7 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/name: argocd-notifications-controller
+      k8s:app.kubernetes.io/component: argocd-notifications-controller
       k8s:app.kubernetes.io/instance: argocd
   ingress:
     - fromEndpoints:
