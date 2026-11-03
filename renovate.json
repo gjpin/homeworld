@@ -44,6 +44,7 @@
       "description": "Immich: one PR per major with a breaking-change review reminder",
       "matchPackageNames": [
         "ghcr.io/immich-app/immich-charts/immich",
+        "ghcr.io/immich-app/immich-server",
         "immich"
       ],
       "separateMajorMinor": true,
@@ -730,6 +731,18 @@
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://docker.dragonflydb.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Immich image tag (the chart does not follow Immich releases; the one tag pins the server and machine-learning images)",
+      "managerFilePatterns": [
+        "/^apps/immich/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s+tag:\\s*(?<currentValue>v[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "ghcr.io/immich-app/immich-server"
     },
     {
       "customType": "regex",

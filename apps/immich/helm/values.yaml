@@ -86,12 +86,16 @@ server:
                 secretKeyRef:
                   name: postgres-credentials
                   key: password
-# Overrides the chart's shared (server + machine-learning) env defaults,
-# which point at the bundled Valkey and the release-name ML service.
+# Overrides the chart's shared (server + machine-learning) defaults: the env
+# points at the bundled Valkey and the release-name ML service, and the chart
+# does not follow Immich releases (its README asks to set the tag), so this one
+# tag, tracked by Renovate, pins both images.
 controllers:
   main:
     containers:
       main:
+        image:
+          tag: v3.3.5
         env:
           REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
