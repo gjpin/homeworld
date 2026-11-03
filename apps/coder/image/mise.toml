@@ -23,7 +23,7 @@ yq = "4.54.1"
 tree-sitter = "0.27.1"
 shfmt = "3.14.1"
 gh = "2.103.3"
-glab = "1.127.0"
+glab = "1.128.0"
 
 # Kubernetes and infrastructure.
 kubectl = "1.37.2"
@@ -31,7 +31,7 @@ helm = "4.3.1"
 kustomize = "5.8.3"
 terraform = "1.17.1"
 opentofu = "1.13.2"
-infisical = "0.44.12"
+infisical = "0.44.13"
 
 # Coding agents.
 claude = "2.1.317"
