@@ -306,11 +306,10 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  # First-use model downloads for machine learning: the CLIP text model is
-  # fetched from Hugging Face (TRANSFORMERS_CACHE / HF_XET_CACHE persist on
-  # the cache PVC, so only first use needs egress; the Xet path adds the
-  # cas-bridge host), and facial-recognition/detection models (buffalo_l)
-  # come from GitHub release assets.
+  # First-use model downloads for machine learning, all from Hugging Face
+  # (the cache PVC persists them, so only first use needs egress): the Hub API
+  # on huggingface.co, the Xet CAS on *.xethub.hf.co, and the files themselves
+  # on the regional *.aws.cdn.hf.co CDN.
   name: allow-immich-ml-models
   namespace: immich
   annotations:
@@ -323,11 +322,8 @@ spec:
   egress:
     - toFQDNs:
         - matchName: "huggingface.co"
-        - matchName: "cdn-lfs.huggingface.co"
-        - matchName: "cdn-lfs-us-1.huggingface.co"
-        - matchName: "cas-bridge.xethub.hf.co"
-        - matchName: "github.com"
-        - matchName: "objects.githubusercontent.com"
+        - matchPattern: "*.xethub.hf.co"
+        - matchPattern: "*.aws.cdn.hf.co"
       toPorts:
         - ports:
             - port: "443"
