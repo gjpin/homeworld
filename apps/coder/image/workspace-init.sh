@@ -125,10 +125,12 @@ merge_json "$home_dir/.pi/agent/settings.json" \
   '.enableInstallTelemetry = false' \
   '{"enableInstallTelemetry":false}'
 
-# Antigravity: never send telemetry or show the feedback survey.
+# Antigravity: no feedback survey. Its telemetry choice is saved with the
+# account (/config), not in this file (docs/coder.md); the deprecated key is
+# dropped.
 merge_json "$home_dir/.gemini/antigravity-cli/settings.json" \
-  '.enableTelemetry = false | .showFeedbackSurvey = false' \
-  '{"enableTelemetry":false,"showFeedbackSurvey":false}'
+  'del(.enableTelemetry) | .showFeedbackSurvey = false' \
+  '{"showFeedbackSurvey":false}'
 
 # Copilot: never self-update.
 merge_json "$home_dir/.copilot/settings.json" \

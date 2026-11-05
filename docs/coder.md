@@ -122,11 +122,15 @@ statistics and update check (`CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS`,
 check (`GLAB_SEND_TELEMETRY`, `GLAB_CHECK_UPDATE`, which also gates its
 remote skill-update check), and the Infisical CLI's telemetry and release
 check (`INFISICAL_DISABLE_TELEMETRY`, `INFISICAL_DISABLE_UPDATE_CHECK`),
-the Playwright CLI's npm release check (`NO_UPDATE_NOTIFIER`), and the template's startup
+the Playwright CLI's npm release check (`NO_UPDATE_NOTIFIER`), the Antigravity
+CLI's self-update (`AGY_CLI_DISABLE_AUTO_UPDATE`), and Terraform's checkpoint
+version check (`CHECKPOINT_DISABLE`), and the template's startup
 script, `homeworld-workspace-init`, sets the file-based ones in the home
 volume on every start: Codex `check_for_update_on_startup` and analytics and
 feedback, OpenCode `autoupdate` and sharing, Pi install telemetry,
-Antigravity telemetry and feedback survey, and Copilot `autoUpdate`. It also copies the skeleton dotfiles on first start
+the Antigravity feedback survey, and Copilot `autoUpdate`. Antigravity saves
+its telemetry choice with the account, not in `settings.json`: turn off
+Enable Telemetry in `/config` after the first login. It also copies the skeleton dotfiles on first start
 and seeds the Playwright agent skills. Agent permission and approval
 settings are left at each CLI's defaults.
 
@@ -211,6 +215,7 @@ already permits.
 | `GLAB_SEND_TELEMETRY=false`, `GLAB_CHECK_UPDATE=false` | No glab usage data to the GitLab instance, no glab release or skill-update check |
 | `INFISICAL_DISABLE_TELEMETRY=1`, `INFISICAL_DISABLE_UPDATE_CHECK=true` | No Infisical CLI telemetry to PostHog, no release check |
 | `NO_UPDATE_NOTIFIER=1` | No Playwright CLI release check against the npm registry |
+| `CHECKPOINT_DISABLE=1` | No Terraform version check or security bulletins from checkpoint-api.hashicorp.com |
 
 ## Observability
 
