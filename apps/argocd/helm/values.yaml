@@ -244,7 +244,6 @@ redis:
 # references, from the same Infisical value.
 externalRedis:
   host: dragonfly.argocd.svc.cluster.local
-  port: 6379
   existingSecret: dragonfly-credentials
 # application set
 applicationSet:
