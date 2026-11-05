@@ -12,7 +12,7 @@ spec:
   replicas: 1
   # Pin the operand image so it cannot drift with the operator's built-in
   # default; kept in sync with apps/immich/0_dragonfly.yaml.
-  image: docker.dragonflydb.io/dragonflydb/dragonfly:v2.0.2
+  image: docker.dragonflydb.io/dragonflydb/dragonfly:v2.1.0
   imagePullPolicy: IfNotPresent
   # Dragonfly's daily release check (--version_check) defaults to on and
   # polls dragonflydb.io; disabled per the AGENTS.md upgrade-checker rule.
