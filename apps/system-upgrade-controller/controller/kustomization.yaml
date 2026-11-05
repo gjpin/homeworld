@@ -5,11 +5,11 @@ kind: Kustomization
 commonAnnotations:
   security.homeworld/profile: homelab
 resources:
-  - https://github.com/rancher/system-upgrade-controller?ref=v0.20.2
+  - https://github.com/rancher/system-upgrade-controller?ref=v0.21.0
 images:
   - name: rancher/system-upgrade-controller
     newName: docker.io/rancher/system-upgrade-controller
-    newTag: v0.20.2
+    newTag: v0.21.0
 patches:
   # apps/app-of-apps.yaml owns the namespace and its Pod Security labels.
   - target:
