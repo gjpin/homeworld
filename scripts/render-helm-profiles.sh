@@ -18,14 +18,16 @@ repo_root="$(git rev-parse --show-toplevel)"
 mkdir -p "$output_dir"
 
 # Every release (including the vendored charts under helm/local-charts)
-# renders through the same kustomize path.
+# renders through the same kustomize path, and so do the components that
+# kustomize an upstream release directly (apps/<component>/<dir>/).
 rendered=0
 while IFS= read -r kustomization; do
   rendered=$((rendered + 1))
   kust_dir="${kustomization%/kustomization.yaml}"
   rel="${kust_dir#"$repo_root/apps/"}"
   component="${rel%%/*}"
-  sub="${rel#"$component/helm"}"
+  sub="${rel#"$component"}"
+  sub="${sub#/helm}"
   sub="${sub#/}"
   if [[ -n "$sub" ]]; then
     app="$sub"
@@ -34,7 +36,7 @@ while IFS= read -r kustomization; do
   fi
   kubectl kustomize --enable-helm "$kust_dir" >"$output_dir/${component}-${app}.yaml"
 done < <(
-  find "$repo_root/apps" \( -path "*/helm/kustomization.yaml" -o -path "*/helm/*/kustomization.yaml" \) -print | sort
+  find "$repo_root/apps" -mindepth 3 -maxdepth 4 -name kustomization.yaml -not -path "*/charts/*" -print | sort
 )
 
 # Fail closed: zero kustomizations means nothing was rendered, and downstream

@@ -246,6 +246,21 @@
           "name": "^coder$",
           "namespace": "^coder-workspaces$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^system-upgrade-drainer$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^system-upgrade$",
+          "namespace": "^system-upgrade$"
+        }
       }
     ],
     "posturePolicies": [
@@ -578,6 +593,14 @@
           "name": "^csi-nfs-node$",
           "namespace": "^csi-driver-nfs$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^intel-gpu-plugin$",
+          "namespace": "^intel-gpu-plugin$"
+        }
       }
     ],
     "posturePolicies": [
@@ -847,6 +870,14 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^mariadb-operator-cert-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^system-upgrade$",
+          "namespace": "^system-upgrade$"
         }
       }
     ],
@@ -1434,6 +1465,22 @@
           "name": "^argocd-argocd-repo-server$",
           "namespace": "^argocd$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^intel-gpu-plugin$",
+          "namespace": "^intel-gpu-plugin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^system-upgrade-controller$",
+          "namespace": "^system-upgrade$"
+        }
       }
     ],
     "posturePolicies": [
@@ -1952,6 +1999,22 @@
           "name": "^audiomuse-ai-worker$",
           "namespace": "^audiomuse-ai$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^intel-gpu-plugin$",
+          "namespace": "^intel-gpu-plugin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^system-upgrade-controller$",
+          "namespace": "^system-upgrade$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2425,6 +2488,14 @@
           "name": "^manticore-worker$",
           "namespace": "^affine$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^system-upgrade-controller$",
+          "namespace": "^system-upgrade$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2771,6 +2842,14 @@
           "name": "^csi-nfs-node$",
           "namespace": "^csi-driver-nfs$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^intel-gpu-plugin$",
+          "namespace": "^intel-gpu-plugin$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2870,6 +2949,14 @@
           "kind": "^DaemonSet$",
           "name": "^csi-nfs-node$",
           "namespace": "^csi-driver-nfs$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^intel-gpu-plugin$",
+          "namespace": "^intel-gpu-plugin$"
         }
       }
     ],
@@ -3435,6 +3522,28 @@
           "name": "^manticore$",
           "namespace": "^affine$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^system-upgrade$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^system-upgrade-drainer$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^system-upgrade$",
+          "namespace": "^system-upgrade$"
+        }
       }
     ],
     "posturePolicies": [
@@ -3803,6 +3912,22 @@
           "kind": "^Deployment$",
           "name": "^argocd-argocd-repo-server$",
           "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^intel-gpu-plugin$",
+          "namespace": "^intel-gpu-plugin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^system-upgrade-controller$",
+          "namespace": "^system-upgrade$"
         }
       }
     ],
@@ -4354,6 +4479,14 @@
           "name": "^audiomuse-ai-worker$",
           "namespace": "^audiomuse-ai$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^system-upgrade-controller$",
+          "namespace": "^system-upgrade$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4391,6 +4524,22 @@
           "kind": "^Deployment$",
           "name": "^sidecar-injector$",
           "namespace": "^cloudnative-pg$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^intel-gpu-plugin$",
+          "namespace": "^intel-gpu-plugin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^system-upgrade-controller$",
+          "namespace": "^system-upgrade$"
         }
       }
     ],
@@ -4661,6 +4810,14 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^mariadb-operator-cert-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^system-upgrade$",
+          "namespace": "^system-upgrade$"
         }
       }
     ],
@@ -5236,6 +5393,14 @@
           "kind": "^StatefulSet$",
           "name": "^manticore-worker$",
           "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^system-upgrade-controller$",
+          "namespace": "^system-upgrade$"
         }
       }
     ],
@@ -6417,6 +6582,22 @@
           "name": "^audiomuse-ai-worker$",
           "namespace": "^audiomuse-ai$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^intel-gpu-plugin$",
+          "namespace": "^intel-gpu-plugin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^system-upgrade-controller$",
+          "namespace": "^system-upgrade$"
+        }
       }
     ],
     "posturePolicies": [
@@ -6822,6 +7003,22 @@
           "kind": "^Deployment$",
           "name": "^audiomuse-ai-worker$",
           "namespace": "^audiomuse-ai$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^intel-gpu-plugin$",
+          "namespace": "^intel-gpu-plugin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^system-upgrade-controller$",
+          "namespace": "^system-upgrade$"
         }
       }
     ],
@@ -7543,6 +7740,22 @@
           "name": "^audiomuse-ai-worker$",
           "namespace": "^audiomuse-ai$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^intel-gpu-plugin$",
+          "namespace": "^intel-gpu-plugin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^system-upgrade-controller$",
+          "namespace": "^system-upgrade$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7877,6 +8090,14 @@
           "name": "^manticore-worker$",
           "namespace": "^affine$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^system-upgrade-controller$",
+          "namespace": "^system-upgrade$"
+        }
       }
     ],
     "posturePolicies": [
@@ -8146,6 +8367,14 @@
           "kind": "^Deployment$",
           "name": "^coder$",
           "namespace": "^coder$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^system-upgrade-controller$",
+          "namespace": "^system-upgrade$"
         }
       }
     ],
@@ -8582,6 +8811,14 @@
           "kind": "^Deployment$",
           "name": "^jellyfin$",
           "namespace": "^jellyfin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^system-upgrade-controller$",
+          "namespace": "^system-upgrade$"
         }
       }
     ],

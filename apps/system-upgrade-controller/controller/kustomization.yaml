@@ -56,6 +56,11 @@ patches:
       - op: add
         path: /spec/template/spec/runtimeClassName
         value: gvisor
+      # The controller runs as nobody (65534), so the /tmp emptyDir is the
+      # only path it can write anyway.
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext/readOnlyRootFilesystem
+        value: true
       - op: add
         path: /spec/template/spec/securityContext
         value:

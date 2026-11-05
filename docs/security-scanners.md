@@ -11,7 +11,7 @@ Every intentionally accepted finding is registered as an explicit, resource-scop
 The `validate` job in `.github/workflows/validate.yaml` runs `scripts/scan-security.sh`, which:
 
 1. Validates the exception registry and its parity with the scanner input (`scripts/validate-security-exceptions.sh`).
-2. Renders every pinned Helm chart under `apps/` through its kustomization into an offline manifest tree (`scripts/render-helm-profiles.sh`).
+2. Renders every pinned Helm chart under `apps/` through its kustomization, and the upstream releases kustomized directly (the system-upgrade-controller and the Intel GPU device plugin), into an offline manifest tree (`scripts/render-helm-profiles.sh`). kubescape scans that tree with an empty kubeconfig, so it never contacts a cluster.
 3. Validates the kube-linter exceptions: annotations naming an unknown check, and annotations whose finding has disappeared from an annotation-stripped copy of the render, both fail the job.
 4. Runs kube-linter (default checks) over the render; any diagnostic not ignored on the specific resource fails the job.
 5. Runs Kubescape with the `AllControls` framework minus `C-0236` and with `--fail-on-degraded-config`; the job fails if the report contains any failed control that is not covered by an exception.

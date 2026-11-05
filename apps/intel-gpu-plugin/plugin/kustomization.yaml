@@ -28,6 +28,9 @@ patches:
         path: /metadata/annotations/security.homeworld~1exception-reason
         value: The device plugin reads /dev/dri and /sys/class/drm and serves its socket in the kubelet's root-owned device-plugins directory through hostPath mounts, as root; SELinux confines it as container_device_plugin_t, and it has no network access.
       - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The device plugin serves its socket in the kubelet's root-owned device-plugins directory, so it runs as root; SELinux confines it as container_device_plugin_t.
+      - op: add
         path: /spec/template/spec/nodeSelector/node.homeworld~1profile
         value: corebox
       - op: add
