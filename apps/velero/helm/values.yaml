@@ -49,6 +49,9 @@ configuration:
         region: eu-central-003
         s3Url: https://s3.eu-central-003.backblazeb2.com
         s3ForcePathStyle: "true"
+        # The plugin defaults to CRC32, which B2 rejects; its README lists this
+        # setting for Backblaze B2 (https://github.com/velero-io/velero-plugin-for-aws).
+        checksumAlgorithm: ""
   defaultSnapshotMoveData: true
   defaultVolumesToFsBackup: false
   features: EnableCSI
