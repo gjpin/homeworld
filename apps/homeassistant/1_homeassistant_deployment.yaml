@@ -99,12 +99,14 @@ spec:
               # Loads default set of integrations. Do not remove.
               # default_config includes the analytics integration (reporting
               # requires an explicit opt-in via the UI) and the update
-              # checker. Recorded telemetry exception: both stay enabled
-              # because default_config is load-bearing for core HA
-              # functionality, reporting is opt-in and never enabled, and
-              # the update checker is unreachable — the namespace's egress
-              # policy has no internet allowlist for it (AGENTS.md
-              # telemetry rule).
+              # checker, and Home Assistant always loads the Marketplace
+              # integration, which refreshes its GitHub-hosted catalogue
+              # every 6 hours. Recorded exception to the AGENTS.md telemetry
+              # rule: default_config is load-bearing for core HA
+              # functionality, analytics reporting is opt-in and never
+              # enabled, and the update checker and Marketplace are kept as
+              # features. allow-homeassistant-world (-2_network_policy.yaml)
+              # lets them reach the internet.
               default_config:
 
               # Reverse proxy: Envoy terminates TLS, so trust its forwarded
