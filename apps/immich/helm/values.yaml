@@ -28,14 +28,19 @@ immich:
   existingConfiguration: immich-config
   configurationKind: Secret
 machine-learning:
-  # The optimized model exports: faster, less memory, numerically equivalent
-  # outputs. Upstream will make this revision the default in a later release.
   controllers:
     main:
       containers:
         main:
           env:
+            # The optimized model exports: faster, less memory, numerically
+            # equivalent outputs. Upstream will make this revision the default
+            # in a later release.
             MACHINE_LEARNING_MODEL_REVISION: v2
+            # The PyPI onnxruntime wheel in this image sends telemetry to
+            # Microsoft unless this is set before it initializes. The image
+            # only sets it as an overridable default.
+            ORT_DISABLE_TELEMETRY: "1"
   # The image declares no USER and writes only to /cache (the PVC below), so
   # it runs as a fixed non-root ID that owns that volume.
   defaultPodOptions:
@@ -49,7 +54,6 @@ machine-learning:
         type: RuntimeDefault
   persistence:
     cache:
-      enabled: true
       size: 4Gi
       type: persistentVolumeClaim
       accessMode: ReadWriteOnce
