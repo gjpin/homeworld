@@ -274,6 +274,13 @@ is tracked by the CloudNativePG package rule: minor bumps roll with zero
 downtime, major bumps trigger CNPG's automated offline `pg_upgrade`. The image
 must stay trixie-based to match the extension's GLIBC requirements.
 
+This pin takes effect only because `imageMode: imageVolume` in
+`apps/documentdb-operator/helm/values.yaml` mounts the extension into that image
+through an image volume. The chart's `auto` default could instead select the
+combined PostgreSQL + DocumentDB image, which ignores `spec.image.postgres` and
+is fixed for the life of the cluster; with the pin, the webhook rejects the
+`DocumentDB` when the API server does not accept image volumes.
+
 ---
 
 ## 8. MariaDB Engine Upgrades (MariaDB Operator)

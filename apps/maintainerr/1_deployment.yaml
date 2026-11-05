@@ -36,7 +36,7 @@ spec:
       containers:
         - name: maintainerr
           # Renovate tracks the image tag below.
-          image: ghcr.io/maintainerr/maintainerr:3.31.0
+          image: ghcr.io/maintainerr/maintainerr:3.32.0
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
