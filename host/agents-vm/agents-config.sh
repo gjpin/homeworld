@@ -143,10 +143,12 @@ merge_json "$home_dir/.pi/agent/settings.json" \
   '.defaultProjectTrust = "always" | .enableInstallTelemetry = false' \
   '{"defaultProjectTrust":"always","enableInstallTelemetry":false}'
 
-# Antigravity: never send telemetry and never prompt for tool approval.
+# Antigravity: no feedback survey and never prompt for tool approval. Its
+# telemetry choice is saved with the account (/config), not in this file
+# (docs/openchamber.md); the deprecated key is dropped.
 merge_json "$home_dir/.gemini/antigravity-cli/settings.json" \
-  '.enableTelemetry = false | .showFeedbackSurvey = false | .toolPermission = "always-proceed"' \
-  '{"enableTelemetry":false,"showFeedbackSurvey":false,"toolPermission":"always-proceed"}'
+  'del(.enableTelemetry) | .showFeedbackSurvey = false | .toolPermission = "always-proceed"' \
+  '{"showFeedbackSurvey":false,"toolPermission":"always-proceed"}'
 
 # Copilot: never self-update.
 merge_json "$home_dir/.copilot/settings.json" \

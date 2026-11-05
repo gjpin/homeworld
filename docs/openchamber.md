@@ -125,17 +125,20 @@ everything else the agents or you add:
   `/usr/local` being read-only): Codex `check_for_update_on_startup`,
   OpenCode `update: "disable"`, Pi `PI_SKIP_VERSION_CHECK`, Copilot `autoUpdate`,
   Claude Code `DISABLE_UPDATES`, Infisical CLI `INFISICAL_DISABLE_UPDATE_CHECK`,
-  Playwright CLI `NO_UPDATE_NOTIFIER`.
+  Playwright CLI `NO_UPDATE_NOTIFIER`, Antigravity CLI `AGY_CLI_DISABLE_AUTO_UPDATE`.
   OpenChamber has no switch for its update
   check, so `OPENCHAMBER_UPDATE_API_URL` points at an unreachable local port.
   ThinkRail's release check only runs from an installer layout
   (`<prefix>/bin/thinkrail`), so the binary lives in
   `/usr/local/libexec/thinkrail` behind a wrapper.
 - Telemetry is off where the vendor allows it: Codex analytics and feedback,
-  OpenCode sharing, Pi install telemetry, Antigravity telemetry, Claude Code
+  OpenCode sharing, Pi install telemetry, Claude Code
   `DISABLE_TELEMETRY` and `DISABLE_ERROR_REPORTING`, Infisical CLI
   `INFISICAL_DISABLE_TELEMETRY` (also set in the secrets loader). Copilot CLI has no telemetry switch short of offline mode, which
   also disables GitHub sign-in; that is an accepted upstream limitation.
+  Antigravity saves its telemetry choice with the account, not in
+  `settings.json`, so it stays a manual step: turn off Enable Telemetry in
+  `/config` after the first login; only the feedback survey is managed.
   ThinkRail's additional analytics are off (`THINKRAIL_NO_ANALYTICS`), and
   its basic usage events, error reports and surveys have no switch outside
   CI, so `THINKRAIL_POSTHOG_HOST` points them at an unreachable local port.

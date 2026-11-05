@@ -164,13 +164,14 @@ printf '#!/bin/sh\nexec /usr/local/libexec/thinkrail/thinkrail "$@"\n' >/usr/loc
 chmod 0755 /usr/local/bin/thinkrail
 
 # Infisical CLI (secrets loader below), SHA-256-verified release tarball.
+# checksums.txt covers Linux; cli_<version>_checksums.txt lists only Windows.
 mkdir "$work/infisical"
 (
   cd "$work/infisical"
   tarball=cli_${INFISICAL_VERSION}_linux_$go_arch.tar.gz
   curl -fsSLO "https://github.com/Infisical/cli/releases/download/v$INFISICAL_VERSION/$tarball"
-  curl -fsSLO "https://github.com/Infisical/cli/releases/download/v$INFISICAL_VERSION/cli_${INFISICAL_VERSION}_checksums.txt"
-  sha256sum -c --ignore-missing "cli_${INFISICAL_VERSION}_checksums.txt"
+  curl -fsSLO "https://github.com/Infisical/cli/releases/download/v$INFISICAL_VERSION/checksums.txt"
+  sha256sum -c --ignore-missing checksums.txt
   tar -xzf "$tarball" infisical
   install -m 0755 infisical /usr/local/bin/infisical
 )
@@ -200,6 +201,7 @@ export DISABLE_TELEMETRY=1
 export DISABLE_ERROR_REPORTING=1
 export INFISICAL_DISABLE_TELEMETRY=1
 export INFISICAL_DISABLE_UPDATE_CHECK=1
+export AGY_CLI_DISABLE_AUTO_UPDATE=true
 export NO_UPDATE_NOTIFIER=1
 export NPM_CONFIG_PREFIX=$HOME/.local
 case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) PATH=$HOME/.local/bin:$PATH ;; esac
@@ -208,7 +210,7 @@ EOF
 install -d -m 0755 /etc/systemd/user.conf.d
 cat >/etc/systemd/user.conf.d/agents.conf <<'EOF'
 [Manager]
-DefaultEnvironment=PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright PI_SKIP_VERSION_CHECK=1 OPENCHAMBER_UPDATE_API_URL=http://127.0.0.1:9/ THINKRAIL_NO_ANALYTICS=1 THINKRAIL_POSTHOG_HOST=http://127.0.0.1:9 DISABLE_UPDATES=1 DISABLE_TELEMETRY=1 DISABLE_ERROR_REPORTING=1 INFISICAL_DISABLE_TELEMETRY=1 INFISICAL_DISABLE_UPDATE_CHECK=1 NO_UPDATE_NOTIFIER=1 "PATH=/home/agent/.local/bin:/usr/local/bin:/usr/bin"
+DefaultEnvironment=PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright PI_SKIP_VERSION_CHECK=1 OPENCHAMBER_UPDATE_API_URL=http://127.0.0.1:9/ THINKRAIL_NO_ANALYTICS=1 THINKRAIL_POSTHOG_HOST=http://127.0.0.1:9 DISABLE_UPDATES=1 DISABLE_TELEMETRY=1 DISABLE_ERROR_REPORTING=1 INFISICAL_DISABLE_TELEMETRY=1 INFISICAL_DISABLE_UPDATE_CHECK=1 AGY_CLI_DISABLE_AUTO_UPDATE=true NO_UPDATE_NOTIFIER=1 "PATH=/home/agent/.local/bin:/usr/local/bin:/usr/bin"
 EOF
 
 # --- secrets: Infisical /agents/* into tmpfs ---------------------------------
