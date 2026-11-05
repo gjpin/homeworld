@@ -16,7 +16,7 @@ terraform {
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "3.4.0"
+      version = "3.5.0"
     }
   }
 }
@@ -32,7 +32,7 @@ locals {
   namespace = "coder-workspaces"
   # The agents VM's toolset on Debian (apps/coder/image), built by
   # .github/workflows/coder-workspace-image.yaml.
-  image = "ghcr.io/gjpin/homeworld/coder-workspace:20261102.21"
+  image = "ghcr.io/gjpin/homeworld/coder-workspace:20261103.27"
   home  = "/home/coder"
 
   labels = {
