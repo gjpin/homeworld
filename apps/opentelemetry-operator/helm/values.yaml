@@ -6,10 +6,14 @@ manager:
     # The tag follows the chart appVersion, which is pinned by the
     # kustomization's chart version (Renovate-tracked).
     repository: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator
-  # The collector and Target Allocator images are not pinned here on
-  # purpose: the chart passes both to the operator (--collector-image,
+  # The collector and Target Allocator tags are not pinned here on purpose:
+  # the chart passes both to the operator (--collector-image,
   # --target-allocator-image) at its appVersion, released in lockstep with
-  # the operator.
+  # the operator, which upstream recommends for the collector it manages.
+  # The pod collector (apps/otel-collector/1_collector.yaml) needs the
+  # contrib distribution, so it is the default here instead of the k8s one.
+  collectorImage:
+    repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib
   deploymentAnnotations:
     ignore-check.kube-linter.io/liveness-port: The upstream chart probes the manager's health endpoint on undeclared port 8081 instead of a declared containerPort.
     ignore-check.kube-linter.io/no-read-only-root-fs: The pinned upstream operator image writes to its root filesystem; overriding it would break runtime file access.
