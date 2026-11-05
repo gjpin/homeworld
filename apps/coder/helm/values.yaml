@@ -1,8 +1,7 @@
 coder:
   image:
     repo: ghcr.io/coder/coder
-    tag: v2.38.5
-    pullPolicy: IfNotPresent
+    tag: v2.39.0
 
   # The access URL is set explicitly below; the chart's in-cluster fallback
   # (http://coder.coder.svc.cluster.local) would hand workspaces and OIDC an
@@ -64,9 +63,9 @@ coder:
     # bundled OpenID icon is used instead.
     - name: CODER_OIDC_SIGN_IN_TEXT
       value: "Sign in with Authelia"
-    # Authelia is the only sign-in method. Owners can still use a password
-    # (Coder never locks them out), and `coder server create-admin` recovers
-    # a lost owner account directly in the database.
+    # Authelia is the only sign-in method: this also blocks password sign-in
+    # and resets for owners. Recovering a lost owner account needs this
+    # switched off first (docs/coder.md, "Sign-in").
     - name: CODER_DISABLE_PASSWORD_AUTH
       value: "true"
     # Coder-managed GitHub OAuth apps: a GitHub login button and a GitHub
