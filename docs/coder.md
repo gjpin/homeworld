@@ -25,9 +25,11 @@ role sync is a Premium feature, so groups only gate access. The first user to
 sign in becomes the deployment **Owner**, and later users join as members.
 Roles are assigned under **Admin settings → Users**.
 
-Password sign-in is disabled. Coder still accepts an Owner's password so the
-deployment cannot be locked out. A lost Owner account is recovered directly
-in the database:
+Password sign-in and resets are disabled for every user, Owners included. If
+no Owner can sign in through Authelia, set `CODER_DISABLE_PASSWORD_AUTH` to
+`false` in `apps/coder/helm/values.yaml` and let the Pod restart, create an
+admin in the database, sign in with its password, and then restore the
+setting:
 
 ```bash
 kubectl -n coder exec -it deploy/coder -- /opt/coder server create-admin-user
