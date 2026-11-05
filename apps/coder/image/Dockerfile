@@ -8,7 +8,7 @@
 # toolchains, cloud CLIs, and coding agents from mise (mise.toml). Everything
 # installs as root and is read-only to the workspace user, so nothing updates
 # itself.
-FROM docker.io/library/debian:trixie-20261027
+FROM docker.io/library/debian:trixie-20261104
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -33,12 +33,12 @@ RUN apt-get update \
 # linux/amd64 only; the arm64 hashes keep local builds on arm64 machines
 # working.
 ARG TARGETARCH
-ARG MISE_VERSION=2026.10.25
-ARG MISE_SHA256_AMD64=5d362ecc578dc7c146679b841dda949d6472cbf86ff5635db7afdca1b6b3fd87
-ARG MISE_SHA256_ARM64=bb09e88b13164ca90691a5cc042726d079f0ba26ab55527344cb173c2e83c998
-ARG RUSTUP_VERSION=1.29.2
-ARG RUSTUP_SHA256_AMD64=5be191e8c70a5007074254cb74d78dbfdd25cd5a61c27de7b8e5410122ec24f4
-ARG RUSTUP_SHA256_ARM64=a9c168dbea81a84671c6b7a5c1795cb0eb699020110d107ddfca427bd797e697
+ARG MISE_VERSION=2026.11.1
+ARG MISE_SHA256_AMD64=7129dbab31d698f9028db9374f7ba7987232b0426f837dcbce437130a61415f9
+ARG MISE_SHA256_ARM64=ed5dc8d5d8b334684409ef7abad2ffe5c22cf8e311905ae906c3246cbe2c5442
+ARG RUSTUP_VERSION=1.29.3
+ARG RUSTUP_SHA256_AMD64=b1c8cb14e30889e7e2999e6b69e62d9e9b9ffc0f4df8180564d306d9680e6c55
+ARG RUSTUP_SHA256_ARM64=9f608c142e0e38a78957d0661ba1dfaf0b6fb37184cfaa4b9a0aa57af6184282
 ARG RUST_VERSION=1.99.1
 
 # Rust: the pinned stable toolchain under a system RUSTUP_HOME, with the

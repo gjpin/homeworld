@@ -17,7 +17,7 @@ uv = "0.13.7"
 
 # CLIs that Debian ships under other names (fdfind, batcat), only in older
 # releases, or not at all.
-fd = "10.5.0"
+fd = "10.5.1"
 bat = "0.26.1"
 yq = "4.54.1"
 tree-sitter = "0.27.1"
@@ -30,16 +30,16 @@ kubectl = "1.37.2"
 helm = "4.3.1"
 kustomize = "5.8.3"
 terraform = "1.17.1"
-opentofu = "1.13.2"
-infisical = "0.44.13"
+opentofu = "1.13.8"
+infisical = "0.44.15"
 
 # Coding agents.
-claude = "2.1.317"
+claude = "2.1.318"
 codex = "0.163.0"
 opencode = "2.2.5"
 copilot = "1.0.105"
 pi = "1.5.0"
-antigravity-cli = "1.4.12"
+antigravity-cli = "1.5.1"
 
 # Browser automation; the Dockerfile installs Playwright's Chromium.
 "npm:@playwright/test" = "1.64.1"
