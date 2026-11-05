@@ -3,7 +3,8 @@ Velero creates a whole-cluster backup every day at 22:00 Europe/Lisbon, clear
 of the nightly k3s-upgrade and reboot windows
 ([upgrades.md](upgrades.md#6-platform-upgrades-k3s-fedora-host-components-agents-vm)). The B2
 backup location is `https://s3.eu-central-003.backblazeb2.com`, storing data in
-`homeworld-velero` under the `velero` prefix. Backups expire after 30 days, retaining
+`homeworld-velero` under the `velero` prefix, with `checksumAlgorithm: ""` as the
+AWS plugin's README requires for B2. Backups expire after 30 days, retaining
 30 daily restore points. The `velero` namespace itself is excluded from the
 schedule — the Velero/B2 configuration is fully declarative and restores from
 git plus Infisical, so backing up the backup operator adds nothing.
