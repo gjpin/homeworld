@@ -708,7 +708,7 @@ for component in "${components[@]}"; do
       if [[ "$added" -gt 0 || "$removed" -gt 0 ]]; then
         echo "Added/removed resources:"
         echo
-        diff -rq "$rdir/resources/base" "$rdir/resources/head" 2>/dev/null | grep '^Only in' |
+        { diff -rq "$rdir/resources/base" "$rdir/resources/head" 2>/dev/null || true; } | grep '^Only in' |
           sed "s|^Only in $rdir/resources/base: |- removed |; s|^Only in $rdir/resources/head: |- added |; s|\.yml$||" | capped 40
         echo
       fi
