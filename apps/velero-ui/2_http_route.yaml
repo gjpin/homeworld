@@ -15,7 +15,17 @@ spec:
   hostnames:
     - "velero.base-domain.invalid"
   rules:
-    - backendRefs:
+    # The UI's sidebar polls api.github.com for new Velero and velero-ui
+    # releases from the browser, and has no switch for it (AGENTS.md
+    # upgrade-checker rule). Its frontend only talks to its own origin
+    # (/api and socket.io), so connect-src 'self' blocks just the checker.
+    - filters:
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            add:
+              - name: Content-Security-Policy
+                value: "connect-src 'self'"
+      backendRefs:
       - name: velero-ui
         namespace: velero-ui
         kind: Service
