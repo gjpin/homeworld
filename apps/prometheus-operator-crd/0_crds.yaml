@@ -29,5 +29,5 @@ spec:
       - ServerSideApply=true
   source:
     repoURL: https://github.com/prometheus-operator/prometheus-operator.git
-    targetRevision: v0.95.0
+    targetRevision: v0.95.1
     path: example/prometheus-operator-crd-full
