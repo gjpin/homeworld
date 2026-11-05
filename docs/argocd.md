@@ -191,6 +191,21 @@ and `Degraded` when the snapshot fails (failing the sync); "MariaDB not
 found"/"not ready" report `Healthy` so the first sync and repair syncs are
 not wedged; scheduled backups stay `Healthy` between runs.
 
+Argo CD's bundled health checks also make three kinds wave barriers here,
+each held `Progressing` until its controller reports status:
+
+- CNPG `Database`: `Healthy` once the operator has applied the current
+  generation, so an extension the image lacks holds the component's later
+  waves.
+- Envoy Gateway `SecurityPolicy`: `Healthy` once accepted on the Gateway and
+  `Degraded` when rejected, such as with a missing client secret. Every gateway
+  OIDC policy therefore sets `authorizationEndpoint` and `tokenEndpoint`
+  explicitly. Without them Envoy Gateway fetches the issuer's discovery
+  document, and Authelia installs in a later root wave than the policies of
+  `envoy-gateway`, `longhorn`, and `victoria-metrics`, so the policy would be
+  rejected and the root waves would stall ahead of it.
+- Velero `Schedule`: `Healthy` once enabled, `Degraded` on failed validation.
+
 ## Universal Server-Side Apply
 
 Every Argo CD `Application` resource in this repository—both root applications in `apps/app-of-apps.yaml` and child applications in `apps/<component>/`—enables Server-Side Apply by default:
@@ -204,6 +219,7 @@ syncPolicy:
 ### Rationale & CRD Upgrades
 - **256 KB Annotation Limit:** Standard client-side apply serializes the full resource configuration into the `kubectl.kubernetes.io/last-applied-configuration` annotation. Modern Custom Resource Definitions (CRDs)—such as Prometheus Operator, Gateway API, Cert-Manager, and CloudNativePG—regularly exceed the 256 KB annotation size ceiling, causing client-side apply sync operations to fail.
 - **CRD and Schema Evolution:** Server-Side Apply offloads merge calculation and field ownership to the Kubernetes API server (`fieldManager: argocd`). This enables declarative CRD upgrades and schema changes without requiring manual kubectl intervention.
+- **Server-Side Diff:** `ServerSideApply=true` also selects Server-Side Diff for the Application: the controller dry-runs a Server-Side Apply against the API server for every resource that already exists (a resource not yet created gets a plain diff with no API call, so a missing CRD does not fail it). A dry-run the API server or a validating webhook rejects, such as a change to an immutable field, raises a `ComparisonError` on the whole Application instead of only failing at sync.
 - **Universal Uniformity:** Enforcing SSA globally prevents future CRD additions from failing silently or encountering annotation overflow.
 
 ## CRD Lifecycle and Upgrade Management
