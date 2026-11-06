@@ -44,7 +44,7 @@ flowchart TB
 
   subgraph pixel["Pixel · VLAN 1 · 192.168.8.0/24 · gateway .1<br/>Wi-Fi 'Pixel' (5 GHz) · untagged on lan1–lan5"]
     sw["TP-Link<br/>TL-SG108E switch<br/>192.168.8.2<br/>uplink on lan2–lan5"]
-    subgraph ryzen["ryzen 192.168.8.10<br/>k3s server · Ryzen 7 3700X"]
+    subgraph ryzen["ryzen 192.168.8.10<br/>k3s server · Ryzen 7 3700X<br/>Radeon RX 560 4 GB"]
       vm["Agents VM<br/>10.20.0.10<br/>virbr-agents 10.20.0.0/24<br/>gateway 10.20.0.1"]
     end
     corebox["corebox<br/>192.168.8.11<br/>k3s server<br/>Intel iGPU (Jellyfin)"]
