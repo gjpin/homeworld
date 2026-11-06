@@ -188,6 +188,16 @@
       "groupName": "audiomuse-ai"
     },
     {
+      "description": "Codex in the Coder workspace mise.toml: openai/codex tags its releases rust-v<version>, which the mise manager's default ^v? extraction cannot parse",
+      "matchManagers": [
+        "mise"
+      ],
+      "matchDepNames": [
+        "codex"
+      ],
+      "extractVersion": "^rust-v(?<version>.+)$"
+    },
+    {
       "description": "Refresh the mise and rustup-init sha256 hashes in the Coder workspace image on version bumps",
       "matchPackageNames": [
         "jdx/mise",
