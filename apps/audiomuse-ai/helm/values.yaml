@@ -2,8 +2,6 @@
 # https://github.com/NeptuneHub/AudioMuse-AI/blob/main/docs/DEPLOYMENT.md
 fullnameOverride: audiomuse-ai
 
-timezone: UTC
-
 image:
   repository: ghcr.io/neptunehub/audiomuse-ai
   pullPolicy: IfNotPresent
@@ -69,7 +67,6 @@ postgres:
   enabled: false
   external:
     host: audiomuse-ai-rw.audiomuse-ai.svc.cluster.local
-    port: 5432
   existingSecret: audiomuse-ai-postgres
 
 # The image sets no USER; it runs as an arbitrary non-root user (the image
