@@ -1,11 +1,12 @@
 ---
 name: upgrade
-description: Review, fix, and merge Renovate dependency PRs end to end — compare the old and new charts, read every chart and application release note in range, adapt Helm values and application config to the target version, enforce the repository conventions, take a pre-merge Velero backup for stateful apps, then merge once CI passes. Use when asked to upgrade, update, or process Renovate PRs.
-argument-hint: "[PR#… | component… | all] [--allow-jumps] [--no-cluster] [--dry-run]"
-disable-model-invocation: true
+description: Review, fix, and merge Renovate dependency PRs end to end — compare the old and new charts, read every chart and application release note in range, adapt Helm values and application config to the target version, enforce the repository conventions, take a pre-merge Velero backup for stateful apps, then merge once CI passes. Run only when the user explicitly invokes it (it pushes and merges); never activate it on your own.
+compatibility: Needs git, gh (authenticated), yq, jq, kubectl, helm, crane and timeout, network access to GitHub and the chart and image registries, and a homeworld checkout on main.
+metadata:
+  arguments: "[PR#… | component… | all] [--allow-jumps] [--no-cluster] [--dry-run]"
 ---
 
-# /upgrade
+# upgrade
 
 Works open Renovate PRs from review to merge. Renovate finds the versions
 and runs CI; this skill does the part a human reviewer would: release notes,
@@ -49,7 +50,8 @@ Never force-push, never push PR work to `main`, never merge with failing CI.
 
 - Require a clean working tree on `main`; `git pull --ff-only`.
 - `gh auth status` must pass. Tools: `yq jq kubectl helm crane gh timeout`.
-- Work directory: a fresh directory under your scratchpad (or `mktemp -d`).
+- Work directory: a fresh temporary directory outside the repository
+  (`mktemp -d`); reports and reviewer worktrees go there.
 
 ### 2. Collect the work
 
@@ -128,11 +130,16 @@ If every check holds, the PR goes straight to step 4 with no commit. If
 any check fails, or you are unsure, send it to a full reviewer like any
 other PR. Fast-path PRs can start merging while the full reviews run.
 
-Dispatch one subagent for each remaining PR, all in one message so they run in
-parallel. Give each `isolation: "worktree"` and the prompt in
-[Reviewer prompt](#reviewer-prompt). Fill in the PR number, branch, report
-directory, the flags, and the stepping constraint for that component from
-docs/upgrades.md §4.
+Review each remaining PR with the prompt in
+[Reviewer prompt](#reviewer-prompt), filled in with the PR number, branch,
+report directory, the flags, and the stepping constraint for that component
+from docs/upgrades.md §4. Each review runs in its own git worktree under the
+work directory (`git worktree add --detach <work>/wt-<N> origin/<branch>`),
+never in the main checkout. When your agent can run sub-agents, give each
+review to its own sub-agent and run them in parallel; otherwise work through
+them one at a time yourself. Remove each worktree (`git worktree remove`)
+once its PR is merged, blocked or closed, and `git worktree prune` at the
+end.
 
 ### 4. Merge (sequential)
 
@@ -151,14 +158,14 @@ Process the PRs in the order from step 2. For each:
 3. **Live gates** (skipped with `--no-cluster`):
    - Stateful component (`stateful_namespaces` in the report's
      `summary.json` is non-empty): run
-     `scripts/pre-upgrade-backup.sh <namespace>...` in the background
-     (`run_in_background`) and wait for it. Exit 0: continue. Exit 1: block
+     `scripts/pre-upgrade-backup.sh <namespace>...` and wait for it
+     (it can take minutes; run it in the background if your agent can). Exit 0: continue. Exit 1: block
      (backup failed). Exit 3: block (cluster unreachable without
      `--no-cluster`).
    - Cilium minor bump: run `scripts/cilium-preflight.sh <target>` in the
      background. Non-zero: block and paste the cnp-validator logs into a PR
      comment.
-4. **CI.** `gh pr checks <N> --watch --fail-fast` (in the background). On a
+4. **CI.** `gh pr checks <N> --watch --fail-fast` (it blocks until CI finishes). On a
    failure, read `gh run view <run> --log-failed`, fix it on the branch, push,
    and wait again; after two failed fix attempts, block.
 5. **Merge.** `gh pr merge <N> --merge --delete-branch`, then
@@ -186,7 +193,7 @@ with the exact action the user needs to take.
 
 ## Reviewer prompt
 
-Use this prompt for each subagent, filled in:
+Use this prompt for each review, filled in:
 
 ```
 You are upgrading one component of the homeworld repository (a Kubernetes
@@ -270,8 +277,7 @@ Do all of the following:
 8. Commit and push (skip with --dry-run). One commit, conventional style
    scoped to the component (e.g. "fix(forgejo): adapt values to chart 18"),
    whose body lists each change with the release note or doc that requires
-   it. End the message with:
-     Co-Authored-By: Claude <noreply@anthropic.com>
+   it. End the message with your agent's co-author trailer, if it uses one.
    Push to <branch> only. Never force-push, never push to main.
 
 Do not touch the cluster (no kubectl apply/create/delete), do not merge or

@@ -392,7 +392,9 @@ range, with lines mentioning breaking changes, deprecations, or removals
 extracted. With `--all` and `--base` equal to `--head`, it audits the
 current state of every component instead.
 
-The `/upgrade` Claude Code skill (`.claude/skills/upgrade/SKILL.md`) works
+The `upgrade` agent skill (`.agents/skills/upgrade/SKILL.md`, in the
+[Agent Skills](https://agentskills.io/specification) format; `.claude/skills`
+links to it for Claude Code) works
 open Renovate PRs end to end on top of the report: one reviewer per PR reads
 the release notes and the target version's configuration reference, adapts
 values, patches, and application configuration, fixes convention
