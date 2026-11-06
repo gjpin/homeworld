@@ -84,10 +84,12 @@ spec:
         # leaves an existing configuration.yaml untouched, and with the
         # file present it also never creates the automations.yaml,
         # scripts.yaml, and scenes.yaml files that its own default
-        # template includes, so all four are seeded here. Every write is
-        # create-if-missing so the seed happens once and the PVC stays
-        # user-owned state afterwards; later git changes to the seeded
-        # configuration must be applied by editing the files directly.
+        # template includes, so all four are seeded here, together with
+        # the HTTP server's reverse-proxy settings (.storage/http). Every
+        # write is create-if-missing so the seed happens once and the PVC
+        # stays user-owned state afterwards; later git changes to the
+        # seeded configuration must be applied by editing the files
+        # directly (or, for .storage/http, in the UI).
         - name: homeassistant-config-bootstrap
           image: docker.io/library/alpine:3.24.3
           imagePullPolicy: IfNotPresent
@@ -108,16 +110,6 @@ spec:
               # features. allow-homeassistant-world (-2_network_policy.yaml)
               # lets them reach the internet.
               default_config:
-
-              # Reverse proxy: Envoy terminates TLS, so trust its forwarded
-              # headers (Envoy's pod IP lives in the k3s default pod CIDR;
-              # the Cilium policies exclude the cluster CIDRs — see
-              # -2_network_policy.yaml and docs/k3s.md) and generate
-              # https callback URLs for the OIDC flow.
-              http:
-                use_x_forwarded_for: true
-                trusted_proxies:
-                  - 10.42.0.0/16
 
               # Metrics endpoint for the ServiceMonitor. requires_auth is
               # disabled because the tokenless OTel collector is the only
@@ -155,6 +147,44 @@ spec:
               [ -f /config/automations.yaml ] || printf '[]\n' > /config/automations.yaml
               [ -f /config/scripts.yaml ] || : > /config/scripts.yaml
               [ -f /config/scenes.yaml ] || : > /config/scenes.yaml
+              # Reverse proxy: Envoy terminates TLS, so trust its forwarded
+              # headers (Envoy's pod IP lives in the k3s default pod CIDR;
+              # the Cilium policies exclude the cluster CIDRs — see
+              # -2_network_policy.yaml and docs/k3s.md) and generate https
+              # callback URLs for the OIDC flow. Home Assistant keeps its
+              # HTTP server settings in .storage/http (Settings > System >
+              # Network > HTTP server), not configuration.yaml: an http:
+              # YAML block would be imported as a trial that reverts to the
+              # proxy-less defaults unless an admin confirms it within five
+              # minutes. The seed is the confirmed (stable) config in the
+              # store's current format, with the YAML import marked done;
+              # Home Assistant migrates the file forward on later releases.
+              mkdir -p /config/.storage
+              [ -f /config/.storage/http ] || (umask 077; cat > /config/.storage/http <<'JSON'
+              {
+                "version": 3,
+                "minor_version": 1,
+                "key": "http",
+                "data": {
+                  "stable": {
+                    "server_port": 8123,
+                    "cors_allowed_origins": ["https://cast.home-assistant.io"],
+                    "use_x_forwarded_for": true,
+                    "trusted_proxies": ["10.42.0.0/16"],
+                    "login_attempts_threshold": -1,
+                    "ip_ban_enabled": true,
+                    "ssl_profile": "intermediate_v6",
+                    "use_x_frame_options": true,
+                    "created_at": "2026-11-06T00:00:00+00:00",
+                    "error": null,
+                    "error_message": null
+                  },
+                  "pending": null,
+                  "yaml_migration_done": true
+                }
+              }
+              JSON
+              )
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
