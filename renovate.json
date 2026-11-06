@@ -41,6 +41,15 @@
       ]
     },
     {
+      "description": "Home Assistant: the seeded .storage/http must follow the HTTP store format",
+      "matchPackageNames": [
+        "ghcr.io/home-assistant/home-assistant"
+      ],
+      "prBodyNotes": [
+        "⚠️ **Home Assistant Upgrade**: Read the backward-incompatible changes of every release crossed. The bootstrap init container seeds `.storage/http` in the HTTP store's format: when `homeassistant/components/http/config.py` changes its storage version or schema, update the seed in this PR (see [docs/upgrades.md](docs/upgrades.md#9-upstream-upgrade-procedures))."
+      ]
+    },
+    {
       "description": "Immich: one PR per major with a breaking-change review reminder",
       "matchPackageNames": [
         "ghcr.io/immich-app/immich-charts/immich",
