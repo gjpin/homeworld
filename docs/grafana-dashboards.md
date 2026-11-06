@@ -81,7 +81,6 @@ dashboard's JSON `description` cites its provenance.
 | CloudNativePG | CloudNativePG | official: cloudnative-pg/grafana-dashboards repo |
 | Coder | Coder Control Plane, Coder Provisioners, Coder Workspaces, Coder Workspace Detail, DERP | official: coder/observability repo `coder-observability/templates/dashboards/`, rendered with this deployment's namespaces (`coder`, `coder-workspaces`); metric panels unchanged (its cAdvisor `container_*` panels stay empty — the cluster collects container usage via kubeletstats), LogQL panels rewritten to LogsQL on the `victorialogs` datasource because the OTLP log pipeline carries `k8s.*` attributes instead of Alloy's `namespace`/`pod`/`logger` labels. Its Prebuilds and Agent Boundaries dashboards cover Premium features, and Status monitors the observability chart's own stack, so they are not imported |
 | Collabora | Collabora Online / HA - Allocation, Collabora-Online / Overview | official: chart-bundled `grafana_dashboards/`; three stale upstream target datasource uids normalized |
-| Dragonfly Operator | Dragonfly Dashboard | official: dragonflydb/dragonfly-operator repo `monitoring/grafana-dashboard.json` (linked from dragonflydb.io docs); `__inputs` converted to a datasource variable |
 | Envoy Gateway | Envoy Gateway Global, Envoy Clusters, Envoy Global, Global Ratelimit, Resources Monitor | official: envoyproxy/gateway repo `charts/gateway-addons-helm/dashboards/`; upstream's stale target-level datasource uids normalized to the panels' `$datasource` variable |
 | ExternalDNS | ExternalDNS | custom (official Available Metrics docs; the project publishes no dashboard) |
 | External Secrets | External Secrets Operator | official: chart-bundled monitoring dashboard; `service=~` matchers rewritten to `namespace` |
@@ -114,6 +113,7 @@ dashboard's JSON `description` cites its provenance.
 | Snapshot Controller | Snapshot Controller | custom (kubernetes-csi external-snapshotter; controller-runtime `workqueue_*`/`rest_client_*`/`go_*`/`process_*` families; upstream ships no dashboard) |
 | Sonarr | Sonarr | official: the exportarr project's bundled dashboard (onedr0p/exportarr `examples/grafana/dashboard2.json`, the Sonarr row), split per app like the qBittorrent exporter's; `__inputs` converted to a datasource variable, instance matchers scoped to the `sonarr` namespace, cAdvisor `container_*` panels dropped (not collected here) |
 | Unpackerr | Unpackerr | custom (unpackerr `pkg/unpackerr/metrics.go`: `unpackerr_gauges`, `unpackerr_counters`, `unpackerr_app_queue_*`, `unpackerr_bytes_written_total`, `unpackerr_files_extracted_total`, `unpackerr_archives_read_total`, `unpackerr_extract_time_seconds`, plus go_/process_; the project publishes no dashboard) |
+| Valkey | Redis Dashboard for Prometheus Redis Exporter 1.x | official: oliver006/redis_exporter `contrib/grafana_prometheus_redis_dashboard.json` at the exporter version the Valkey chart runs (the Valkey project publishes no exporter dashboard); datasource variable defaulted to `prometheus`. One folder for every app's instance, selected by its `namespace` variable |
 | Velero | Velero Backups | custom (velero `pkg/metrics/metrics.go`; the project publishes no dashboard — the grafana.com ones are third-party) |
 | VictoriaMetrics | VictoriaMetrics - single-node (VM), VictoriaLogs - single-node (VM), VictoriaTraces - single-node, VictoriaMetrics - vmalert | official: VictoriaMetrics repo `dashboards/vm/` variants for VM and VictoriaLogs, grafana.com 24136 (VictoriaMetrics org) for VictoriaTraces; the VictoriaLogs `__inputs` convention converted to a datasource variable; vmalert from the same repo's `dashboards/vmalert.json` |
 | Woodpecker | Woodpecker CI | custom (woodpecker `server/metric/metrics_server.go`; no official dashboard; step-level metrics are not enabled in this deployment) |
@@ -135,8 +135,8 @@ shared CloudNativePG instance metrics (`vaultwarden`, `homeassistant` and the
 other CNPG-backed apps) are covered by the CloudNativePG folder's dashboards
 and the per-cluster 60s PodMonitors rather than a folder of their own.
 `supernote` exposes no application metrics either: its MariaDB instance
-(operator-generated mysqld-exporter ServiceMonitor) and Dragonfly cache
-(60s PodMonitor) are covered by the MariaDB Operator and Dragonfly Operator
+(operator-generated mysqld-exporter ServiceMonitor) and Valkey cache (the
+chart's 60s ServiceMonitor) are covered by the MariaDB Operator and Valkey
 folders.
 
 ## Adding a dashboard

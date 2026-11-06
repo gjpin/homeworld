@@ -346,7 +346,7 @@ seed_secrets() {
     '      - immich-admin' \
     '      - consoleAdmin')
 
-  put_secret "${token}" "${project_id}" "/argocd/DRAGONFLY_PASSWORD" "e2e-argocd-dragonfly"
+  put_secret "${token}" "${project_id}" "/argocd/VALKEY_PASSWORD" "e2e-argocd-valkey"
   put_secret "${token}" "${project_id}" "/argocd/BASE_DOMAIN" "${BASE_DOMAIN:-homeworld.test}"
   put_secret "${token}" "${project_id}" "/grafana/GF_SECURITY_ADMIN_USER" "admin"
   put_secret "${token}" "${project_id}" "/grafana/GF_SECURITY_ADMIN_PASSWORD" "e2e-grafana"
@@ -356,7 +356,7 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/homepage/IMMICH_API_KEY" "e2e-homepage-immich"
   put_secret "${token}" "${project_id}" "/authelia/POSTGRES_USERNAME" "authelia"
   put_secret "${token}" "${project_id}" "/authelia/POSTGRES_PASSWORD" "e2e-authelia-db"
-  put_secret "${token}" "${project_id}" "/authelia/DRAGONFLY_PASSWORD" "e2e-authelia-dragonfly"
+  put_secret "${token}" "${project_id}" "/authelia/VALKEY_PASSWORD" "e2e-authelia-valkey"
   put_secret "${token}" "${project_id}" "/authelia/RESET_PASSWORD_JWT_SECRET" "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
   put_secret "${token}" "${project_id}" "/authelia/SESSION_SECRET" "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
   put_secret "${token}" "${project_id}" "/authelia/STORAGE_ENCRYPTION_KEY" "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
@@ -389,7 +389,7 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/cloudflare/API_TOKEN" "e2e-cloudflare-token"
   put_secret "${token}" "${project_id}" "/immich/POSTGRES_USERNAME" "immich"
   put_secret "${token}" "${project_id}" "/immich/POSTGRES_PASSWORD" "e2e-immich-db"
-  put_secret "${token}" "${project_id}" "/immich/DRAGONFLY_PASSWORD" "e2e-immich-redis"
+  put_secret "${token}" "${project_id}" "/immich/VALKEY_PASSWORD" "e2e-immich-redis"
   put_secret "${token}" "${project_id}" "/forgejo/POSTGRES_USERNAME" "forgejo"
   put_secret "${token}" "${project_id}" "/forgejo/POSTGRES_PASSWORD" "e2e-forgejo-db"
   put_secret "${token}" "${project_id}" "/rustfs/RUSTFS_ACCESS_KEY" "e2eaccesskey"
@@ -446,7 +446,7 @@ seed_secrets() {
   put_secret "${token}" "${project_id}" "/affine/PRIVATE_KEY" "${affine_key}"
   put_secret "${token}" "${project_id}" "/affine/POSTGRES_USERNAME" "affine"
   put_secret "${token}" "${project_id}" "/affine/POSTGRES_PASSWORD" "e2e-affine-db"
-  put_secret "${token}" "${project_id}" "/affine/DRAGONFLY_PASSWORD" "e2e-affine-dragonfly"
+  put_secret "${token}" "${project_id}" "/affine/VALKEY_PASSWORD" "e2e-affine-valkey"
   put_secret "${token}" "${project_id}" "/affine/RUSTFS_ACCESS_KEY" "e2eaccesskey-affine"
   put_secret "${token}" "${project_id}" "/affine/RUSTFS_SECRET_KEY" "e2esecretkey-affine"
   put_secret "${token}" "${project_id}" "/affine/EXA_API_KEY" "e2e-affine-exa"

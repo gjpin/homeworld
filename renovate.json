@@ -398,6 +398,16 @@
       "groupName": "victoria-metrics"
     },
     {
+      "description": "Group the per-app Valkey chart releases (apps/*/helm/valkey) into one PR so every instance runs the same chart",
+      "matchDatasources": [
+        "helm"
+      ],
+      "matchPackageNames": [
+        "valkey"
+      ],
+      "groupName": "valkey"
+    },
+    {
       "description": "Group the agents VM tool pins: one PR rebuilds the VM root once in the nightly window",
       "matchFileNames": [
         "host/agents-vm/versions.env"
@@ -702,22 +712,6 @@
       "datasourceTemplate": "helm",
       "versioningTemplate": "helm",
       "registryUrlTemplate": "https://kubernetes-sigs.github.io/metrics-server"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Dragonfly operand images (argocd, authelia, immich, supernote)",
-      "managerFilePatterns": [
-        "/^apps/argocd/0_dragonfly\\.yaml$/",
-        "/^apps/authelia/0_dragonfly\\.yaml$/",
-        "/^apps/immich/0_dragonfly\\.yaml$/",
-        "/^apps/supernote/0_dragonfly\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?m)^\\s*image:\\s*(?<depName>docker\\.dragonflydb\\.io/dragonflydb/dragonfly):(?<currentValue>[^\\s#]+)\\s*$"
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
-      "registryUrlTemplate": "https://docker.dragonflydb.io"
     },
     {
       "customType": "regex",

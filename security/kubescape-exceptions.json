@@ -102,13 +102,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^ClusterRoleBinding$",
-          "name": "^dragonfly-operator-manager-clusterrolebinding$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^ClusterRoleBinding$",
           "name": "^external-secrets-controller$"
         }
       },
@@ -315,6 +308,86 @@
           "name": "^coder$",
           "namespace": "^coder$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ConfigMap$",
+          "name": "^valkey-config$",
+          "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ConfigMap$",
+          "name": "^valkey-config$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^authelia$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ConfigMap$",
+          "name": "^valkey-config$",
+          "namespace": "^authelia$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ConfigMap$",
+          "name": "^valkey-config$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ConfigMap$",
+          "name": "^valkey-config$",
+          "namespace": "^supernote$"
+        }
       }
     ],
     "posturePolicies": [
@@ -416,14 +489,6 @@
           "kind": "^Deployment$",
           "name": "^cert-manager-webhook$",
           "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^dragonfly-operator$",
-          "namespace": "^dragonfly-operator$"
         }
       },
       {
@@ -1072,14 +1137,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^dragonfly-operator$",
-          "namespace": "^dragonfly-operator$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^envoy-gateway$",
           "namespace": "^envoy-gateway$"
         }
@@ -1366,14 +1423,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^dragonfly-operator$",
-          "namespace": "^dragonfly-operator$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^external-secrets$",
           "namespace": "^external-secrets$"
         }
@@ -1606,14 +1655,6 @@
           "kind": "^Deployment$",
           "name": "^cloudnative-pg$",
           "namespace": "^cloudnative-pg$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^dragonfly-operator$",
-          "namespace": "^dragonfly-operator$"
         }
       },
       {
@@ -2015,6 +2056,46 @@
           "name": "^system-upgrade-controller$",
           "namespace": "^system-upgrade$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^authelia$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^supernote$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2183,14 +2264,6 @@
           "kind": "^Deployment$",
           "name": "^cloudnative-pg$",
           "namespace": "^cloudnative-pg$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^dragonfly-operator$",
-          "namespace": "^dragonfly-operator$"
         }
       },
       {
@@ -2595,14 +2668,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^RoleBinding$",
-          "name": "^dragonfly-operator-leader-election-rolebinding$",
-          "namespace": "^dragonfly-operator$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
           "name": "^envoy-gateway-gateway-helm-infra-manager$",
           "namespace": "^envoy-gateway$"
         }
@@ -2636,13 +2701,6 @@
         "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^documentdb-operator-cluster-rolebinding$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^ClusterRoleBinding$",
-          "name": "^dragonfly-operator-manager-clusterrolebinding$"
         }
       },
       {
@@ -3096,13 +3154,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^ClusterRoleBinding$",
-          "name": "^dragonfly-operator-manager-clusterrolebinding$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^ClusterRoleBinding$",
           "name": "^envoy-gateway-gateway-helm-certgen:envoy-gateway$"
         }
       },
@@ -3223,14 +3274,6 @@
           "kind": "^RoleBinding$",
           "name": "^cert-manager-webhook:dynamic-serving$",
           "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
-          "name": "^dragonfly-operator-leader-election-rolebinding$",
-          "namespace": "^dragonfly-operator$"
         }
       },
       {
@@ -3616,14 +3659,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^dragonfly-operator$",
-          "namespace": "^dragonfly-operator$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^forgejo$",
           "namespace": "^forgejo$"
         }
@@ -3760,14 +3795,6 @@
           "kind": "^Deployment$",
           "name": "^cert-manager-cainjector$",
           "namespace": "^cert-manager$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^dragonfly-operator$",
-          "namespace": "^dragonfly-operator$"
         }
       },
       {
@@ -4487,6 +4514,46 @@
           "name": "^system-upgrade-controller$",
           "namespace": "^system-upgrade$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^authelia$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^supernote$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4888,13 +4955,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^ClusterRoleBinding$",
-          "name": "^dragonfly-operator-manager-clusterrolebinding$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^ClusterRoleBinding$",
           "name": "^rustfs-operator$"
         }
       },
@@ -5089,14 +5149,6 @@
           "kind": "^Deployment$",
           "name": "^cloudnative-pg$",
           "namespace": "^cloudnative-pg$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^dragonfly-operator$",
-          "namespace": "^dragonfly-operator$"
         }
       },
       {
@@ -5914,6 +5966,46 @@
           "name": "^audiomuse-ai-worker$",
           "namespace": "^audiomuse-ai$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^authelia$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^supernote$"
+        }
       }
     ],
     "posturePolicies": [
@@ -5959,14 +6051,6 @@
           "kind": "^Deployment$",
           "name": "^velero-ui$",
           "namespace": "^velero-ui$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^dragonfly-operator$",
-          "namespace": "^dragonfly-operator$"
         }
       },
       {
@@ -6195,14 +6279,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^dragonfly-operator$",
-          "namespace": "^dragonfly-operator$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^envoy-gateway$",
           "namespace": "^envoy-gateway$"
         }
@@ -6598,6 +6674,46 @@
           "name": "^system-upgrade-controller$",
           "namespace": "^system-upgrade$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^authelia$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^supernote$"
+        }
       }
     ],
     "posturePolicies": [
@@ -6683,14 +6799,6 @@
           "kind": "^Deployment$",
           "name": "^argocd-argocd-server$",
           "namespace": "^argocd$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^dragonfly-operator$",
-          "namespace": "^dragonfly-operator$"
         }
       },
       {
@@ -7019,6 +7127,46 @@
           "kind": "^Deployment$",
           "name": "^system-upgrade-controller$",
           "namespace": "^system-upgrade$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^authelia$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^supernote$"
         }
       }
     ],
@@ -7222,6 +7370,46 @@
           "name": "^coder$",
           "namespace": "^coder$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^authelia$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^supernote$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7347,14 +7535,6 @@
           "kind": "^Deployment$",
           "name": "^cloudnative-pg$",
           "namespace": "^cloudnative-pg$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^dragonfly-operator$",
-          "namespace": "^dragonfly-operator$"
         }
       },
       {
@@ -7756,6 +7936,46 @@
           "name": "^system-upgrade-controller$",
           "namespace": "^system-upgrade$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^argocd$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^authelia$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^immich$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^valkey$",
+          "namespace": "^supernote$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7857,14 +8077,6 @@
           "kind": "^Deployment$",
           "name": "^cloudnative-pg$",
           "namespace": "^cloudnative-pg$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^dragonfly-operator$",
-          "namespace": "^dragonfly-operator$"
         }
       },
       {
@@ -8183,14 +8395,6 @@
           "kind": "^Deployment$",
           "name": "^cloudnative-pg$",
           "namespace": "^cloudnative-pg$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^dragonfly-operator$",
-          "namespace": "^dragonfly-operator$"
         }
       },
       {

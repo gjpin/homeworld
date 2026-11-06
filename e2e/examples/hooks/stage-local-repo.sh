@@ -141,7 +141,7 @@ commit_and_serve() {
 # not yet reachable through the Docker VM (seen right after a Lima VM
 # restart), wave -1's External Secrets app records a ComparisonError but
 # still reports Healthy, the waves advance, and argocd-app switches the
-# controllers to Dragonfly credentials that External Secrets never
+# controllers to Valkey credentials that External Secrets never
 # created, wedging the run. Wait until the kind node can open the port.
 wait_git_reachable() {
   local node deadline=$((SECONDS + 60))

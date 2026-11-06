@@ -63,7 +63,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-immich-server-dragonfly
+  name: allow-immich-server-valkey
   namespace: immich
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -76,7 +76,7 @@ spec:
   egress:
     - toServices:
         - k8sService:
-            serviceName: dragonfly
+            serviceName: valkey
             namespace: immich
       toPorts:
         - ports:
@@ -186,24 +186,16 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-immich-dragonfly-ingress
+  name: allow-immich-valkey-ingress
   namespace: immich
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/name: dragonfly
+      k8s:app.kubernetes.io/name: valkey
+      k8s:app.kubernetes.io/instance: valkey
   ingress:
-    # The operator's readiness and role checks use the admin port.
-    - fromEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: dragonfly-operator
-            k8s:app.kubernetes.io/name: dragonfly-operator
-      toPorts:
-        - ports:
-            - port: "9999"
-              protocol: TCP
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: immich
@@ -214,7 +206,8 @@ spec:
         - ports:
             - port: "6379"
               protocol: TCP
-    # Operand admin/metrics endpoint (port 9999) scraped by the PodMonitor.
+    # redis_exporter sidecar (port 9121) scraped through the chart's
+    # ServiceMonitor.
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
@@ -223,7 +216,7 @@ spec:
             k8s:app.kubernetes.io/component: opentelemetry-collector
       toPorts:
         - ports:
-            - port: "9999"
+            - port: "9121"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2

@@ -16,7 +16,6 @@ func TestPluralize(t *testing.T) {
 		"Policy":             "policies",
 		"ExternalSecret":     "externalsecrets",
 		"DocumentDB":         "dbs",
-		"Dragonfly":          "dragonflies",
 	}
 	for in, want := range cases {
 		if got := pluralize(in); got != want {
@@ -40,7 +39,7 @@ func TestMatchResourceExternalSecret(t *testing.T) {
 	}
 }
 
-func TestMatchResourceDragonflyPhase(t *testing.T) {
+func TestMatchResourceStatusPhase(t *testing.T) {
 	obj := &unstructured.Unstructured{Object: map[string]interface{}{
 		"status": map[string]interface{}{"phase": "ready"},
 	}}

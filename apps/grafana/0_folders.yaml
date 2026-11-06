@@ -93,17 +93,6 @@ spec:
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
 metadata:
-  name: folder-dragonfly-operator
-  namespace: grafana
-spec:
-  title: Dragonfly Operator
-  instanceSelector:
-    matchLabels:
-      dashboards: grafana
----
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaFolder
-metadata:
   name: folder-envoy-gateway
   namespace: grafana
 spec:
@@ -306,6 +295,17 @@ metadata:
   namespace: grafana
 spec:
   title: RustFS Operator
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: folder-valkey
+  namespace: grafana
+spec:
+  title: Valkey
   instanceSelector:
     matchLabels:
       dashboards: grafana

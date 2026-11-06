@@ -1,0 +1,68 @@
+# Standalone Valkey for AFFiNE's cache, sessions, socket.io adapter and BullMQ
+# job queues (databases 0, 2, 3 and 4). The Valkey and exporter images follow
+# the chart's pins.
+fullnameOverride: valkey
+runtimeClassName: gvisor
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+# The chart's readiness probe is opt-in; the Service only routes to a
+# server that answers PING.
+readinessProbe:
+  enabled: true
+initResources:
+  requests:
+    cpu: 10m
+    memory: 16Mi
+  limits:
+    cpu: 100m
+    memory: 64Mi
+# Every client authenticates as the default user with the password from the
+# valkey ExternalSecret (-1_secrets.yaml).
+auth:
+  enabled: true
+  usersExistingSecret: valkey
+  aclUsers:
+    default:
+      permissions: "~* &* +@all"
+      passwordKey: password
+# In-memory only, with maxmemory below the container limit. BullMQ requires
+# noeviction: an evicted job key corrupts its queue.
+valkeyConfig: |
+  maxmemory 768mb
+  maxmemory-policy noeviction
+  save ""
+  appendonly no
+metrics:
+  enabled: true
+  exporter:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+  serviceMonitor:
+    enabled: true
+    interval: 60s

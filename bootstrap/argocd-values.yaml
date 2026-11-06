@@ -1,7 +1,7 @@
 # Bootstrap-only Argo CD install (host/bootstrap.sh, docs/k3s.md). The chart
 # and version come from apps/argocd/helm/kustomization.yaml. On its first sync the
 # wave-0 argocd-app Application adopts this release with apps/argocd/helm:
-# Redis moves to the in-namespace Dragonfly instance, the ServiceMonitors
+# Redis moves to the in-namespace Valkey instance, the ServiceMonitors
 # (whose CRDs arrive with prometheus-operator-crd) are enabled, and gVisor,
 # OIDC, and RBAC are applied. Never helm upgrade the release afterwards.
 # bootstrap.sh merges the homeworld Config Management Plugin (configs.cmp

@@ -64,10 +64,6 @@ configMapGenerator:
   - name: grafana-dashboard-collabora-overview
     files:
       - json=dashboards/collabora/collabora-overview.json
-  # dragonfly-operator
-  - name: grafana-dashboard-dragonfly-operator
-    files:
-      - json=dashboards/dragonfly-operator/dragonfly-operator.json
   # envoy-gateway
   - name: grafana-dashboard-envoy-gateway-clusters
     files:
@@ -221,6 +217,10 @@ configMapGenerator:
   - name: grafana-dashboard-kured
     files:
       - json=dashboards/kured/kured.json
+  # valkey
+  - name: grafana-dashboard-valkey
+    files:
+      - json=dashboards/valkey/valkey.json
   # velero
   - name: grafana-dashboard-velero
     files:
@@ -255,7 +255,6 @@ resources:
   - 1_dashboards_cloudnative-pg.yaml
   - 1_dashboards_coder.yaml
   - 1_dashboards_collabora.yaml
-  - 1_dashboards_dragonfly-operator.yaml
   - 1_dashboards_envoy-gateway.yaml
   - 1_dashboards_external-dns.yaml
   - 1_dashboards_external-secrets.yaml
@@ -279,6 +278,7 @@ resources:
   - 1_dashboards_rustfs.yaml
   - 1_dashboards_rustfs-operator.yaml
   - 1_dashboards_snapshot-controller.yaml
+  - 1_dashboards_valkey.yaml
   - 1_dashboards_velero.yaml
   - 1_dashboards_victoria-metrics.yaml
   - 1_dashboards_woodpecker.yaml

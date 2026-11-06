@@ -1,19 +1,18 @@
-# https://github.com/dragonflydb/dragonfly-operator
-# https://www.dragonflydb.io/docs/getting-started/kubernetes-operator
-# https://www.dragonflydb.io/docs/getting-started/kubernetes
+# https://github.com/valkey-io/valkey-helm/tree/main/valkey
+# Wave 0 with the other datastores: AFFiNE connects to Valkey at startup.
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: dragonfly-operator
+  name: affine-valkey
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: dragonfly-operator
+    namespace: affine
   syncPolicy:
     automated:
       prune: true
@@ -25,9 +24,10 @@ spec:
     - PrunePropagationPolicy=foreground
     - PruneLast=true
     - ServerSideApply=true
+
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/dragonfly-operator/helm
+    path: apps/affine/helm/valkey
     targetRevision: HEAD
     plugin:
       name: homeworld

@@ -72,54 +72,6 @@ spec:
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.37
 ---
-# dragonfly-operator
-# Wave 0: the argocd application's tracked config points the controllers at
-# the in-namespace Dragonfly instance (externalRedis), so the operator that
-# reconciles that instance must install alongside argocd itself; leaving it
-# in the datastore-operator wave would run Argo CD without its cache backend
-# until wave 4 — and the wave-4 apps could never sync through it. The
-# controllers briefly reconnect while the operand starts (~1 minute), which
-# any Argo CD restart incurs anyway.
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: dragonfly-operator-app
-  namespace: argocd
-  labels:
-    app.kubernetes.io/part-of: homeworld
-  finalizers:
-  - resources-finalizer.argocd.argoproj.io
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/dragonfly-operator"
-    targetRevision: HEAD
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: dragonfly-operator
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-      allowEmpty: false
-    syncOptions:
-    - Validate=true
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
-    - ServerSideApply=true
-    managedNamespaceMetadata:
-      labels:
-        pod-security.kubernetes.io/enforce: restricted
-        pod-security.kubernetes.io/enforce-version: v1.37
-        pod-security.kubernetes.io/audit: restricted
-        pod-security.kubernetes.io/audit-version: v1.37
-        pod-security.kubernetes.io/warn: restricted
-        pod-security.kubernetes.io/warn-version: v1.37
----
 # envoy-gateway
 apiVersion: argoproj.io/v1alpha1
 kind: Application

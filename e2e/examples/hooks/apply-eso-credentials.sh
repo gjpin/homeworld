@@ -39,7 +39,7 @@ EOF
 # only reaches its wave-2 store apply after the ESO conversion webhook is
 # up; on a cold image cache that window is 10-20 minutes during which NO
 # ExternalSecret can sync (the argocd controller's rollout blocks on the
-# dragonfly-credentials secret and the whole deploy freezes behind it).
+# valkey secret and the whole deploy freezes behind it).
 # Seeding the store here lets ESO sync secrets from the first minute; the
 # app's later SSA apply adopts the same object (adds the tracking
 # annotation), so the two paths stay one resource.

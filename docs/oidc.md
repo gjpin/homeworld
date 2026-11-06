@@ -30,7 +30,6 @@ Browser-UI routes without usable app-native auth are authenticated by Envoy Gate
 | argocd | Yes | Authelia. Local admin and Dex are disabled. `argocd-admin` is admin. Authelia's `argocd` authorization policy limits both clients to that group, and Argo CD grants nobody else access (`policy.default` is empty; the Homepage API account is mapped read-only explicitly). CLI SSO login (`argocd login argocd.base-domain.invalid --sso --grpc-web`; there is no separate gRPC hostname) uses the public `argocd-cli` client, which grants the same scopes Argo CD requests for both flows (including `profile`). |
 | cloudnative-pg | No | No user login. |
 | documentdb-operator | No | No user login. |
-| dragonfly-operator | No | No user login. |
 | mariadb-operator | No | No user login. |
 | rustfs-operator | No | The operator uses its service account. The operator console at `rustfs.base-domain.invalid` logs in with a Kubernetes ServiceAccount bearer token; gateway OIDC would layer a redirect on top without removing the token paste, so the route keeps the token login only. User console login belongs to the `rustfs` Tenant. |
 | external-secrets | No | No user login. |

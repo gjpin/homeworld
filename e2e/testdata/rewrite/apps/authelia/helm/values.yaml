@@ -32,7 +32,7 @@ pod:
     - name: AUTHELIA_SESSION_SECRET_FILE
       value: /secrets/authelia-files/session_secret
     - name: AUTHELIA_SESSION_REDIS_PASSWORD_FILE
-      value: /secrets/authelia-files/dragonfly_password
+      value: /secrets/authelia-files/valkey_password
     - name: AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE
       value: /secrets/authelia-files/storage_encryption_key
     - name: AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE
@@ -78,7 +78,7 @@ configMap:
     redis:
       enabled: true
       deploy: false
-      host: dragonfly.authelia.svc.cluster.local
+      host: valkey.authelia.svc.cluster.local
       password:
         disabled: true
   storage:

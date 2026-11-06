@@ -123,7 +123,7 @@ go run ./cmd/e2e validate -f testdata/suite.minimal.yaml
 5. Helm-install the Argo CD chart (matching `apps/argocd/helm/kustomization.yaml`) with `kustomize.buildOptions: --enable-helm`. `skipIfPresent: true` skips the upgrade when `--keep-cluster` reuses a cluster that already has the release (including `failed` / `pending-upgrade`).
 6. Apply generated Applications (`e2e/examples/.generated/app-of-apps.yaml`) pointing at `git://host.docker.internal:9418/homeworld.git`
 7. Wait until those Applications are `status.sync.status=Synced` and `status.health.status=Healthy`
-8. Assert pods, in-scope workloads, ExternalSecrets, CNPG, Dragonfly, and the Envoy Gateway
+8. Assert pods, in-scope workloads, ExternalSecrets, CNPG, Valkey, and the Envoy Gateway
 
 ```bash
 # From repo root (after building):
@@ -196,7 +196,7 @@ Argo CD gives up on an application after five failed sync attempts, and self-hea
 | `hooks/seed-infisical.sh` | Wait for API, bootstrap admin/org/project, UA identity, upsert every Infisical key (including the `homeworld.test` cluster domain as `/argocd/BASE_DOMAIN`) the suite's installed apps consume (fails the run if login, project, identity, or a secret upsert fails) |
 | `hooks/apply-eso-credentials.sh` | Apply `universal-auth-credentials` Secret for ESO |
 | `hooks/apply-argocd-domain.sh` | Seed `argocd/homeworld-domain` (`homeworld.test`) before the bootstrap Argo CD starts, as `host/bootstrap.sh` does in production |
-| `hooks/apply-operator-crds.sh` | Apply prometheus-operator, cert-manager, CNPG, Grafana Operator, Dragonfly, MariaDB Operator, RustFS, OpenTelemetry Operator, and DocumentDB CRDs, plus the external-snapshotter `VolumeSnapshotClass` CRDs from the tag pinned in `apps/snapshot-controller` (snapshot-controller-app is omitted, but CNPG, MariaDB Operator, and Velero ship snapshot classes) (Argo excludes CRDs; the OTel chart ships its CRDs as rendered templates that kustomize includeCRDs never captures) |
+| `hooks/apply-operator-crds.sh` | Apply prometheus-operator, cert-manager, CNPG, Grafana Operator, MariaDB Operator, RustFS, OpenTelemetry Operator, and DocumentDB CRDs, plus the external-snapshotter `VolumeSnapshotClass` CRDs from the tag pinned in `apps/snapshot-controller` (snapshot-controller-app is omitted, but CNPG, MariaDB Operator, and Velero ship snapshot classes) (Argo excludes CRDs; the OTel chart ships its CRDs as rendered templates that kustomize includeCRDs never captures) |
 | `hooks/apply-storageclass.sh` | Create `StorageClass/longhorn-crypto` using `rancher.io/local-path` |
 | `hooks/stage-local-repo.sh` | Swap the Gateway VIP and Infisical endpoint literals for kind, replace the Let's Encrypt issuers with self-signed ones, omit kind-incompatible Applications, patch Infisical/git CNPs, write the homeworld plugin values for the bootstrap Argo CD, commit and serve `git://127.0.0.1:9418/homeworld.git` |
 | `hooks/patch-coredns-e2e-domain.sh` | After Envoy exists, stub `*.homeworld.test` in CoreDNS to the Gateway ClusterIP and restart CoreDNS |

@@ -277,7 +277,7 @@ until synced cilium && synced argocd; do sleep 15; done
 # Argo CD owns everything now. k3s re-applies files still present at every
 # start, so remove the one-shot ones (deleting files or Addon objects never
 # deletes the resources), then drop the bootstrap-only bundled Redis, which
-# apps/argocd replaces with Dragonfly and therefore never adopts.
+# apps/argocd replaces with Valkey and therefore never adopts.
 for f in "${oneshot[@]}"; do
   rm -f "$manifests/$f.yaml"
   k3s kubectl -n kube-system delete addon "$f" --ignore-not-found >/dev/null

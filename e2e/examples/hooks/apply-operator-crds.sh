@@ -2,7 +2,7 @@
 # Argo resource.exclusions skip all CRDs (Envoy Gateway VAP forbids
 # re-applying Gateway API CRDs on --keep-cluster). ESO/Cilium/Envoy
 # CRDs have their own hooks; install the remaining operator CRDs so
-# CNPG/Grafana/Dragonfly/MariaDB/RustFS/cert-manager/ServiceMonitor CRs apply.
+# CNPG/Grafana/MariaDB/RustFS/cert-manager/ServiceMonitor CRs apply.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 PROM_VER="${PROMETHEUS_OPERATOR_VERSION:-v0.95.1}"
@@ -63,9 +63,6 @@ GRAFANA_CRDS="$(chart_dir "${ROOT}/apps/grafana-operator/helm/charts/grafana-ope
 kubectl apply --server-side --force-conflicts -f "${GRAFANA_CRDS}"
 echo "[apply-operator-crds] grafana-operator CRDs applied"
 
-apply_helm_crds dragonfly-operator \
-  "$(chart_dir "${ROOT}/apps/dragonfly-operator/helm/charts/dragonfly-operator-*/dragonfly-operator")"
-
 # The mariadb-operator chart ships its CRDs as a dependency chart gated on
 # crds.enabled (rendered templates, not a crds/ directory).
 apply_helm_crds mariadb-operator \
@@ -111,7 +108,6 @@ kubectl get crd \
   volumesnapshotclasses.snapshot.storage.k8s.io \
   clusters.postgresql.cnpg.io \
   grafanas.grafana.integreatly.org \
-  dragonflies.dragonflydb.io \
   mariadbs.k8s.mariadb.com \
   tenants.rustfs.com \
   opentelemetrycollectors.opentelemetry.io \

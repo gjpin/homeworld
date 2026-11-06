@@ -16,7 +16,7 @@
 - [OIDC](docs/oidc.md)
 - [Operator-managed PostgreSQL clusters via CloudNativePG](docs/upgrades.md#1-automated-major-database-upgrades-cloudnativepg)
 - [MongoDB-compatible document storage via DocumentDB Operator](docs/upgrades.md#7-documentdb-engine-upgrades)
-- Redis-compatible in-memory caching via Dragonfly Operator
+- Redis-compatible in-memory caching via standalone Valkey
 - Operator-managed MariaDB via MariaDB Operator
 - S3-compatible object storage via RustFS Operator
 - Distributed block storage with Longhorn (three replicas) and bulk NFS storage on the [NAS](docs/nas.md)
@@ -162,7 +162,6 @@ Operators, foundations, and supporting services:
 | CloudNativePG | — | PostgreSQL operator. |
 | csi-driver-nfs | — | NFS CSI node plugin mounting the NAS shares behind the static Immich, OpenCloud, and media-stack volumes. |
 | DocumentDB Operator | — | DocumentDB, a MongoDB-compatible datastore, operator. |
-| Dragonfly Operator | — | Dragonfly, a Redis-compatible datastore, operator. |
 | Envoy Gateway | `envoy.base-domain.invalid` | Gateway API implementation and its admin console. |
 | ExternalDNS | — | Publishes the wildcard DNS record pointing every app hostname at the Gateway VIP (Cloudflare). |
 | External Secrets | — | Infisical-backed secret synchronization. |
@@ -185,6 +184,7 @@ Operators, foundations, and supporting services:
 | RustFS Operator | `rustfs.base-domain.invalid` | RustFS storage operator and management console. |
 | Snapshot Controller | — | CSI volume-snapshot controller driving the Longhorn CSI driver for Velero data movement and CNPG volume-snapshot backups. |
 | System Upgrade Controller | — | k3s upgrades from version-pinned Plans, one server at a time. |
+| Valkey | — | Redis-compatible datastore: one standalone instance per app (AFFiNE, Argo CD, Authelia, Immich, Supernote) from the official Valkey chart. |
 | Velero | — | Whole-cluster backups to Backblaze B2. |
 | Velero UI | `velero.base-domain.invalid` | Web interface for managing Velero. |
 | VictoriaLogs | `victoria-logs.base-domain.invalid` | Logs backend (VictoriaLogs Single, web UI). |
@@ -273,7 +273,7 @@ Two Machine Identities (Universal Auth) live outside the synchronized keys (see 
 Install Fedora Server with an encrypted root on each node, set its hostname, and copy your SSH key to its admin account. Follow [docs/fedora.md](docs/fedora.md#install).
 
 ### 7. Bootstrap the k3s Cluster
-Run `host/bootstrap.sh <profile>` on the first node, then on the other two. It applies the host configuration from git, binds the encrypted root to Tang, installs k3s, and on the first node installs Cilium and a minimal Argo CD and hands it the root Application. Argo CD then deploys everything else from git in sync-wave order ([docs/argocd.md](docs/argocd.md)), and in its first wave adopts its own release with `apps/argocd/helm` (Dragonfly as Redis, ServiceMonitors, OIDC, gVisor). Follow [docs/k3s.md](docs/k3s.md#bootstrap).
+Run `host/bootstrap.sh <profile>` on the first node, then on the other two. It applies the host configuration from git, binds the encrypted root to Tang, installs k3s, and on the first node installs Cilium and a minimal Argo CD and hands it the root Application. Argo CD then deploys everything else from git in sync-wave order ([docs/argocd.md](docs/argocd.md)), and in its first wave adopts its own release with `apps/argocd/helm` (Valkey as Redis, ServiceMonitors, OIDC, gVisor). Follow [docs/k3s.md](docs/k3s.md#bootstrap).
 
 From then on Argo CD owns its own release: change it through git, never with `helm upgrade`. Its web UI is `https://argocd.base-domain.invalid`, with Authelia sign-in for `argocd-admin` members.
 

@@ -98,13 +98,6 @@ def main() -> int:
             raise SystemExit("decodingStrategy Auto left in place")
         if "decodingStrategy: None" not in work:
             raise SystemExit("decodingStrategy not set to None")
-        dfly = work.split("kind: Dragonfly", 1)[1].split("---")[0]
-        if "runAsNonRoot: false" in dfly:
-            raise SystemExit("Dragonfly must not run as root under Restricted PSA")
-        if "runAsUser: 999" not in dfly:
-            raise SystemExit("Dragonfly missing dfly runAsUser")
-        if "SETUID" in dfly:
-            raise SystemExit("Dragonfly must not add SETUID under Restricted PSA")
         if "/usr/share/nginx/html/external-sites/" in work:
             raise SystemExit("opencloud web-extensions path not rewritten")
         if "/usr/share/nginx/html/apps/external-sites/" not in work:
@@ -190,11 +183,11 @@ def main() -> int:
             raise SystemExit("immich ML volume still RWX")
         if "accessMode: ReadWriteOnce" not in immich:
             raise SystemExit("immich ML volume not RWO")
-        if "REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local:6379" in immich:
+        if "REDIS_HOSTNAME: valkey.immich.svc.cluster.local:6379" in immich:
             raise SystemExit("immich REDIS_HOSTNAME still includes port")
-        if "REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local\n" not in immich:
+        if "REDIS_HOSTNAME: valkey.immich.svc.cluster.local\n" not in immich:
             raise SystemExit("immich REDIS_HOSTNAME port not stripped")
-        if "dragonfly.immich.svc.cluster.local:6379" in immich:
+        if "valkey.immich.svc.cluster.local:6379" in immich:
             raise SystemExit("immich REDIS_HOSTNAME still includes :6379")
         overlay = (
             dest
@@ -291,15 +284,18 @@ def main() -> int:
         ).read_text()
         if "timeoutSeconds: 15" not in go_vals:
             raise SystemExit("grafana-operator probe timeout missing")
-        df_vals = (
+        vk_vals = (
             dest
             / "apps"
-            / "dragonfly-operator"
+            / "immich"
             / "helm"
+            / "valkey"
             / "values.yaml"
         ).read_text()
-        if "timeoutSeconds: 15" not in df_vals:
-            raise SystemExit("dragonfly-operator probe timeout missing")
+        if "timeoutSeconds: 15" not in vk_vals:
+            raise SystemExit("immich valkey probe timeout missing")
+        if vk_vals.count("readinessProbe:") != 1:
+            raise SystemExit("immich valkey readinessProbe duplicated")
         rustfs_map = (dest / "apps" / "rustfs" / "-3_user_namespace_policy.yaml").read_text()
         if "timeoutSeconds: 15" not in rustfs_map:
             raise SystemExit("rustfs MAP missing probe timeouts")

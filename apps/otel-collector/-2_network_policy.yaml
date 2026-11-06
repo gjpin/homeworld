@@ -405,8 +405,8 @@ metadata:
 spec:
   # Argo CD ServiceMonitors: application-controller, server, repo-server,
   # applicationset-controller, and notifications-controller metrics; the
-  # handwritten PodMonitor also scrapes the Dragonfly operand admin metrics
-  # port (9999).
+  # Valkey chart's ServiceMonitor also scrapes its redis_exporter sidecar
+  # (9121).
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -428,7 +428,7 @@ spec:
               protocol: TCP
             - port: "9001"
               protocol: TCP
-            - port: "9999"
+            - port: "9121"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -440,8 +440,8 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   # Authelia's ServiceMonitor scrapes the app metrics port, its PodMonitor
-  # scrapes the CloudNativePG instance metrics port, and the handwritten
-  # PodMonitor scrapes the Dragonfly operand admin metrics port (9999).
+  # scrapes the CloudNativePG instance metrics port, and the Valkey chart's
+  # ServiceMonitor scrapes its redis_exporter sidecar (9121).
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -457,7 +457,7 @@ spec:
               protocol: TCP
             - port: "9959"
               protocol: TCP
-            - port: "9999"
+            - port: "9121"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -640,30 +640,7 @@ spec:
         - ports:
             - port: "19001"
               protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: allow-otel-pod-scrape-dragonfly-operator
-  namespace: otel-collector
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  # The dragonfly-operator ServiceMonitor scrapes the manager metrics port;
-  # the kube-rbac-proxy sidecar is disabled (apps/dragonfly-operator values).
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
-      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
-      k8s:app.kubernetes.io/component: opentelemetry-collector
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: dragonfly-operator
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
+
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -840,9 +817,9 @@ metadata:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
   # The chart's ServiceMonitor scrapes the server's metrics-api (8081) and
-  # machine-learning metrics-ms (8082) endpoints, and the handwritten
-  # PodMonitors scrape the CloudNativePG instance metrics port (9187) and the
-  # Dragonfly operand admin metrics port (9999).
+  # machine-learning metrics-ms (8082) endpoints, the handwritten PodMonitor
+  # scrapes the CloudNativePG instance metrics port (9187), and the Valkey
+  # chart's ServiceMonitor scrapes its redis_exporter sidecar (9121).
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -860,7 +837,7 @@ spec:
               protocol: TCP
             - port: "9187"
               protocol: TCP
-            - port: "9999"
+            - port: "9121"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -1132,8 +1109,8 @@ metadata:
 spec:
   # The MariaDB operator's generated ServiceMonitor scrapes the mysqld-
   # exporter
-  # (9104), and the handwritten PodMonitor scrapes the Dragonfly operand
-  # admin metrics port (9999).
+  # (9104), and the Valkey chart's ServiceMonitor scrapes its redis_exporter
+  # sidecar (9121).
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -1147,7 +1124,7 @@ spec:
         - ports:
             - port: "9104"
               protocol: TCP
-            - port: "9999"
+            - port: "9121"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
@@ -1184,9 +1161,9 @@ metadata:
 spec:
   # AFFiNE's ServiceMonitor scrapes the server's OpenTelemetry Prometheus
   # exporter (9464), the Manticore chart's ServiceMonitor scrapes the
-  # worker's /metrics on its HTTP port (9308), and the handwritten
-  # PodMonitors scrape the CloudNativePG instance metrics port (9187) and the
-  # Dragonfly operand admin metrics port (9999).
+  # worker's /metrics on its HTTP port (9308), the handwritten PodMonitor
+  # scrapes the CloudNativePG instance metrics port (9187), and the Valkey
+  # chart's ServiceMonitor scrapes its redis_exporter sidecar (9121).
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/managed-by: opentelemetry-operator
@@ -1204,7 +1181,7 @@ spec:
               protocol: TCP
             - port: "9187"
               protocol: TCP
-            - port: "9999"
+            - port: "9121"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2

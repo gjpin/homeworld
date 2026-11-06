@@ -59,11 +59,6 @@ configs:
       hs.status = "Healthy"
       hs.message = "kind e2e: CNPG Database health ignored for wait-argo"
       return hs
-    resource.customizations.health.dragonflydb.io_Dragonfly: |
-      hs = {}
-      hs.status = "Healthy"
-      hs.message = "kind e2e: Dragonfly health ignored for wait-argo"
-      return hs
     resource.customizations.health.documentdb.io_DocumentDB: |
       hs = {}
       hs.status = "Healthy"

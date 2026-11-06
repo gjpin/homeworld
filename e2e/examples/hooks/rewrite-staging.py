@@ -562,7 +562,6 @@ def rewrite_argocd_disable_extras(root: pathlib.Path) -> None:
         ("grafana.integreatly.org_Grafana", "kind e2e: Grafana instance health ignored for wait-argo"),
         ("postgresql.cnpg.io_Cluster", "kind e2e: CNPG Cluster health ignored for wait-argo"),
         ("postgresql.cnpg.io_Database", "kind e2e: CNPG Database health ignored for wait-argo"),
-        ("dragonflydb.io_Dragonfly", "kind e2e: Dragonfly health ignored for wait-argo"),
         ("documentdb.io_DocumentDB", "kind e2e: DocumentDB health ignored for wait-argo"),
         ("rustfs.com_Tenant", "kind e2e: RustFS Tenant health ignored for wait-argo"),
         ("gateway.networking.k8s.io_Gateway", "kind e2e: Gateway health ignored for wait-argo"),
@@ -718,8 +717,8 @@ def rewrite_immich_kind_storage(root: pathlib.Path) -> None:
     new = new.replace("accessMode: ReadWriteMany", "accessMode: ReadWriteOnce")
     # ioredis treats host:port as a hostname and fails DNS (ENOTFOUND).
     new = new.replace(
-        "REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local:6379",
-        "REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local",
+        "REDIS_HOSTNAME: valkey.immich.svc.cluster.local:6379",
+        "REDIS_HOSTNAME: valkey.immich.svc.cluster.local",
     )
     if new != text:
         path.write_text(new)
@@ -965,27 +964,31 @@ def rewrite_operator_probes(root: pathlib.Path) -> None:
         "timeoutSeconds: 15",
     ):
         print("[rewrite-staging] grafana-operator probe timeouts")
-    df_vals = (
-        root
-        / "apps"
-        / "dragonfly-operator"
-        / "helm"
-        / "values.yaml"
-    )
-    if _append_values_map(
-        df_vals,
-        (
-            "manager:\n"
-            "  livenessProbe:\n"
-            "    timeoutSeconds: 15\n"
-            "    failureThreshold: 5\n"
-            "  readinessProbe:\n"
-            "    timeoutSeconds: 15\n"
-            "    failureThreshold: 5\n"
-        ),
-        "timeoutSeconds: 15",
-    ):
-        print("[rewrite-staging] dragonfly-operator probe timeouts")
+    # The Valkey chart's valkey-cli ping probes default to a 1s timeout.
+    for vk_vals in sorted((root / "apps").glob("*/helm/valkey/values.yaml")):
+        text = vk_vals.read_text()
+        if "timeoutSeconds: 15" in text:
+            continue
+        # The values enable readinessProbe already: extend that map in place
+        # rather than appending a duplicate key.
+        text = text.replace(
+            "readinessProbe:\n  enabled: true\n",
+            "readinessProbe:\n  enabled: true\n  timeoutSeconds: 15\n",
+        )
+        vk_vals.write_text(text)
+        _append_values_map(
+            vk_vals,
+            (
+                "startupProbe:\n"
+                "  timeoutSeconds: 15\n"
+                "  failureThreshold: 5\n"
+                "livenessProbe:\n"
+                "  timeoutSeconds: 15\n"
+                "  failureThreshold: 5\n"
+            ),
+            "failureThreshold: 5",
+        )
+        print(f"[rewrite-staging] {vk_vals.parent.parent.parent.name} valkey probe timeouts")
 
 
 def rewrite_cnpg_probes(root: pathlib.Path) -> None:

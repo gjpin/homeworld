@@ -157,7 +157,7 @@ Once Argo CD reports `cilium` and `argocd` Synced and Healthy, the script
 removes the one-shot files and their k3s `Addon` objects (k3s re-applies
 files still present at every start; removing them never deletes the
 resources) and the bootstrap-only Argo CD Redis objects that `apps/argocd`
-replaces with Dragonfly. The credentials file is removed as soon as k3s has
+replaces with Valkey. The credentials file is removed as soon as k3s has
 applied it. Only `homeworld-runtimeclasses.yaml` stays.
 
 ### Other servers

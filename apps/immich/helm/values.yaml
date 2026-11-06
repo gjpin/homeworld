@@ -87,7 +87,7 @@ server:
             REDIS_PASSWORD:
               valueFrom:
                 secretKeyRef:
-                  name: dragonfly
+                  name: valkey
                   key: password
             DB_HOSTNAME: immich-rw.immich.svc.cluster.local
             DB_PORT: "5432"
@@ -109,5 +109,5 @@ controllers:
         image:
           tag: v3.3.6
         env:
-          REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local
+          REDIS_HOSTNAME: valkey.immich.svc.cluster.local
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003

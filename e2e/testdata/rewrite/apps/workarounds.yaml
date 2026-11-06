@@ -8,24 +8,6 @@ spec:
   instances: 1
   imageName: ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie
 ---
-apiVersion: dragonflydb.io/v1alpha1
-kind: Dragonfly
-metadata:
-  name: dragonfly
-  namespace: authelia
-spec:
-  podSecurityContext:
-    runAsNonRoot: true
-    runAsUser: 999
-    runAsGroup: 999
-  containerSecurityContext:
-    runAsNonRoot: true
-    runAsUser: 999
-    runAsGroup: 999
-    capabilities:
-      drop:
-        - ALL
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

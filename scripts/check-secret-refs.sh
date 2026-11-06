@@ -11,8 +11,9 @@
 # `data`/`dataFrom` entries.
 #
 # Checked references: every `secretKeyRef` (container env, init containers,
-# operator CRs such as the RustFS Tenant), Dragonfly `passwordFromSecret`,
-# and the CNPG `bootstrap.initdb.secret` (username and password keys).
+# operator CRs such as the RustFS Tenant), the CNPG `bootstrap.initdb.secret`
+# (username and password keys), and the password key of every user in a
+# Valkey release's `auth.usersExistingSecret` (apps/*/helm/valkey). Other
 # Helm values are out of scope: their secrets are wired by the chart.
 
 set -euo pipefail
@@ -62,7 +63,7 @@ refs = []
 def walk(node, namespace, path):
     if isinstance(node, dict):
         for key, value in node.items():
-            if key in ("secretKeyRef", "passwordFromSecret") and isinstance(value, dict):
+            if key == "secretKeyRef" and isinstance(value, dict):
                 refs.append((namespace, value.get("name"), value.get("key"), path))
             else:
                 walk(value, namespace, path)
@@ -80,6 +81,18 @@ for entry in docs:
         name = (initdb.get("secret") or {}).get("name")
         if name:
             refs.extend((namespace, name, key, path) for key in ("username", "password"))
+
+# Valkey releases: the init script reads the password of each user from
+# usersExistingSecret under passwordKey (default: the user name).
+import glob, subprocess
+for values_path in sorted(glob.glob("apps/*/helm/valkey/values.yaml")):
+    kust = values_path.rsplit("/", 1)[0] + "/kustomization.yaml"
+    namespace = subprocess.run(["yq", ".namespace", kust], capture_output=True, text=True, check=True).stdout.strip()
+    values = json.loads(subprocess.run(["yq", "-o=json", ".", values_path], capture_output=True, text=True, check=True).stdout)
+    auth = values.get("auth") or {}
+    if auth.get("enabled") and auth.get("usersExistingSecret"):
+        for user, spec in (auth.get("aclUsers") or {}).items():
+            refs.append((namespace, auth["usersExistingSecret"], (spec or {}).get("passwordKey") or user, values_path))
 
 failures = 0
 for namespace, name, key, path in sorted(set(refs), key=lambda ref: tuple(str(part) for part in ref)):

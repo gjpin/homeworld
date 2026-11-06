@@ -1,0 +1,24 @@
+# https://github.com/valkey-io/valkey-helm/tree/main/valkey
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: affine
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: valkey
+    repo: https://valkey.io/valkey-helm/
+    version: 0.12.1
+    releaseName: valkey
+    namespace: affine
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  # The chart templates omit metadata.namespace (they rely on the Helm
+  # release namespace at deploy time), so kustomize patches it in.
+  - target:
+      kind: ^(ServiceAccount|ConfigMap|Service|Deployment|ServiceMonitor)$
+      name: ^valkey(-.*)?$
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: affine

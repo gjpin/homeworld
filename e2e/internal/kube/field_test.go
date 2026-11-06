@@ -23,7 +23,7 @@ func TestNestedStringArgoStatus(t *testing.T) {
 	}
 }
 
-func TestFieldEqualsDragonflyPhase(t *testing.T) {
+func TestFieldEqualsStatusPhase(t *testing.T) {
 	obj := &unstructured.Unstructured{Object: map[string]interface{}{
 		"status": map[string]interface{}{"phase": "ready"},
 	}}

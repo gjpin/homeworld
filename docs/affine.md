@@ -9,7 +9,7 @@ AFFiNE is a docs, whiteboard, and database workspace at `https://affine.base-dom
 | `affine` | `affine` Deployment (gVisor, UID `1000`), port `3010`; Prometheus metrics on `9464`. The image's `/app` is root-owned, so the GraphQL schema the server regenerates at every start (`/app/src/schema.gql`) goes to an emptyDir |
 | `affine_migration` | The Deployment's `migrate` init container (`self-host-predeploy.js`): Prisma schema migrations, then data migrations, on every pod start, so each image bump migrates before the new server starts (`Recreate` strategy) |
 | `postgres` (pgvector) | CloudNativePG `Cluster` `affine`; `vector` and `pgcrypto` are created at bootstrap and kept by the `Database` CR |
-| `redis` | `Dragonfly` `dragonfly` (job queues, cache, sessions) |
+| `redis` | Valkey `valkey` (cache, sessions, socket.io adapter, BullMQ job queues) |
 | `./data/storage` | RustFS buckets `affine-blobs`, `affine-avatars`, and `affine-copilot` on the shared Tenant (the `aws-s3` storage provider, path-style, server-side uploads); no PVC |
 | `./config` | The `affine-config` Secret (`config.json` and `private.key`), mounted read-only at `/home/node/.affine/config` |
 | Indexer (disabled in Compose) | Manticore Search from the official chart (`apps/affine/helm`, nested `affine-manticore` application at intra-component wave 0): one worker StatefulSet on a 2 GiB Longhorn volume, balancer disabled, telemetry off |
@@ -61,4 +61,4 @@ The web client bundles a Sentry error reporter that the browser sends to `sentry
 
 ## Metrics
 
-`metrics.enabled` starts AFFiNE's OpenTelemetry Prometheus exporter on `9464` (`ServiceMonitor` `affine`); it also starts a Zipkin trace exporter that targets `localhost:9411` and drops its spans, since nothing listens there. Manticore's `/metrics` (port `9308`), the CloudNativePG instance, and the Dragonfly operand are scraped at 60s. Grafana's AFFiNE folder holds the AFFiNE and Manticore Search dashboards ([grafana-dashboards.md](grafana-dashboards.md)).
+`metrics.enabled` starts AFFiNE's OpenTelemetry Prometheus exporter on `9464` (`ServiceMonitor` `affine`); it also starts a Zipkin trace exporter that targets `localhost:9411` and drops its spans, since nothing listens there. Manticore's `/metrics` (port `9308`), the CloudNativePG instance, and the Valkey exporter are scraped at 60s. Grafana's AFFiNE folder holds the AFFiNE and Manticore Search dashboards, and the Valkey folder the cache's ([grafana-dashboards.md](grafana-dashboards.md)).

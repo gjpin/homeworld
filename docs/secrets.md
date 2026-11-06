@@ -29,13 +29,13 @@ The cluster domain is the one coordinate kept out of git: manifests carry the `b
 | **AFFiNE** | `/affine/PRIVATE_KEY` | Server signing and encryption key (sessions, tokens, and the BYOK provider keys workspace owners store server-side), rendered into the read-only `private.key` of the server's configuration directory. Rotating it invalidates every stored BYOK key and session. | `openssl ecparam -name prime256v1 -genkey -noout` (P-256 private-key PEM, including the BEGIN/END lines) |
 | | `/affine/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `affine` (the CNPG `owner` user) |
 | | `/affine/POSTGRES_PASSWORD` | CloudNativePG application password. Must contain only RFC 3986 unreserved characters; it is embedded unescaped in the PostgreSQL connection URL. | `openssl rand -hex 32` (hex output is RFC 3986 unreserved) |
-| | `/affine/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for the job queues, cache, and sessions. | `openssl rand -hex 32` |
+| | `/affine/VALKEY_PASSWORD` | Valkey password for the cache, sessions, socket.io adapter and job queues. | `openssl rand -hex 32` |
 | | `/affine/RUSTFS_ACCESS_KEY` | RustFS S3 access key for the blob, avatar, and AI storages. | Chosen access key ID (≥8 characters, no whitespace, `=` or `,`) |
 | | `/affine/RUSTFS_SECRET_KEY` | RustFS S3 secret key for the blob, avatar, and AI storages. | `openssl rand -hex 16` |
 | | `/affine/EXA_API_KEY` | Exa API key for AFFiNE AI web search. | From Exa |
 | | `/affine/UNSPLASH_API_KEY` | Unsplash access key for image search in documents. | From Unsplash (application access key) |
 | **Argo CD** | `/argocd/BASE_DOMAIN` | The cluster domain (`example.com`, no wildcard or trailing dot): every app is served on `<app>.<domain>`. The homeworld Config Management Plugin substitutes it for the `base-domain.invalid` placeholder ([argocd.md](argocd.md#homeworld-plugin)); `host/bootstrap.sh` reads it once to seed the Secret before External Secrets runs. | The domain whose Cloudflare zone `/cloudflare/API_TOKEN` edits |
-| | `/argocd/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for the controllers' cache; rendered into both the `password` key (Dragonfly CR) and the chart's `redis-password` key. | `openssl rand -hex 32` |
+| | `/argocd/VALKEY_PASSWORD` | Valkey password for the controllers' cache; rendered into both the `password` key (Valkey chart) and the Argo CD chart's `redis-password` key. | `openssl rand -hex 32` |
 | **Audiobookshelf** | `/audiobookshelf/JWT_SECRET_KEY` | Signs Audiobookshelf's session and API tokens; without it the server generates one into its database. | `openssl rand -hex 32` |
 | **AudioMuse-AI** | `/audiomuse-ai/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `audiomuse` (the CNPG `owner` user) |
 | | `/audiomuse-ai/POSTGRES_PASSWORD` | CloudNativePG application password. | `openssl rand -hex 32` |
@@ -49,7 +49,7 @@ The cluster domain is the one coordinate kept out of git: manifests carry the `b
 | | `/authelia/USERS_DATABASE` | Full `users_database.yml` content (the authentication backend). | Handwritten YAML; per-user Argon2id digest: `docker run --rm -it ghcr.io/authelia/authelia authelia crypto hash generate argon2` |
 | | `/authelia/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `authelia` (the CNPG `owner` user) |
 | | `/authelia/POSTGRES_PASSWORD` | CloudNativePG application password. | `openssl rand -hex 32` |
-| | `/authelia/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for session storage. | `openssl rand -hex 32` |
+| | `/authelia/VALKEY_PASSWORD` | Valkey password for session storage. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_HMAC_SECRET` | HMAC secret for the OIDC provider endpoints. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_JWK_RS256` | RSA private key (JWK) for signing OIDC tokens. | `openssl genrsa 2048` (private-key PEM, including the BEGIN/END lines; Authelia derives the public key) |
 | | `/authelia/RESET_PASSWORD_JWT_SECRET` | JWT secret for the password-reset flow. | `openssl rand -hex 32` |
@@ -100,7 +100,7 @@ The cluster domain is the one coordinate kept out of git: manifests carry the `b
 | | `/homepage/NAVIDROME_SALT` | The salt used for the token. | Manual — README §15 (`openssl rand -hex 8`) |
 | **Immich** | `/immich/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `immich` (the CNPG `owner` user) |
 | | `/immich/POSTGRES_PASSWORD` | CloudNativePG application password. | `openssl rand -hex 32` |
-| | `/immich/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for cache and job queues. | `openssl rand -hex 32` |
+| | `/immich/VALKEY_PASSWORD` | Valkey password for job queues. | `openssl rand -hex 32` |
 | **Jellyfin-Auto-Collections** | `/jellyfin-auto-collections/JELLYFIN_API_KEY` | Jellyfin API key for the collections job. | Manual — README §15 (Jellyfin **Dashboard → API Keys**) |
 | | `/jellyfin-auto-collections/JELLYFIN_USER_ID` | ID of the Jellyfin user whose library the lists are matched against. | Manual — README §15 (from the user's dashboard URL) |
 | **Lidarr** | `/lidarr/API_KEY` | Lidarr API key (`LIDARR__AUTH__APIKEY` overrides `config.xml`), shared with its exportarr sidecar and Cleanuparr, Houndarr, Unpackerr, the media-config job and the Homepage widget (media-config stores it in Prowlarr; Cleanuparr and Houndarr store it in their own settings). | `openssl rand -hex 16` (32 hex characters, the Servarr key format) |
@@ -149,7 +149,7 @@ The cluster domain is the one coordinate kept out of git: manifests carry the `b
 | | `/streamystats/NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | Next.js server-action encryption key; stable so sessions survive redeploys. | `openssl rand -base64 32` |
 | **Supernote** | `/supernote/MARIADB_ROOT_PASSWORD` | MariaDB root password (MariaDB Operator `rootPasswordSecretKeyRef`). | `openssl rand -hex 32` |
 | | `/supernote/MARIADB_PASSWORD` | MariaDB password for the `supernote` application user, also used by the schema seed SqlJob. | `openssl rand -hex 32` |
-| | `/supernote/DRAGONFLY_PASSWORD` | Dragonfly (Redis) password for the backend's cache. | `openssl rand -hex 32` |
+| | `/supernote/VALKEY_PASSWORD` | Valkey password for the backend's cache. | `openssl rand -hex 32` |
 | **Unpackerr** | `/unpackerr/METRICS_API_KEY` | API key with the `system:metrics:read` role, sent by the ServiceMonitor as its bearer token. 60 to 150 characters. | `openssl rand -hex 40` |
 | | `/unpackerr/UI_PASSWORD` | Password of the web UI's local `admin` user (reached over `kubectl port-forward`). | `openssl rand -base64 24` |
 | **Velero** | `/velero/B2_APPLICATION_KEY_ID` | Backblaze B2 key ID for backup storage. | From the Backblaze B2 console (App Keys) |

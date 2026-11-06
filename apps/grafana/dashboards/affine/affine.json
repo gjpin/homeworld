@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "AFFiNE server sync, GraphQL, database, AI and runtime. Custom dashboard (AFFiNE publishes none): metric families verified against toeverything/AFFiNE v0.27.4 and its live exporter \u2014 business metrics from base/metrics/metrics.ts scopes (socketio, doc, gql, ai, process, controllers) as rendered by @opentelemetry/exporter-prometheus (\"/\" sanitized to \"_\", monotonic counters suffixed _total; most appear only after their first event), and Prisma client and pool metrics from base/metrics/prisma.ts. The server emits no HTTP request histogram. Manticore and CloudNativePG/Dragonfly have their own dashboards.",
+  "description": "AFFiNE server sync, GraphQL, database, AI and runtime. Custom dashboard (AFFiNE publishes none): metric families verified against toeverything/AFFiNE v0.27.4 and its live exporter \u2014 business metrics from base/metrics/metrics.ts scopes (socketio, doc, gql, ai, process, controllers) as rendered by @opentelemetry/exporter-prometheus (\"/\" sanitized to \"_\", monotonic counters suffixed _total; most appear only after their first event), and Prisma client and pool metrics from base/metrics/prisma.ts. The server emits no HTTP request histogram. Manticore, CloudNativePG and Valkey have their own dashboards.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,

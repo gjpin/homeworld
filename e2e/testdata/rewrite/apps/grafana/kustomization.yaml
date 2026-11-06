@@ -41,10 +41,6 @@ configMapGenerator:
   - name: grafana-dashboard-collabora-overview
     files:
       - json=dashboards/collabora/collabora-overview.json
-  # dragonfly-operator
-  - name: grafana-dashboard-dragonfly-operator
-    files:
-      - json=dashboards/dragonfly-operator/dragonfly-operator.json
   # envoy-gateway
   - name: grafana-dashboard-envoy-gateway-clusters
     files:
@@ -151,7 +147,6 @@ resources:
   - 1_dashboards_cilium.yaml
   - 1_dashboards_cloudnative-pg.yaml
   - 1_dashboards_collabora.yaml
-  - 1_dashboards_dragonfly-operator.yaml
   - 1_dashboards_envoy-gateway.yaml
   - 1_dashboards_external-secrets.yaml
   - 1_dashboards_forgejo.yaml

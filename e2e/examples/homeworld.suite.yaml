@@ -235,7 +235,6 @@ spec:
             - cert-manager
             - envoy-gateway
             - cloudnative-pg
-            - dragonfly-operator
             - mariadb-operator
             - rustfs-operator
             - rustfs
@@ -310,15 +309,14 @@ spec:
           condition: Ready
           status: "True"
           timeout: 10m
-      - name: dragonfly-authelia
+      - name: valkey-authelia
         resourceCondition:
-          apiVersion: dragonflydb.io/v1alpha1
-          kind: Dragonfly
-          name: dragonfly
+          apiVersion: apps/v1
+          kind: Deployment
+          name: valkey
           namespace: authelia
-          fields:
-            - path: status.phase
-              value: Ready
+          condition: Available
+          status: "True"
           timeout: 10m
       - name: cnpg-immich
         resourceCondition:
@@ -329,28 +327,26 @@ spec:
           condition: Ready
           status: "True"
           timeout: 10m
-      - name: dragonfly-immich
+      - name: valkey-immich
         resourceCondition:
-          apiVersion: dragonflydb.io/v1alpha1
-          kind: Dragonfly
-          name: dragonfly
+          apiVersion: apps/v1
+          kind: Deployment
+          name: valkey
           namespace: immich
-          fields:
-            - path: status.phase
-              value: Ready
+          condition: Available
+          status: "True"
           timeout: 10m
-      # Argo CD's own cache backend must be Ready too — the controllers block
-      # on it (mirrors the authelia/immich asserts; the seed provisions
-      # /argocd/DRAGONFLY_PASSWORD).
-      - name: dragonfly-argocd
+      # Argo CD's own cache backend must be Available too — the controllers
+      # block on it (mirrors the authelia/immich asserts; the seed provisions
+      # /argocd/VALKEY_PASSWORD).
+      - name: valkey-argocd
         resourceCondition:
-          apiVersion: dragonflydb.io/v1alpha1
-          kind: Dragonfly
-          name: dragonfly
+          apiVersion: apps/v1
+          kind: Deployment
+          name: valkey
           namespace: argocd
-          fields:
-            - path: status.phase
-              value: Ready
+          condition: Available
+          status: "True"
           timeout: 10m
       - name: cnpg-forgejo
         resourceCondition:
@@ -397,15 +393,14 @@ spec:
           condition: Ready
           status: "True"
           timeout: 10m
-      - name: dragonfly-affine
+      - name: valkey-affine
         resourceCondition:
-          apiVersion: dragonflydb.io/v1alpha1
-          kind: Dragonfly
-          name: dragonfly
+          apiVersion: apps/v1
+          kind: Deployment
+          name: valkey
           namespace: affine
-          fields:
-            - path: status.phase
-              value: Ready
+          condition: Available
+          status: "True"
           timeout: 10m
       - name: documentdb-notesnook
         resourceCondition:

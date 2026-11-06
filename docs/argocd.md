@@ -11,11 +11,9 @@
      Argo CD is first installed by `host/bootstrap.sh` through the k3s
      auto-deploying manifests directory with `bootstrap/argocd-values.yaml`
      ([docs/k3s.md](k3s.md#first-server)), and this application adopts that
-     release on its first sync
-   * dragonfly-operator: installs alongside argocd because the argocd
-     application's tracked config points Argo CD at its in-namespace
-     Dragonfly instance (`externalRedis`) — the operator that reconciles
-     that instance must already exist when the controllers switch
+     release on its first sync; its nested `argocd-valkey` application
+     (intra-component wave 0) provides the Valkey instance the tracked
+     config points Argo CD at (`externalRedis`)
 * **Sync wave 1**
    * none — wave 1 is the intra-component workload wave; no root applications are sequenced here
 * **Sync wave 2**
@@ -76,8 +74,8 @@
      ServiceMonitor/PodMonitor CRDs, after cert-manager (admission webhook
      certificates) and ahead of the collector custom resource in wave 6
 * **Sync wave 6**
-   * authelia: OpenCloud identity provider, after CloudNativePG, Dragonfly,
-     External Secrets, and Prometheus Operator CRDs
+   * authelia: OpenCloud identity provider, after CloudNativePG, External
+     Secrets, and Prometheus Operator CRDs
    * headlamp: Kubernetes web UI, alongside its identity provider
    * homeassistant
    * immich
@@ -95,14 +93,14 @@
    * homepage: application dashboard, gateway-OIDC protected (`platform` group)
    * notesnook: fully featured encrypted notes sync server with DocumentDB (MongoDB-compatible on CloudNativePG), SSE, and Monograph
    * affine: AFFiNE docs and whiteboard server with a CloudNativePG
-     database (pgvector), a Dragonfly cache, RustFS buckets, and a Manticore
-     search worker (nested `affine-manticore` application at intra-component
-     wave 0, ahead of the server)
+     database (pgvector), a Valkey cache, RustFS buckets, and a Manticore
+     search worker (nested `affine-valkey` and `affine-manticore`
+     applications at intra-component wave 0, ahead of the server)
    * radicale: internal CalDAV and CardDAV backend, before OpenCloud's
      authenticated DAV proxy
    * supernote: Supernote Private Cloud sync server and notelib converter
      with a MariaDB instance and seed SqlJob (MariaDB Operator) and a
-     Dragonfly cache, pinned to amd64 nodes
+     Valkey cache, pinned to amd64 nodes
    * vaultwarden: Bitwarden-compatible password manager (CloudNativePG-backed)
      with optional Authelia SSO
    * actual-budget: Actual Budget sync server (SQLite on Longhorn) with
@@ -229,7 +227,7 @@ CRD lifecycles are orchestrated through a combination of sync waves, health chec
 ### Consumer Workload Sequencing (App-of-Apps Waves)
 In `apps/app-of-apps.yaml`, CRD-providing infrastructure and operators are sequenced strictly ahead of consuming applications:
 - **Wave -1:** `prometheus-operator-crd` (ServiceMonitor/PodMonitor/ScrapeConfig CRDs) and `external-secrets` (ExternalSecret CRD and the Infisical `ClusterSecretStore`), both ahead of `argocd` in wave 0 so Argo CD's own ServiceMonitors and its wave -1 ExternalSecret validate on the first install; the monitoring CRDs are later consumed cluster-wide by the OpenTelemetry Operator's Target Allocator (wave 5)
-- **Wave 0:** `argocd` and `dragonfly-operator` — Argo CD's tracked config replaces the chart's bundled Redis with an in-namespace Dragonfly instance through the chart's `externalRedis` block, so the operator that reconciles that instance installs in the same wave as the switch; the controllers reconnect while the operand starts (~1 minute, the same transient any Argo CD restart incurs)
+- **Wave 0:** `argocd` — Argo CD's tracked config replaces the chart's bundled Redis with an in-namespace Valkey instance through the chart's `externalRedis` block; the nested `argocd-valkey` application syncs it at intra-component wave 0, ahead of the wave-1 Argo CD release, and needs no operator
 - **Wave 2:** `envoy-gateway` (Envoy Gateway CRDs; the Gateway API CRDs are installed by k3s before Argo CD exists) and `cilium` (Cilium CRDs applied from the pinned Git tag by the nested `cilium-crds` application; the Helm chart ships no CRDs, while the CiliumNetworkPolicy CRDs are consumed by every component's `-2_network_policy.yaml`)
 - **Wave 3:** `cert-manager` (Certificates and ClusterIssuers), `external-dns` (the `DNSEndpoint` CRD from its chart, ahead of its intra-component wave-2 `DNSEndpoint`), `snapshot-controller` (CSI volume snapshot CRDs from the pinned `external-snapshotter` Git tag plus the handwritten snapshot controller — the CSI snapshot API suite Velero's data movement drives, installed ahead of the wave 4 backup operator), `system-upgrade-controller` (the `Plan` CRD from the pinned release tag, ahead of its Plans), plus the `longhorn`, `csi-driver-nfs`, `kubelet-serving-cert-approver`, and `metrics-server` applications
 - **Wave 4:** `velero` (backup operator, after the snapshot-controller suite) and the datastore operators (`cloudnative-pg`, `mariadb-operator`, `rustfs-operator`, `grafana-operator`)
@@ -240,7 +238,7 @@ In `apps/app-of-apps.yaml`, CRD-providing infrastructure and operators are seque
   `conf/crds` templates so Kustomize Helm inflation includes them), whose
   collector custom resource in wave 6 both validates against the CRDs and
   reconciles against the running operator
-- **Waves 6–8:** Applications and workloads consuming those CRDs (`authelia`, `immich`, `forgejo`, `grafana`, `affine` via `Cluster`, `Dragonfly`, and `ServiceMonitor`, `notesnook` via `DocumentDB`, `supernote` via `MariaDB` and `SqlJob`, `otel-collector` via `OpenTelemetryCollector`, `kube-control-plane` via `ServiceMonitor` and `ScrapeConfig`, `opencloud`, etc.)
+- **Waves 6–8:** Applications and workloads consuming those CRDs (`authelia`, `immich`, `forgejo`, `grafana`, `affine` via `Cluster` and `ServiceMonitor`, `notesnook` via `DocumentDB`, `supernote` via `MariaDB` and `SqlJob`, `otel-collector` via `OpenTelemetryCollector`, `kube-control-plane` via `ServiceMonitor` and `ScrapeConfig`, `opencloud`, etc.)
 
 Argo CD's custom Lua Application health check pauses wave advancement until all applications in Wave $N$ report `Healthy`, preventing downstream workloads from encountering missing CRD errors during initial deployment or cluster-wide upgrades.
 
@@ -255,7 +253,7 @@ Within an individual sync wave, Argo CD sorts manifests by Kubernetes `Kind` pri
 
 ### Dedicated CRD Applications vs. Bundled Helm Releases
 - **Standalone CRDs:** Shared ecosystem CRD suites without local controller dependencies are separated into dedicated Argo CD applications and sync waves: `prometheus-operator-crd` is a root application, while `cilium-crds`, `snapshot-controller-crds`, and `system-upgrade-controller-crds` are child Applications inside their component directories (all four precede every CR consumer). The Gateway API CRDs (standard channel) come from k3s's bundled `gateway-api-crd` addon, which k3s re-applies on every server start and upgrades with every k3s release; the Envoy Gateway chart's own Gateway API CRD copy is patch-deleted from the render (`apps/envoy-gateway/helm/kustomization.yaml`) so k3s stays the single owner. The `cilium` Helm chart ships no CRDs, so `cilium-crds` applies the full `pkg/k8s/apis/cilium.io/client/crds/v2` set from the chart-aligned Git tag; `host/bootstrap.sh` (see [docs/k3s.md](k3s.md)) installs them before Argo CD exists, and the application takes over ownership for declarative upgrades. The v2alpha1 `CiliumL2AnnouncementPolicy` CRD is registered by `cilium-operator` itself on startup, so the `cilium` component applies its L2 announcement policy (`apps/cilium/2_l2_announcement_policy.yaml`) at wave 2, after the wave-1 Helm Application, with `SkipDryRunOnMissingResource=true`. Pruning is deliberately disabled on `cilium-crds`: garbage-collecting the Cilium CRDs would delete every `CiliumNetworkPolicy` in the cluster along with them, cutting all workload networking. Pruning is equally disabled on `snapshot-controller-crds`: garbage-collecting the snapshot CRDs would delete the `VolumeSnapshot` objects referencing every existing CSI snapshot. `prometheus-operator-crd` and `system-upgrade-controller-crds` run the same way (see the header comments in their `0_crds.yaml` manifests): pruning is deliberately disabled there too — garbage-collecting the ServiceMonitor/PodMonitor definitions would delete every live monitor, and garbage-collecting the `Plan` definition would delete the k3s upgrade Plans. When an upstream bundle bump drops a CRD, remove the stale definition by hand.
-- **Bundled Operator CRDs:** Operators (`cloudnative-pg`, `cert-manager`, `external-dns`, `external-secrets`, `dragonfly-operator`, `documentdb-operator`, `opentelemetry-operator`, `longhorn`, `velero`, etc.) bundle their upstream CRDs within their Helm charts, relying on Server-Side Apply and Kind-based sorting for in-place schema upgrades. The `documentdb-operator` chart is vendored and patched under `apps/documentdb-operator/helm/local-charts` (see `scripts/vendor-documentdb-operator.sh`) because its upstream packaging breaks Kustomize's Helm inflation: it bundles a CloudNativePG subchart that collides with the standalone operator and hardcodes the `cnpg-system` namespace. Renovate bumps the vendored `Chart.yaml` version and re-vendors the complete tree in the same PR. The `rustfs-operator` image tag follows the chart's `appVersion`, so the operator binary always matches the `tenants.rustfs.com` CRD shipped in the same chart (the apiserver prunes status fields the CRD does not declare). Helm-hook Jobs are inert under Argo and their immutable specs block chart bumps: Longhorn's `preUpgradeChecker` is disabled (its online version check is a phone-home) and its uninstall Job is patch-deleted, while the post-upgrade cleanup is re-annotated as an Argo CD PostSync hook (`argocd.argoproj.io/hook: PostSync` + `hook-delete-policy: HookSucceeded`) so it runs after every sync with the fresh image and self-deletes instead of breaking upgrades.
+- **Bundled Operator CRDs:** Operators (`cloudnative-pg`, `cert-manager`, `external-dns`, `external-secrets`, `documentdb-operator`, `opentelemetry-operator`, `longhorn`, `velero`, etc.) bundle their upstream CRDs within their Helm charts, relying on Server-Side Apply and Kind-based sorting for in-place schema upgrades. The `documentdb-operator` chart is vendored and patched under `apps/documentdb-operator/helm/local-charts` (see `scripts/vendor-documentdb-operator.sh`) because its upstream packaging breaks Kustomize's Helm inflation: it bundles a CloudNativePG subchart that collides with the standalone operator and hardcodes the `cnpg-system` namespace. Renovate bumps the vendored `Chart.yaml` version and re-vendors the complete tree in the same PR. The `rustfs-operator` image tag follows the chart's `appVersion`, so the operator binary always matches the `tenants.rustfs.com` CRD shipped in the same chart (the apiserver prunes status fields the CRD does not declare). Helm-hook Jobs are inert under Argo and their immutable specs block chart bumps: Longhorn's `preUpgradeChecker` is disabled (its online version check is a phone-home) and its uninstall Job is patch-deleted, while the post-upgrade cleanup is re-annotated as an Argo CD PostSync hook (`argocd.argoproj.io/hook: PostSync` + `hook-delete-policy: HookSucceeded`) so it runs after every sync with the fresh image and self-deletes instead of breaking upgrades.
 
 ## Intra-Component Sync Wave Architecture
 
@@ -265,7 +263,7 @@ While `apps/app-of-apps.yaml` coordinates dependencies across broad system waves
 | :--- | :--- | :--- | :--- |
 | **Network Isolation** | `-2` (or `-3`) | `CiliumNetworkPolicy` | Enforce egress/ingress firewalling before secrets or pods materialize. |
 | **Secret Material** | `-1` | `ExternalSecret` | Fetch and reconcile credentials from Infisical before datastores start. |
-| **Datastores & Base** | `0` | CNPG `Cluster`, Dragonfly, RustFS `Tenant`, `PVC` | Provision databases, caches, and storage. |
+| **Datastores & Base** | `0` | CNPG `Cluster`, Valkey (nested Application), RustFS `Tenant`, `PVC` | Provision databases, caches, and storage. |
 | **Workloads** | `1` | Child `Application`s, `Deployment`, `StatefulSet` | Deploy application workloads, pods, and backend Services. |
 | **Routing & Auth** | `2` | `HTTPRoute`, `GRPCRoute`, `SecurityPolicy` | Attach routes to the shared Gateway (`apps/envoy-gateway`) and their gateway OIDC policies after Services exist. |
 

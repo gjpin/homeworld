@@ -45,12 +45,12 @@ controllers:
     containers:
       main:
         env:
-          REDIS_HOSTNAME: dragonfly.immich.svc.cluster.local
+          REDIS_HOSTNAME: valkey.immich.svc.cluster.local
           REDIS_PORT: "6379"
           REDIS_PASSWORD:
             valueFrom:
               secretKeyRef:
-                name: dragonfly
+                name: valkey
                 key: password
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
           DB_HOSTNAME: immich-rw.immich.svc.cluster.local

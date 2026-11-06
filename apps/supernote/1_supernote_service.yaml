@@ -150,13 +150,13 @@ spec:
                   name: mariadb
                   key: password
             - name: REDIS_HOST
-              value: dragonfly
+              value: valkey
             - name: REDIS_PORT
               value: "6379"
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: dragonfly
+                  name: valkey
                   key: password
             - name: NOTELIB_HOST
               value: notelib

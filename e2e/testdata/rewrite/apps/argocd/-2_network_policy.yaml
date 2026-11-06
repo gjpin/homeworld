@@ -54,7 +54,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-argocd-server-dragonfly
+  name: allow-argocd-server-valkey
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -66,7 +66,7 @@ spec:
   egress:
     - toServices:
         - k8sService:
-            serviceName: dragonfly
+            serviceName: valkey
             namespace: argocd
       toPorts:
         - ports:
@@ -98,7 +98,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-argocd-controller-dragonfly
+  name: allow-argocd-controller-valkey
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -110,7 +110,7 @@ spec:
   egress:
     - toServices:
         - k8sService:
-            serviceName: dragonfly
+            serviceName: valkey
             namespace: argocd
       toPorts:
         - ports:
@@ -186,7 +186,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-argocd-repo-server-dragonfly
+  name: allow-argocd-repo-server-valkey
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -198,7 +198,7 @@ spec:
   egress:
     - toServices:
         - k8sService:
-            serviceName: dragonfly
+            serviceName: valkey
             namespace: argocd
       toPorts:
         - ports:
@@ -243,17 +243,17 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-argocd-dragonfly-ingress
+  name: allow-argocd-valkey-ingress
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  # The Dragonfly operator's generated StatefulSet pods (apps/argocd/
-  # 0_dragonfly.yaml) cache the controllers' git and manifest data.
+  # The Valkey pod (apps/argocd/helm/valkey) caches the controllers' git and
+  # manifest data.
   endpointSelector:
     matchLabels:
-      k8s:app.kubernetes.io/name: dragonfly
-      k8s:app.kubernetes.io/instance: dragonfly
+      k8s:app.kubernetes.io/name: valkey
+      k8s:app.kubernetes.io/instance: valkey
   ingress:
     - fromEndpoints:
         - matchLabels:
@@ -272,7 +272,8 @@ spec:
         - ports:
             - port: "6379"
               protocol: TCP
-    # Operand admin/metrics endpoint (port 9999) scraped by the PodMonitor.
+    # redis_exporter sidecar (port 9121) scraped through the chart's
+    # ServiceMonitor.
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: otel-collector
@@ -281,7 +282,7 @@ spec:
             k8s:app.kubernetes.io/component: opentelemetry-collector
       toPorts:
         - ports:
-            - port: "9999"
+            - port: "9121"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
