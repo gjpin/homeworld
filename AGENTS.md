@@ -30,6 +30,10 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
 - `bootstrap/argocd-values.yaml`: the minimal Argo CD bootstrap.sh installs
   before `apps/argocd` adopts it.
 - `README.md`: required environment variables, bootstrap notes, and sync-wave documentation.
+- `.agents/skills/<skill>/SKILL.md`: agent skills in the agent-neutral
+  [Agent Skills](https://agentskills.io/specification) format (only the
+  standard frontmatter fields; no agent-specific tools or syntax in the body).
+  `.claude/skills` is a symlink to it for Claude Code.
 
 ## Manifest conventions
 
@@ -463,7 +467,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   jump, to the user instead of merging. Follow `docs/upgrades.md` (version
   stepping in §4, per-app procedures in §9); `scripts/upgrade-report.sh`
   gathers the release notes, values drift, render diff, and convention
-  findings for a range, and the `/upgrade` skill works Renovate PRs end to
+  findings for a range, and the `upgrade` skill (`.agents/skills/upgrade`) works Renovate PRs end to
   end. When a release introduces a new
   standing procedure, add it to §9 and to the app's Renovate `prBodyNotes`.
 - Before modifying an existing Helm installation or adding a new one, render
