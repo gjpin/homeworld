@@ -45,7 +45,7 @@ spec:
         # container, so it never touches the root-owned /config PVC and the
         # git-pinned version always wins over any HACS-installed copy.
         - name: hass-oidc-auth-loader
-          image: docker.io/library/alpine:3.24.3
+          image: docker.io/library/alpine:3.24.4
           imagePullPolicy: IfNotPresent
           command:
             - sh
@@ -89,7 +89,7 @@ spec:
         # user-owned state afterwards; later git changes to the seeded
         # configuration must be applied by editing the files directly.
         - name: homeassistant-config-bootstrap
-          image: docker.io/library/alpine:3.24.3
+          image: docker.io/library/alpine:3.24.4
           imagePullPolicy: IfNotPresent
           command:
             - sh
