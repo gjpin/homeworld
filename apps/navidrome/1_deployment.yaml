@@ -44,7 +44,7 @@ spec:
         # writes only to the emptyDir that holds the plugins folder, so the
         # git-pinned version is the only plugin Navidrome loads.
         - name: audiomuse-ai-plugin-loader
-          image: docker.io/library/alpine:3.24.3
+          image: docker.io/library/alpine:3.24.4
           imagePullPolicy: IfNotPresent
           command:
             - sh
@@ -54,8 +54,8 @@ spec:
               # refreshes the sha256 on bumps via postUpgradeTasks
               # (scripts/refresh-navidrome-audiomuse-plugin-sha.sh).
               wget -O /tmp/audiomuseai.ndp \
-                https://github.com/NeptuneHub/AudioMuse-AI-NV-plugin/releases/download/v11/audiomuseai.ndp
-              echo '3be93eebfe573f195a3696c5e4f411a24fe22ae47999b41249ff3cbec9b19ba0  /tmp/audiomuseai.ndp' | sha256sum -c -
+                https://github.com/NeptuneHub/AudioMuse-AI-NV-plugin/releases/download/v12/audiomuseai.ndp
+              echo 'da8512c4f3b2d3a58fea611e3ab36c7ad53e7ddc7c9d9b16231101ae98809ed8  /tmp/audiomuseai.ndp' | sha256sum -c -
               mv /tmp/audiomuseai.ndp /plugins/audiomuseai.ndp
           securityContext:
             allowPrivilegeEscalation: false
