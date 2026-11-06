@@ -93,7 +93,7 @@ spec:
               type: RuntimeDefault
           initContainers:
             - name: victoria-plugins-loader
-              image: docker.io/library/alpine:3.24.3
+              image: docker.io/library/alpine:3.24.4
               imagePullPolicy: IfNotPresent
               command:
                 - sh
