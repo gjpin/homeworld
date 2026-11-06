@@ -242,6 +242,16 @@ Do all of the following:
    replace deprecated options, drop removed ones, and add new ones that a
    convention requires (telemetry off, metrics on, OIDC per the Authelia
    client guide).
+   Home Assistant: the bootstrap init container seeds `.storage/http` in the
+   HTTP store's own format (1_homeassistant_deployment.yaml). Compare
+   `STORAGE_VERSION`, `STORAGE_MINOR_VERSION`, `HTTP_STORAGE_SCHEMA` and
+   `_async_migrate_func` in `homeassistant/components/http/config.py` (and
+   the default SSL profile in `http/const.py`) between the old and new
+   tags. When any changed, rewrite the seed to the new format: the stable
+   config with every schema key, `pending: null`, `yaml_migration_done:
+   true`. Then confirm with the new `homeassistant` package that
+   `async_load_config` on a fresh config directory holding the seed
+   activates the stable config with no revert scheduled.
 5. Conventions. Render the component (kubectl kustomize --enable-helm) and
    confirm every AGENTS.md requirement still holds in the output:
    Restricted security contexts, runtimeClassName gvisor or hostUsers:
