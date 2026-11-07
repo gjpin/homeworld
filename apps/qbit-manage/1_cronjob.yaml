@@ -45,7 +45,7 @@ spec:
             # qbit_manage writes defaults back into config.yml, so it gets a
             # writable copy of the ConfigMap on every run.
             - name: config
-              image: ghcr.io/stuffanthings/qbit_manage:v4.14.0
+              image: ghcr.io/stuffanthings/qbit_manage:v4.15.0
               imagePullPolicy: IfNotPresent
               command:
                 - cp
@@ -81,8 +81,8 @@ spec:
             - name: qbit-manage
               # Renovate tracks the image tag below. Deploy only a release
               # that supports the pinned qBittorrent (SUPPORTED_VERSIONS.json):
-              # v4.14.0 stops at qBittorrent 5.2.4.
-              image: ghcr.io/stuffanthings/qbit_manage:v4.14.0
+              # v4.15.0 stops at qBittorrent 5.3.0.
+              image: ghcr.io/stuffanthings/qbit_manage:v4.15.0
               imagePullPolicy: IfNotPresent
               env:
                 - name: TZ
