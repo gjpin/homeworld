@@ -1194,9 +1194,9 @@
     },
     {
       "customType": "regex",
-      "description": "Update Helm version in validate workflow",
+      "description": "Update Helm version in the validate and upgrade-agent workflows",
       "managerFilePatterns": [
-        "/^\\.github/workflows/validate\\.ya?ml$/"
+        "/^\\.github/workflows/(validate|upgrade-agent)\\.ya?ml$/"
       ],
       "matchStrings": [
         "helm-v(?<currentValue>[\\d.]+)-linux-amd64"
@@ -1207,9 +1207,9 @@
     },
     {
       "customType": "regex",
-      "description": "Update yq version in validate workflow",
+      "description": "Update yq version in the validate and upgrade-agent workflows",
       "managerFilePatterns": [
-        "/^\\.github/workflows/validate\\.ya?ml$/"
+        "/^\\.github/workflows/(validate|upgrade-agent)\\.ya?ml$/"
       ],
       "matchStrings": [
         "yq/releases/download/v(?<currentValue>[\\d.]+)/"
@@ -1217,6 +1217,32 @@
       "depNameTemplate": "mikefarah/yq",
       "datasourceTemplate": "github-releases",
       "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update crane version in upgrade-agent workflow",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/upgrade-agent\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "go-containerregistry/releases/download/v(?<currentValue>[\\d.]+)/"
+      ],
+      "depNameTemplate": "google/go-containerregistry",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Mistral Vibe version in upgrade-agent workflow",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/upgrade-agent\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "pipx install mistral-vibe==(?<currentValue>[\\d.]+)"
+      ],
+      "depNameTemplate": "mistral-vibe",
+      "datasourceTemplate": "pypi",
+      "versioningTemplate": "pep440"
     },
     {
       "customType": "regex",
