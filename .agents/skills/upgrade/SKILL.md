@@ -245,11 +245,14 @@ checks passed, but the range brings something the user should see before
 merging: a new feature or option that would be useful in this homelab (it
 improves something the component is used for here, adds an integration
 with another component in the repository, or replaces a workaround in
-this repository), or a post-merge step from docs/upgrades.md §9. `comment`
-then also lists each such feature with what it would change here and the
-post-merge steps; the user merges, or replies `/upgrade <decision>` to
+this repository), a notable user-facing feature (something new the app's
+users can see or do, such as a new page, view, or capability, even when it
+needs no configuration), or a post-merge step from docs/upgrades.md §9.
+`comment` then also lists each such feature with what it adds or would
+change here, and the post-merge steps; the user merges, or replies `/upgrade <decision>` to
 have it adopted. Features of no use here (other platforms, integrations
-the homelab does not run, cosmetic changes) do not make a PR `review`;
+the homelab does not run, bug fixes, minor cosmetic tweaks) do not make a
+PR `review`;
 mention them in one line of a `ready` comment at most. `block` means a
 blocker from step 4.1; `comment` states it, what was verified, and the
 exact decision or action needed from the user, phrased so a one-line

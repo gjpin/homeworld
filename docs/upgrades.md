@@ -418,7 +418,7 @@ app and posts the review as a PR comment and as the "Upgrade agent review"
 check on the PR head. A PR the agent passes with nothing for the owner
 to see is labelled `upgrade-ready` and merged by the app once every other
 check on its head passes. A PR that passes but brings a new feature useful
-here, or a post-merge step, is labelled `upgrade-review` and left open for
+here, a notable user-facing feature, or a post-merge step, is labelled `upgrade-review` and left open for
 the owner to merge. A blocker, failing CI, or a run that ended without a
 result is labelled `upgrade-blocked`. A PR waiting for an earlier PR of the same package is
 labelled `upgrade-waiting` and reviewed again when that one merges. The agent

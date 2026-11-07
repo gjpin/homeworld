@@ -258,8 +258,8 @@ jobs:
           skill and AGENTS.md first and follow them exactly, in result mode.
           You run unattended in GitHub Actions: nobody can answer a question,
           so a blocker is a "block" decision in the result file. A "ready" PR
-          is merged without the user seeing it; useful new features or
-          post-merge steps make it "review" instead. Use ${RUNNER_TEMP}/upgrade as the work directory. Always write
+          is merged without the user seeing it; useful new features, notable
+          user-facing features or post-merge steps make it "review" instead. Use ${RUNNER_TEMP}/upgrade as the work directory. Always write
           the result file before you stop, also when something failed.
           EOF
 
