@@ -410,7 +410,7 @@ meet, a failed backup or pre-flight, or a stepping constraint from
 [§4](#4-applications-requiring-sequential-version-stepping).
 
 The [upgrade-agent workflow](../.github/workflows/upgrade-agent.yaml)
-reviews every Renovate PR as it opens with Mistral Vibe and DeepSeek V4.1 Flash (Mistral-hosted, thinking `high`). The
+reviews every Renovate PR as it opens with Mistral Vibe and Z.ai GLM 5.3 Flash (Mistral-hosted, thinking `high`). The
 agent works in the skill's result mode: it reviews and commits on a runner
 holding only a read-only token and the `MISTRAL_API_KEY` Actions secret, and
 returns a decision. A second job pushes its commit as the `renovate-homeworld`

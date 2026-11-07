@@ -1,7 +1,7 @@
 name: Upgrade agent
 
 # Reviews every Renovate PR with the upgrade skill (.agents/skills/upgrade),
-# run by Mistral Vibe with DeepSeek V4.1 Flash (served by Mistral, thinking
+# run by Mistral Vibe with Z.ai GLM 5.3 Flash (served by Mistral, thinking
 # high). The agent's fixes are pushed to the PR and its review is posted as
 # a comment. A `ready` PR is merged once every other check on its head
 # passes; a `review` PR (new features worth using here, or post-merge steps)
@@ -51,7 +51,7 @@ env:
   # flag once the cluster is live: stateful upgrades then block, for a local
   # /upgrade run that can take the backup.
   UPGRADE_FLAGS: --no-cluster
-  VIBE_MODEL: deepseek-v4.1-flash
+  VIBE_MODEL: glm-5.3-flash
 
 jobs:
   prepare:
@@ -214,24 +214,24 @@ jobs:
           set -euo pipefail
           echo "VIBE_HOME=${RUNNER_TEMP}/vibe" >> "$GITHUB_ENV"
           mkdir -p "${RUNNER_TEMP}/vibe"
-          # DeepSeek V4.1 Flash 1017 as Mistral serves it
-          # (docs.mistral.ai/models/deepseek-v4-flash-1017); prices are
+          # Z.ai GLM 5.3 Flash as Mistral serves it
+          # (docs.mistral.ai/models/zai-glm-5-3-flash); prices are
           # Mistral's, so --max-price caps the run. Telemetry and update
           # checks off (AGENTS.md).
           cat > "${RUNNER_TEMP}/vibe/config.toml" <<'EOF'
-          active_model = "deepseek-v4.1-flash"
+          active_model = "glm-5.3-flash"
           enable_telemetry = false
           enable_update_checks = false
           strict_config = true
 
           [[models]]
-          name = "deepseek-v4-1-flash-1017"
+          name = "zai-glm-5-3-flash"
           provider = "mistral"
-          alias = "deepseek-v4.1-flash"
+          alias = "glm-5.3-flash"
           thinking = "high"
-          input_price = 0.3
-          output_price = 1.2
-          cached_input_price = 0.007
+          input_price = 0.15
+          output_price = 0.5
+          cached_input_price = 0.03
           EOF
 
       - name: Run the upgrade skill
