@@ -626,7 +626,7 @@
       "customType": "regex",
       "description": "Update CloudNativePG Cluster images",
       "managerFilePatterns": [
-        "/^apps/(?:authelia|coder|forgejo|homeassistant|immich|vaultwarden|woodpecker|bazarr|cleanuparr|lidarr|prowlarr|radarr|seerr|sonarr|streamystats)/0_postgres\\.yaml$/"
+        "/^apps/[^/]+/0_postgres\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^\\s*imageName:\\s*(?<depName>ghcr\\.io/[^:\\s]+):(?<currentValue>[^\\s#]+)\\s*$"
@@ -639,7 +639,7 @@
       "customType": "regex",
       "description": "Move CloudNativePG Cluster images to the newest Debian stable release CNPG publishes for the pinned PostgreSQL version (the docker manager above treats the -system-<debian> suffix as fixed)",
       "managerFilePatterns": [
-        "/^apps/(?:authelia|coder|forgejo|homeassistant|immich|vaultwarden|woodpecker|bazarr|cleanuparr|lidarr|prowlarr|radarr|seerr|sonarr|streamystats)/0_postgres\\.yaml$/"
+        "/^apps/[^/]+/0_postgres\\.yaml$/"
       ],
       "matchStrings": [
         "(?m)^\\s*imageName:\\s*(?<packageName>ghcr\\.io/cloudnative-pg/postgresql):(?<pgVersion>\\d+\\.\\d+)-system-(?<currentValue>[a-z]+)\\s*$"
