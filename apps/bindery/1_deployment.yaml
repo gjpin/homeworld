@@ -41,7 +41,7 @@ spec:
       containers:
         - name: bindery
           # Renovate tracks the image tag below.
-          image: ghcr.io/vavallee/bindery:v1.47.0
+          image: ghcr.io/vavallee/bindery:v1.48.0
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
