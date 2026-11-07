@@ -29,7 +29,7 @@ decision below.
   merge that needs a live gate.
 - `--dry-run` — review and propose only: no commits, pushes, merges, PR
   closes, or live actions. Report the proposed diff per PR.
-- `--result FILE` — hand the decision to a caller (the upgrade-agent
+- `--result FILE` — hand the review to a caller (the upgrade-agent
   workflow) instead of acting on GitHub: exactly one PR, reviewed and
   committed but never pushed, merged, closed, or commented on. See
   [Result mode](#result-mode).
@@ -127,6 +127,9 @@ instead of dispatching a reviewer:
   `breaking|deprecat|remov|renam|migrat|manual|action required|CRD|telemetry|analytics|usage stat|tracking|update check`.
   None of them may touch a setting, resource, or behavior this repository
   uses.
+- No deprecated or obsolete option in use: none of the component's settings
+  is marked deprecated or obsolete in the target version's configuration
+  reference or shipped default config (step 4 of the reviewer prompt).
 - The target artifact exists: the report's image table, `crane digest`, or
   the chart repository index.
 
@@ -199,7 +202,8 @@ with the exact action the user needs to take.
 
 With `--result FILE`, the caller owns everything that writes to GitHub:
 it brings the branch up to date before the run, and afterwards pushes the
-commit, posts the comment, waits for CI, and merges. The run itself:
+commit and posts the comment. The PR stays open; the user merges it. The
+run itself:
 
 - Works on the one PR given. The checkout is `main`; the PR branch is on
   `origin`. Skip `gh pr update-branch`, the coverage audit, and all
@@ -224,14 +228,15 @@ commit, posts the comment, waits for CI, and merges. The run itself:
   "component": "forgejo",
   "from": "18.0.1",
   "to": "18.1.0",
-  "decision": "merge | block | wait",
+  "decision": "ready | block | wait",
   "commit": "<sha of the commit in the worktree, or null when nothing changed>",
   "waiting_for": "<PR number for wait, else null>",
   "comment": "<Markdown for the PR>"
 }
 ```
 
-`merge` means every check of step 3 and 4.1 passed; `comment` then lists
+`ready` means every check of step 3 and 4.1 passed and the PR can be
+merged once CI passes on the pushed commit; `comment` then lists
 the review (fast path or full), the changes made with their reasons, the
 post-merge steps, and notable features not adopted. `block` means a
 blocker from step 4.1; `comment` states it, what was verified, and the
@@ -297,6 +302,20 @@ Do all of the following:
    replace deprecated options, drop removed ones, and add new ones that a
    convention requires (telemetry off, metrics on, OIDC per the Authelia
    client guide).
+   Deprecations: fix every option the component uses that the target
+   version marks deprecated or obsolete, in this PR, however long ago the
+   deprecation happened; "not introduced by this PR" is no reason to defer
+   it. Look beyond the release notes: the upstream configuration reference,
+   the default config file the image or chart ships (e.g. an option's
+   `desc`), and deprecation warnings the application logs at startup. For
+   each one, first check whether the option is still needed at all (an
+   option restating a default or something the application already derives
+   is dropped, not migrated); otherwise move to the documented replacement
+   with the same effect. Confirm the result where you can: render it, and
+   when the behaviour is observable from the image (headers, generated
+   config), start the target image and compare old against new. When the
+   replacement's semantics are unclear or it cannot carry the same value,
+   report a BLOCKER instead of guessing.
    Home Assistant: the bootstrap init container seeds `.storage/http` in the
    HTTP store's own format (1_homeassistant_deployment.yaml). Compare
    `STORAGE_VERSION`, `STORAGE_MINOR_VERSION`, `HTTP_STORAGE_SCHEMA` and

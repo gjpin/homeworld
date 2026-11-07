@@ -409,22 +409,23 @@ an Immich major, a Gateway API or Kubernetes minimum the cluster does not
 meet, a failed backup or pre-flight, or a stepping constraint from
 [§4](#4-applications-requiring-sequential-version-stepping).
 
-The [upgrade-agent workflow](../.github/workflows/upgrade-agent.yaml) runs
-the skill on every Renovate PR as it opens, with Mistral Vibe and DeepSeek
-V4.1 Flash (Mistral-hosted, thinking `high`). The agent works in the skill's
-result mode: it reviews and commits on a runner holding only a read-only
-token and the `MISTRAL_API_KEY` Actions secret, and returns a decision.
-A second job pushes its commit as the `renovate-homeworld` app, waits for
-every other check on the PR, and merges; on a blocker, a failed check, or
-a run that ended without a result it comments on the PR and labels it
-`upgrade-blocked` instead. A PR waiting for an earlier PR of the same
-package is labelled `upgrade-waiting` and runs again when that one merges.
-The agent may not change `.github/`; such fixes come back as a diff in the
-comment. Replying `/upgrade <decision>` on the PR (repository owner only)
-runs the agent again with that reply as the answer to its blocker. Hosted
-runners cannot reach the cluster, so the workflow passes `--no-cluster`
-until the cluster is live; after that, stateful upgrades block for a
-local run that can take the pre-merge backup.
+The [upgrade-agent workflow](../.github/workflows/upgrade-agent.yaml)
+reviews every Renovate PR as it opens, as one of the PR's checks, with
+Mistral Vibe and DeepSeek V4.1 Flash (Mistral-hosted, thinking `high`). The
+agent works in the skill's result mode: it reviews and commits on a runner
+holding only a read-only token and the `MISTRAL_API_KEY` Actions secret, and
+returns a decision. A second job pushes its commit as the `renovate-homeworld`
+app and posts the review as a PR comment. Nothing is merged automatically: a
+PR the agent passes is labelled `upgrade-ready` for the owner to merge once
+CI is green; a blocker, or a run that ended without a result, is labelled
+`upgrade-blocked`. A PR waiting for an earlier PR of the same package is
+labelled `upgrade-waiting` and reviewed again when that one merges. The agent
+may not change `.github/`; such fixes come back as a diff in the comment.
+Replying `/upgrade <decision>` on the PR (repository owner only), or adding
+the `upgrade-agent` label, runs the review again; the agent reads the reply
+as the answer to its blocker. Hosted runners cannot reach the cluster, so the
+workflow passes `--no-cluster` until the cluster is live; after that,
+stateful upgrades block for a local run that can take the pre-merge backup.
 
 The applications below document procedures beyond that review.
 
