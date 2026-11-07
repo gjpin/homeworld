@@ -127,7 +127,7 @@ CLI's self-update (`AGY_CLI_DISABLE_AUTO_UPDATE`), and Terraform's checkpoint
 version check (`CHECKPOINT_DISABLE`), and the template's startup
 script, `homeworld-workspace-init`, sets the file-based ones in the home
 volume on every start: Codex `check_for_update_on_startup` and analytics and
-feedback, OpenCode `autoupdate` and sharing, Pi install telemetry,
+feedback, OpenCode `update` and sharing, Pi install telemetry,
 the Antigravity feedback survey, and Copilot `autoUpdate`. Antigravity saves
 its telemetry choice with the account, not in `settings.json`: turn off
 Enable Telemetry in `/config` after the first login. It also copies the skeleton dotfiles on first start

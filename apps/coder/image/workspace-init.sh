@@ -113,11 +113,12 @@ set_toml_key "$home_dir/.codex/config.toml" check_for_update_on_startup 'false'
 set_toml_section_key "$home_dir/.codex/config.toml" analytics enabled 'false'
 set_toml_section_key "$home_dir/.codex/config.toml" feedback enabled 'false'
 
-# OpenCode: never self-update and never share conversations.
+# OpenCode: never self-update and never share conversations. The deprecated V1
+# key (autoupdate) is dropped in favour of its native V2 replacement.
 # shellcheck disable=SC2016 # "$schema" is a literal JSON key
 merge_json "$home_dir/.config/opencode/opencode.json" \
-  '.autoupdate = false | .share = "disabled"' \
-  '{"$schema":"https://opencode.ai/config.json","autoupdate":false,"share":"disabled"}'
+  'del(.autoupdate) | .update = "disable" | .share = "disabled"' \
+  '{"$schema":"https://opencode.ai/config.json","update":"disable","share":"disabled"}'
 
 # Pi: never send install telemetry (the version check is disabled by
 # PI_SKIP_VERSION_CHECK).
