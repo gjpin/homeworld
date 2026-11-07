@@ -1,0 +1,488 @@
+name: Upgrade agent
+
+# Reviews every Renovate PR with the upgrade skill (.agents/skills/upgrade),
+# run by Mistral Vibe with DeepSeek V4.1 Flash (served by Mistral, thinking
+# high). The agent's fixes are pushed to the PR and its review is posted as
+# a comment; the PR stays open for the owner to merge (docs/upgrades.md,
+# "Upgrade Tooling").
+#
+# Every review runs on a pull_request_target event, so it shows up among the
+# PR's checks: when Renovate opens the PR, and whenever the `upgrade-agent`
+# label is added. pull_request_target, not pull_request: the workflow always
+# comes from main, never from the PR (whose stale merge ref can predate this
+# workflow, and a PR could rewrite it); the jobs below only accept same-repo
+# renovate/* branches, and only the read-only agent job runs PR content. The other triggers only add that label: an owner's `/upgrade
+# <decision>` comment (the agent reads it as the answer to its blocker), a
+# manual dispatch, and the merge of an earlier PR that a waiting PR of the
+# same package depends on.
+#
+# Three review jobs keep the agent away from write credentials. The agent
+# runs with auto-approve and reads untrusted release notes, so its job holds
+# only a read-only GITHUB_TOKEN and the Mistral key, and hands back a result
+# file and its commit as patches. The other jobs never execute anything from
+# the agent's runner and hold the renovate-homeworld app token, which pushes
+# and comments (so CI runs on the pushed commit, like on Renovate's own).
+
+on:
+  pull_request_target:
+    types: [opened, reopened, labeled, closed]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Renovate PR number
+        required: true
+        type: number
+
+# One review per PR at a time. Every other run (label requests, unrelated
+# labels and comments, merges) gets a group of its own, or it would replace a
+# pending review.
+concurrency:
+  group: >-
+    upgrade-agent-${{
+      github.event_name == 'pull_request_target'
+      && github.event.action != 'closed'
+      && (github.event.action != 'labeled' || github.event.label.name == 'upgrade-agent')
+      && github.event.pull_request.number
+      || format('run-{0}', github.run_id) }}
+  cancel-in-progress: false
+
+permissions: {}
+
+env:
+  # GitHub-hosted runners cannot reach the cluster, so the skill's live gates
+  # (pre-merge Velero backup, Cilium pre-flight) cannot run here. Drop the
+  # flag once the cluster is live: stateful upgrades then block, for a local
+  # /upgrade run that can take the backup.
+  UPGRADE_FLAGS: --no-cluster
+  VIBE_MODEL: deepseek-v4.1-flash
+
+jobs:
+  # /upgrade comment or manual dispatch: label the PR, which starts the
+  # review as one of its checks.
+  request:
+    if: >-
+      (github.event_name == 'issue_comment'
+        && github.event.issue.pull_request
+        && github.event.comment.author_association == 'OWNER'
+        && (github.event.comment.body == '/upgrade' || startsWith(github.event.comment.body, '/upgrade ')))
+      || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Create GitHub App installation token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ secrets.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+
+      - name: Request a review
+        env:
+          # The label must come from the app: events caused by GITHUB_TOKEN
+          # start no workflow runs.
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          NUMBER: ${{ github.event.issue.number || inputs.pr }}
+        run: |
+          set -euo pipefail
+          gh label create upgrade-agent -R "$GITHUB_REPOSITORY" --force --color 1d76db \
+            --description "Upgrade agent: review requested" >/dev/null
+          gh pr edit "$NUMBER" -R "$GITHUB_REPOSITORY" --remove-label upgrade-agent >/dev/null 2>&1 || true
+          gh pr edit "$NUMBER" -R "$GITHUB_REPOSITORY" --add-label upgrade-agent
+
+  # A merged Renovate PR releases the later PRs of the same package that
+  # waited for it (skill step 2).
+  release:
+    if: >-
+      github.event_name == 'pull_request_target'
+      && github.event.action == 'closed'
+      && github.event.pull_request.merged
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Create GitHub App installation token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ secrets.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+
+      - name: Request reviews of the waiting PRs
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          gh pr list -R "$GITHUB_REPOSITORY" --state open --label upgrade-waiting --json number --jq '.[].number' |
+            while read -r n; do
+              gh pr edit "$n" -R "$GITHUB_REPOSITORY" --add-label upgrade-agent
+            done
+
+  prepare:
+    if: >-
+      github.event_name == 'pull_request_target'
+      && github.event.action != 'closed'
+      && (github.event.action != 'labeled' || github.event.label.name == 'upgrade-agent')
+      && startsWith(github.head_ref, 'renovate/')
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      proceed: ${{ steps.pr.outputs.proceed }}
+      number: ${{ steps.pr.outputs.number }}
+      branch: ${{ steps.pr.outputs.branch }}
+      sha: ${{ steps.pr.outputs.sha }}
+    steps:
+      - name: Create GitHub App installation token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ secrets.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+
+      - name: Resolve the PR and bring it up to date
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          NUMBER: ${{ github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          echo "proceed=false" >> "$GITHUB_OUTPUT"
+
+          pr="$(gh pr view "$NUMBER" -R "$GITHUB_REPOSITORY" --json state,headRefName,headRefOid)"
+          [ "$(jq -r .state <<<"$pr")" = OPEN ] || { echo "#${NUMBER} is closed; nothing to do"; exit 0; }
+          branch="$(jq -r .headRefName <<<"$pr")"
+          sha="$(jq -r .headRefOid <<<"$pr")"
+
+          GH_TOKEN="$APP_TOKEN" gh pr edit "$NUMBER" -R "$GITHUB_REPOSITORY" --remove-label upgrade-agent \
+            --remove-label upgrade-blocked --remove-label upgrade-waiting --remove-label upgrade-ready >/dev/null 2>&1 || true
+
+          # The review must run against current main (skill step 3).
+          behind="$(gh api "repos/${GITHUB_REPOSITORY}/compare/main...${sha}" --jq .behind_by)"
+          if [ "$behind" -gt 0 ]; then
+            if ! GH_TOKEN="$APP_TOKEN" gh pr update-branch "$NUMBER" -R "$GITHUB_REPOSITORY"; then
+              GH_TOKEN="$APP_TOKEN" gh pr comment "$NUMBER" -R "$GITHUB_REPOSITORY" --body \
+                "### Upgrade agent: blocked
+
+          The branch could not be brought up to date with \`main\` (merge conflict). Resolve it, or let Renovate rebase the PR, then reply \`/upgrade\`.
+
+          ---
+          [Run](${RUN_URL})"
+              exit 0
+            fi
+            for _ in $(seq 60); do
+              new="$(gh pr view "$NUMBER" -R "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)"
+              [ "$new" != "$sha" ] && break
+              sleep 5
+            done
+            if [ "$new" = "$sha" ]; then
+              echo "::error::update-branch did not move the PR head"
+              exit 1
+            fi
+            sha="$new"
+          fi
+
+          {
+            echo "proceed=true"
+            echo "number=${NUMBER}"
+            echo "branch=${branch}"
+            echo "sha=${sha}"
+          } >> "$GITHUB_OUTPUT"
+
+  review:
+    needs: prepare
+    if: needs.prepare.outputs.proceed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    # Read-only: PR metadata and comments, check results and failed logs.
+    permissions:
+      actions: read
+      checks: read
+      contents: read
+      issues: read
+      pull-requests: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      NUMBER: ${{ needs.prepare.outputs.number }}
+      BRANCH: ${{ needs.prepare.outputs.branch }}
+      SHA: ${{ needs.prepare.outputs.sha }}
+    steps:
+      - name: Check out main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          # The repository is private, so git needs credentials too. The
+          # persisted token is this job's read-only GITHUB_TOKEN, which the
+          # agent already has as GH_TOKEN.
+
+      - name: Install the upgrade toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+
+          curl -sSfLO https://get.helm.sh/helm-v4.3.1-linux-amd64.tar.gz
+          curl -sSfL https://get.helm.sh/helm-v4.3.1-linux-amd64.tar.gz.sha256 |
+            awk '{print $1 "  helm-v4.3.1-linux-amd64.tar.gz"}' | sha256sum --check
+          tar -xzf helm-v4.3.1-linux-amd64.tar.gz
+          sudo install linux-amd64/helm /usr/local/bin/helm
+
+          # kubectl floats to the latest stable release, as in validate.yaml:
+          # it only renders manifests client-side.
+          kubectl_version="$(curl -sSfL https://dl.k8s.io/release/stable.txt)"
+          sudo curl -sSfL -o /usr/local/bin/kubectl \
+            "https://dl.k8s.io/release/${kubectl_version}/bin/linux/amd64/kubectl"
+          curl -sSfL "https://dl.k8s.io/release/${kubectl_version}/bin/linux/amd64/kubectl.sha256" |
+            awk '{print $1 "  /usr/local/bin/kubectl"}' | sha256sum --check
+          sudo chmod 0755 /usr/local/bin/kubectl
+
+          curl -sSfLO https://github.com/mikefarah/yq/releases/download/v4.54.2/yq_linux_amd64
+          yq_sha256_col="$(
+            curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.2/checksums_hashes_order |
+              grep -n '^SHA-256$' | cut -d: -f1
+          )"
+          curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.2/checksums |
+            awk -v col="$((yq_sha256_col + 1))" '$1 == "yq_linux_amd64" {print $(col) "  yq_linux_amd64"}' |
+            sha256sum --check
+          sudo install yq_linux_amd64 /usr/local/bin/yq
+
+          curl -sSfLO https://github.com/google/go-containerregistry/releases/download/v0.22.1/go-containerregistry_Linux_x86_64.tar.gz
+          curl -sSfL https://github.com/google/go-containerregistry/releases/download/v0.22.1/checksums.txt |
+            grep ' go-containerregistry_Linux_x86_64.tar.gz$' | sha256sum --check
+          tar -xzf go-containerregistry_Linux_x86_64.tar.gz crane
+          sudo install crane /usr/local/bin/crane
+
+          pipx install mistral-vibe==3.1.0
+
+      - name: Configure Vibe
+        run: |
+          set -euo pipefail
+          echo "VIBE_HOME=${RUNNER_TEMP}/vibe" >> "$GITHUB_ENV"
+          mkdir -p "${RUNNER_TEMP}/vibe"
+          # DeepSeek V4.1 Flash 1017 as Mistral serves it
+          # (docs.mistral.ai/models/deepseek-v4-flash-1017); prices are
+          # Mistral's, so --max-price caps the run. Telemetry and update
+          # checks off (AGENTS.md).
+          cat > "${RUNNER_TEMP}/vibe/config.toml" <<'EOF'
+          active_model = "deepseek-v4.1-flash"
+          enable_telemetry = false
+          enable_update_checks = false
+          strict_config = true
+
+          [[models]]
+          name = "deepseek-v4-1-flash-1017"
+          provider = "mistral"
+          alias = "deepseek-v4.1-flash"
+          thinking = "high"
+          input_price = 0.3
+          output_price = 1.2
+          cached_input_price = 0.007
+          EOF
+
+      - name: Run the upgrade skill
+        env:
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+        run: |
+          set -euo pipefail
+          git fetch -q origin "+refs/heads/${BRANCH}:refs/remotes/origin/${BRANCH}"
+          if [ "$(git rev-parse "origin/${BRANCH}")" != "$SHA" ]; then
+            echo "::error::origin/${BRANCH} moved after prepare"
+            exit 1
+          fi
+          git config --global user.name "renovate-homeworld[bot]"
+          git config --global user.email "309082045+renovate-homeworld[bot]@users.noreply.github.com"
+
+          mkdir -p "${RUNNER_TEMP}/out"
+          cat > "${RUNNER_TEMP}/prompt.md" <<EOF
+          Run the upgrade skill (.agents/skills/upgrade/SKILL.md) on Renovate PR
+          #${NUMBER} (branch ${BRANCH}, head ${SHA}) with these arguments:
+
+              ${NUMBER} --result ${RUNNER_TEMP}/out/result.json ${UPGRADE_FLAGS}
+
+          This prompt is the explicit invocation the skill requires. Read the
+          skill and AGENTS.md first and follow them exactly, in result mode.
+          You run unattended in GitHub Actions: nobody can answer a question,
+          so anything that needs the user is a "block" decision in the result
+          file. Use ${RUNNER_TEMP}/upgrade as the work directory. Always write
+          the result file before you stop, also when something failed.
+          EOF
+
+          rc=0
+          vibe --trust --agent auto-approve --model "$VIBE_MODEL" \
+            --prompt-file "${RUNNER_TEMP}/prompt.md" \
+            --max-price 10 --time-limit 6000 \
+            --output-dir "${RUNNER_TEMP}/vibe-run" || rc=$?
+          echo "vibe exited with ${rc}"
+
+      - name: Package the result
+        if: ${{ !cancelled() }}
+        run: |
+          set -euo pipefail
+          out="${RUNNER_TEMP}/out"
+          mkdir -p "$out/patches"
+          # export.json: stop reason, token usage and cost; never the session
+          # journal (it holds tool output and is published with the artifact).
+          cp "${RUNNER_TEMP}/vibe-run/export.json" "$out/" 2>/dev/null || true
+          result="$out/result.json"
+          jq -e . "$result" >/dev/null 2>&1 || exit 0
+          commit="$(jq -r '.commit // empty' "$result")"
+          [ -n "$commit" ] || exit 0
+          if git merge-base --is-ancestor "$SHA" "$commit" 2>/dev/null; then
+            git format-patch -q --binary -o "$out/patches" "${SHA}..${commit}"
+          else
+            jq '.decision = "block" | .commit = null |
+              .comment = "The agent reported a commit that does not build on the PR head; nothing was pushed.\n\n" + (.comment // "")' \
+              "$result" > "$result.tmp" && mv "$result.tmp" "$result"
+          fi
+
+      - name: Upload the result
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: upgrade-result
+          path: ${{ runner.temp }}/out
+          if-no-files-found: ignore
+
+  apply:
+    needs: [prepare, review]
+    if: ${{ always() && needs.prepare.outputs.proceed == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    env:
+      NUMBER: ${{ needs.prepare.outputs.number }}
+      BRANCH: ${{ needs.prepare.outputs.branch }}
+      SHA: ${{ needs.prepare.outputs.sha }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Download the result
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: upgrade-result
+          path: ${{ runner.temp }}/result
+
+      - name: Check out the PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          persist-credentials: false
+
+      - name: Create GitHub App installation token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ secrets.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+
+      - name: Push the fixes and post the review
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          dir="${RUNNER_TEMP}/result"
+          result="${dir}/result.json"
+
+          post() { # <title> <markdown file>
+            {
+              echo "### Upgrade agent: $1"
+              echo
+              head -c 60000 "$2"
+              echo
+              echo
+              echo "---"
+              echo "[Run](${RUN_URL}) · Reply \`/upgrade <your decision>\` to run the agent again with it."
+            } > "${RUNNER_TEMP}/comment.md"
+            gh pr comment "$NUMBER" -R "$GITHUB_REPOSITORY" --body-file "${RUNNER_TEMP}/comment.md"
+          }
+          label() { # <name> <color> <description>
+            gh label create "$1" -R "$GITHUB_REPOSITORY" --force --color "$2" \
+              --description "Upgrade agent: $3" >/dev/null
+            gh pr edit "$NUMBER" -R "$GITHUB_REPOSITORY" --add-label "$1" >/dev/null
+          }
+          block() { # <markdown file>
+            post "blocked" "$1"
+            label upgrade-blocked d93f0b "needs a decision before merging"
+          }
+          msg="${RUNNER_TEMP}/msg.md"
+
+          if ! jq -e --argjson n "$NUMBER" \
+            '.pr == $n and (.decision | IN("ready", "block", "wait")) and (.comment | type == "string")' \
+            "$result" >/dev/null 2>&1; then
+            echo "The agent finished without a valid result file (stop reason in the run's \`upgrade-result\` artifact, \`export.json\`). Nothing was pushed." > "$msg"
+            block "$msg"
+            exit 0
+          fi
+          decision="$(jq -r .decision "$result")"
+          jq -r .comment "$result" > "$msg"
+
+          pr="$(gh pr view "$NUMBER" -R "$GITHUB_REPOSITORY" --json state,headRefOid)"
+          [ "$(jq -r .state <<<"$pr")" = OPEN ] || { echo "PR is no longer open"; exit 0; }
+          if [ "$(jq -r .headRefOid <<<"$pr")" != "$SHA" ]; then
+            printf '%s\n\n%s\n' "The PR head moved during the review, so this result was discarded. Reply \`/upgrade\` to review the new head." "<details><summary>Discarded result (${decision})</summary>
+
+          $(cat "$msg")
+          </details>" > "${RUNNER_TEMP}/moved.md"
+            post "outdated" "${RUNNER_TEMP}/moved.md"
+            exit 0
+          fi
+
+          case "$decision" in
+            block)
+              block "$msg"
+              exit 0
+              ;;
+            wait)
+              earlier="$(jq -r '.waiting_for // empty' "$result")"
+              if [ -n "$earlier" ] &&
+                [ "$(gh pr view "$earlier" -R "$GITHUB_REPOSITORY" --json state --jq .state)" = MERGED ]; then
+                # Merged while this review ran: review again now.
+                gh pr edit "$NUMBER" -R "$GITHUB_REPOSITORY" --add-label upgrade-agent
+                exit 0
+              fi
+              post "waiting" "$msg"
+              label upgrade-waiting fbca04 "reviewed again once an earlier PR of the same package merges"
+              exit 0
+              ;;
+          esac
+
+          shopt -s nullglob
+          patches=("${dir}"/patches/*.patch)
+          if [ "${#patches[@]}" -gt 0 ]; then
+            git config user.name "renovate-homeworld[bot]"
+            git config user.email "309082045+renovate-homeworld[bot]@users.noreply.github.com"
+            if ! git am -q "${patches[@]}"; then
+              echo "The agent's commit did not apply to the PR head; nothing was pushed." > "$msg"
+              block "$msg"
+              exit 0
+            fi
+            # Workflow changes from the agent would run with this job's
+            # credentials on the next event.
+            if git diff --name-only "$SHA" HEAD | grep -q '^\.github/'; then
+              printf '%s\n\n' "The agent's commit changes files under \`.github/\`, which it may not push. Review the change and apply it by hand:" > "${RUNNER_TEMP}/gh.md"
+              { echo '```diff'; git diff "$SHA" HEAD | head -c 40000; echo '```'; } >> "${RUNNER_TEMP}/gh.md"
+              block "${RUNNER_TEMP}/gh.md"
+              exit 0
+            fi
+            git push -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${BRANCH}"
+            printf '%s\n\n' "Pushed $(git rev-parse --short HEAD) with the agent's changes; CI runs on it. Merge once the checks pass." | cat - "$msg" > "$msg.tmp" && mv "$msg.tmp" "$msg"
+          fi
+
+          post "ready to merge" "$msg"
+          label upgrade-ready 0e8a16 "reviewed, ready for the owner to merge"
