@@ -7,6 +7,7 @@ metadata:
   labels:
     app.kubernetes.io/name: maintainerr
   annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: Unverified for the pinned Maintainerr image; its writable paths outside the mounted volumes are not mapped to emptyDir volumes, and readOnlyRootFilesystem is not enabled without that (AGENTS.md).
     argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: 1

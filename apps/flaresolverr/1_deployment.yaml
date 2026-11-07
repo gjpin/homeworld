@@ -7,6 +7,7 @@ metadata:
   labels:
     app.kubernetes.io/name: flaresolverr
   annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: FlareSolverr starts Chromium, which writes its browser profile, crash and shared-memory files under the image's home and temp directories.
     argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: 1

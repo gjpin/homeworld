@@ -9,6 +9,8 @@ kind: Service
 metadata:
   name: openchamber
   namespace: openchamber
+  annotations:
+    ignore-check.kube-linter.io/dangling-service: Selectorless by design; its EndpointSlice points at the agents VM outside the cluster (docs/agents-vm.md).
   labels:
     app.kubernetes.io/name: openchamber
 spec:
@@ -40,6 +42,8 @@ kind: Service
 metadata:
   name: paseo
   namespace: openchamber
+  annotations:
+    ignore-check.kube-linter.io/dangling-service: Selectorless by design; its EndpointSlice points at the agents VM outside the cluster (docs/agents-vm.md).
   labels:
     app.kubernetes.io/name: paseo
 spec:
@@ -71,6 +75,8 @@ kind: Service
 metadata:
   name: thinkrail
   namespace: openchamber
+  annotations:
+    ignore-check.kube-linter.io/dangling-service: Selectorless by design; its EndpointSlice points at the agents VM outside the cluster (docs/agents-vm.md).
   labels:
     app.kubernetes.io/name: thinkrail
 spec:

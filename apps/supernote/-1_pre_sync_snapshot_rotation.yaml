@@ -83,6 +83,7 @@ metadata:
   name: pre-sync-snapshot-rotation
   namespace: supernote
   annotations:
+    ignore-check.kube-linter.io/job-ttl-seconds-after-finished: An Argo CD PreSync hook; its HookSucceeded delete policy removes it after a successful run and BeforeHookCreation replaces a failed one on the next sync.
     argocd.argoproj.io/hook: PreSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
     argocd.argoproj.io/sync-wave: "-1"

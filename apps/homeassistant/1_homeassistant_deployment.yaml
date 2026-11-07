@@ -7,6 +7,8 @@ metadata:
     app.kubernetes.io/name: homeassistant
     io.kompose.service: homeassistant
   annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: s6-overlay in the upstream Home Assistant image writes its supervision tree under /run, and the image and its alpine init containers are otherwise unverified; its writable paths outside the mounted volumes are not mapped to emptyDir volumes, and readOnlyRootFilesystem is not enabled without that (AGENTS.md).
+    ignore-check.kube-linter.io/run-as-non-root: The upstream Home Assistant image runs s6-overlay as UID 0; the pod runs under gVisor, so root is confined to the sandbox kernel (docs/pod-security.md).
     argocd.argoproj.io/sync-wave: "1"
     security.homeworld/exception-reason: "Home Assistant requires container UID 0 under s6-overlay; the gVisor sandbox kernel isolates root execution from the host kernel."
 spec:

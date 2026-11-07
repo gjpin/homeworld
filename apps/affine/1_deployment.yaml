@@ -10,6 +10,7 @@ metadata:
     app.kubernetes.io/name: affine
     app.kubernetes.io/component: server
   annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: Unverified for the pinned AFFiNE image (server and migration init container); its writable paths outside the mounted volumes are not mapped to emptyDir volumes, and readOnlyRootFilesystem is not enabled without that (AGENTS.md).
     argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: 1

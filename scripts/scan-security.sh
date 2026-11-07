@@ -9,7 +9,7 @@ stripped_dir="$(mktemp -d)"
 trap 'rm -rf "$render_dir" "$stripped_dir"' EXIT
 
 "$repo_root/scripts/validate-security-exceptions.sh"
-"$repo_root/scripts/render-helm-profiles.sh" "$profile" "$render_dir"
+"$repo_root/scripts/render-manifests.sh" "$profile" "$render_dir"
 "$repo_root/scripts/check-network-policies.sh" "$render_dir"
 
 mkdir -p "$report_root/$profile"

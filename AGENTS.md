@@ -372,6 +372,13 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   Restricted audit/warn labels, and document the reason in namespace metadata
   and resource-specific scanner exceptions. Do not hide mixed workloads behind
   wildcard or namespace-wide scanner exclusions.
+- `scripts/scan-security.sh` runs kube-linter and kubescape over everything an
+  Argo CD Application deploys, handwritten manifests and charts alike, and
+  fails on manifests no Application deploys. Fix a finding in the manifest
+  first; otherwise waive it for the exact resource with a reasoned
+  `ignore-check.kube-linter.io/<check>` annotation on the object's metadata or
+  a kubescape designator in `security/kubescape-exceptions.json`
+  (docs/security-scanners.md).
 - A close-to-Restricted exception must still use non-root execution where
   possible, `RuntimeDefault` seccomp, no privilege escalation, and dropped
   capabilities. Prefer splitting node-level or host-integrated workloads from

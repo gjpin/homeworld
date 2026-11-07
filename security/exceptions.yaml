@@ -28,7 +28,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+      "reason": "The matched keys name credentials, but their rendered values are settings, $(VAR) expansions, file paths or {{HOMEPAGE_VAR_*}} placeholders filled from External Secrets at runtime; no credential value is in the manifest."
     },
     {
       "check": "C-0013",
@@ -38,7 +38,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "The pinned upstream image security context is preserved because generic UID or filesystem changes can break runtime access."
+      "reason": "The exact workload keeps its image's preserved context or needs root for a documented function (Home Assistant's s6-overlay under gVisor, gluetun's tunnel setup), as recorded in docs/pod-security.md."
     },
     {
       "check": "C-0015",
@@ -48,7 +48,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+      "reason": "The exact controller or workload reads these Secrets through its dedicated service account for its documented function (upstream controllers, the OTel target allocator's per-namespace scrape-credential Roles), limited to exact bindings."
     },
     {
       "check": "C-0016",
@@ -68,7 +68,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "The pinned upstream image security context is preserved because generic UID or filesystem changes can break runtime access."
+      "reason": "The image's writable paths are not mapped to volumes, so its root filesystem stays writable rather than read-only by guesswork; each handwritten workload's kube-linter annotation records the specific reason."
     },
     {
       "check": "C-0018",
@@ -78,7 +78,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "The upstream chart does not expose a safe additional health probe; synthetic probes could trigger unsafe restarts."
+      "reason": "Jobs, CronJobs and Argo CD hooks run to completion and take no probes, and the remaining containers expose no safe health endpoint for the missing probe; synthetic probes could trigger unsafe restarts."
     },
     {
       "check": "C-0030",
@@ -168,7 +168,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "The exact storage or node controller requires host integration to provide its documented cluster function."
+      "reason": "The exact storage, node or device workload requires host integration (including Zigbee2MQTT's USB coordinator under /dev/serial/by-id) to provide its documented cluster function."
     },
     {
       "check": "C-0046",
@@ -178,7 +178,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "NET_ADMIN, BPF, PERFMON, and NET_BIND_SERVICE capabilities are required by the pinned upstream dataplane to load BPF programs and load-balance services."
+      "reason": "NET_ADMIN, BPF, PERFMON, and NET_BIND_SERVICE are required by the pinned upstream dataplane to load BPF programs and load-balance services; gluetun needs NET_ADMIN and NET_RAW in the qBittorrent pod's own network namespace for its tunnel and kill switch."
     },
     {
       "check": "C-0048",
@@ -188,7 +188,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "The exact storage or node controller requires host integration to provide its documented cluster function."
+      "reason": "The exact storage, node or device workload requires host integration (including Zigbee2MQTT's USB coordinator under /dev/serial/by-id) to provide its documented cluster function."
     },
     {
       "check": "C-0049",
@@ -238,7 +238,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "The upstream chart does not expose a safe additional health probe; synthetic probes could trigger unsafe restarts."
+      "reason": "Jobs, CronJobs and Argo CD hooks run to completion and take no probes, and the remaining containers expose no safe health endpoint for the missing probe; synthetic probes could trigger unsafe restarts."
     },
     {
       "check": "C-0057",
@@ -278,7 +278,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "The upstream-generated resource omits an optional recommended label but remains identified by exact kind and name."
+      "reason": "The resource omits an optional recommended label but remains identified by exact kind, name and namespace."
     },
     {
       "check": "C-0077",
@@ -288,7 +288,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+      "reason": "The resource omits part of the optional app.kubernetes.io label set but remains identified by exact kind, name and namespace."
     },
     {
       "check": "C-0186",
@@ -298,7 +298,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+      "reason": "The exact controller or workload reads these Secrets through its dedicated service account for its documented function (upstream controllers, the OTel target allocator's per-namespace scrape-credential Roles), limited to exact bindings."
     },
     {
       "check": "C-0187",
@@ -518,7 +518,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "The pinned upstream image security context is preserved because generic UID or filesystem changes can break runtime access."
+      "reason": "The pinned image's context is preserved where generic UID or filesystem changes can break runtime access, and container SELinux labels are assigned by the runtime (container_t) rather than set per container."
     },
     {
       "check": "C-0237",
@@ -548,7 +548,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+      "reason": "The exact workload reads its own configuration from ConfigMaps, or its controller needs ConfigMap access for its documented function, limited to exact rendered resources."
     },
     {
       "check": "C-0259",
@@ -558,7 +558,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+      "reason": "The exact workload reads its own credentials from External Secrets-managed Secrets, or its controller needs them for its documented function, limited to exact rendered resources."
     },
     {
       "check": "C-0260",
@@ -638,7 +638,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+      "reason": "This permission is required by the exact controller (kubelet-serving-cert-approver approves kubelet serving CSRs) and is limited to exact rendered resources."
     },
     {
       "check": "C-0281",
@@ -668,7 +668,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "This permission or behavior is required by the pinned upstream controller and is limited to exact rendered resources."
+      "reason": "The Service intentionally has no workload in the render: a controller creates its pods at runtime (Envoy Gateway's proxies, longhorn-manager) or it is selectorless by design."
     },
     {
       "check": "C-0299",
@@ -681,6 +681,16 @@
       "reason": "The upstream Longhorn chart ships these internal-traffic NetworkPolicies for pods that longhorn-manager creates at runtime (instance, backing-image, and recovery-backend managers, the admission webhook), so no selected pod exists in the offline render."
     },
     {
+      "check": "C-0302",
+      "control": "Dangling Gateway API backend",
+      "profiles": [
+        "homelab"
+      ],
+      "scanner": "kubescape",
+      "owner": "platform",
+      "reason": "The HTTPRoute's backend Service is created at runtime by an operator (the Grafana operator's grafana-service, the RustFS Tenant's Services), so it is absent from the offline render."
+    },
+    {
       "check": "C-0305",
       "control": "No rolling update strategy",
       "profiles": [
@@ -688,7 +698,7 @@
       ],
       "scanner": "kubescape",
       "owner": "platform",
-      "reason": "The upstream chart keeps Recreate for a single-replica workload that must never run two copies at once: a controller without leader election (duplicate notifications, DNS record ownership, backups, LAPI) or a pod holding an RWO volume."
+      "reason": "The single-replica workload must never run two copies at once: a controller without leader election (duplicate notifications, DNS record ownership, backups, LAPI) or a pod holding an RWO volume, where a rolling update would wait on the volume attachment."
     }
   ]
 }

@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/name: opencloud
     app.kubernetes.io/component: server
   annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: Unverified for the pinned OpenCloud server, yjs and web-extension images; its writable paths outside the mounted volumes are not mapped to emptyDir volumes, and readOnlyRootFilesystem is not enabled without that (AGENTS.md).
     argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: 1
@@ -650,6 +651,7 @@ metadata:
     app.kubernetes.io/name: opencloud-tika
     app.kubernetes.io/component: search
   annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: Apache Tika spools documents to the JVM temporary directory on the image filesystem while extracting text.
     argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: 1
@@ -667,6 +669,10 @@ spec:
       runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
+        # The apache/tika image's USER (35002:35002), pinned so admission
+        # and scanners can verify the non-root UID.
+        runAsUser: 35002
+        runAsGroup: 35002
         seccompProfile:
           type: RuntimeDefault
       containers:

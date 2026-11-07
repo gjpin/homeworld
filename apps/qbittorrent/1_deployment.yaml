@@ -43,6 +43,10 @@ metadata:
   labels:
     app.kubernetes.io/name: qbittorrent
   annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: gluetun writes its generated tunnel and server-list state at runtime, and the qBittorrent, exporter and bootstrap images are otherwise unverified; its writable paths outside the mounted volumes are not mapped to emptyDir volumes, and readOnlyRootFilesystem is not enabled without that (AGENTS.md).
+    ignore-check.kube-linter.io/run-as-non-root: gluetun must run as root to configure the WireGuard interface, routing rules and kill-switch firewall in the pod's network namespace (docs/qbittorrent.md).
+    ignore-check.kube-linter.io/drop-net-raw-capability: gluetun's kill-switch firewall and WireGuard setup need NET_RAW alongside NET_ADMIN, limited to the pod's own network namespace (docs/qbittorrent.md).
+    ignore-check.kube-linter.io/readiness-port: The qbittorrent container's readiness probe targets gluetun's health server on 9999 in the shared network namespace, so a down tunnel takes the WebUI out of the Service.
     argocd.argoproj.io/sync-wave: "1"
     security.homeworld/exception-reason: "The gluetun VPN sidecar requires the NET_ADMIN and NET_RAW capabilities to bring up the WireGuard tunnel and its kill-switch firewall in the pod's network namespace; PSS baseline forbids added capabilities. SELinux confines it as container_t, and the pod keeps the host user namespace because its NFS media volume has no idmapped mounts."
 spec:

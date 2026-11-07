@@ -388,6 +388,54 @@
           "name": "^valkey-config$",
           "namespace": "^supernote$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ConfigMap$",
+          "name": "^vaultwarden-config$",
+          "namespace": "^vaultwarden$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^unpackerr$",
+          "namespace": "^unpackerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ConfigMap$",
+          "name": "^actual-budget-config$",
+          "namespace": "^actual-budget$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ConfigMap$",
+          "name": "^homepage$",
+          "namespace": "^homepage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ConfigMap$",
+          "name": "^grafana-dashboard-mariadb-operator-mysql-overview$",
+          "namespace": "^grafana$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opencloud$",
+          "namespace": "^opencloud$"
+        }
       }
     ],
     "posturePolicies": [
@@ -666,6 +714,22 @@
           "name": "^intel-gpu-plugin$",
           "namespace": "^intel-gpu-plugin$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^qbittorrent$",
+          "namespace": "^qbittorrent$"
+        }
       }
     ],
     "posturePolicies": [
@@ -943,6 +1007,38 @@
           "kind": "^RoleBinding$",
           "name": "^system-upgrade$",
           "namespace": "^system-upgrade$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^otel-targetallocator-monitor-credentials$",
+          "namespace": "^kube-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^otel-targetallocator-monitor-credentials$",
+          "namespace": "^collabora$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^otel-targetallocator-monitor-credentials$",
+          "namespace": "^unpackerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^otel-targetallocator-monitor-credentials$",
+          "namespace": "^woodpecker$"
         }
       }
     ],
@@ -1356,6 +1452,126 @@
           "name": "^seerr$",
           "namespace": "^seerr$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opencloud-tika$",
+          "namespace": "^opencloud$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-monograph$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-identity$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^maintainerr$",
+          "namespace": "^maintainerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant-mosquitto$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant-zigbee2mqtt$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^qbittorrent$",
+          "namespace": "^qbittorrent$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^flaresolverr$",
+          "namespace": "^flaresolverr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-sse$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-sync$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cleanuparr$",
+          "namespace": "^cleanuparr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^affine$",
+          "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiobookshelf$",
+          "namespace": "^audiobookshelf$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opencloud$",
+          "namespace": "^opencloud$"
+        }
       }
     ],
     "posturePolicies": [
@@ -1529,6 +1745,70 @@
           "kind": "^Deployment$",
           "name": "^system-upgrade-controller$",
           "namespace": "^system-upgrade$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^jellyfin-auto-collections$",
+          "namespace": "^jellyfin-auto-collections$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^media-config$",
+          "namespace": "^media-config$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^qbit-manage$",
+          "namespace": "^qbit-manage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^qbittorrent$",
+          "namespace": "^qbittorrent$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^beets$",
+          "namespace": "^beets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^pre-sync-snapshot-rotation$",
+          "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^recyclarr$",
+          "namespace": "^recyclarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^qbittorrent-port-forward$",
+          "namespace": "^qbittorrent$"
         }
       }
     ],
@@ -2569,6 +2849,38 @@
           "name": "^system-upgrade-controller$",
           "namespace": "^system-upgrade$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homepage$",
+          "namespace": "^homepage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kubelet-serving-cert-approver$",
+          "namespace": "^kubelet-serving-cert-approver$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^snapshot-controller$",
+          "namespace": "^snapshot-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^pre-sync-snapshot-rotation$",
+          "namespace": "^supernote$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2908,6 +3220,14 @@
           "name": "^intel-gpu-plugin$",
           "namespace": "^intel-gpu-plugin$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant-zigbee2mqtt$",
+          "namespace": "^homeassistant$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2945,6 +3265,14 @@
           "kind": "^DaemonSet$",
           "name": "^csi-nfs-node$",
           "namespace": "^csi-driver-nfs$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^qbittorrent$",
+          "namespace": "^qbittorrent$"
         }
       }
     ],
@@ -3015,6 +3343,14 @@
           "kind": "^DaemonSet$",
           "name": "^intel-gpu-plugin$",
           "namespace": "^intel-gpu-plugin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant-zigbee2mqtt$",
+          "namespace": "^homeassistant$"
         }
       }
     ],
@@ -3587,6 +3923,89 @@
           "name": "^system-upgrade$",
           "namespace": "^system-upgrade$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^homepage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^control-plane-metrics-reader$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^kubelet-serving-cert-approver$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^events:kubelet-serving-cert-approver$",
+          "namespace": "^default$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^otel-targetallocator-monitor-credentials$",
+          "namespace": "^kube-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^otel-collector-pod-targetallocator$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^otel-targetallocator-monitor-credentials$",
+          "namespace": "^collabora$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^otel-targetallocator-monitor-credentials$",
+          "namespace": "^unpackerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^otel-targetallocator-monitor-credentials$",
+          "namespace": "^woodpecker$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^snapshot-controller-role$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^pre-sync-snapshot-rotation$",
+          "namespace": "^supernote$"
+        }
       }
     ],
     "posturePolicies": [
@@ -3955,6 +4374,70 @@
           "kind": "^Deployment$",
           "name": "^system-upgrade-controller$",
           "namespace": "^system-upgrade$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^jellyfin-auto-collections$",
+          "namespace": "^jellyfin-auto-collections$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^media-config$",
+          "namespace": "^media-config$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^snapshot-controller$",
+          "namespace": "^snapshot-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^qbit-manage$",
+          "namespace": "^qbit-manage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^beets$",
+          "namespace": "^beets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^pre-sync-snapshot-rotation$",
+          "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^recyclarr$",
+          "namespace": "^recyclarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^qbittorrent-port-forward$",
+          "namespace": "^qbittorrent$"
         }
       }
     ],
@@ -4554,6 +5037,334 @@
           "name": "^valkey$",
           "namespace": "^supernote$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opencloud-tika$",
+          "namespace": "^opencloud$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^lidarr$",
+          "namespace": "^lidarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-monograph$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-identity$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^jellyfin-auto-collections$",
+          "namespace": "^jellyfin-auto-collections$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^maintainerr$",
+          "namespace": "^maintainerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^media-config$",
+          "namespace": "^media-config$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homepage$",
+          "namespace": "^homepage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^prowlarr$",
+          "namespace": "^prowlarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant-mosquitto$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant-zigbee2mqtt$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notelib$",
+          "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^supernote-service$",
+          "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kubelet-serving-cert-approver$",
+          "namespace": "^kubelet-serving-cert-approver$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^snapshot-controller$",
+          "namespace": "^snapshot-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^qbit-manage$",
+          "namespace": "^qbit-manage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^qbittorrent$",
+          "namespace": "^qbittorrent$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^beets$",
+          "namespace": "^beets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^sonarr$",
+          "namespace": "^sonarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^vaultwarden$",
+          "namespace": "^vaultwarden$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^navidrome$",
+          "namespace": "^navidrome$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^radarr$",
+          "namespace": "^radarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^flaresolverr$",
+          "namespace": "^flaresolverr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^pre-sync-snapshot-rotation$",
+          "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^unpackerr$",
+          "namespace": "^unpackerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-sse$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-sync$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^radicale$",
+          "namespace": "^radicale$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cleanuparr$",
+          "namespace": "^cleanuparr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^affine$",
+          "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^recyclarr$",
+          "namespace": "^recyclarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^feishin$",
+          "namespace": "^feishin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^streamystats$",
+          "namespace": "^streamystats$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^streamystats-job-server$",
+          "namespace": "^streamystats$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^qbittorrent-port-forward$",
+          "namespace": "^qbittorrent$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^bazarr$",
+          "namespace": "^bazarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^actual-budget$",
+          "namespace": "^actual-budget$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiobookshelf$",
+          "namespace": "^audiobookshelf$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^bindery$",
+          "namespace": "^bindery$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opencloud$",
+          "namespace": "^opencloud$"
+        }
       }
     ],
     "posturePolicies": [
@@ -4607,6 +5418,14 @@
           "kind": "^Deployment$",
           "name": "^system-upgrade-controller$",
           "namespace": "^system-upgrade$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^pre-sync-snapshot-rotation$",
+          "namespace": "^supernote$"
         }
       }
     ],
@@ -4885,6 +5704,38 @@
           "kind": "^RoleBinding$",
           "name": "^system-upgrade$",
           "namespace": "^system-upgrade$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^otel-targetallocator-monitor-credentials$",
+          "namespace": "^kube-system$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^otel-targetallocator-monitor-credentials$",
+          "namespace": "^collabora$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^otel-targetallocator-monitor-credentials$",
+          "namespace": "^unpackerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^otel-targetallocator-monitor-credentials$",
+          "namespace": "^woodpecker$"
         }
       }
     ],
@@ -5454,6 +6305,38 @@
           "name": "^system-upgrade-controller$",
           "namespace": "^system-upgrade$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homepage$",
+          "namespace": "^homepage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kubelet-serving-cert-approver$",
+          "namespace": "^kubelet-serving-cert-approver$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^snapshot-controller$",
+          "namespace": "^snapshot-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^pre-sync-snapshot-rotation$",
+          "namespace": "^supernote$"
+        }
       }
     ],
     "posturePolicies": [
@@ -6005,6 +6888,246 @@
           "kind": "^Deployment$",
           "name": "^valkey$",
           "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^lidarr$",
+          "namespace": "^lidarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-identity$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^jellyfin-auto-collections$",
+          "namespace": "^jellyfin-auto-collections$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^media-config$",
+          "namespace": "^media-config$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homepage$",
+          "namespace": "^homepage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^prowlarr$",
+          "namespace": "^prowlarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant-mosquitto$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant-zigbee2mqtt$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^supernote-service$",
+          "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^qbit-manage$",
+          "namespace": "^qbit-manage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^qbittorrent$",
+          "namespace": "^qbittorrent$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^sonarr$",
+          "namespace": "^sonarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^vaultwarden$",
+          "namespace": "^vaultwarden$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^navidrome$",
+          "namespace": "^navidrome$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^radarr$",
+          "namespace": "^radarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^unpackerr$",
+          "namespace": "^unpackerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-sse$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-sync$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cleanuparr$",
+          "namespace": "^cleanuparr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^affine$",
+          "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^recyclarr$",
+          "namespace": "^recyclarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^streamystats$",
+          "namespace": "^streamystats$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^streamystats-job-server$",
+          "namespace": "^streamystats$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^qbittorrent-port-forward$",
+          "namespace": "^qbittorrent$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^bazarr$",
+          "namespace": "^bazarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^actual-budget$",
+          "namespace": "^actual-budget$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiobookshelf$",
+          "namespace": "^audiobookshelf$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^bindery$",
+          "namespace": "^bindery$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opencloud$",
+          "namespace": "^opencloud$"
         }
       }
     ],
@@ -6714,6 +7837,334 @@
           "name": "^valkey$",
           "namespace": "^supernote$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opencloud-tika$",
+          "namespace": "^opencloud$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^lidarr$",
+          "namespace": "^lidarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-monograph$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-identity$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^jellyfin-auto-collections$",
+          "namespace": "^jellyfin-auto-collections$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^maintainerr$",
+          "namespace": "^maintainerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^media-config$",
+          "namespace": "^media-config$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homepage$",
+          "namespace": "^homepage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^prowlarr$",
+          "namespace": "^prowlarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant-mosquitto$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant-zigbee2mqtt$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notelib$",
+          "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^supernote-service$",
+          "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kubelet-serving-cert-approver$",
+          "namespace": "^kubelet-serving-cert-approver$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^snapshot-controller$",
+          "namespace": "^snapshot-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^qbit-manage$",
+          "namespace": "^qbit-manage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^qbittorrent$",
+          "namespace": "^qbittorrent$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^beets$",
+          "namespace": "^beets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^sonarr$",
+          "namespace": "^sonarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^vaultwarden$",
+          "namespace": "^vaultwarden$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^navidrome$",
+          "namespace": "^navidrome$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^radarr$",
+          "namespace": "^radarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^flaresolverr$",
+          "namespace": "^flaresolverr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^pre-sync-snapshot-rotation$",
+          "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^unpackerr$",
+          "namespace": "^unpackerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-sse$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-sync$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^radicale$",
+          "namespace": "^radicale$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cleanuparr$",
+          "namespace": "^cleanuparr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^affine$",
+          "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^recyclarr$",
+          "namespace": "^recyclarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^feishin$",
+          "namespace": "^feishin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^streamystats$",
+          "namespace": "^streamystats$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^streamystats-job-server$",
+          "namespace": "^streamystats$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^qbittorrent-port-forward$",
+          "namespace": "^qbittorrent$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^bazarr$",
+          "namespace": "^bazarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^actual-budget$",
+          "namespace": "^actual-budget$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiobookshelf$",
+          "namespace": "^audiobookshelf$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^bindery$",
+          "namespace": "^bindery$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opencloud$",
+          "namespace": "^opencloud$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7168,6 +8619,326 @@
           "name": "^valkey$",
           "namespace": "^supernote$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opencloud-tika$",
+          "namespace": "^opencloud$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^lidarr$",
+          "namespace": "^lidarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-monograph$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-identity$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^jellyfin-auto-collections$",
+          "namespace": "^jellyfin-auto-collections$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^maintainerr$",
+          "namespace": "^maintainerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^media-config$",
+          "namespace": "^media-config$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homepage$",
+          "namespace": "^homepage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^prowlarr$",
+          "namespace": "^prowlarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant-mosquitto$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant-zigbee2mqtt$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notelib$",
+          "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^supernote-service$",
+          "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kubelet-serving-cert-approver$",
+          "namespace": "^kubelet-serving-cert-approver$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^qbit-manage$",
+          "namespace": "^qbit-manage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^qbittorrent$",
+          "namespace": "^qbittorrent$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^beets$",
+          "namespace": "^beets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^sonarr$",
+          "namespace": "^sonarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^vaultwarden$",
+          "namespace": "^vaultwarden$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^navidrome$",
+          "namespace": "^navidrome$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^radarr$",
+          "namespace": "^radarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^flaresolverr$",
+          "namespace": "^flaresolverr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^pre-sync-snapshot-rotation$",
+          "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^unpackerr$",
+          "namespace": "^unpackerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-sse$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notesnook-sync$",
+          "namespace": "^notesnook$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^radicale$",
+          "namespace": "^radicale$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cleanuparr$",
+          "namespace": "^cleanuparr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^affine$",
+          "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^recyclarr$",
+          "namespace": "^recyclarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^feishin$",
+          "namespace": "^feishin$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^streamystats$",
+          "namespace": "^streamystats$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^streamystats-job-server$",
+          "namespace": "^streamystats$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^qbittorrent-port-forward$",
+          "namespace": "^qbittorrent$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^bazarr$",
+          "namespace": "^bazarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^actual-budget$",
+          "namespace": "^actual-budget$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiobookshelf$",
+          "namespace": "^audiobookshelf$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^bindery$",
+          "namespace": "^bindery$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opencloud$",
+          "namespace": "^opencloud$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7340,6 +9111,70 @@
           "name": "^manticore-worker$",
           "namespace": "^affine$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^jellyfin-auto-collections$",
+          "namespace": "^jellyfin-auto-collections$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^media-config$",
+          "namespace": "^media-config$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homepage$",
+          "namespace": "^homepage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant-mosquitto$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^beets$",
+          "namespace": "^beets$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^radicale$",
+          "namespace": "^radicale$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^CronJob$",
+          "name": "^recyclarr$",
+          "namespace": "^recyclarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opencloud$",
+          "namespace": "^opencloud$"
+        }
       }
     ],
     "posturePolicies": [
@@ -7409,6 +9244,22 @@
           "kind": "^Deployment$",
           "name": "^valkey$",
           "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^unpackerr$",
+          "namespace": "^unpackerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^opencloud$",
+          "namespace": "^opencloud$"
         }
       }
     ],
@@ -8310,6 +10161,38 @@
           "name": "^system-upgrade-controller$",
           "namespace": "^system-upgrade$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homepage$",
+          "namespace": "^homepage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^kubelet-serving-cert-approver$",
+          "namespace": "^kubelet-serving-cert-approver$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^snapshot-controller$",
+          "namespace": "^snapshot-controller$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Job$",
+          "name": "^pre-sync-snapshot-rotation$",
+          "namespace": "^supernote$"
+        }
       }
     ],
     "posturePolicies": [
@@ -8763,6 +10646,13 @@
           "name": "^velero-server$",
           "namespace": "^velero$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^kubelet-serving-cert-approver$"
+        }
       }
     ],
     "posturePolicies": [
@@ -8900,6 +10790,14 @@
           "name": "^longhorn-recovery-backend$",
           "namespace": "^longhorn-system$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Service$",
+          "name": "^envoy-node-access$",
+          "namespace": "^envoy-gateway$"
+        }
       }
     ],
     "posturePolicies": [
@@ -9024,11 +10922,241 @@
           "name": "^system-upgrade-controller$",
           "namespace": "^system-upgrade$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^lidarr$",
+          "namespace": "^lidarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^maintainerr$",
+          "namespace": "^maintainerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homepage$",
+          "namespace": "^homepage$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^prowlarr$",
+          "namespace": "^prowlarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant-mosquitto$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^homeassistant-zigbee2mqtt$",
+          "namespace": "^homeassistant$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^notelib$",
+          "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^supernote-service$",
+          "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^qbittorrent$",
+          "namespace": "^qbittorrent$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^sonarr$",
+          "namespace": "^sonarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^vaultwarden$",
+          "namespace": "^vaultwarden$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^navidrome$",
+          "namespace": "^navidrome$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^radarr$",
+          "namespace": "^radarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^flaresolverr$",
+          "namespace": "^flaresolverr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^unpackerr$",
+          "namespace": "^unpackerr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^radicale$",
+          "namespace": "^radicale$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cleanuparr$",
+          "namespace": "^cleanuparr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^affine$",
+          "namespace": "^affine$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^streamystats-job-server$",
+          "namespace": "^streamystats$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^bazarr$",
+          "namespace": "^bazarr$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^actual-budget$",
+          "namespace": "^actual-budget$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^audiobookshelf$",
+          "namespace": "^audiobookshelf$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^bindery$",
+          "namespace": "^bindery$"
+        }
       }
     ],
     "posturePolicies": [
       {
         "controlID": "C-0305"
+      }
+    ]
+  },
+  {
+    "name": "homeworld-C-0302",
+    "policyType": "postureExceptionPolicy",
+    "actions": [
+      "alertOnly"
+    ],
+    "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^HTTPRoute$",
+          "name": "^grafana$",
+          "namespace": "^grafana$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^HTTPRoute$",
+          "name": "^rustfs-console$",
+          "namespace": "^rustfs$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^HTTPRoute$",
+          "name": "^rustfs-s3$",
+          "namespace": "^rustfs$"
+        }
+      }
+    ],
+    "posturePolicies": [
+      {
+        "controlID": "C-0302"
       }
     ]
   }

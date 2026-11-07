@@ -11,6 +11,8 @@ kind: Service
 metadata:
   name: envoy-node-access
   namespace: envoy-gateway
+  annotations:
+    ignore-check.kube-linter.io/dangling-service: It selects the Envoy proxy pods Envoy Gateway creates at runtime for the shared Gateway; no such pod exists in the offline render.
 spec:
   type: ClusterIP
   clusterIP: 10.43.0.50
