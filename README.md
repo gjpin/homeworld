@@ -278,11 +278,7 @@ Run `host/bootstrap.sh <profile>` on the first node, then on the other two. It a
 From then on Argo CD owns its own release: change it through git, never with `helm upgrade`. Its web UI is `https://argocd.base-domain.invalid`, with Authelia sign-in for `argocd-admin` members.
 
 ### 8. Zigbee Coordinator
-Label the node with the physical Zigbee USB adapter attached:
-```bash
-kubectl label node <node-name> environment=zigbee
-```
-This pins `homeassistant-zigbee2mqtt` to the host hardware where the serial dongle is connected. The first start seeds `/app/data/configuration.yaml` with the broker and frontend pre-wired; fill in `serial.port` with your adapter's path under the mounted `/dev/serial/by-id` (Zigbee2MQTT cannot start without it).
+Plug the Zigbee USB adapter into the Radxa: `homeassistant-zigbee2mqtt` selects it by its `node.homeworld/profile=radxa` label, which k3s sets from git. The first start seeds `/app/data/configuration.yaml` with the broker and frontend pre-wired; fill in `serial.port` with your adapter's path under the mounted `/dev/serial/by-id` (Zigbee2MQTT cannot start without it).
 
 ### 9. Reach the Apps from Your Devices
 Every `*.<domain>` name resolves publicly to the Gateway VIP `192.168.8.50`, which answers on the Pixel network and through WireGuard only. The certificates are publicly trusted, so devices and apps need no extra setup. Git over SSH uses `git@git.<domain>` on port 22.

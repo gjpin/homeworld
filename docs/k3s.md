@@ -93,8 +93,9 @@ is identical on every server apart from the node address and profile label:
   reboot.
 
 The node label `node.homeworld/profile=<profile>` selects the
-Ryzen for the Gateway VIP exclusion and its Cilium node configuration, and
-corebox, the only node with an Intel GPU, for the Intel GPU device plugin.
+Ryzen for the Gateway VIP exclusion and its Cilium node configuration,
+corebox, the only node with an Intel GPU, for the Intel GPU device plugin,
+and the Radxa, which has the Zigbee USB coordinator, for Zigbee2MQTT.
 
 The Gateway API CRDs come from k3s's bundled `gateway-api-crd` addon
 (standard channel), which k3s re-applies on every start and moves with every
