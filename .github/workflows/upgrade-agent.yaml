@@ -157,7 +157,9 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          persist-credentials: false
+          # The repository is private, so git needs credentials too. The
+          # persisted token is this job's read-only GITHUB_TOKEN, which the
+          # agent already has as GH_TOKEN.
 
       - name: Install the upgrade toolchain
         shell: bash
