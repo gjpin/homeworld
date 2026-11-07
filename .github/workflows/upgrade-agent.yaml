@@ -6,18 +6,18 @@ name: Upgrade agent
 # a comment; the PR stays open for the owner to merge (docs/upgrades.md,
 # "Upgrade Tooling").
 #
-# Every review runs on a pull_request_target event, so it shows up among the
-# PR's checks: when Renovate opens the PR, and whenever the `upgrade-agent`
-# label is added. Its result is also a check run on the PR head ("Upgrade
-# agent review": success when ready, failure when blocked, neutral while
-# waiting) carrying the review, because pull_request_target attaches the
-# workflow's own checks to main. pull_request_target, not pull_request: the workflow always
-# comes from main, never from the PR (whose stale merge ref can predate this
-# workflow, and a PR could rewrite it); the jobs below only accept same-repo
-# renovate/* branches, and only the read-only agent job runs PR content. The other triggers only add that label: an owner's `/upgrade
-# <decision>` comment (the agent reads it as the answer to its blocker), a
-# manual dispatch, and the merge of an earlier PR that a waiting PR of the
-# same package depends on.
+# Reviews start when Renovate opens a PR (pull_request_target) or by
+# dispatch with the PR number; upgrade-agent-request.yaml dispatches them for
+# an owner's `/upgrade <decision>` comment (the agent reads it as the answer
+# to its blocker) and when a merge releases a waiting PR of the same package.
+# The result is a check run on the PR head ("Upgrade agent review": success
+# when ready, failure when blocked, neutral while waiting) carrying the
+# review, plus the same review as a PR comment and a label.
+#
+# pull_request_target, not pull_request: the workflow always comes from
+# main, never from the PR (whose stale merge ref can predate this workflow,
+# and a PR could rewrite it). The jobs only accept same-repo renovate/*
+# branches, and only the read-only agent job runs PR content.
 #
 # Three review jobs keep the agent away from write credentials. The agent
 # runs with auto-approve and reads untrusted release notes, so its job holds
@@ -28,9 +28,7 @@ name: Upgrade agent
 
 on:
   pull_request_target:
-    types: [opened, reopened, labeled, closed]
-  issue_comment:
-    types: [created]
+    types: [opened, reopened]
   workflow_dispatch:
     inputs:
       pr:
@@ -38,17 +36,9 @@ on:
         required: true
         type: number
 
-# One review per PR at a time. Every other run (label requests, unrelated
-# labels and comments, merges) gets a group of its own, or it would replace a
-# pending review.
+# One review per PR at a time.
 concurrency:
-  group: >-
-    upgrade-agent-${{
-      github.event_name == 'pull_request_target'
-      && github.event.action != 'closed'
-      && (github.event.action != 'labeled' || github.event.label.name == 'upgrade-agent')
-      && github.event.pull_request.number
-      || format('run-{0}', github.run_id) }}
+  group: upgrade-agent-${{ github.event.pull_request.number || inputs.pr }}
   cancel-in-progress: false
 
 permissions: {}
@@ -62,78 +52,12 @@ env:
   VIBE_MODEL: deepseek-v4.1-flash
 
 jobs:
-  # /upgrade comment or manual dispatch: label the PR, which starts the
-  # review as one of its checks.
-  request:
-    if: >-
-      (github.event_name == 'issue_comment'
-        && github.event.issue.pull_request
-        && github.event.comment.author_association == 'OWNER'
-        && (github.event.comment.body == '/upgrade' || startsWith(github.event.comment.body, '/upgrade ')))
-      || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    steps:
-      - name: Create GitHub App installation token
-        id: app-token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        with:
-          app-id: ${{ secrets.RENOVATE_APP_ID }}
-          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: ${{ github.event.repository.name }}
-
-      - name: Request a review
-        env:
-          # The label must come from the app: events caused by GITHUB_TOKEN
-          # start no workflow runs.
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          NUMBER: ${{ github.event.issue.number || inputs.pr }}
-        run: |
-          set -euo pipefail
-          gh label create upgrade-agent -R "$GITHUB_REPOSITORY" --force --color 1d76db \
-            --description "Upgrade agent: review requested" >/dev/null
-          gh pr edit "$NUMBER" -R "$GITHUB_REPOSITORY" --remove-label upgrade-agent >/dev/null 2>&1 || true
-          gh pr edit "$NUMBER" -R "$GITHUB_REPOSITORY" --add-label upgrade-agent
-
-  # A merged Renovate PR releases the later PRs of the same package that
-  # waited for it (skill step 2).
-  release:
-    if: >-
-      github.event_name == 'pull_request_target'
-      && github.event.action == 'closed'
-      && github.event.pull_request.merged
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    steps:
-      - name: Create GitHub App installation token
-        id: app-token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        with:
-          app-id: ${{ secrets.RENOVATE_APP_ID }}
-          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: ${{ github.event.repository.name }}
-
-      - name: Request reviews of the waiting PRs
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          set -euo pipefail
-          gh pr list -R "$GITHUB_REPOSITORY" --state open --label upgrade-waiting --json number --jq '.[].number' |
-            while read -r n; do
-              gh pr edit "$n" -R "$GITHUB_REPOSITORY" --add-label upgrade-agent
-            done
-
   prepare:
     if: >-
-      github.event_name == 'pull_request_target'
-      && github.event.action != 'closed'
-      && (github.event.action != 'labeled' || github.event.label.name == 'upgrade-agent')
-      && startsWith(github.head_ref, 'renovate/')
-      && github.event.pull_request.head.repo.full_name == github.repository
+      (github.event_name == 'pull_request_target'
+        && startsWith(github.head_ref, 'renovate/')
+        && github.event.pull_request.head.repo.full_name == github.repository)
+      || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       checks: write
@@ -160,19 +84,26 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APP_TOKEN: ${{ steps.app-token.outputs.token }}
-          NUMBER: ${{ github.event.pull_request.number }}
+          NUMBER: ${{ github.event.pull_request.number || inputs.pr }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
           echo "proceed=false" >> "$GITHUB_OUTPUT"
 
-          pr="$(gh pr view "$NUMBER" -R "$GITHUB_REPOSITORY" --json state,headRefName,headRefOid)"
-          [ "$(jq -r .state <<<"$pr")" = OPEN ] || { echo "#${NUMBER} is closed; nothing to do"; exit 0; }
+          pr="$(gh pr view "$NUMBER" -R "$GITHUB_REPOSITORY" --json state,headRefName,headRefOid,isCrossRepository)"
           branch="$(jq -r .headRefName <<<"$pr")"
+          if [ "$(jq -r .state <<<"$pr")" != OPEN ] || [ "$(jq -r .isCrossRepository <<<"$pr")" != false ] ||
+            [[ "$branch" != renovate/* ]]; then
+            echo "#${NUMBER} is not an open Renovate PR; nothing to do"
+            exit 0
+          fi
           sha="$(jq -r .headRefOid <<<"$pr")"
 
-          GH_TOKEN="$APP_TOKEN" gh pr edit "$NUMBER" -R "$GITHUB_REPOSITORY" --remove-label upgrade-agent \
-            --remove-label upgrade-blocked --remove-label upgrade-waiting --remove-label upgrade-ready >/dev/null 2>&1 || true
+          # One label per call: gh rejects the whole edit when any label is
+          # missing from the repository.
+          for l in upgrade-blocked upgrade-waiting upgrade-ready; do
+            GH_TOKEN="$APP_TOKEN" gh pr edit "$NUMBER" -R "$GITHUB_REPOSITORY" --remove-label "$l" >/dev/null 2>&1 || true
+          done
 
           # The review must run against current main (skill step 3).
           behind="$(gh api "repos/${GITHUB_REPOSITORY}/compare/main...${sha}" --jq .behind_by)"
@@ -370,6 +301,9 @@ jobs:
     if: ${{ always() && needs.prepare.outputs.proceed == 'true' }}
     runs-on: ubuntu-latest
     permissions:
+      # Dispatching a new review; GITHUB_TOKEN may start workflow_dispatch
+      # runs.
+      actions: write
       checks: write
       contents: read
       pull-requests: read
@@ -484,7 +418,7 @@ jobs:
                 # Merged while this review ran: review again now.
                 echo "#${earlier} merged during the review; reviewing again." > "${RUNNER_TEMP}/again.md"
                 finish neutral "Reviewing again" "${RUNNER_TEMP}/again.md"
-                gh pr edit "$NUMBER" -R "$GITHUB_REPOSITORY" --add-label upgrade-agent
+                GH_TOKEN="$ACTIONS_TOKEN" gh workflow run upgrade-agent.yaml -R "$GITHUB_REPOSITORY" --ref main -f pr="$NUMBER"
                 exit 0
               fi
               post "waiting" "$msg"
