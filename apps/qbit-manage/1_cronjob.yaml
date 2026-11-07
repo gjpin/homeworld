@@ -81,7 +81,7 @@ spec:
             - name: qbit-manage
               # Renovate tracks the image tag below. Deploy only a release
               # that supports the pinned qBittorrent (SUPPORTED_VERSIONS.json):
-              # v4.14.0 stops at qBittorrent 5.2.4.
+              # v4.15.0 stops at qBittorrent 5.3.0.
               image: ghcr.io/stuffanthings/qbit_manage:v4.15.0
               imagePullPolicy: IfNotPresent
               env:
