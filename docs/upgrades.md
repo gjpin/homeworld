@@ -415,15 +415,17 @@ agent works in the skill's result mode: it reviews and commits on a runner
 holding only a read-only token and the `MISTRAL_API_KEY` Actions secret, and
 returns a decision. A second job pushes its commit as the `renovate-homeworld`
 app and posts the review as a PR comment and as the "Upgrade agent review"
-check on the PR head. Nothing is merged automatically: a
-PR the agent passes is labelled `upgrade-ready` for the owner to merge once
-CI is green; a blocker, or a run that ended without a result, is labelled
-`upgrade-blocked`. A PR waiting for an earlier PR of the same package is
+check on the PR head. A PR the agent passes with nothing for the owner
+to see is labelled `upgrade-ready` and merged by the app once every other
+check on its head passes. A PR that passes but brings a new feature useful
+here, or a post-merge step, is labelled `upgrade-review` and left open for
+the owner to merge. A blocker, failing CI, or a run that ended without a
+result is labelled `upgrade-blocked`. A PR waiting for an earlier PR of the same package is
 labelled `upgrade-waiting` and reviewed again when that one merges. The agent
 may not change `.github/`; such fixes come back as a diff in the comment.
 Replying `/upgrade <decision>` on the PR (repository owner only) runs the
 review again ([upgrade-agent-request](../.github/workflows/upgrade-agent-request.yaml));
-the agent reads the reply as the answer to its blocker. Hosted runners cannot reach the cluster, so the
+the agent reads the reply as the answer to its blocker or to the features it listed. Hosted runners cannot reach the cluster, so the
 workflow passes `--no-cluster` until the cluster is live; after that,
 stateful upgrades block for a local run that can take the pre-merge backup.
 

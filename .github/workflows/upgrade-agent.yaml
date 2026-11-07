@@ -3,15 +3,17 @@ name: Upgrade agent
 # Reviews every Renovate PR with the upgrade skill (.agents/skills/upgrade),
 # run by Mistral Vibe with DeepSeek V4.1 Flash (served by Mistral, thinking
 # high). The agent's fixes are pushed to the PR and its review is posted as
-# a comment; the PR stays open for the owner to merge (docs/upgrades.md,
-# "Upgrade Tooling").
+# a comment. A `ready` PR is merged once every other check on its head
+# passes; a `review` PR (new features worth using here, or post-merge steps)
+# stays open for the owner to merge (docs/upgrades.md, "Upgrade Tooling").
 #
 # Reviews start when Renovate opens a PR (pull_request_target) or by
 # dispatch with the PR number; upgrade-agent-request.yaml dispatches them for
 # an owner's `/upgrade <decision>` comment (the agent reads it as the answer
 # to its blocker) and when a merge releases a waiting PR of the same package.
 # The result is a check run on the PR head ("Upgrade agent review": success
-# when ready, failure when blocked, neutral while waiting) carrying the
+# when ready or for review, failure when blocked or CI failed, neutral while
+# waiting) carrying the
 # review, plus the same review as a PR comment and a label.
 #
 # pull_request_target, not pull_request: the workflow always comes from
@@ -101,7 +103,7 @@ jobs:
 
           # One label per call: gh rejects the whole edit when any label is
           # missing from the repository.
-          for l in upgrade-blocked upgrade-waiting upgrade-ready; do
+          for l in upgrade-blocked upgrade-waiting upgrade-ready upgrade-review; do
             GH_TOKEN="$APP_TOKEN" gh pr edit "$NUMBER" -R "$GITHUB_REPOSITORY" --remove-label "$l" >/dev/null 2>&1 || true
           done
 
@@ -255,8 +257,9 @@ jobs:
           This prompt is the explicit invocation the skill requires. Read the
           skill and AGENTS.md first and follow them exactly, in result mode.
           You run unattended in GitHub Actions: nobody can answer a question,
-          so anything that needs the user is a "block" decision in the result
-          file. Use ${RUNNER_TEMP}/upgrade as the work directory. Always write
+          so a blocker is a "block" decision in the result file. A "ready" PR
+          is merged without the user seeing it; useful new features or
+          post-merge steps make it "review" instead. Use ${RUNNER_TEMP}/upgrade as the work directory. Always write
           the result file before you stop, also when something failed.
           EOF
 
@@ -385,7 +388,7 @@ jobs:
           msg="${RUNNER_TEMP}/msg.md"
 
           if ! jq -e --argjson n "$NUMBER" \
-            '.pr == $n and (.decision | IN("ready", "block", "wait")) and (.comment | type == "string")' \
+            '.pr == $n and (.decision | IN("ready", "review", "block", "wait")) and (.comment | type == "string")' \
             "$result" >/dev/null 2>&1; then
             echo "The agent finished without a valid result file (stop reason in the run's \`upgrade-result\` artifact, \`export.json\`). Nothing was pushed." > "$msg"
             block "$msg"
@@ -448,12 +451,61 @@ jobs:
             fi
             git push -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${BRANCH}"
             heads+=("$(git rev-parse HEAD)")
-            printf '%s\n\n' "Pushed $(git rev-parse --short HEAD) with the agent's changes; CI runs on it. Merge once the checks pass." | cat - "$msg" > "$msg.tmp" && mv "$msg.tmp" "$msg"
+            printf '%s\n\n' "Pushed $(git rev-parse --short HEAD) with the agent's changes." | cat - "$msg" > "$msg.tmp" && mv "$msg.tmp" "$msg"
+          fi
+          head="$(git rev-parse HEAD)"
+
+          if [ "$decision" = review ]; then
+            post "ready for your review" "$msg"
+            label upgrade-review 1d76db "reviewed, has features or steps for the owner to see before merging"
+            finish success "Ready: features to review" "$msg"
+            exit 0
           fi
 
-          post "ready to merge" "$msg"
-          label upgrade-ready 0e8a16 "reviewed, ready for the owner to merge"
-          finish success "Ready to merge" "$msg"
+          # ready: merge once every other check on the head has passed. A
+          # pushed commit gets a grace period for its CI to register (a
+          # change validate's path filter skips registers none). The cap
+          # keeps the wait inside the app token's one-hour lifetime.
+          GH_TOKEN="$ACTIONS_TOKEN" gh api -X PATCH "repos/${GITHUB_REPOSITORY}/check-runs/${CHECK}" \
+            -f 'output[title]=Ready: merging once CI passes' -f "output[summary]=See ${RUN_URL}" >/dev/null
+          start="$(date +%s)"
+          while :; do
+            sleep 30
+            runs="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${head}/check-runs?per_page=100" \
+              --jq '[.check_runs[] | select(.name != "Upgrade agent review")]')"
+            elapsed=$(($(date +%s) - start))
+            if [ "$(jq 'map(select(.status != "completed")) | length' <<<"$runs")" -eq 0 ] &&
+              { [ "${#heads[@]}" -eq 0 ] || [ "$(jq length <<<"$runs")" -gt 0 ] || [ "$elapsed" -ge 120 ]; }; then
+              break
+            fi
+            if [ "$elapsed" -ge 2400 ]; then
+              printf '%s\n\n' "CI did not finish within 40 minutes, so the PR was not merged. Merge it once the checks pass, or reply \`/upgrade\` to review it again." | cat - "$msg" > "$msg.tmp" && mv "$msg.tmp" "$msg"
+              post "ready, CI still running" "$msg"
+              label upgrade-ready 0e8a16 "reviewed, merged once CI passes"
+              finish neutral "Ready: CI still running" "$msg"
+              exit 0
+            fi
+          done
+          failed="$(jq -r 'map(select(.conclusion | IN("success", "skipped", "neutral") | not)) | .[] | "- [\(.name)](\(.html_url)): \(.conclusion)"' <<<"$runs")"
+          if [ -n "$failed" ]; then
+            printf '%s\n\n%s\n\n' "CI failed on $(git rev-parse --short HEAD), so the PR was not merged. Reply \`/upgrade\` to have the agent fix it:" "$failed" |
+              cat - "$msg" > "$msg.tmp" && mv "$msg.tmp" "$msg"
+            block "$msg"
+            exit 0
+          fi
+          # The app's merge starts upgrade-agent-request, which releases PRs
+          # waiting for this one.
+          if ! err="$(gh pr merge "$NUMBER" -R "$GITHUB_REPOSITORY" --merge --match-head-commit "$head" 2>&1)"; then
+            printf '%s\n\n%s\n\n' "The merge failed, so the PR is still open. Reply \`/upgrade\` to review it again:" "\`\`\`
+          ${err}
+          \`\`\`" | cat - "$msg" > "$msg.tmp" && mv "$msg.tmp" "$msg"
+            block "$msg"
+            exit 0
+          fi
+          gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/${BRANCH}" >/dev/null 2>&1 || true
+          post "merged" "$msg"
+          label upgrade-ready 0e8a16 "reviewed, merged once CI passes"
+          finish success "Merged" "$msg"
 
       - name: Fail the check run
         if: ${{ failure() || cancelled() }}
