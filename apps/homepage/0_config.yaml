@@ -47,6 +47,12 @@ data:
             href: https://openchamber.base-domain.invalid
             description: AI agent workspace
             siteMonitor: https://openchamber.base-domain.invalid
+        # No siteMonitor: the daemon requires its password as a bearer token
+        # on every request, so an unauthenticated probe cannot reach it.
+        - Paseo:
+            icon: mdi-robot-outline
+            href: https://paseo.base-domain.invalid
+            description: Coding agent daemon
         # No siteMonitor: the route is behind the Gateway's Authelia sign-in.
         - ThinkRail:
             icon: /icons/thinkrail.svg
