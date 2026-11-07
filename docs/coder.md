@@ -77,7 +77,7 @@ Deployments, and only in `coder-workspaces`.
 ### Workspace image
 
 `apps/coder/image/Dockerfile` builds the agents VM's toolset
-([openchamber.md](openchamber.md)) on Debian:
+([agents-vm.md](agents-vm.md)) on Debian:
 
 - **apt**: the C/C++ toolchain (gcc, clang, llvm, lld, lldb, clangd, gdb,
   valgrind), Python 3 with headers,
@@ -93,8 +93,9 @@ Deployments, and only in `coder-workspaces`.
 - **mise** (`apps/coder/image/mise.toml`): Node.js, pnpm, Go and gopls,
   Java (Temurin), uv, fd, bat, yq, tree-sitter, shfmt, gh, glab, kubectl,
   helm, kustomize, terraform, opentofu, infisical, the coding agents (Claude
-  Code, Codex, OpenCode, Copilot CLI, Pi, Antigravity), and Playwright with
-  its CLI, Chromium, chrome-devtools-mcp, and skills. They install with
+  Code, Codex, OpenCode, Copilot CLI, Pi, Antigravity, Mistral Vibe), and
+  Playwright with its CLI, Chromium, chrome-devtools-mcp, and skills. They
+  install with
   `mise install --system` into `/usr/local/share/mise` and are selected by
   `/etc/mise/config.toml`, the lowest-precedence config.
 
@@ -128,7 +129,8 @@ version check (`CHECKPOINT_DISABLE`), and the template's startup
 script, `homeworld-workspace-init`, sets the file-based ones in the home
 volume on every start: Codex `check_for_update_on_startup` and analytics and
 feedback, OpenCode `update` and sharing, Pi install telemetry,
-the Antigravity feedback survey, and Copilot `autoUpdate`. Antigravity saves
+the Antigravity feedback survey, Copilot `autoUpdate`, and Vibe
+`enable_update_checks` and `enable_telemetry`. Antigravity saves
 its telemetry choice with the account, not in `settings.json`: turn off
 Enable Telemetry in `/config` after the first login. It also copies the skeleton dotfiles on first start
 and seeds the Playwright agent skills. Agent permission and approval

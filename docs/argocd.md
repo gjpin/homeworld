@@ -114,7 +114,7 @@
    * woodpecker: CI server and Kubernetes-backend agents, after Forgejo (the
      OAuth source and webhook target)
    * openchamber: routes and selectorless Services for the agents VM
-     ([docs/openchamber.md](openchamber.md)), after Envoy Gateway
+     ([docs/agents-vm.md](agents-vm.md)), after Envoy Gateway
      and cert-manager
    * coder: Coder control plane (CloudNativePG-backed) and, through its
      intra-component wave-0 `coder-workspaces` application, the workspace

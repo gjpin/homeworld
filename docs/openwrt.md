@@ -1427,7 +1427,7 @@ fw4 check && fw4 reload
 
 The route sends LAN and WireGuard traffic for `10.20.0.0/24` to the Ryzen
 node, which runs the VM on a routed libvirt network
-([docs/openchamber.md](openchamber.md)). The two reject rules are defense in
+([docs/agents-vm.md](agents-vm.md)). The two reject rules are defense in
 depth behind the Ryzen's firewalld, which already confines the VM to the
 internet: the VM may not open connections to the router or to any private,
 CGNAT, link-local or multicast address through it. Replies to LAN and

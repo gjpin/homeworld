@@ -145,7 +145,7 @@ merge_json "$home_dir/.pi/agent/settings.json" \
 
 # Antigravity: no feedback survey and never prompt for tool approval. Its
 # telemetry choice is saved with the account (/config), not in this file
-# (docs/openchamber.md); the deprecated key is dropped.
+# (docs/agents-vm.md); the deprecated key is dropped.
 merge_json "$home_dir/.gemini/antigravity-cli/settings.json" \
   'del(.enableTelemetry) | .showFeedbackSurvey = false | .toolPermission = "always-proceed"' \
   '{"showFeedbackSurvey":false,"toolPermission":"always-proceed"}'
@@ -155,12 +155,30 @@ merge_json "$home_dir/.copilot/settings.json" \
   '.autoUpdate = false' \
   '{"autoUpdate":false}'
 
+# Vibe: never ask for approval, trust every project under ~/projects (its
+# AGENTS.md and .vibe/ load without a prompt); never check for updates and
+# never send telemetry or error reports.
+set_toml_key "$home_dir/.vibe/config.toml" default_agent '"auto-approve"'
+set_toml_key "$home_dir/.vibe/config.toml" enable_update_checks 'false'
+set_toml_key "$home_dir/.vibe/config.toml" enable_telemetry 'false'
+refuse_symlink "$home_dir/.vibe/trusted_folders.toml"
+/usr/local/libexec/vibe/bin/python - "$home_dir/.vibe/trusted_folders.toml" "$home_dir/projects" <<'EOF'
+import pathlib, sys, tomllib, tomli_w
+path, folder = pathlib.Path(sys.argv[1]), sys.argv[2]
+data = tomllib.loads(path.read_text()) if path.is_file() else {}
+data["untrusted"] = [f for f in data.get("untrusted", []) if f != folder]
+data["trusted"] = data.get("trusted", []) + ([] if folder in data.get("trusted", []) else [folder])
+path.touch(mode=0o600)
+path.write_text(tomli_w.dumps(data))
+EOF
+
 for file in \
   "$home_dir/.claude/CLAUDE.md" \
   "$home_dir/.codex/AGENTS.md" \
   "$home_dir/.config/opencode/AGENTS.md" \
   "$home_dir/.pi/agent/AGENTS.md" \
   "$home_dir/.copilot/copilot-instructions.md" \
+  "$home_dir/.vibe/AGENTS.md" \
   "$home_dir/.gemini/antigravity-cli/rules/homeworld-agents-vm.md"; do
   sync_instructions "$file"
 done

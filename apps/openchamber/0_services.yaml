@@ -1,5 +1,5 @@
 # OpenChamber, Paseo and ThinkRail run in the agents VM on the VM host's
-# routed libvirt network (docs/openchamber.md), not in the cluster. These
+# routed libvirt network (docs/agents-vm.md), not in the cluster. These
 # selectorless Services and their EndpointSlices point Envoy at the VM's fixed
 # address; the VM host's firewall lets node and pod sources reach only these
 # three ports.

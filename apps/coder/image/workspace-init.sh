@@ -138,6 +138,10 @@ merge_json "$home_dir/.copilot/settings.json" \
   '.autoUpdate = false' \
   '{"autoUpdate":false}'
 
+# Vibe: never check for updates and never send telemetry or error reports.
+set_toml_key "$home_dir/.vibe/config.toml" enable_update_checks 'false'
+set_toml_key "$home_dir/.vibe/config.toml" enable_telemetry 'false'
+
 # Tools from the user's global mise config (~/.config/mise/config.toml); the
 # image's own tools are already installed system-wide.
 cd "$home_dir"

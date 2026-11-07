@@ -40,6 +40,7 @@ opencode = "2.2.6"
 copilot = "1.0.107"
 pi = "1.5.0"
 antigravity-cli = "1.5.3"
+"pipx:mistral-vibe" = "3.1.0"
 
 # Browser automation; the Dockerfile installs Playwright's Chromium.
 "npm:@playwright/test" = "1.65.0"

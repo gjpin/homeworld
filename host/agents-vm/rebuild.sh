@@ -1,6 +1,6 @@
 #!/bin/bash
 # Rebuild the agents VM root disk from the pinned Fedora Cloud Base image
-# (docs/openchamber.md). /home lives on its own disk and survives.
+# (docs/agents-vm.md). /home lives on its own disk and survives.
 # Usage: agents-vm-rebuild [--if-pending]
 #   --if-pending  only act when host.sh staged new inputs (nightly timer).
 set -euo pipefail

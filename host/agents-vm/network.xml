@@ -1,4 +1,4 @@
-<!-- Routed libvirt network for the agents VM (docs/openchamber.md). No NAT:
+<!-- Routed libvirt network for the agents VM (docs/agents-vm.md). No NAT:
      the router routes 10.20.0.0/24 to the VM host, and firewalld policies
      (host/apply.sh) decide what the VM may reach. dnsmasq hands out the
      fixed lease and forwards DNS to the host resolver (the router's

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Agents VM host side, called by host/apply.sh on the node whose profile sets
-# AGENTS_VM=1 (docs/openchamber.md). Keeps libvirt, the routed network and
+# AGENTS_VM=1 (docs/agents-vm.md). Keeps libvirt, the routed network and
 # the rebuild timer in place, and schedules a root rebuild for the nightly
 # window when the VM's inputs (this directory, the Fedora release) change.
 set -euo pipefail

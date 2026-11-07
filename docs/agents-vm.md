@@ -1,13 +1,13 @@
-# Agents VM (OpenChamber, Paseo and ThinkRail)
+# Agents VM
 
 The AI agent workspace is a libvirt/KVM virtual machine on the Ryzen node,
 outside Kubernetes. It runs [OpenChamber](https://github.com/openchamber/openchamber)
 the [Paseo](https://paseo.sh/) daemon and
 [ThinkRail](https://github.com/JetBrains/thinkrail) as `agent` (UID 1000)
 user services, with pinned coding agents: OpenCode, Claude Code, Codex CLI, the
-Pi agent, the Antigravity CLI and the GitHub Copilot CLI, plus Node.js,
-pnpm, uv, Google Chrome with Playwright and chrome-devtools-mcp, the skills
-CLI, kind, kubectl and rootless Podman on Fedora.
+Pi agent, the Antigravity CLI, the GitHub Copilot CLI and Mistral Vibe,
+plus Node.js, pnpm, uv, Google Chrome with Playwright and chrome-devtools-mcp,
+the skills CLI, kind, kubectl and rootless Podman on Fedora.
 
 | | |
 | :--- | :--- |
@@ -102,15 +102,18 @@ client ID and secret root-only on the Ryzen (`/etc/homeworld/agents-vm.env`),
 the cloud-init seed carries them into the VM, and `agents-secrets.service`
 exports `/agents/*` into `/run/agents/secrets.env` (tmpfs, readable by
 `agent`) at every boot. The OpenChamber and Paseo services load that file,
-so agents they start see `OPENAI_API_KEY` and `GITHUB_TOKEN`; in an SSH
-session, `set -a; . /run/agents/secrets.env; set +a` does the same.
+so agents they start see `OPENAI_API_KEY`, `GITHUB_TOKEN` and, when set,
+`MISTRAL_API_KEY`; in an SSH session,
+`set -a; . /run/agents/secrets.env; set +a` does the same.
 
 ## Agent logins
 
 Log in to each agent once over SSH; the credentials live under `/home/agent`
 and survive rebuilds: `opencode auth login`, `codex login`, `claude`, `/login`
-inside `pi`, `agy`, `copilot login`. Copilot CLI prefers `GITHUB_TOKEN` over
-its stored login, so that token needs the Copilot Requests permission.
+inside `pi`, `agy`, `copilot login`, `vibe --setup`. Copilot CLI prefers
+`GITHUB_TOKEN` over its stored login, so that token needs the Copilot Requests
+permission. Vibe stores its key in `~/.vibe/.env` (the VM has no keyring), and
+a `MISTRAL_API_KEY` in the environment takes precedence over it.
 
 ## Managed configuration
 
@@ -119,14 +122,16 @@ keys in each agent's configuration and a marked block in each agent's global
 instructions file (from `host/agents-vm/agents-instructions.md`), and keeps
 everything else the agents or you add:
 
-- Codex, OpenCode, Pi and the Antigravity CLI run without approval prompts;
-  the VM itself is the sandbox.
+- Codex, OpenCode, Pi, the Antigravity CLI and Vibe run without approval
+  prompts; the VM itself is the sandbox. Vibe's default agent is
+  `auto-approve`, and `~/projects` is in its trusted folders, so project
+  `AGENTS.md` and `.vibe/` files load without a trust prompt.
 - Self-update and update checks are off for every agent (and inert anyway,
   `/usr/local` being read-only): Codex `check_for_update_on_startup`,
   OpenCode `update: "disable"`, Pi `PI_SKIP_VERSION_CHECK`, Copilot `autoUpdate`,
   Claude Code `DISABLE_UPDATES`, Infisical CLI `INFISICAL_DISABLE_UPDATE_CHECK`,
   Playwright CLI `NO_UPDATE_NOTIFIER`, Antigravity CLI `AGY_CLI_DISABLE_AUTO_UPDATE`,
-  Terraform `CHECKPOINT_DISABLE`.
+  Vibe `enable_update_checks`, Terraform `CHECKPOINT_DISABLE`.
   OpenChamber has no switch for its update
   check, so `OPENCHAMBER_UPDATE_API_URL` points at an unreachable local port.
   ThinkRail's release check only runs from an installer layout
@@ -137,7 +142,8 @@ everything else the agents or you add:
   `DISABLE_TELEMETRY` and `DISABLE_ERROR_REPORTING`, Infisical CLI
   `INFISICAL_DISABLE_TELEMETRY` (also set in the secrets loader), Copilot CLI
   `COPILOT_TELEMETRY_DISABLED` (its client telemetry uploads; server-side
-  telemetry stays with GitHub).
+  telemetry stays with GitHub), Vibe `enable_telemetry` (usage events,
+  experiments and the Sentry error reports of `vibe` and `vibe-acp`).
   Antigravity saves its telemetry choice with the account, not in
   `settings.json`, so it stays a manual step: turn off Enable Telemetry in
   `/config` after the first login; only the feedback survey is managed.

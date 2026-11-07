@@ -151,7 +151,7 @@ UID/GID (`device_ownership_from_security_context`,
 | Fedora package updates | daily | `dnf5-automatic.timer`: `apply_updates = yes`, `reboot = never` |
 | Host configuration from git | hourly | `homeworld-pull.timer` ([docs/k3s.md](k3s.md)) |
 | k3s upgrades | 01:00–02:00 | system-upgrade-controller ([docs/upgrades.md](upgrades.md)) |
-| Agents VM root rebuild | 02:00–02:30, only when its pins change | `agents-vm-rebuild.timer` ([docs/openchamber.md](openchamber.md)) |
+| Agents VM root rebuild | 02:00–02:30, only when its pins change | `agents-vm-rebuild.timer` ([docs/agents-vm.md](agents-vm.md)) |
 | Reboots | 02:30–06:30 | kured |
 
 [kured](https://kured.dev/) reboots one node at a time. Its reboot sentinel
@@ -227,7 +227,7 @@ firewalld (nftables backend) stays enabled; Cockpit is disabled.
 
 The Gateway VIP (`443`, `22`) is load-balanced by Cilium's eBPF datapath
 before netfilter sees it. The agents VM policies on the Ryzen are listed in
-[docs/openchamber.md](openchamber.md).
+[docs/agents-vm.md](agents-vm.md).
 
 ## Trust
 

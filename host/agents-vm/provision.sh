@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Agents VM provisioning (docs/openchamber.md), run once by cloud-init as
+# Agents VM provisioning (docs/agents-vm.md), run once by cloud-init as
 # root on every freshly rebuilt root disk. Installs the Fedora toolset, the
 # pinned agent tools into /usr/local (read-only to `agent`, so nothing can
 # self-update), the secrets loader and the OpenChamber, Paseo and ThinkRail
@@ -149,6 +149,27 @@ mkdir "$work/copilot"
   install -m 0755 copilot /usr/local/bin/copilot
 )
 
+# Mistral Vibe, from PyPI into its own virtualenv on the uv-managed CPython
+# 3.14 that upstream's installer uses (kept in /usr/local, outside HOME). The
+# release tag's uv.lock hash-pins every dependency, PyPI's digest the wheel.
+mkdir "$work/vibe"
+(
+  cd "$work/vibe"
+  export UV_CACHE_DIR=$work/uv-cache UV_PYTHON_INSTALL_DIR=/usr/local/libexec/vibe-python
+  for f in pyproject.toml uv.lock; do
+    curl -fsSLO "https://raw.githubusercontent.com/mistralai/mistral-vibe/v$VIBE_VERSION/$f"
+  done
+  uv export --frozen --no-dev --no-emit-project --format requirements.txt -o requirements.txt
+  wheel=$(curl -fsSL "https://pypi.org/pypi/mistral-vibe/$VIBE_VERSION/json" |
+    jq -er --arg w "-manylinux_2_28_$arch.whl" \
+      '[.urls[] | select(.filename | endswith($w))] | if length == 1 then .[0].digests.sha256 else error("no single wheel") end')
+  echo "mistral-vibe==$VIBE_VERSION --hash=sha256:$wheel" >>requirements.txt
+  uv venv --managed-python --python 3.14 /usr/local/libexec/vibe
+  uv pip install --python /usr/local/libexec/vibe/bin/python \
+    --require-hashes --only-binary :all: --no-deps -r requirements.txt
+)
+ln -s /usr/local/libexec/vibe/bin/vibe /usr/local/libexec/vibe/bin/vibe-acp /usr/local/bin/
+
 # ThinkRail, SHA-256-verified release binary. Outside a bin/ directory its
 # background release check stays off (it only runs in the installer's
 # <prefix>/bin layout); the wrapper puts it on PATH.
@@ -182,12 +203,12 @@ GOBIN=/usr/local/bin GOPATH=$work/go GOCACHE=$work/gocache GOFLAGS=-modcacherw \
   go install "mvdan.cc/sh/v3/cmd/shfmt@$SHFMT_VERSION"
 
 for tool in openchamber pi paseo playwright playwright-cli chrome-devtools-mcp skills \
-  opencode codex claude agy copilot thinkrail infisical shfmt node kubectl kind terraform tofu google-chrome-stable; do
+  opencode codex claude agy copilot vibe vibe-acp thinkrail infisical shfmt node kubectl kind terraform tofu google-chrome-stable; do
   command -v "$tool"
 done
 
 # --- environment ----------------------------------------------------------
-# Self-update and telemetry switches (docs/openchamber.md). OpenChamber has
+# Self-update and telemetry switches (docs/agents-vm.md). OpenChamber has
 # no switch for its update check, and ThinkRail none for its basic usage
 # events, error reports and surveys, so both point at an unreachable port.
 cat >/etc/profile.d/agents.sh <<'EOF'
@@ -303,7 +324,7 @@ WantedBy=default.target
 EOF
 # ThinkRail has no login of its own: Envoy Gateway's Authelia sign-in
 # fronts thinkrail.base-domain.invalid, and the VM host's firewall keeps
-# LAN and WireGuard clients off this port (docs/openchamber.md).
+# LAN and WireGuard clients off this port (docs/agents-vm.md).
 cat >$units/thinkrail.service <<'EOF'
 [Unit]
 Description=ThinkRail web server

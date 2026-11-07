@@ -4,8 +4,8 @@ General-purpose Linux development workspace for any language, with
 code-server in the browser and a persistent `/home/coder` volume. The image
 carries Node.js, Go, Python, Rust, Java, and C/C++ toolchains, Kubernetes and
 infrastructure CLIs (kubectl, helm, kustomize, terraform, opentofu), gh and
-glab, the Claude Code, Codex, OpenCode, Copilot, Pi, and Antigravity coding
-agents, and Playwright with Chromium. Projects pin other versions with
+glab, the Claude Code, Codex, OpenCode, Copilot, Pi, Antigravity, and Mistral
+Vibe coding agents, and Playwright with Chromium. Projects pin other versions with
 [mise](https://mise.jdx.dev): run `mise install` in a repository with a
 `mise.toml` or `.tool-versions`. Use it for coding tasks in repositories on
 the homeworld Forgejo (`git.` on the cluster domain) or public forges.

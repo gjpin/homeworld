@@ -25,7 +25,7 @@
 - Declarative dashboards and monitoring via Grafana Operator, with Prometheus Operator ServiceMonitors and PodMonitors consumed by the OpenTelemetry Operator's Target Allocator
 - Automated dependency updates and [upgrade procedures](docs/upgrades.md) via Renovate
 - [Coder](docs/coder.md) cloud development workspaces on Kubernetes, with Coder Agents running AI coding agents from the control plane
-- AI agent [virtual machine](docs/openchamber.md) (OpenChamber, Paseo, ThinkRail, OpenCode, Claude Code, Codex CLI, Pi agent, Antigravity CLI, Copilot CLI on Fedora) with a rebuildable root and pinned tools
+- AI agent [virtual machine](docs/agents-vm.md) (OpenChamber, Paseo, ThinkRail, OpenCode, Claude Code, Codex CLI, Pi agent, Antigravity CLI, Copilot CLI, Mistral Vibe on Fedora) with a rebuildable root and pinned tools
 
 ## Network
 The OpenWrt router ([docs/openwrt.md](docs/openwrt.md)) sits behind the ISP router and splits the home into four VLANs. The three nodes and the NAS are wired to a TP-Link TL-SG108E switch on one of the router's LAN ports. The cluster, the NAS and trusted clients share the Pixel network; WireGuard clients join it remotely.
@@ -89,7 +89,7 @@ flowchart TB
 | ISP router | `192.168.2.1` | Forwards the WireGuard UDP port to the OpenWrt WAN; guest, IoT and things VLANs cannot reach its subnet |
 | OpenWrt router | WAN `192.168.2.2`; Pixel `192.168.8.1`, PixelGuest `192.168.9.1`, PixelIoT `192.168.10.1`, PixelThings `192.168.11.1`; WireGuard `10.10.0.1` | DHCP, AdGuard Home DNS, Tang for the nodes' LUKS unlock, static route `10.20.0.0/24` via the Ryzen |
 | TP-Link TL-SG108E switch | `192.168.8.2` | Wires the three nodes and the NAS to the router; uplink on `lan2`–`lan5` (untagged Pixel only), web UI on Pixel ([docs/openwrt.md](docs/openwrt.md) section 18) |
-| ryzen | `192.168.8.10` | k3s server; hosts the agents VM ([docs/openchamber.md](docs/openchamber.md)); never holds the Gateway VIP |
+| ryzen | `192.168.8.10` | k3s server; hosts the agents VM ([docs/agents-vm.md](docs/agents-vm.md)); never holds the Gateway VIP |
 | corebox | `192.168.8.11` | k3s server; Intel iGPU for Jellyfin transcoding |
 | radxa | `192.168.8.12` | k3s server (arm64) |
 | NAS | `192.168.8.20` | NFSv4.2 exports to the three node addresses only ([docs/nas.md](docs/nas.md)) |
@@ -309,7 +309,7 @@ Homepage reads its dashboard configuration (`apps/homepage/0_config.yaml`) at st
 Sign in to `https://coder.base-domain.invalid` with a `coder-user` account; the first sign-in becomes the deployment Owner. Then make the `coder-workspace` package on GitHub public after the image workflow's first push, push the workspace template from `apps/coder/template/`, and configure an LLM provider for Coder Agents, following [docs/coder.md](docs/coder.md).
 
 ### 13. Use the Agents VM
-The Ryzen node builds the agents VM during its bootstrap ([docs/openchamber.md](docs/openchamber.md)):
+The Ryzen node builds the agents VM during its bootstrap ([docs/agents-vm.md](docs/agents-vm.md)):
 
 - **Browser**: `https://openchamber.base-domain.invalid` (sign in with `/agents/OPENCHAMBER_UI_PASSWORD`), `https://paseo.base-domain.invalid` (`/agents/PASEO_PASSWORD`) and `https://thinkrail.base-domain.invalid` (Authelia, `platform` group), from the Pixel network or over WireGuard.
 - **Apps**: pair the Paseo and OpenChamber desktop and mobile apps directly with the VM (`10.20.0.10`) or through the same hostnames; no relay is used.
@@ -322,8 +322,9 @@ The Ryzen node builds the agents VM during its bootstrap ([docs/openchamber.md](
   pi                    # then run /login inside the Pi session
   agy                   # Antigravity CLI
   copilot login         # Copilot CLI (device-code flow)
+  vibe --setup          # Mistral Vibe (API key)
   ```
-  `/agents/OPENAI_API_KEY` and `/agents/GITHUB_TOKEN` reach the agents that OpenChamber and Paseo start, so Codex and OpenCode also work without an interactive login. Copilot CLI prefers `GITHUB_TOKEN` over its stored login, so that token must carry the Copilot Requests permission, otherwise `copilot login` appears to succeed but is silently shadowed.
+  `/agents/OPENAI_API_KEY` and `/agents/GITHUB_TOKEN` reach the agents that OpenChamber and Paseo start, so Codex and OpenCode also work without an interactive login; an optional `/agents/MISTRAL_API_KEY` does the same for Vibe. Copilot CLI prefers `GITHUB_TOKEN` over its stored login, so that token must carry the Copilot Requests permission, otherwise `copilot login` appears to succeed but is silently shadowed.
 
 ### 14. Set Up AFFiNE
 Open `https://affine.base-domain.invalid/admin` right after the first sync and create the instance admin account in the setup wizard; `affine-user` members then sign in through Authelia. AI keys are not set in git: each workspace owner adds them under **Workspace Settings → Integrations → AI BYOK**, following [docs/affine.md](docs/affine.md).

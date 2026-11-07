@@ -153,7 +153,7 @@ for i in cilium_host cilium_net cilium_vxlan cilium_wg0 'lxc+'; do
 done
 
 if [ "$AGENTS_VM" = 1 ]; then
-  # The agents VM (docs/openchamber.md): the host offers it DHCP and DNS only.
+  # The agents VM (docs/agents-vm.md): the host offers it DHCP and DNS only.
   fw_zone homeworld-agents
   fw --zone=homeworld-agents --query-service --add-service dhcp
   fw --zone=homeworld-agents --query-service --add-service dns

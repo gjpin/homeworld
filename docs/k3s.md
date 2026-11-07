@@ -11,7 +11,7 @@ loss of any one node.
 | `192.168.8.51` | Kubernetes API VIP: [kube-vip](https://kube-vip.io/) static pod in ARP mode on every server, leader-elected; joining servers register through it |
 | `192.168.8.50` | Gateway VIP: announced by Cilium L2 announcements from every node except the Ryzen ([docs/cilium.md](cilium.md)) |
 | `10.42.0.0/16`, `10.43.0.0/16` | Pod and Service CIDRs (k3s defaults; Cilium cluster-pool IPAM) |
-| `10.20.0.0/24` | Agents VM subnet, routed through the Ryzen ([docs/openchamber.md](openchamber.md)) |
+| `10.20.0.0/24` | Agents VM subnet, routed through the Ryzen ([docs/agents-vm.md](agents-vm.md)) |
 
 In-cluster clients reach the API through the `kubernetes` Service. Cilium
 itself talks to the local API server on `127.0.0.1:6444`, which on a k3s
@@ -30,7 +30,7 @@ Everything on the hosts comes from the `host/` tree:
 | `host/versions.env` | Fedora release, the k3s version bootstrap installs, gVisor, kube-vip, helm |
 | `host/nodes/<profile>.env` | Per-hardware profile: expected arch/CPU/RAM, agents VM flag, kubelet `system-reserved`, Longhorn reserve |
 | `host/files/` | k3s config template, PSA defaults, containerd gVisor handler and device ownership, kube-vip static pod, firewalld, sysctls, kernel modules, dnf5-automatic, kured helpers, systemd units |
-| `host/agents-vm/` | The agents VM on the Ryzen ([docs/openchamber.md](openchamber.md)) |
+| `host/agents-vm/` | The agents VM on the Ryzen ([docs/agents-vm.md](agents-vm.md)) |
 
 `homeworld-pull.timer` downloads the public `main` branch over HTTPS every
 hour (randomized by up to 20 minutes per node) and runs its `host/apply.sh`.

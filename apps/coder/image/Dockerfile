@@ -68,7 +68,7 @@ RUN case "${TARGETARCH}" in \
 
 # No install statistics to mise-versions and no mise release check; no update
 # checks or telemetry from the coding agents (the same switches as the agents
-# VM, docs/openchamber.md) or chrome-devtools-mcp; no usage data or release
+# VM, docs/agents-vm.md) or chrome-devtools-mcp; no usage data or release
 # check from glab and the Infisical CLI; no npm release check from the
 # Playwright CLI; no version check or security bulletins from Terraform's
 # checkpoint service. The init script sets the agents' file-based switches in
