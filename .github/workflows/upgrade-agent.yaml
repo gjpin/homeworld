@@ -6,9 +6,12 @@ name: Upgrade agent
 # a comment; the PR stays open for the owner to merge (docs/upgrades.md,
 # "Upgrade Tooling").
 #
-# Every review runs on a pull_request event, so it shows up among the PR's
-# checks: when Renovate opens the PR, and whenever the `upgrade-agent` label
-# is added. The other triggers only add that label: an owner's `/upgrade
+# Every review runs on a pull_request_target event, so it shows up among the
+# PR's checks: when Renovate opens the PR, and whenever the `upgrade-agent`
+# label is added. pull_request_target, not pull_request: the workflow always
+# comes from main, never from the PR (whose stale merge ref can predate this
+# workflow, and a PR could rewrite it); the jobs below only accept same-repo
+# renovate/* branches, and only the read-only agent job runs PR content. The other triggers only add that label: an owner's `/upgrade
 # <decision>` comment (the agent reads it as the answer to its blocker), a
 # manual dispatch, and the merge of an earlier PR that a waiting PR of the
 # same package depends on.
@@ -21,7 +24,7 @@ name: Upgrade agent
 # and comments (so CI runs on the pushed commit, like on Renovate's own).
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, labeled, closed]
   issue_comment:
     types: [created]
@@ -38,7 +41,7 @@ on:
 concurrency:
   group: >-
     upgrade-agent-${{
-      github.event_name == 'pull_request'
+      github.event_name == 'pull_request_target'
       && github.event.action != 'closed'
       && (github.event.action != 'labeled' || github.event.label.name == 'upgrade-agent')
       && github.event.pull_request.number
@@ -95,7 +98,7 @@ jobs:
   # waited for it (skill step 2).
   release:
     if: >-
-      github.event_name == 'pull_request'
+      github.event_name == 'pull_request_target'
       && github.event.action == 'closed'
       && github.event.pull_request.merged
     runs-on: ubuntu-latest
@@ -123,7 +126,7 @@ jobs:
 
   prepare:
     if: >-
-      github.event_name == 'pull_request'
+      github.event_name == 'pull_request_target'
       && github.event.action != 'closed'
       && (github.event.action != 'labeled' || github.event.label.name == 'upgrade-agent')
       && startsWith(github.head_ref, 'renovate/')
