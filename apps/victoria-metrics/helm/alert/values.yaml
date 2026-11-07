@@ -78,6 +78,15 @@ server:
               for: 1m
               annotations:
                 summary: Node {{ $labels.node }} failed its post-boot checks (journalctl -u homeworld-postboot).
+            # Set by homeworld-pull (host/files/libexec) after every hourly
+            # host/apply.sh run: False after a failed or timed-out run until
+            # one succeeds. 90 minutes rides out one transient failure (a
+            # GitHub outage), not two runs in a row.
+            - alert: NodeHostApplyFailed
+              expr: kube_node_status_condition{condition="HomeworldApply",status="false"} == 1
+              for: 90m
+              annotations:
+                summary: Node {{ $labels.node }} failed to apply the host configuration (journalctl -u homeworld-pull).
             - alert: EtcdNoLeader
               expr: etcd_server_has_leader == 0
               for: 1m

@@ -44,6 +44,13 @@ kured reboots the node in its window ([docs/fedora.md](fedora.md)). Node
 addresses and the cluster domain never live in git: bootstrap.sh records them
 in `/etc/homeworld/env`.
 
+Each run is bounded (five minutes for the download, 50 for apply.sh) and
+records its outcome as the node condition `HomeworldApply`
+(`kubectl get node <node> -o jsonpath='{.status.conditions[?(@.type=="HomeworldApply")]}'`).
+While it stays `False`, the `NodeHostApplyFailed` alert holds kured's reboots
+([docs/fedora.md](fedora.md#updates-and-reboots)); `journalctl -u homeworld-pull`
+on the node has the cause.
+
 apply.sh never changes the k3s version. bootstrap.sh installs
 `K3S_VERSION`, and from then on the system-upgrade-controller Plans in
 `apps/system-upgrade-controller` own every upgrade

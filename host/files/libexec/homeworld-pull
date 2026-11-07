@@ -1,15 +1,45 @@
 #!/bin/sh
 # homeworld-pull.service: fetch the public main branch over HTTPS and run its
-# host/apply.sh. No signature check (accepted in docs/fedora.md).
+# host/apply.sh. No signature check (accepted in docs/fedora.md). Every run
+# records its outcome as this node's HomeworldApply condition; while it is
+# False, the vmalert NodeHostApplyFailed rule holds kured's reboots.
 set -eu
 . /etc/homeworld/cluster.env
 dest=/var/lib/homeworld/src
+
+# report STATUS REASON: set the HomeworldApply node condition. Before
+# bootstrap.sh installs k3s there is no node to report on.
+report() {
+  [ -x /usr/local/bin/k3s ] || return 0
+  now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+  k3s kubectl patch node "$(hostname)" --subresource=status --type=strategic \
+    -p "{\"status\":{\"conditions\":[{\"type\":\"HomeworldApply\",\"status\":\"$1\",\"reason\":\"$2\",\"message\":\"journalctl -u homeworld-pull\",\"lastHeartbeatTime\":\"$now\",\"lastTransitionTime\":\"$now\"}]}}" \
+    >/dev/null 2>&1 || true
+}
+
+# Bounded, so a stalled download or a hung apply.sh fails the run instead of
+# keeping the oneshot unit active, which would stop the timer from starting
+# it again. 50 minutes keeps each run inside its hour; an interrupted Fedora
+# upgrade download resumes from dnf's cache on the next run.
 tmp=$(mktemp -d /var/lib/homeworld/src.XXXXXX)
-trap 'rm -rf "$tmp"' EXIT
-curl -fsSL --retry 3 "$REPO_TARBALL" | tar -xz -C "$tmp" --strip-components=1
+tarball=$(mktemp /var/lib/homeworld/src.tar.gz.XXXXXX)
+if ! curl -fsSL --retry 3 --max-time 300 -o "$tarball" "$REPO_TARBALL" ||
+  ! tar -xzf "$tarball" -C "$tmp" --strip-components=1; then
+  rm -rf "$tmp" "$tarball"
+  report False FetchFailed
+  exit 1
+fi
+rm -f "$tarball"
 rm -rf "$dest.old"
 [ -d "$dest" ] && mv "$dest" "$dest.old"
 mv "$tmp" "$dest"
-trap - EXIT
 rm -rf "$dest.old"
-exec "$dest/host/apply.sh"
+
+rc=0
+timeout -k 1m 50m "$dest/host/apply.sh" || rc=$?
+case "$rc" in
+  0) report True Applied ;;
+  124 | 137) report False TimedOut ;;
+  *) report False ApplyFailed ;;
+esac
+exit "$rc"

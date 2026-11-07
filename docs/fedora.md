@@ -173,6 +173,7 @@ blocks the reboot:
 | `NodeNotReady` | A node is not Ready |
 | `NodeCordoned` | A node is cordoned (also while kured or system-upgrade-controller works on it, so they never overlap) |
 | `NodePostbootFailed` | A node failed its post-boot checks (below) |
+| `NodeHostApplyFailed` | A node's hourly `host/apply.sh` run has failed or timed out for over 90 minutes ([docs/k3s.md](k3s.md)) |
 | `EtcdNoLeader`, `EtcdMemberDown` | etcd has no leader or fewer than three healthy members |
 | `PersistentVolumeFillingUp` | A volume is over 80% full |
 

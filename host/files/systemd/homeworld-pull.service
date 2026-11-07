@@ -6,3 +6,5 @@ After=network-online.target k3s.service
 [Service]
 Type=oneshot
 ExecStart=/usr/local/libexec/homeworld/homeworld-pull
+# Backstop only: homeworld-pull bounds its own steps and reports a timeout.
+TimeoutStartSec=1h

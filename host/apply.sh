@@ -219,9 +219,27 @@ fi
 # --- sshd -----------------------------------------------------------------
 tmp=$(mktemp)
 render "$files/sshd.conf.in" >"$tmp"
-if put 0600 "$tmp" /etc/ssh/sshd_config.d/10-homeworld.conf; then
-  sshd -t && systemctl reload-or-restart sshd
+# The running sshd keeps its old configuration, so an invalid drop-in would
+# only surface as an sshd that fails to start after the next reboot: restore
+# the previous one and fail the run instead.
+sshd_conf=/etc/ssh/sshd_config.d/10-homeworld.conf
+sshd_prev=$(mktemp)
+[ -f "$sshd_conf" ] && cp -p "$sshd_conf" "$sshd_prev"
+if put 0600 "$tmp" "$sshd_conf"; then
+  if ! sshd -t; then
+    if [ -s "$sshd_prev" ]; then
+      install -m 0600 "$sshd_prev" "$sshd_conf"
+      restorecon -F "$sshd_conf" 2>/dev/null || true
+    else
+      rm -f "$sshd_conf"
+    fi
+    rm -f "$sshd_prev"
+    echo "apply: the rendered sshd configuration is invalid; restored the previous one" >&2
+    exit 1
+  fi
+  systemctl reload-or-restart sshd
 fi
+rm -f "$sshd_prev"
 
 # --- gVisor ---------------------------------------------------------------
 if ! { /usr/local/bin/runsc --version 2>/dev/null | grep "release-$GVISOR_VERSION" >/dev/null &&

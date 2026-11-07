@@ -6,7 +6,6 @@ OnBootSec=10min
 OnUnitActiveSec=1h
 # Spread the nodes so a change never restarts static pods everywhere at once.
 RandomizedDelaySec=20min
-Persistent=true
 
 [Install]
 WantedBy=timers.target
