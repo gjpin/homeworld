@@ -135,8 +135,9 @@ everything else the agents or you add:
 - Telemetry is off where the vendor allows it: Codex analytics and feedback,
   OpenCode sharing, Pi install telemetry, Claude Code
   `DISABLE_TELEMETRY` and `DISABLE_ERROR_REPORTING`, Infisical CLI
-  `INFISICAL_DISABLE_TELEMETRY` (also set in the secrets loader). Copilot CLI has no telemetry switch short of offline mode, which
-  also disables GitHub sign-in; that is an accepted upstream limitation.
+  `INFISICAL_DISABLE_TELEMETRY` (also set in the secrets loader), Copilot CLI
+  `COPILOT_TELEMETRY_DISABLED` (its client telemetry uploads; server-side
+  telemetry stays with GitHub).
   Antigravity saves its telemetry choice with the account, not in
   `settings.json`, so it stays a manual step: turn off Enable Telemetry in
   `/config` after the first login; only the feedback survey is managed.
