@@ -2,7 +2,6 @@ fullnameOverride: collabora
 image:
   repository: docker.io/collabora/code
   tag: 26.04.6.1.1
-  pullPolicy: IfNotPresent
 replicaCount: 1
 # Keep one replica until WOPISrc-based routing is added for document affinity.
 autoscaling:
