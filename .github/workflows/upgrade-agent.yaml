@@ -247,20 +247,24 @@ jobs:
           git config --global user.name "renovate-homeworld[bot]"
           git config --global user.email "309082045+renovate-homeworld[bot]@users.noreply.github.com"
 
-          mkdir -p "${RUNNER_TEMP}/out"
+          # The result file lives in the work directory: one path to remember,
+          # so the agent cannot write it to the wrong one of two.
+          work="${RUNNER_TEMP}/upgrade"
+          mkdir -p "$work"
           cat > "${RUNNER_TEMP}/prompt.md" <<EOF
           Run the upgrade skill (.agents/skills/upgrade/SKILL.md) on Renovate PR
           #${NUMBER} (branch ${BRANCH}, head ${SHA}) with these arguments:
 
-              ${NUMBER} --result ${RUNNER_TEMP}/out/result.json ${UPGRADE_FLAGS}
+              ${NUMBER} --result ${work}/result.json ${UPGRADE_FLAGS}
 
           This prompt is the explicit invocation the skill requires. Read the
           skill and AGENTS.md first and follow them exactly, in result mode.
           You run unattended in GitHub Actions: nobody can answer a question,
           so a blocker is a "block" decision in the result file. A "ready" PR
           is merged without the user seeing it; useful new features, notable
-          user-facing features or post-merge steps make it "review" instead. Use ${RUNNER_TEMP}/upgrade as the work directory. Always write
-          the result file before you stop, also when something failed.
+          user-facing features or post-merge steps make it "review" instead. Use ${work} as the work directory. Always write
+          the result file to exactly ${work}/result.json before you stop,
+          also when something failed.
           EOF
 
           rc=0
@@ -279,6 +283,8 @@ jobs:
           # export.json: stop reason, token usage and cost; never the session
           # journal (it holds tool output and is published with the artifact).
           cp "${RUNNER_TEMP}/vibe-run/export.json" "$out/" 2>/dev/null || true
+          # Only the result leaves the work directory, which holds tool output.
+          cp "${RUNNER_TEMP}/upgrade/result.json" "$out/" 2>/dev/null || true
           result="$out/result.json"
           jq -e . "$result" >/dev/null 2>&1 || exit 0
           commit="$(jq -r '.commit // empty' "$result")"
