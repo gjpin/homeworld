@@ -21,8 +21,10 @@ delegation and RA/DHCPv6/NDP disabled on every managed network), `system`
 untouched, software and hardware flow offloading on (SQM off), Wireless
 Ethernet Dispatch enabled (loads after the final reboot), PixelIoT on
 WPA2-PSK `psk2+ccmp` with PMF off for older IoT devices, PixelThings on
-WPA2/WPA3 `sae-mixed` with optional PMF for WPA2-only clients, chrony client-only,
-dnsmasq on port 54 with no public upstreams and no cache, AdGuard Home
+WPA2/WPA3 `sae-mixed` with optional PMF for WPA2-only clients, chrony
+serving NTP only to PixelThings, PixelGuest and PixelIoT (IoT NTP to any
+address is redirected to it), the gateways answering ping only on
+PixelThings and PixelGuest, dnsmasq on port 54 with no public upstreams and no cache, AdGuard Home
 primary on port 53 with its dashboard reachable from Pixel only and the
 cluster domain exempted from rebind protection (its public wildcard record
 points at the Gateway VIP `192.168.8.50`), and an
@@ -336,6 +338,55 @@ set firewall.pixeliot_services.dest_port='53 67 68'
 set firewall.pixeliot_services.proto='tcp udp'
 set firewall.pixeliot_services.target='ACCEPT'
 
+# Things and Guest clients (smart TVs) check connectivity and time against
+# their gateway: allow ping and NTP (served by chrony, section 7).
+set firewall.pixelthings_ping='rule'
+set firewall.pixelthings_ping.name='PixelThings-Ping'
+set firewall.pixelthings_ping.src='pixelthings'
+set firewall.pixelthings_ping.proto='icmp'
+set firewall.pixelthings_ping.icmp_type='echo-request'
+set firewall.pixelthings_ping.family='ipv4'
+set firewall.pixelthings_ping.target='ACCEPT'
+set firewall.pixelguest_ping='rule'
+set firewall.pixelguest_ping.name='PixelGuest-Ping'
+set firewall.pixelguest_ping.src='pixelguest'
+set firewall.pixelguest_ping.proto='icmp'
+set firewall.pixelguest_ping.icmp_type='echo-request'
+set firewall.pixelguest_ping.family='ipv4'
+set firewall.pixelguest_ping.target='ACCEPT'
+set firewall.pixelthings_ntp='rule'
+set firewall.pixelthings_ntp.name='PixelThings-NTP'
+set firewall.pixelthings_ntp.src='pixelthings'
+set firewall.pixelthings_ntp.dest_port='123'
+set firewall.pixelthings_ntp.proto='udp'
+set firewall.pixelthings_ntp.family='ipv4'
+set firewall.pixelthings_ntp.target='ACCEPT'
+set firewall.pixelguest_ntp='rule'
+set firewall.pixelguest_ntp.name='PixelGuest-NTP'
+set firewall.pixelguest_ntp.src='pixelguest'
+set firewall.pixelguest_ntp.dest_port='123'
+set firewall.pixelguest_ntp.proto='udp'
+set firewall.pixelguest_ntp.family='ipv4'
+set firewall.pixelguest_ntp.target='ACCEPT'
+
+# IoT has no internet forwarding: redirect its NTP, whatever the server, to
+# the router's chrony.
+set firewall.pixeliot_ntp='rule'
+set firewall.pixeliot_ntp.name='PixelIoT-NTP'
+set firewall.pixeliot_ntp.src='pixeliot'
+set firewall.pixeliot_ntp.dest_port='123'
+set firewall.pixeliot_ntp.proto='udp'
+set firewall.pixeliot_ntp.family='ipv4'
+set firewall.pixeliot_ntp.target='ACCEPT'
+set firewall.divert_ntp_pixeliot='redirect'
+set firewall.divert_ntp_pixeliot.name='PixelIoT-Divert-NTP'
+set firewall.divert_ntp_pixeliot.src='pixeliot'
+set firewall.divert_ntp_pixeliot.src_dport='123'
+set firewall.divert_ntp_pixeliot.dest_port='123'
+set firewall.divert_ntp_pixeliot.proto='udp'
+set firewall.divert_ntp_pixeliot.family='ipv4'
+set firewall.divert_ntp_pixeliot.target='DNAT'
+
 # IoT rejects general router-originated output, so permit only DHCPv4 replies.
 set firewall.pixeliot_dhcp_reply='rule'
 set firewall.pixeliot_dhcp_reply.name='PixelIoT-DHCP-Reply'
@@ -459,9 +510,13 @@ uci commit attendedsysupgrade
 
 This rebuilds the package's chrony UCI from scratch: its stock pool,
 DHCP-supplied NTP source, and LAN allow sections are intentionally
-discarded, keeping the router a client-only NTP node. The plain NTP-by-IP
-bootstrap sources are what let a cold clock synchronize before encrypted
-DNS is available.
+discarded. The router serves NTP only to PixelThings, PixelGuest and
+PixelIoT (the init script turns each `allow` interface into its subnet):
+Things and Guest learn it through DHCP option 42, while IoT's NTP is
+redirected to it whatever server a device asks (section 4, which also holds
+the firewall rules admitting it). The plain
+NTP-by-IP bootstrap sources are what let a cold clock synchronize before
+encrypted DNS is available.
 
 ```sh
 : >/etc/config/chrony
@@ -515,8 +570,19 @@ set chrony.makestep.limit='3'
 set chrony.nts='nts'
 set chrony.nts.rtccheck='1'
 set chrony.nts.systemcerts='1'
+
+set chrony.allow_pixelthings='allow'
+set chrony.allow_pixelthings.interface='pixelthings'
+set chrony.allow_pixelguest='allow'
+set chrony.allow_pixelguest.interface='pixelguest'
+set chrony.allow_pixeliot='allow'
+set chrony.allow_pixeliot.interface='pixeliot'
+
+add_list dhcp.pixelthings.dhcp_option='42,192.168.11.1'
+add_list dhcp.pixelguest.dhcp_option='42,192.168.9.1'
 EOF
 uci commit chrony
+uci commit dhcp
 # Let the unauthenticated bootstrap sources select on their own.
 awk '
     /^[[:space:]]*authselectmode[[:space:]]+/ { next }
@@ -764,9 +830,23 @@ awk -v username="$ADGUARD_USERNAME" \
         print "- \047! --- ALLOW X ---\047"
         print "- \047@@||t.co^\047"
         print "- \047\047"
-        print "- \047! --- BLOCK LG TV ---\047"
-        print "- \047||lgtvsdp.com^\047"
+        print "- \047! --- ALLOW LG TV: Content Store, clock, updates, connectivity check ---\047"
+        print "- \047@@||lgtvsdp.com^\047"
+        print "- \047@@||lgappstv.com^\047"
+        print "- \047@@||ngfts.lge.com^\047"
+        print "- \047@@||aic-ngfts.lge.com^\047"
+        print "- \047@@||snu.lge.com^\047"
+        print "- \047@@||su.lge.com^\047"
+        print "- \047@@||nsu.lge.com^\047"
+        print "- \047@@||lgtvonline.lge.com^\047"
+        print "- \047@@||connman.net^\047"
+        print "- \047! --- BLOCK LG TV ads ($important beats the allows above) ---\047"
+        print "- \047||ad.lgtvsdp.com^$important\047"
+        print "- \047||ad.lgappstv.com^$important\047"
         print "- \047||nextlgsdp.com^\047"
+        print "- \047||lgsmartad.com^\047"
+        print "- \047||lgads.tv^\047"
+        print "- \047||alphonso.tv^\047"
         print "- \047\047"
         print "- \047! --- ALLOW Facebook (web) ---\047"
         print "- \047@@|www.facebook.com^\047"
@@ -815,7 +895,7 @@ dns:
   - 192.168.11.1
   port: 53
   anonymize_client_ip: false
-  ratelimit: 20
+  ratelimit: 200
   ratelimit_subnet_len_ipv4: 24
   ratelimit_subnet_len_ipv6: 56
   ratelimit_whitelist: []
@@ -1194,6 +1274,8 @@ grep -x 'options mt7915e wed_enable=Y' /etc/modules.conf
 grep -B1 -x 'confdir /var/etc/chrony.d' /etc/chrony/chrony.conf # authselectmode ignore
 cat /var/etc/chrony.d/10-uci.conf
 uci show chrony # 7 server sections; prefer only on the three NTS sources
+grep -E '^allow' /var/etc/chrony.d/10-uci.conf # the 192.168.9, .10 and .11 subnets
+ss -lnu | grep -E ':123[[:space:]]'             # chronyd serving NTP
 uci show adguardhome
 grep -E '^(http:|dns:|filters:|querylog:|statistics:)' /etc/adguardhome/adguardhome.yaml
 grep -c -- '- enabled: true' /etc/adguardhome/adguardhome.yaml # 26
