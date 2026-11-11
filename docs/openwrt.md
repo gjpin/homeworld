@@ -64,7 +64,6 @@ export VPN_PORT='42451'         # UDP listen port, 1-65535
 # export VPN_KEY='...'
 export VPN_ADDR='10.10.0.1/24'  # no overlap with 192.168.2.0/24 or 192.168.8-11.0/24
 export COUNTRY='XX'             # two-letter ISO country code
-export CHANNEL='36'             # 5 GHz channel (default 36)
 export CHANNEL_2G='6'           # 2.4 GHz channel (default 6)
 export ADGUARD_USERNAME='admin' # letter/digit first, <=64 chars
 # 60-char bcrypt hash, generated off-router, for example:
@@ -469,7 +468,11 @@ uci set "wireless.pixelguest.device=$WIRELESS_5G_DEVICE"
 uci set "wireless.pixeliot.device=$WIRELESS_2G_DEVICE"
 uci set "wireless.$WIRELESS_2G_DEVICE.country=$COUNTRY"
 uci set "wireless.$WIRELESS_5G_DEVICE.country=$COUNTRY"
-uci set "wireless.$WIRELESS_5G_DEVICE.channel=$CHANNEL"
+# 5 GHz on DFS channel 100: ETSI allows 26 dBm there against 23 dBm on
+# 36-48, headroom the Quest 3 VR stream needs. The radio listens for radar
+# for 60 s before the 5 GHz SSIDs come up, and leaves the channel if it
+# detects one.
+uci set "wireless.$WIRELESS_5G_DEVICE.channel=100"
 uci set "wireless.$WIRELESS_5G_DEVICE.htmode=HE80"
 uci set "wireless.$WIRELESS_2G_DEVICE.channel=$CHANNEL_2G"
 uci set "wireless.$WIRELESS_2G_DEVICE.htmode=HT20"
