@@ -44,11 +44,11 @@ flowchart TB
 
   subgraph pixel["Pixel · VLAN 1 · 192.168.8.0/24 · gateway .1<br/>Wi-Fi 'Pixel' (5 GHz) · untagged on lan1–lan5"]
     sw["TP-Link<br/>TL-SG108E switch<br/>192.168.8.2<br/>uplink on lan2–lan5"]
-    subgraph ryzen["ryzen 192.168.8.10<br/>k3s server · Ryzen 7 3700X<br/>Radeon RX 560 4 GB"]
+    subgraph homeworld_ryzen["homeworld-ryzen 192.168.8.10<br/>k3s server · Ryzen 7 3700X<br/>Radeon RX 560 4 GB"]
       vm["Agents VM<br/>10.20.0.10<br/>virbr-agents 10.20.0.0/24<br/>gateway 10.20.0.1"]
     end
-    corebox["corebox<br/>192.168.8.11<br/>k3s server<br/>Intel iGPU (Jellyfin)"]
-    radxa["radxa<br/>192.168.8.12<br/>k3s server<br/>Qualcomm arm64"]
+    homeworld_corebox["homeworld-corebox<br/>192.168.8.11<br/>k3s server<br/>Intel iGPU (Jellyfin)"]
+    homeworld_dragon["homeworld-dragon<br/>192.168.8.12<br/>k3s server<br/>Qualcomm arm64"]
     nas["NAS<br/>192.168.8.20<br/>Raspberry Pi 5<br/>OpenMediaVault NFS"]
     gwvip{{"Gateway VIP<br/>192.168.8.50<br/>Envoy Gateway"}}
     apivip{{"Kubernetes API VIP<br/>192.168.8.51<br/>kube-vip on all servers"}}
@@ -72,31 +72,31 @@ flowchart TB
   pixel == "may open connections to" ==> iot
   pixel == "may open connections to" ==> things
 
-  sw --- ryzen
-  sw --- corebox
-  sw --- radxa
+  sw --- homeworld_ryzen
+  sw --- homeworld_corebox
+  sw --- homeworld_dragon
   sw --- nas
-  corebox -. "L2 announce" .- gwvip
-  radxa -. "L2 announce" .- gwvip
+  homeworld_corebox -. "L2 announce" .- gwvip
+  homeworld_dragon -. "L2 announce" .- gwvip
   clients -- "HTTPS :443 · git SSH :22" --> gwvip
 
-  style ryzen fill:#202020,stroke:#226B8E
+  style homeworld_ryzen fill:#202020,stroke:#226B8E
   style vm fill:#474949,stroke:#6E6E6E
 ```
 
 | Device or address | IP | Notes |
 | --- | --- | --- |
 | ISP router | `192.168.2.1` | Forwards the WireGuard UDP port to the OpenWrt WAN; guest, IoT and things VLANs cannot reach its subnet |
-| OpenWrt router | WAN `192.168.2.2`; Pixel `192.168.8.1`, PixelGuest `192.168.9.1`, PixelIoT `192.168.10.1`, PixelThings `192.168.11.1`; WireGuard `10.10.0.1` | DHCP, AdGuard Home DNS, Tang for the nodes' LUKS unlock, static route `10.20.0.0/24` via the Ryzen |
+| OpenWrt router | WAN `192.168.2.2`; Pixel `192.168.8.1`, PixelGuest `192.168.9.1`, PixelIoT `192.168.10.1`, PixelThings `192.168.11.1`; WireGuard `10.10.0.1` | DHCP, AdGuard Home DNS, Tang for the nodes' LUKS unlock, static route `10.20.0.0/24` via homeworld-ryzen |
 | TP-Link TL-SG108E switch | `192.168.8.2` | Wires the three nodes and the NAS to the router; uplink on `lan2`–`lan5` (untagged Pixel only), web UI on Pixel ([docs/openwrt.md](docs/openwrt.md) section 18) |
-| ryzen | `192.168.8.10` | k3s server; hosts the agents VM ([docs/agents-vm.md](docs/agents-vm.md)); never holds the Gateway VIP |
-| corebox | `192.168.8.11` | k3s server; Intel iGPU for Jellyfin transcoding |
-| radxa | `192.168.8.12` | k3s server (arm64) |
+| homeworld-ryzen | `192.168.8.10` | k3s server; hosts the agents VM ([docs/agents-vm.md](docs/agents-vm.md)); never holds the Gateway VIP |
+| homeworld-corebox | `192.168.8.11` | k3s server; Intel iGPU for Jellyfin transcoding |
+| homeworld-dragon | `192.168.8.12` | k3s server (arm64) |
 | NAS | `192.168.8.20` | NFSv4.2 exports to the three node addresses only ([docs/nas.md](docs/nas.md)) |
-| Gateway VIP | `192.168.8.50` | Every `*.<domain>` name; Cilium L2 announcement from the CoreBox or the Radxa ([docs/cilium.md](docs/cilium.md)) |
+| Gateway VIP | `192.168.8.50` | Every `*.<domain>` name; Cilium L2 announcement from homeworld-corebox or homeworld-dragon ([docs/cilium.md](docs/cilium.md)) |
 | Gateway node address | `10.43.0.50` | `host/cluster.env` and `apps/envoy-gateway/0_node_access_service.yaml`: the fixed ClusterIP through which pods and the API server reach Envoy ([docs/envoy-gateway.md](docs/envoy-gateway.md)) |
 | Kubernetes API VIP | `192.168.8.51` | kube-vip, leader-elected across all three servers ([docs/k3s.md](docs/k3s.md)) |
-| Agents VM | `10.20.0.10` (gateway `10.20.0.1`) | Routed `10.20.0.0/24` on the Ryzen; internet only, rejected from every private range by the router |
+| Agents VM | `10.20.0.10` (gateway `10.20.0.1`) | Routed `10.20.0.0/24` on homeworld-ryzen; internet only, rejected from every private range by the router |
 | WireGuard clients | `10.10.0.2`–`.254` | One `/32` per peer; tunnel `10.10.0.0/24`, `192.168.8.0/24` and `10.20.0.0/24` |
 | DHCP clients | `.100`–`.249` in each VLAN | Everything below `.100` is reserved for static leases and VIPs |
 | Pods and Services | `10.42.0.0/16`, `10.43.0.0/16` | In-cluster only (Cilium cluster-pool IPAM); pod traffic leaves masqueraded as its node |
@@ -114,7 +114,7 @@ User-facing applications:
 | Homepage | `homepage.base-domain.invalid` | Application dashboard aggregating links, status, and live service widgets. |
 | Immich | `photos.base-domain.invalid` | Photo and video management. |
 | Notesnook | `notes.base-domain.invalid`<br>`auth.notes.base-domain.invalid`<br>`sse.notes.base-domain.invalid`<br>`monograph.notes.base-domain.invalid` | End-to-end encrypted note-taking sync server with auth, SSE, and Monograph. |
-| OpenChamber | `openchamber.base-domain.invalid`<br>`paseo.base-domain.invalid`<br>`thinkrail.base-domain.invalid` | Routes to the AI agent VM on the Ryzen node: the OpenChamber web server, the Paseo daemon, and ThinkRail (behind the Gateway's Authelia sign-in). |
+| OpenChamber | `openchamber.base-domain.invalid`<br>`paseo.base-domain.invalid`<br>`thinkrail.base-domain.invalid` | Routes to the AI agent VM on homeworld-ryzen: the OpenChamber web server, the Paseo daemon, and ThinkRail (behind the Gateway's Authelia sign-in). |
 | OpenCloud | `cloud.base-domain.invalid` | Files, sharing, search, collaboration, CalDAV, and CardDAV. |
 | Supernote | `supernote.base-domain.invalid` | Supernote Private Cloud: device sync, web file manager, and note conversion (amd64 nodes only). |
 | Vaultwarden | `vault.base-domain.invalid` | Bitwarden-compatible password manager with optional Authelia SSO sign-in. |
@@ -168,7 +168,7 @@ Operators, foundations, and supporting services:
 | Grafana | `grafana.base-domain.invalid` | Dashboards and observability visualization. |
 | Grafana Operator | — | Grafana instance, dashboard, and datasource operator. |
 | Headlamp | `headlamp.base-domain.invalid` | Kubernetes web UI; each user acts under their own RBAC through Authelia. |
-| Intel GPU Plugin | — | Intel's device plugin advertising the corebox iGPU (`gpu.intel.com/i915`) for Jellyfin's QuickSync transcoding. |
+| Intel GPU Plugin | — | Intel's device plugin advertising the homeworld-corebox iGPU (`gpu.intel.com/i915`) for Jellyfin's QuickSync transcoding. |
 | Kube Control Plane | — | Scrape targets for the k3s-embedded API servers, scheduler, controller manager, and etcd (a ServiceMonitor and ScrapeConfigs; no workloads). |
 | Kube State Metrics | — | Cluster-state `kube_*` metrics for the OpenTelemetry pipeline and the CloudNativePG dashboard. |
 | Kubelet Serving Cert Approver | — | Approves kubelet serving certificate CSRs so metrics-server scrapes kubelets over verified TLS. |
@@ -278,7 +278,7 @@ Run `host/bootstrap.sh <profile>` on the first node, then on the other two. It a
 From then on Argo CD owns its own release: change it through git, never with `helm upgrade`. Its web UI is `https://argocd.base-domain.invalid`, with Authelia sign-in for `argocd-admin` members.
 
 ### 8. Zigbee Coordinator
-Plug the Zigbee USB adapter into the Radxa: `homeassistant-zigbee2mqtt` selects it by its `node.homeworld/profile=radxa` label, which k3s sets from git. The first start seeds `/app/data/configuration.yaml` with the broker and frontend pre-wired; fill in `serial.port` with your adapter's path under the mounted `/dev/serial/by-id` (Zigbee2MQTT cannot start without it).
+Plug the Zigbee USB adapter into homeworld-dragon: `homeassistant-zigbee2mqtt` selects it by its `node.homeworld/profile=homeworld-dragon` label, which k3s sets from git. The first start seeds `/app/data/configuration.yaml` with the broker and frontend pre-wired; fill in `serial.port` with your adapter's path under the mounted `/dev/serial/by-id` (Zigbee2MQTT cannot start without it).
 
 ### 9. Reach the Apps from Your Devices
 Every `*.<domain>` name resolves publicly to the Gateway VIP `192.168.8.50`, which answers on the Pixel network and through WireGuard only. The certificates are publicly trusted, so devices and apps need no extra setup. Git over SSH uses `git@git.<domain>` on port 22.
@@ -305,7 +305,7 @@ Homepage reads its dashboard configuration (`apps/homepage/0_config.yaml`) at st
 Sign in to `https://coder.base-domain.invalid` with a `coder-user` account; the first sign-in becomes the deployment Owner. Then make the `coder-workspace` package on GitHub public after the image workflow's first push, push the workspace template from `apps/coder/template/`, and configure an LLM provider for Coder Agents, following [docs/coder.md](docs/coder.md).
 
 ### 13. Use the Agents VM
-The Ryzen node builds the agents VM during its bootstrap ([docs/agents-vm.md](docs/agents-vm.md)):
+The homeworld-ryzen node builds the agents VM during its bootstrap ([docs/agents-vm.md](docs/agents-vm.md)):
 
 - **Browser**: `https://openchamber.base-domain.invalid` (sign in with `/agents/OPENCHAMBER_UI_PASSWORD`), `https://paseo.base-domain.invalid` (`/agents/PASEO_PASSWORD`) and `https://thinkrail.base-domain.invalid` (Authelia, `platform` group), from the Pixel network or over WireGuard.
 - **Apps**: pair the Paseo and OpenChamber desktop and mobile apps directly with the VM (`10.20.0.10`) or through the same hostnames; no relay is used.
