@@ -7,11 +7,11 @@ loss of any one node.
 
 | Address | Role |
 | --- | --- |
-| `192.168.8.10`–`.12` | Node static DHCP leases (Ryzen, CoreBox, Radxa) |
+| `192.168.8.10`–`.12` | Node static DHCP leases (homeworld-ryzen, homeworld-corebox, homeworld-dragon) |
 | `192.168.8.51` | Kubernetes API VIP: [kube-vip](https://kube-vip.io/) static pod in ARP mode on every server, leader-elected; joining servers register through it |
-| `192.168.8.50` | Gateway VIP: announced by Cilium L2 announcements from every node except the Ryzen ([docs/cilium.md](cilium.md)) |
+| `192.168.8.50` | Gateway VIP: announced by Cilium L2 announcements from every node except homeworld-ryzen ([docs/cilium.md](cilium.md)) |
 | `10.42.0.0/16`, `10.43.0.0/16` | Pod and Service CIDRs (k3s defaults; Cilium cluster-pool IPAM) |
-| `10.20.0.0/24` | Agents VM subnet, routed through the Ryzen ([docs/agents-vm.md](agents-vm.md)) |
+| `10.20.0.0/24` | Agents VM subnet, routed through homeworld-ryzen ([docs/agents-vm.md](agents-vm.md)) |
 
 In-cluster clients reach the API through the `kubernetes` Service. Cilium
 itself talks to the local API server on `127.0.0.1:6444`, which on a k3s
@@ -30,7 +30,7 @@ Everything on the hosts comes from the `host/` tree:
 | `host/versions.env` | Fedora release, the k3s version bootstrap installs, gVisor, kube-vip, helm |
 | `host/nodes/<profile>.env` | Per-hardware profile: expected arch/CPU/RAM, agents VM flag, kubelet `system-reserved`, Longhorn reserve |
 | `host/files/` | k3s config template, PSA defaults, containerd gVisor handler and device ownership, kube-vip static pod, firewalld, sysctls, kernel modules, dnf5-automatic, kured helpers, systemd units |
-| `host/agents-vm/` | The agents VM on the Ryzen ([docs/agents-vm.md](agents-vm.md)) |
+| `host/agents-vm/` | The agents VM on homeworld-ryzen ([docs/agents-vm.md](agents-vm.md)) |
 
 `homeworld-pull.timer` downloads the public `main` branch over HTTPS every
 hour (randomized by up to 20 minutes per node) and runs its `host/apply.sh`.
@@ -93,9 +93,9 @@ is identical on every server apart from the node address and profile label:
   reboot.
 
 The node label `node.homeworld/profile=<profile>` selects the
-Ryzen for the Gateway VIP exclusion and its Cilium node configuration,
-corebox, the only node with an Intel GPU, for the Intel GPU device plugin,
-and the Radxa, which has the Zigbee USB coordinator, for Zigbee2MQTT.
+homeworld-ryzen for the Gateway VIP exclusion and its Cilium node configuration,
+homeworld-corebox, the only node with an Intel GPU, for the Intel GPU device plugin,
+and homeworld-dragon, which has the Zigbee USB coordinator, for Zigbee2MQTT.
 
 The Gateway API CRDs come from k3s's bundled `gateway-api-crd` addon
 (standard channel), which k3s re-applies on every start and moves with every
@@ -114,7 +114,7 @@ Prerequisites:
    it becomes the Kubernetes node name.
 3. The Infisical secrets exist (README step 5), including the cluster
    domain (`/argocd/BASE_DOMAIN`), the External Secrets Universal Auth
-   identity and, for the Ryzen, the read-only
+   identity and, for homeworld-ryzen, the read-only
    `/agents/*` identity ([docs/secrets.md](secrets.md)).
 
 ### First server
@@ -125,17 +125,17 @@ On any one node (as the admin user, from a checkout of this repository):
 sudo dnf -y install git
 git clone https://github.com/gjpin/homeworld.git
 cd homeworld
-sudo host/bootstrap.sh <ryzen|corebox|radxa>
+sudo host/bootstrap.sh <homeworld-ryzen|homeworld-corebox|homeworld-dragon>
 ```
 
 The script checks the profile against the hardware and asks for:
 
-- this node's address, all three node addresses, and the Ryzen's address
+- this node's address, all three node addresses, and homeworld-ryzen's address
   (the agents VM host);
 - the role: `init` on the first server;
 - the cluster domain (`/argocd/BASE_DOMAIN`), which the API server's
   authentication configuration needs from the first start;
-- on the Ryzen only: the agents VM's Infisical client ID, client secret and
+- on homeworld-ryzen only: the agents VM's Infisical client ID, client secret and
   project ID, and the SSH public keys for the VM's `agent` user;
 - the LUKS passphrase of the root device, to bind it to Tang (compare the key
   thumbprint it prints with the router's first);
@@ -193,7 +193,7 @@ on the node's encrypted root filesystem (bootstrap.sh grows the root LV to the
 whole volume group). The `node.longhorn.io/create-default-disk=config` node label
 and the `node.longhorn.io/default-disks-config` annotation, which apply.sh sets,
 create those disks. On root, the profile's `LONGHORN_RESERVED_GIB` sets the
-per-node reserve: on the Ryzen it also covers the agents VM disks unless they
+per-node reserve: on homeworld-ryzen it also covers the agents VM disks unless they
 have a data disk. A disk of its own gets a token 1 GiB, because Longhorn takes a
 reserve of 0 as unset and holds back 30%.
 

@@ -434,7 +434,7 @@ summary_items="$work/summary.jsonl"
     echo "## Changes outside apps/"
     echo
     echo '```diff'
-    git diff "$base_sha" "$head_sha" -- . ':(exclude)apps' | head -n 200
+    git diff "$base_sha" "$head_sha" -- . ':(exclude)apps' | capped 200
     echo '```'
     echo
   fi
