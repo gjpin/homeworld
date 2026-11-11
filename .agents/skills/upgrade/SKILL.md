@@ -262,6 +262,43 @@ exact decision or action needed from the user, phrased so a one-line
 `/upgrade <answer>` reply can resolve it. `wait` names the earlier PR.
 When unsure, block.
 
+### Comment format
+
+The owner reads the comment in seconds, on a phone. The caller adds the
+decision heading and the footer; `comment` holds only the body, in this
+shape, leaving out any section that would be empty:
+
+```markdown
+**<component> <from> → <to>.** <One sentence: why it is safe to merge, or
+what stops it.>
+
+| Check | Result |
+| :--- | :--- |
+| Release notes | <what the range brings, and why it does not affect this repository> |
+| Config and values | <no removed or deprecated option in use, or what was migrated> |
+| Render | <resources added or removed, what changed in the output> |
+| Telemetry and update checks | <still off, or what new mechanism was found and how it is handled> |
+| Target exists | <image digest or chart version checked> |
+
+**Changes made:** <one bullet per change: what, and the release note that
+requires it>
+
+**New features:** <one bullet per notable feature: what it adds here>
+
+**What you need to do:** <numbered steps, one action each, or the exact
+`/upgrade <answer>` reply that resolves the blocker>
+```
+
+- Lead with the conclusion. Each table cell is one short sentence; put a
+  finding and why it does not matter here in the same cell.
+- Plain words: no internal terms (fast path, report file names,
+  `values-analysis.json`, step numbers) and no "Verified:" lists. Name
+  exact versions, files and settings instead.
+- Only what matters to the owner: skip checks that found nothing beyond
+  their table row, upstream bug fixes, and features of no use here.
+- `ready` comments stay under about 15 lines. Add rows to the table (stepping,
+  database migrations, network policy) only when they found something.
+
 ## Reviewer prompt
 
 Use this prompt for each review, filled in:
