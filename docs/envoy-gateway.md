@@ -15,4 +15,4 @@ Pods do not use the VIP: those on the node announcing it get no ARP answer, so t
 
 A Deployment would only work with `externalTrafficPolicy: Cluster`, which forwards to Envoy on another node and replaces every client address with a node IP.
 
-The announcement policy never picks the Ryzen node (it runs the agents VM, whose traffic to the VIP must leave through the LAN), so the VIP fails over between the other two nodes; Envoy still runs on the Ryzen like on every node ([docs/cilium.md](cilium.md#cluster-specific-settings)).
+The announcement policy never picks homeworld-ryzen (it runs the agents VM, whose traffic to the VIP must leave through the LAN), so the VIP fails over between the other two nodes; Envoy still runs on homeworld-ryzen like on every node ([docs/cilium.md](cilium.md#cluster-specific-settings)).

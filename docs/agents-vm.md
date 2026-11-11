@@ -1,6 +1,6 @@
 # Agents VM
 
-The AI agent workspace is a libvirt/KVM virtual machine on the Ryzen node,
+The AI agent workspace is a libvirt/KVM virtual machine on homeworld-ryzen,
 outside Kubernetes. It runs [OpenChamber](https://github.com/openchamber/openchamber)
 the [Paseo](https://paseo.sh/) daemon and
 [ThinkRail](https://github.com/JetBrains/thinkrail) as `agent` (UID 1000)
@@ -11,14 +11,14 @@ the skills CLI, kind, kubectl and rootless Podman on Fedora.
 
 | | |
 | :--- | :--- |
-| Host | The `ryzen` profile (`AGENTS_VM=1` in `host/nodes/ryzen.env`) |
+| Host | The `homeworld-ryzen` profile (`AGENTS_VM=1` in `host/nodes/homeworld-ryzen.env`) |
 | Definition | `host/agents-vm/` (applied by `host/apply.sh` through `host.sh`) |
 | Size | 8 vCPU, 16 GiB RAM, 40 GiB root and 160 GiB `/home` (thin qcow2 on the encrypted root, or on a data disk chosen with `host/disks.sh`, [docs/fedora.md](fedora.md#data-disks)) |
 | Address | `10.20.0.10` on the routed network `10.20.0.0/24` (`virbr-agents`) |
 | Domains | `openchamber.base-domain.invalid` (port `3000`), `paseo.base-domain.invalid` (port `6767`), `thinkrail.base-domain.invalid` (port `24242`) |
 | Cluster side | `apps/openchamber`: HTTPRoutes, ThinkRail's gateway sign-in and selectorless Services with EndpointSlices to `10.20.0.10` |
 
-The Ryzen's kubelet reserves the VM's 16 GiB (`system-reserved`), the VM runs
+The homeworld-ryzen node's kubelet reserves the VM's 16 GiB (`system-reserved`), the VM runs
 with a lower CPU weight than the host's own services, and `libvirt-guests`
 shuts it down cleanly and starts it again with the host. The VM is not backed
 up: everything worth keeping lives in git remotes or on `/home`.
@@ -52,23 +52,23 @@ it.
 ## Network
 
 The routed network has no NAT: the router routes `10.20.0.0/24` to the
-Ryzen ([docs/openwrt.md](openwrt.md) section 17) and every other node gets
-the same static route from apply.sh. firewalld on the Ryzen decides what
+homeworld-ryzen ([docs/openwrt.md](openwrt.md) section 17) and every other node gets
+the same static route from apply.sh. firewalld on homeworld-ryzen decides what
 crosses `virbr-agents`:
 
 | Direction | Allowed |
 | --- | --- |
-| VM → Ryzen | DHCP and DNS (libvirt's dnsmasq, forwarding to the router, so `*.base-domain.invalid` resolves) |
+| VM → homeworld-ryzen | DHCP and DNS (libvirt's dnsmasq, forwarding to the router, so `*.base-domain.invalid` resolves) |
 | VM → internet | Everything |
 | VM → Gateway VIP `192.168.8.50` | TCP `443` and `22` (Forgejo, its registry, every web app) |
 | VM → anything else private | Rejected: RFC 1918, CGNAT, link-local, multicast and their IPv6 counterparts, so no node, pod, Service, NAS or LAN host |
 | LAN and WireGuard clients → VM | Every port (SSH, OpenChamber, Paseo, dev servers) except ThinkRail's `24242`, which has no login of its own |
 | Nodes and pods → VM | `3000`, `6767` and `24242` only (Envoy Gateway's backends) |
-| Ryzen → VM | `3000`, `6767`, `24242`, DHCP replies and ICMP |
+| homeworld-ryzen → VM | `3000`, `6767`, `24242`, DHCP replies and ICMP |
 
-The Gateway VIP is never announced from the Ryzen ([docs/cilium.md](cilium.md)),
+The Gateway VIP is never announced from homeworld-ryzen ([docs/cilium.md](cilium.md)),
 so the VM's HTTPS and SSH traffic to it leaves through the LAN like any
-other client's. The Ryzen uses kernel (legacy) host routing for the same
+other client's. The homeworld-ryzen node uses kernel (legacy) host routing for the same
 reason Envoy on it can reach the VM.
 
 ## Access
@@ -98,7 +98,7 @@ reason Envoy on it can reach the VM.
 
 The VM has its own read-only Infisical machine identity, scoped to the
 `/agents` folder ([docs/secrets.md](secrets.md)). bootstrap.sh stores its
-client ID and secret root-only on the Ryzen (`/etc/homeworld/agents-vm.env`),
+client ID and secret root-only on homeworld-ryzen (`/etc/homeworld/agents-vm.env`),
 the cloud-init seed carries them into the VM, and `agents-secrets.service`
 exports `/agents/*` into `/run/agents/secrets.env` (tmpfs, readable by
 `agent`) at every boot. The OpenChamber and Paseo services load that file,

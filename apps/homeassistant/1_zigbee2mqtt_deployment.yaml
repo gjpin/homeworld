@@ -28,10 +28,10 @@ spec:
       # The serial device keeps its host owner (root:dialout): inside a pod
       # user namespace supplemental group 20 would map to another host ID.
       hostUsers: true
-      # The Zigbee USB coordinator is plugged into the Radxa; k3s sets the
+      # The Zigbee USB coordinator is plugged into homeworld-dragon; k3s sets the
       # profile label from git (host/files/k3s/config.yaml.in).
       nodeSelector:
-        node.homeworld/profile: radxa
+        node.homeworld/profile: homeworld-dragon
       securityContext:
         # container_t may not open the coordinator's tty (usbtty_device_t for
         # /dev/ttyUSB*, tty_device_t for /dev/ttyACM*) without the host-wide
