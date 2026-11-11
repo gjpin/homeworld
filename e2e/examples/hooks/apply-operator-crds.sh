@@ -5,7 +5,7 @@
 # CNPG/Grafana/MariaDB/RustFS/cert-manager/ServiceMonitor CRs apply.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-PROM_VER="${PROMETHEUS_OPERATOR_VERSION:-v0.95.1}"
+PROM_VER="${PROMETHEUS_OPERATOR_VERSION:-v0.95.2}"
 PROM_BASE="https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/${PROM_VER}/example/prometheus-operator-crd-full"
 
 chart_dir() {
