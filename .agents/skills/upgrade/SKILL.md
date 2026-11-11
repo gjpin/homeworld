@@ -219,7 +219,10 @@ head. A `review` PR stays open for the user to merge. The run itself:
 - When the PR head has failing checks (`gh pr checks <N>`), reads
   `gh run view <run> --log-failed` and fixes the cause in the commit.
 - Commits in the worktree (reviewer prompt step 8) but never pushes.
-  Changes under `.github/` are not allowed in this mode: block instead.
+  The commit may not change `.github/`: block instead when a fix needs
+  it. Renovate's own version bumps under `.github/` (action pins, the
+  workflow's tool versions) are reviewed like any other PR and may be
+  `ready`.
 - Runs the live gates of step 4.3 as usual; without a cluster and without
   `--no-cluster`, a stateful component is a blocker.
 - Ends by writing FILE, then stops:
