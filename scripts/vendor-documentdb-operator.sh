@@ -13,11 +13,13 @@
 # Upstream packaging issues worked around here (see docs/argocd.md):
 # - Chart bundles cloudnative-pg as a hard subchart dependency (no condition
 #   toggle) which would collide with homeworld's standalone CloudNativePG.
-# - Sidecar-injector / wal-replica templates hardcode `namespace: cnpg-system`.
-#   The injector MUST live in the CloudNativePG operator's namespace
-#   (`cloudnative-pg`) because CNPG-I only discovers plugin Services in its
-#   own namespace. This is parameterized as `pluginNamespace` so values.yaml
-#   documents the choice.
+# - Sidecar-injector / wal-replica templates must live in the CloudNativePG
+#   operator's namespace (`cloudnative-pg`) because CNPG-I only discovers
+#   plugin Services in its own namespace. Upstream has used two forms for
+#   this namespace: the literal `namespace: cnpg-system` (<= 1.1.0) and the
+#   `{{ (index .Values "cloudnative-pg").namespaceOverride }}` expression
+#   (>= 1.1.1). Both are rewritten to the `pluginNamespace` value so
+#   values.yaml documents the choice.
 #
 # This script also runs inside the slim Renovate image, so it must not depend
 # on yq or kubectl (not installable there via postUpgradeTasks.installTools):
@@ -78,30 +80,38 @@ if grep -q '^dependencies:' "$src/Chart.yaml"; then
   exit 1
 fi
 
-# Remove dead subchart values (the subchart is gone; namespaceOverride would
-# recreate cnpg-system references).
+# Remove dead subchart values (the subchart is gone; enabling it or setting
+# its namespaceOverride would recreate cnpg-system references).
 remove_top_level_block cloudnative-pg "$src/values.yaml"
 if grep -q '^cloudnative-pg:' "$src/values.yaml"; then
   echo "FAIL: cloudnative-pg block not removed from values.yaml" >&2
   exit 1
 fi
 
-# Delete any template that creates the cnpg-system Namespace
-# (upstream: 01_namespace.yaml).
+# Delete any template that creates a Namespace (upstream: 01_namespace.yaml,
+# which created cnpg-system; the subchart strip above keeps it from rendering).
 while IFS= read -r template; do
   [[ -n "$template" ]] || continue
   rm -f "$template"
-  echo "Deleted cnpg-system Namespace template: $template"
-done < <(grep -rl -- 'name: cnpg-system' "$src/templates" 2>/dev/null || true)
+  echo "Deleted Namespace template: $template"
+done < <(grep -rl -- 'kind: Namespace' "$src/templates" 2>/dev/null || true)
 
 # Scope sidecar-injector / wal-replica resources to the plugin namespace.
+# Both upstream namespace forms are rewritten (see the header comment).
 patched=0
 while IFS= read -r template; do
   [[ -n "$template" ]] || continue
-  sed -i.bak -e 's/namespace: cnpg-system/namespace: {{ .Values.pluginNamespace | default "cloudnative-pg" }}/g' "$template"
+  sed -i.bak \
+    -e 's/namespace: cnpg-system/namespace: {{ .Values.pluginNamespace | default "cloudnative-pg" }}/g' \
+    -e 's/namespace: {{ (index .Values "cloudnative-pg")\.namespaceOverride }}/namespace: {{ .Values.pluginNamespace | default "cloudnative-pg" }}/g' \
+    "$template"
   rm -f "$template.bak"
   patched=$((patched + 1))
-done < <(grep -rl -- 'namespace: cnpg-system' "$src/templates" 2>/dev/null || true)
+done < <(grep -rl -e 'namespace: cnpg-system' -e 'namespaceOverride' "$src/templates" 2>/dev/null || true)
+if [[ "$patched" -eq 0 ]]; then
+  echo "FAIL: no template matched an upstream plugin-namespace form (upstream template change?)" >&2
+  exit 1
+fi
 echo "Scoped ${patched} template file(s) to the plugin namespace."
 
 # Fail-closed guards: a template rename or restructure upstream must fail the
@@ -109,6 +119,10 @@ echo "Scoped ${patched} template file(s) to the plugin namespace."
 # silently shipping the injector into the wrong namespace.
 if grep -rn -- 'namespace: cnpg-system' "$src/templates" 2>/dev/null; then
   echo "FAIL: unpatched 'namespace: cnpg-system' remains in templates (upstream template change?)" >&2
+  exit 1
+fi
+if grep -rn -- 'namespaceOverride' "$src/templates" 2>/dev/null; then
+  echo "FAIL: unpatched 'cloudnative-pg.namespaceOverride' remains in templates (upstream template change?)" >&2
   exit 1
 fi
 if grep -rn -- 'name: cnpg-system' "$src/templates" 2>/dev/null; then
