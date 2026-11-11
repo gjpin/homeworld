@@ -41,7 +41,7 @@ spec:
         - name: lidarr
           # Renovate tracks the image tag below. home-operations builds the
           # upstream release rootless, with the in-app updater removed.
-          image: ghcr.io/home-operations/lidarr:3.2.0.5144
+          image: ghcr.io/home-operations/lidarr:3.2.1.5196
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
