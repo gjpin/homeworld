@@ -191,12 +191,12 @@ jobs:
             awk '{print $1 "  /usr/local/bin/kubectl"}' | sha256sum --check
           sudo chmod 0755 /usr/local/bin/kubectl
 
-          curl -sSfLO https://github.com/mikefarah/yq/releases/download/v4.54.2/yq_linux_amd64
+          curl -sSfLO https://github.com/mikefarah/yq/releases/download/v4.54.3/yq_linux_amd64
           yq_sha256_col="$(
-            curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.2/checksums_hashes_order |
+            curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.3/checksums_hashes_order |
               grep -n '^SHA-256$' | cut -d: -f1
           )"
-          curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.2/checksums |
+          curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.3/checksums |
             awk -v col="$((yq_sha256_col + 1))" '$1 == "yq_linux_amd64" {print $(col) "  yq_linux_amd64"}' |
             sha256sum --check
           sudo install yq_linux_amd64 /usr/local/bin/yq
@@ -471,14 +471,16 @@ jobs:
           # ready: merge once every other check on the head has passed. A
           # pushed commit gets a grace period for its CI to register (a
           # change validate's path filter skips registers none). The cap
-          # keeps the wait inside the app token's one-hour lifetime.
+          # keeps the wait inside the app token's one-hour lifetime. This run's
+          # own jobs are on the head too when nothing was pushed, and this one
+          # cannot complete while it waits.
           GH_TOKEN="$ACTIONS_TOKEN" gh api -X PATCH "repos/${GITHUB_REPOSITORY}/check-runs/${CHECK}" \
             -f 'output[title]=Ready: merging once CI passes' -f "output[summary]=See ${RUN_URL}" >/dev/null
           start="$(date +%s)"
           while :; do
             sleep 30
             runs="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${head}/check-runs?per_page=100" \
-              --jq '[.check_runs[] | select(.name != "Upgrade agent review")]')"
+              --jq "[.check_runs[] | select(.name != \"Upgrade agent review\" and (.details_url | contains(\"/actions/runs/${GITHUB_RUN_ID}/\") | not))]")"
             elapsed=$(($(date +%s) - start))
             if [ "$(jq 'map(select(.status != "completed")) | length' <<<"$runs")" -eq 0 ] &&
               { [ "${#heads[@]}" -eq 0 ] || [ "$(jq length <<<"$runs")" -gt 0 ] || [ "$elapsed" -ge 120 ]; }; then

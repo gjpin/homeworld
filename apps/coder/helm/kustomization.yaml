@@ -5,7 +5,7 @@ commonAnnotations:
 helmCharts:
   - name: coder
     repo: https://helm.coder.com/v2
-    version: 2.39.0
+    version: 2.39.1
     releaseName: coder
     namespace: coder
     includeCRDs: true
