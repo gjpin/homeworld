@@ -1,7 +1,7 @@
 # https://docs.cilium.io/en/stable/configuration/per-node-config/
 #
 # The agents VM hangs off a routed libvirt bridge (virbr-agents) on the node
-# labelled with the ryzen profile; the bridge is not a Cilium device. With
+# labelled with the homeworld-ryzen profile; the bridge is not a Cilium device. With
 # eBPF host routing, a pod on that node reaching the VM (Envoy -> OpenChamber,
 # Paseo) is redirected straight onto the bridge without passing netfilter,
 # while the VM's reply comes back through the kernel and firewalld's
@@ -17,6 +17,6 @@ metadata:
 spec:
   nodeSelector:
     matchLabels:
-      node.homeworld/profile: ryzen
+      node.homeworld/profile: homeworld-ryzen
   defaults:
     enable-host-legacy-routing: "true"

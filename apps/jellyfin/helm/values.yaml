@@ -48,8 +48,8 @@ jellyfin:
     - name: JELLYFIN_PublishedServerUrl
       value: https://jellyfin.base-domain.invalid
 
-# Intel QuickSync (corebox's UHD 730). The device plugin
-# (apps/intel-gpu-plugin) runs on corebox only and advertises
+# Intel QuickSync (homeworld-corebox's UHD 730). The device plugin
+# (apps/intel-gpu-plugin) runs on homeworld-corebox only and advertises
 # gpu.intel.com/i915 there, so the request also places the pod there.
 resources:
   requests:
@@ -58,7 +58,7 @@ resources:
     ephemeral-storage: 256Mi
     gpu.intel.com/i915: "1"
   # QuickSync does the heavy lifting; software fallbacks (subtitle burn-in,
-  # audio) may use every corebox core. The ephemeral-storage limit covers
+  # audio) may use every homeworld-corebox core. The ephemeral-storage limit covers
   # the 32Gi transcode cache emptyDir: emptyDir usage counts against the
   # pod's limit, and exceeding it evicts the pod.
   limits:
