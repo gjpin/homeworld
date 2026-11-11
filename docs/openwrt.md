@@ -1327,7 +1327,7 @@ IP, and gets a ready-to-import configuration file in
 `/root/wireguard-clients/`. Clients reach the WireGuard subnet, Pixel
 (`192.168.8.0/24`, including the cluster's Gateway VIP `192.168.8.50`, so
 every cluster service works remotely) and the agents VM
-subnet (`10.20.0.0/24`, routed through the Ryzen node, section 17) through
+subnet (`10.20.0.0/24`, routed through homeworld-ryzen, section 17) through
 the tunnel; other traffic stays on their own connection. As members of the Pixel zone they get the same DNS policy as
 Pixel clients: AdGuard Home on the server address, port-53 interception and
 no direct port-54 access.
@@ -1420,7 +1420,7 @@ dig -p 54 @10.10.0.1 openwrt.org      # must fail: dnsmasq is not reachable dire
 
 Run this once, from the `192.168.8.1` session, before installing the nodes
 ([docs/k3s.md](k3s.md)). It gives the three nodes, the NAS and the switch
-(section 18) static leases, routes the agents VM subnet through the Ryzen
+(section 18) static leases, routes the agents VM subnet through homeworld-ryzen
 node, rejects that subnet
 everywhere but the internet, and runs the Tang server the nodes' LUKS roots
 are bound to ([docs/fedora.md](fedora.md)).
@@ -1436,25 +1436,25 @@ in git if the NAS or a VIP moves.
 ```sh
 # MAC address of each machine's LAN port (`ip link` on the machine, or the
 # DHCP lease list in LuCI).
-RYZEN_MAC='aa:bb:cc:dd:ee:10'
-COREBOX_MAC='aa:bb:cc:dd:ee:11'
-RADXA_MAC='aa:bb:cc:dd:ee:12'
+HOMEWORLD_RYZEN_MAC='aa:bb:cc:dd:ee:10'
+HOMEWORLD_COREBOX_MAC='aa:bb:cc:dd:ee:11'
+HOMEWORLD_DRAGON_MAC='aa:bb:cc:dd:ee:12'
 NAS_MAC='aa:bb:cc:dd:ee:20'
 SWITCH_MAC='aa:bb:cc:dd:ee:02' # printed on the switch's label
 
 uci -q batch <<EOF
-set dhcp.ryzen='host'
-set dhcp.ryzen.name='ryzen'
-set dhcp.ryzen.mac='$RYZEN_MAC'
-set dhcp.ryzen.ip='192.168.8.10'
-set dhcp.corebox='host'
-set dhcp.corebox.name='corebox'
-set dhcp.corebox.mac='$COREBOX_MAC'
-set dhcp.corebox.ip='192.168.8.11'
-set dhcp.radxa='host'
-set dhcp.radxa.name='radxa'
-set dhcp.radxa.mac='$RADXA_MAC'
-set dhcp.radxa.ip='192.168.8.12'
+set dhcp.homeworld_ryzen='host'
+set dhcp.homeworld_ryzen.name='homeworld-ryzen'
+set dhcp.homeworld_ryzen.mac='$HOMEWORLD_RYZEN_MAC'
+set dhcp.homeworld_ryzen.ip='192.168.8.10'
+set dhcp.homeworld_corebox='host'
+set dhcp.homeworld_corebox.name='homeworld-corebox'
+set dhcp.homeworld_corebox.mac='$HOMEWORLD_COREBOX_MAC'
+set dhcp.homeworld_corebox.ip='192.168.8.11'
+set dhcp.homeworld_dragon='host'
+set dhcp.homeworld_dragon.name='homeworld-dragon'
+set dhcp.homeworld_dragon.mac='$HOMEWORLD_DRAGON_MAC'
+set dhcp.homeworld_dragon.ip='192.168.8.12'
 set dhcp.nas='host'
 set dhcp.nas.name='nas'
 set dhcp.nas.mac='$NAS_MAC'
@@ -1510,10 +1510,10 @@ uci commit tang
 fw4 check && fw4 reload
 ```
 
-The route sends LAN and WireGuard traffic for `10.20.0.0/24` to the Ryzen
+The route sends LAN and WireGuard traffic for `10.20.0.0/24` to homeworld-ryzen
 node, which runs the VM on a routed libvirt network
 ([docs/agents-vm.md](agents-vm.md)). The two reject rules are defense in
-depth behind the Ryzen's firewalld, which already confines the VM to the
+depth behind homeworld-ryzen's firewalld, which already confines the VM to the
 internet: the VM may not open connections to the router or to any private,
 CGNAT, link-local or multicast address through it. Replies to LAN and
 WireGuard clients are established traffic and pass before these rules.
@@ -1521,7 +1521,7 @@ WireGuard clients are established traffic and pass before these rules.
 Verify:
 
 ```sh
-uci show dhcp | grep -E '^dhcp\.(ryzen|corebox|radxa|nas|switch)\.'
+uci show dhcp | grep -E '^dhcp\.(homeworld_ryzen|homeworld_corebox|homeworld_dragon|nas|switch)\.'
 ip route show 10.20.0.0/24             # via 192.168.8.10
 fw4 print | grep -F 10.20.0.0/24       # the two reject rules
 ss -lnt | grep -F ':7500'              # tangd
@@ -1536,7 +1536,7 @@ the directory as configuration).
 
 LAN clients reach the VM asymmetrically: their packets go through the router
 (their default gateway) and the route above, while the VM's replies go from
-the Ryzen straight back on the LAN. WireGuard clients are symmetric. From a
+homeworld-ryzen straight back on the LAN. WireGuard clients are symmetric. From a
 Pixel client, connect to `10.20.0.10:6767` (Paseo) directly; if the
 connection stalls after the handshake, check `logread -e firewall` for
 invalid-state drops.

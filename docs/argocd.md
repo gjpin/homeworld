@@ -49,7 +49,7 @@
      ahead of the wave 6+ applications whose static NFS PersistentVolumes
      it serves ([docs/nas.md](nas.md))
    * intel-gpu-plugin: Intel's GPU device plugin (from the release's own
-     kustomize base), advertising the corebox iGPU as `gpu.intel.com/i915`
+     kustomize base), advertising the homeworld-corebox iGPU as `gpu.intel.com/i915`
      ahead of Jellyfin (wave 7), which requests it
    * system-upgrade-controller: the `Plan` CRD (from the pinned release tag,
      intra-component wave 0), the controller, and the k3s upgrade Plans
