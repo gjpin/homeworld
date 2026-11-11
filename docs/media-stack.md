@@ -22,7 +22,7 @@ syncs at wave 3. The one-time UI steps are in the README's
 | Collections | Jellyfin-Auto-Collections (Kometa's released versions support Plex only) |
 | Jellyfin sign-in | Jellyfin's own login (no SSO plugin) |
 | Jellyfin metadata | On the NAS share (`jellyfin/metadata`), not Longhorn; no backup |
-| Jellyfin transcode cache | 32Gi `emptyDir` on corebox's disk, with throttling and segment deletion |
+| Jellyfin transcode cache | 32Gi `emptyDir` on homeworld-corebox's disk, with throttling and segment deletion |
 | Audiobookshelf podcasts | On (world `80`/`443` egress exception, podcast library read-write) |
 | Navidrome artist info | AudioMuse-AI first for similar songs and artists, then Deezer, Last.fm, ListenBrainz |
 | Music imports | Copied, not hardlinked, so beets can retag the library ([Music tagging](#music-tagging)) |
@@ -56,7 +56,7 @@ size.
 - **Direct play first.** 4K HEVC HDR clients (TVs, streaming boxes) play
   the file untouched: the cost is the NAS's network read (about 15–25 Mbit/s
   per 2160p WEB stream, far below the Pi's gigabit link at 4 streams).
-- **Transcodes** (browsers, phones, SDR screens) run on corebox's UHD 730.
+- **Transcodes** (browsers, phones, SDR screens) run on homeworld-corebox's UHD 730.
   Jellyfin's Intel guide puts the UHD 7xx series in its high-performance
   tier; tone mapping uses OpenCL, which also maps Dolby Vision profile 5.
   The UHD 730 has one video engine, so a few tone-mapped transcodes at once
@@ -98,7 +98,7 @@ qbit_manage.
 | Lidarr | handwritten | `ghcr.io/home-operations/lidarr` | gVisor | CNPG (main + log) | gateway OIDC + `External` | exportarr |
 | Bindery | handwritten | `ghcr.io/vavallee/bindery` | gVisor | SQLite (Longhorn) | native OIDC | native `/metrics` |
 | Bazarr | handwritten | `ghcr.io/home-operations/bazarr` | gVisor | CNPG | gateway OIDC | exportarr |
-| Jellyfin | official chart (`jellyfin/jellyfin-helm`) | `docker.io/jellyfin/jellyfin` | runc + Intel iGPU (corebox) | SQLite (Longhorn) | native login | native `/metrics` (blocked on the route) |
+| Jellyfin | official chart (`jellyfin/jellyfin-helm`) | `docker.io/jellyfin/jellyfin` | runc + Intel iGPU (homeworld-corebox) | SQLite (Longhorn) | native login | native `/metrics` (blocked on the route) |
 | Seerr | official chart (`oci://ghcr.io/seerr-team/seerr/seerr-chart`) | `ghcr.io/seerr-team/seerr` | gVisor | CNPG | native (Jellyfin accounts) | — |
 | Recyclarr | handwritten CronJob | `ghcr.io/recyclarr/recyclarr` | gVisor | — | — | — |
 | Maintainerr | handwritten | `ghcr.io/maintainerr/maintainerr` | gVisor | SQLite (Longhorn) | gateway OIDC (no built-in login) | — |
@@ -247,9 +247,9 @@ AudioMuse-AI's analysis schedule) are the README's manual steps.
 ## Platform pieces
 
 - **Intel GPU**: Intel's GPU device plugin from its release's own kustomize
-  base, scheduled on corebox only (the
-  `node.homeworld/profile=corebox` label). Jellyfin requests
-  `gpu.intel.com/i915: 1`, which also places it on corebox; containerd's
+  base, scheduled on homeworld-corebox only (the
+  `node.homeworld/profile=homeworld-corebox` label). Jellyfin requests
+  `gpu.intel.com/i915: 1`, which also places it on homeworld-corebox; containerd's
   `device_ownership_from_security_context` gives the render node to
   Jellyfin's user, and `host/apply.sh` keeps `container_use_dri_devices` on.
 - **qBittorrent**: the shared `/data` volume, UID 20004, one category per
