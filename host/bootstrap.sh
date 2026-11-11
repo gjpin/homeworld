@@ -4,7 +4,7 @@
 # One-time node bootstrap (docs/k3s.md). Run as root on a fresh Fedora Server
 # install, from a checkout of this repository:
 #
-#   sudo host/bootstrap.sh <ryzen|corebox|radxa> [--treat-as-ssd SERIAL]...
+#   sudo host/bootstrap.sh <homeworld-ryzen|homeworld-corebox|homeworld-dragon> [--treat-as-ssd SERIAL]...
 #
 # It validates the profile against the hardware, records the node's local
 # settings, grows the root LV, binds the LUKS root to Tang, lets you choose
@@ -60,7 +60,7 @@ if [ ! -f /etc/homeworld/env ]; then
   default_ip=$(ip -o -4 route get 1.1.1.1 | awk '{for (i = 1; i < NF; i++) if ($i == "src") print $(i + 1)}')
   ask node_ip "This node's LAN address (its static DHCP lease)" "$default_ip"
   ask node_ips "All three node addresses, space-separated"
-  ask vm_host_ip "Address of the node running the agents VM (ryzen profile)"
+  ask vm_host_ip "Address of the node running the agents VM (homeworld-ryzen profile)"
   ask role "First server of a new cluster (init) or joining one (join)" join
   case "$role" in init | join) ;; *) echo "role must be init or join" >&2; exit 1 ;; esac
   # k3s needs the domain for its first start (authentication.yaml), before
