@@ -26,7 +26,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   run hourly from `main` on every node), `cluster.env` and `versions.env`
   (coordinates and pins), `nodes/<profile>.env` (per-hardware profiles),
   `files/` (k3s, containerd, firewalld, systemd, kured helpers), and
-  `agents-vm/` (the libvirt agents VM on the Ryzen, docs/agents-vm.md).
+  `agents-vm/` (the libvirt agents VM on homeworld-ryzen, docs/agents-vm.md).
 - `bootstrap/argocd-values.yaml`: the minimal Argo CD bootstrap.sh installs
   before `apps/argocd` adopts it.
 - `README.md`: required environment variables, bootstrap notes, and sync-wave documentation.
