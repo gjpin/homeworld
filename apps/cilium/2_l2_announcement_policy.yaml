@@ -11,7 +11,7 @@
 # (client source addresses preserved), which L2 announcements would
 # otherwise not honor.
 #
-# The node labelled with the ryzen profile (host/nodes/ryzen.env) never
+# The node labelled with the homeworld-ryzen profile (host/nodes/homeworld-ryzen.env) never
 # announces the VIP: it hosts the agents VM, whose traffic to the VIP enters
 # on the libvirt bridge, which is not a Cilium device, so the kube-proxy
 # replacement would never translate it there. The VIP fails over between the
@@ -33,7 +33,7 @@ spec:
       - key: node.homeworld/profile
         operator: NotIn
         values:
-          - ryzen
+          - homeworld-ryzen
   serviceSelector:
     matchLabels:
       io.kubernetes.service.namespace: envoy-gateway
