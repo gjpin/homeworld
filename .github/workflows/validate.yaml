@@ -137,15 +137,15 @@ jobs:
             awk '{print $1 "  /usr/local/bin/kubectl"}' | sha256sum --check
           sudo chmod 0755 /usr/local/bin/kubectl
 
-          curl -sSfLO https://github.com/mikefarah/yq/releases/download/v4.54.2/yq_linux_amd64
+          curl -sSfLO https://github.com/mikefarah/yq/releases/download/v4.54.3/yq_linux_amd64
           # yq's checksums asset lists every supported hash algorithm per file
           # in one row; the checksums_hashes_order asset maps each column to
           # its algorithm, so the SHA-256 column is resolved per release.
           yq_sha256_col="$(
-            curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.2/checksums_hashes_order |
+            curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.3/checksums_hashes_order |
               grep -n '^SHA-256$' | cut -d: -f1
           )"
-          curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.2/checksums |
+          curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.3/checksums |
             awk -v col="$((yq_sha256_col + 1))" '$1 == "yq_linux_amd64" {print $(col) "  yq_linux_amd64"}' |
             sha256sum --check
           sudo install yq_linux_amd64 /usr/local/bin/yq

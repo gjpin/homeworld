@@ -423,6 +423,8 @@ the owner to merge. A blocker, failing CI, or a run that ended without a
 result is labelled `upgrade-blocked`. A PR waiting for an earlier PR of the same package is
 labelled `upgrade-waiting` and reviewed again when that one merges. The agent
 may not change `.github/`; such fixes come back as a diff in the comment.
+Renovate's own version bumps under `.github/` are reviewed and merged like
+any other PR.
 Replying `/upgrade <decision>` on the PR (repository owner only) runs the
 review again ([upgrade-agent-request](../.github/workflows/upgrade-agent-request.yaml));
 the agent reads the reply as the answer to its blocker or to the features it listed. Hosted runners cannot reach the cluster, so the
