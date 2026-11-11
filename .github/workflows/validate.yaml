@@ -39,10 +39,32 @@ jobs:
   # resources are only parse-checked here; cluster-side schema validation is
   # impossible without the CRDs installed (see AGENTS.md Validation section).
   validate:
+    # A merged PR was validated on its own run; only direct pushes to main
+    # are checked again.
+    if: ${{ github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'Merge pull request #') }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The security scan renders every chart (most of the job's time); it
+      # runs only when its inputs changed: the manifests, the scripts, the
+      # exceptions, or this workflow's scanner pins. Unknown means changed.
+      - name: Find whether the scan inputs changed
+        id: scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if files="$(gh api "repos/${GITHUB_REPOSITORY}/compare/${BASE}...${HEAD}" --paginate --jq '.files[].filename')" &&
+            [ "$(printf '%s\n' "$files" | grep -c .)" -lt 300 ] &&
+            ! printf '%s\n' "$files" | grep -qE '^(apps|scripts|security)/|^\.github/workflows/validate\.yaml$'; then
+            echo "scan=false" >> "$GITHUB_OUTPUT"
+            echo "No scan inputs changed; skipping the security scan."
+          else
+            echo "scan=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Parse Kubernetes manifests
         if: ${{ !cancelled() }}
@@ -104,7 +126,7 @@ jobs:
           go run ./cmd/e2e validate -f examples/homeworld.suite.yaml
 
       - name: Install security toolchain
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.scope.outputs.scan == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -137,25 +159,25 @@ jobs:
             awk '{print $1 "  /usr/local/bin/kubectl"}' | sha256sum --check
           sudo chmod 0755 /usr/local/bin/kubectl
 
-          curl -sSfLO https://github.com/mikefarah/yq/releases/download/v4.54.2/yq_linux_amd64
+          curl -sSfLO https://github.com/mikefarah/yq/releases/download/v4.54.3/yq_linux_amd64
           # yq's checksums asset lists every supported hash algorithm per file
           # in one row; the checksums_hashes_order asset maps each column to
           # its algorithm, so the SHA-256 column is resolved per release.
           yq_sha256_col="$(
-            curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.2/checksums_hashes_order |
+            curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.3/checksums_hashes_order |
               grep -n '^SHA-256$' | cut -d: -f1
           )"
-          curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.2/checksums |
+          curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.3/checksums |
             awk -v col="$((yq_sha256_col + 1))" '$1 == "yq_linux_amd64" {print $(col) "  yq_linux_amd64"}' |
             sha256sum --check
           sudo install yq_linux_amd64 /usr/local/bin/yq
 
       - name: Render and enforce security policy
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.scope.outputs.scan == 'true' }}
         run: scripts/scan-security.sh homelab
 
       - name: Upload scanner reports
-        if: always()
+        if: ${{ always() && steps.scope.outputs.scan == 'true' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: security-homelab

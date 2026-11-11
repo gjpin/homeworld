@@ -4,7 +4,7 @@ certManager:
 # extension and gateway images). Pinned here, not inherited from the vendored
 # chart's default, so a chart bump never changes the engine on its own.
 # https://github.com/documentdb/documentdb/releases (tag vX.Y-0 ↔ X.Y.0)
-documentDbVersion: "1.0.0"
+documentDbVersion: "1.0.1"
 # Require ImageVolume instead of the chart's `auto`, whose fallback to the
 # combined image is permanent for a cluster and ignores the pinned
 # `spec.image.postgres`. An unusable ImageVolume fails at admission instead.

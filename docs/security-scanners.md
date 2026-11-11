@@ -8,7 +8,7 @@ Every intentionally accepted finding is registered as an explicit, resource-scop
 
 ## Scanning pipeline
 
-The `validate` job in `.github/workflows/validate.yaml` runs `scripts/scan-security.sh`, which:
+The `validate` job in `.github/workflows/validate.yaml` runs `scripts/scan-security.sh` whenever a change touches its inputs (`apps/`, `scripts/`, `security/`, or the workflow's scanner pins). The job runs on pull requests and on direct pushes to `main`; a merged pull request is not validated again on `main`. The script:
 
 1. Validates the exception registry and its parity with the scanner input (`scripts/validate-security-exceptions.sh`).
 2. Renders the source path of every Argo CD `Application` in the repository, root and child, the way the homeworld Config Management Plugin does ([argocd.md](argocd.md#homeworld-plugin)): kustomize with Helm where the directory holds a `kustomization.yaml` (the charts and the upstream releases kustomized directly), its plain manifest files otherwise (`scripts/render-manifests.sh`). kubescape scans that tree with an empty kubeconfig, so it never contacts a cluster.
