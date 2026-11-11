@@ -17,7 +17,7 @@ spec:
   # Pinned engine/gateway version (extension + gateway images), so an
   # operator chart bump cannot change the engine on its own.
   # https://github.com/documentdb/documentdb/releases (tag vX.Y-0 ↔ X.Y.0)
-  documentDBVersion: "1.0.0"
+  documentDBVersion: "1.0.1"
   documentDbCredentialSecret: notesnook-documentdb-credentials
   image:
     # Must stay trixie-based to match the extension's GLIBC requirements.
