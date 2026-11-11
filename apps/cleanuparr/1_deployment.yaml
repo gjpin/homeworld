@@ -42,7 +42,7 @@ spec:
       containers:
         - name: cleanuparr
           # Renovate tracks the image tag below.
-          image: ghcr.io/cleanuparr/cleanuparr:2.10.12
+          image: ghcr.io/cleanuparr/cleanuparr:2.11.0
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
