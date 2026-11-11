@@ -207,7 +207,7 @@ jobs:
           tar -xzf go-containerregistry_Linux_x86_64.tar.gz crane
           sudo install crane /usr/local/bin/crane
 
-          pipx install mistral-vibe==3.1.0
+          pipx install mistral-vibe==3.1.2
 
       - name: Configure Vibe
         run: |
