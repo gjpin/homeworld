@@ -38,7 +38,7 @@ spec:
         - name: prowlarr
           # Renovate tracks the image tag below. home-operations builds the
           # upstream release rootless, with the in-app updater removed.
-          image: ghcr.io/home-operations/prowlarr:3.0.0.5737
+          image: ghcr.io/home-operations/prowlarr:3.0.1.5752
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
