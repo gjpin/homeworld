@@ -471,14 +471,16 @@ jobs:
           # ready: merge once every other check on the head has passed. A
           # pushed commit gets a grace period for its CI to register (a
           # change validate's path filter skips registers none). The cap
-          # keeps the wait inside the app token's one-hour lifetime.
+          # keeps the wait inside the app token's one-hour lifetime. This run's
+          # own jobs are on the head too when nothing was pushed, and this one
+          # cannot complete while it waits.
           GH_TOKEN="$ACTIONS_TOKEN" gh api -X PATCH "repos/${GITHUB_REPOSITORY}/check-runs/${CHECK}" \
             -f 'output[title]=Ready: merging once CI passes' -f "output[summary]=See ${RUN_URL}" >/dev/null
           start="$(date +%s)"
           while :; do
             sleep 30
             runs="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${head}/check-runs?per_page=100" \
-              --jq '[.check_runs[] | select(.name != "Upgrade agent review")]')"
+              --jq "[.check_runs[] | select(.name != \"Upgrade agent review\" and (.details_url | contains(\"/actions/runs/${GITHUB_RUN_ID}/\") | not))]")"
             elapsed=$(($(date +%s) - start))
             if [ "$(jq 'map(select(.status != "completed")) | length' <<<"$runs")" -eq 0 ] &&
               { [ "${#heads[@]}" -eq 0 ] || [ "$(jq length <<<"$runs")" -gt 0 ] || [ "$elapsed" -ge 120 ]; }; then
