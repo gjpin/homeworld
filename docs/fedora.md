@@ -7,13 +7,13 @@ The Fedora release is pinned in `host/versions.env` (`FEDORA_RELEASE`).
 ## Install
 
 1. Download the Fedora Server installer for the node's architecture
-   (`x86_64` for the Ryzen and the CoreBox, `aarch64` for the Radxa) and boot
+   (`x86_64` for homeworld-ryzen and homeworld-corebox, `aarch64` for homeworld-dragon) and boot
    it.
 2. In the installer:
    - **Installation Destination**: the node's system disk, automatic
      partitioning, **Encrypt my data**. The passphrase becomes the LUKS
      recovery slot: store it offline (below).
-   - **Network & Host Name**: the hostname (`ryzen`, `corebox`, `radxa`);
+   - **Network & Host Name**: the hostname (`homeworld-ryzen`, `homeworld-corebox`, `homeworld-dragon`);
      it becomes the Kubernetes node name. Leave the address on DHCP: the
      router's static lease pins it ([docs/openwrt.md](openwrt.md) section 17).
    - **User Creation**: an administrator (wheel) account. Leave root
@@ -31,7 +31,7 @@ Fedora Server's automatic partitioning gives the root LV about 15 GiB and
 leaves the rest of the volume group free. bootstrap.sh grows the root LV to
 the whole volume group (`lvextend -r -l +100%FREE`) before anything else
 lands on it: root holds etcd, the container images and whatever has no data
-disk of its own (below): `/var/lib/longhorn` and, on the Ryzen, the agents VM
+disk of its own (below): `/var/lib/longhorn` and, on homeworld-ryzen, the agents VM
 disks. Longhorn's per-node reserve (`LONGHORN_RESERVED_GIB` in
 `host/nodes/<profile>.env`) keeps that space free for the OS and, while it
 lives on root, the VM.
@@ -39,7 +39,7 @@ lives on root, the VM.
 ## Data disks
 
 `host/disks.sh`, which bootstrap.sh runs before k3s is installed, lists the
-attached disks and lets you put Longhorn and, on the Ryzen, the agents VM disks
+attached disks and lets you put Longhorn and, on homeworld-ryzen, the agents VM disks
 on them. It takes SSD and NVMe disks only: spinning disks are listed but cannot
 be chosen. USB enclosures can report an SSD as spinning, so name such a disk
 explicitly with `--treat-as-ssd <serial>` (bootstrap.sh passes the option on).
@@ -224,10 +224,10 @@ firewalld (nftables backend) stays enabled; Cockpit is disabled.
 | `homeworld-lan` (default) | the LAN NIC | SSH, Kubernetes API (`6443`) |
 | `homeworld-nodes` | the three node addresses | SSH, etcd (`2379`–`2381`), Kubernetes API, kubelet (`10250`), scheduler and controller-manager metrics (`10257`, `10259`), Cilium health, Hubble peers and metrics (`4240`, `4244`, `9962`–`9965`), Cilium WireGuard (`51871/udp`), VXLAN (`8472/udp`) |
 | `trusted` | Pod and Service CIDRs, `cilium_*` and `lxc*` interfaces | everything |
-| `homeworld-agents` (Ryzen) | `virbr-agents` | DHCP and DNS to libvirt's dnsmasq |
+| `homeworld-agents` (homeworld-ryzen) | `virbr-agents` | DHCP and DNS to libvirt's dnsmasq |
 
 The Gateway VIP (`443`, `22`) is load-balanced by Cilium's eBPF datapath
-before netfilter sees it. The agents VM policies on the Ryzen are listed in
+before netfilter sees it. The agents VM policies on homeworld-ryzen are listed in
 [docs/agents-vm.md](agents-vm.md).
 
 ## Trust
