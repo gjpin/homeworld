@@ -1,7 +1,7 @@
 coder:
   image:
     repo: ghcr.io/coder/coder
-    tag: v2.39.0
+    tag: v2.39.1
 
   # The access URL is set explicitly below; the chart's in-cluster fallback
   # (http://coder.coder.svc.cluster.local) would hand workspaces and OIDC an
