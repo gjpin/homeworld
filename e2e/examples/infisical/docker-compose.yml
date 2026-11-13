@@ -9,7 +9,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-    image: docker.io/infisical/infisical:v0.167.8
+    image: docker.io/infisical/infisical:v0.167.9
     env_file: .env.e2e
     ports:
       - "8080:8080"
