@@ -143,10 +143,10 @@ jobs:
           tar -xzf kube-linter-linux.tar.gz kube-linter
           sudo install kube-linter /usr/local/bin/kube-linter
 
-          curl -sSfLO https://get.helm.sh/helm-v4.3.1-linux-amd64.tar.gz
-          curl -sSfL https://get.helm.sh/helm-v4.3.1-linux-amd64.tar.gz.sha256 |
-            awk '{print $1 "  helm-v4.3.1-linux-amd64.tar.gz"}' | sha256sum --check
-          tar -xzf helm-v4.3.1-linux-amd64.tar.gz
+          curl -sSfLO https://get.helm.sh/helm-v4.3.2-linux-amd64.tar.gz
+          curl -sSfL https://get.helm.sh/helm-v4.3.2-linux-amd64.tar.gz.sha256 |
+            awk '{print $1 "  helm-v4.3.2-linux-amd64.tar.gz"}' | sha256sum --check
+          tar -xzf helm-v4.3.2-linux-amd64.tar.gz
           sudo install linux-amd64/helm /usr/local/bin/helm
 
           # kubectl floats to the latest stable release (dl.k8s.io) instead of
