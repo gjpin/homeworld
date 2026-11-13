@@ -2,15 +2,21 @@ name: Upgrade agent request
 
 # Starts upgrade-agent.yaml reviews that no pull_request_target event of the
 # PR itself starts: an owner's `/upgrade <decision>` comment on a Renovate
-# PR, and the merge of a Renovate PR that later PRs of the same package
-# waited for (labelled upgrade-waiting; skill step 2). Kept apart from the
-# review workflow so these events add no skipped checks to the PRs.
+# PR, the merge of a Renovate PR that later PRs of the same package
+# waited for (labelled upgrade-waiting; skill step 2), and an hour into each
+# weekday DeepSeek off-peak period, the PRs deferred out of peak hours
+# (labelled upgrade-deferred; scripts/deepseek-off-peak.sh). Kept apart from
+# the review workflow so these events add no skipped checks to the PRs.
 
 on:
   issue_comment:
     types: [created]
   pull_request_target:
     types: [closed]
+  schedule:
+    # Peak hours end at 04:00 and 10:00 UTC on weekdays.
+    - cron: '0 5 * * 1-5'
+    - cron: '0 11 * * 1-5'
 
 permissions: {}
 
@@ -48,6 +54,23 @@ jobs:
         run: |
           set -euo pipefail
           gh pr list -R "$GITHUB_REPOSITORY" --state open --label upgrade-waiting --json number --jq '.[].number' |
+            while read -r n; do
+              gh workflow run upgrade-agent.yaml -R "$GITHUB_REPOSITORY" --ref main -f pr="$n"
+            done
+
+  deferred:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      pull-requests: read
+    steps:
+      - name: Request reviews of the deferred PRs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh pr list -R "$GITHUB_REPOSITORY" --state open --label upgrade-deferred --json number --jq '.[].number' |
             while read -r n; do
               gh workflow run upgrade-agent.yaml -R "$GITHUB_REPOSITORY" --ref main -f pr="$n"
             done
