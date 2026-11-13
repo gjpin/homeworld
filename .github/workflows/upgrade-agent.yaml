@@ -570,7 +570,18 @@ jobs:
           fi
           # The app's merge starts upgrade-agent-request, which releases PRs
           # waiting for this one.
-          if ! err="$(gh pr merge "$NUMBER" -R "$GITHUB_REPOSITORY" --merge --match-head-commit "$head" 2>&1)"; then
+          # Merges of other PRs at the same moment fail this one with "Base
+          # branch was modified": try again.
+          merged=false
+          for attempt in 1 2 3 4 5; do
+            if err="$(gh pr merge "$NUMBER" -R "$GITHUB_REPOSITORY" --merge --match-head-commit "$head" 2>&1)"; then
+              merged=true
+              break
+            fi
+            grep -q 'Base branch was modified' <<<"$err" || break
+            sleep $((attempt * 10))
+          done
+          if [ "$merged" != true ]; then
             printf '%s\n\n%s\n\n' "The merge failed, so the PR is still open. Reply \`/upgrade\` to review it again:" "\`\`\`
           ${err}
           \`\`\`" | cat - "$msg" > "$msg.tmp" && mv "$msg.tmp" "$msg"
