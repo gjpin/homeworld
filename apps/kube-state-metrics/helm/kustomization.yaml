@@ -5,7 +5,7 @@ commonAnnotations:
 helmCharts:
   - name: kube-state-metrics
     repo: https://prometheus-community.github.io/helm-charts
-    version: 9.0.0
+    version: 9.0.1
     releaseName: kube-state-metrics
     namespace: kube-state-metrics
     includeCRDs: true
