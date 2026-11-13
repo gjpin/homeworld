@@ -425,12 +425,13 @@ a peak window ends. A second job pushes its commit as the `renovate-homeworld`
 app and posts the review as a PR comment and as the "Upgrade agent review"
 check on the PR head. A PR the agent passes with nothing for the owner
 to see is labelled `upgrade-ready` and merged by the app once every other
-check on its head passes. A PR that passes but brings a new feature useful
-here, a notable user-facing feature (a new capability, not a rework of an
-existing view), or a post-merge step that needs the owner to act, is
-labelled `upgrade-review` and left open for the owner to merge. Checks that
-an automatic startup task succeeded (OpenCloud's configuration patch and
-re-index) do not hold a PR: its comment lists them with their commands. A blocker, failing CI, or a run that ended without a
+check on its head passes; its comment lists new user-facing features that
+need no change here. A PR that passes but brings a feature useful here that
+needs a change in this repository to adopt, or a post-merge step that needs
+the owner to act, is labelled `upgrade-review` and left open for the owner
+to merge. Checks that an automatic startup task succeeded (OpenCloud's
+configuration patch and re-index) do not hold a PR: its comment lists them
+with their commands. A blocker, failing CI, or a run that ended without a
 result is labelled `upgrade-blocked`. A PR waiting for an earlier PR of the same package is
 labelled `upgrade-waiting` and reviewed again when that one merges. The agent
 may not change `.github/`; such fixes come back as a diff in the comment.

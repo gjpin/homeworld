@@ -244,20 +244,22 @@ head. A `review` PR stays open for the user to merge. The run itself:
 needs the user's attention, and the PR is merged without them once CI
 passes on the pushed commit; `comment` then lists the review (fast path or
 full) and the changes made with their reasons. `review` means the same
-checks passed, but the range brings something the user should see before
-merging: a new feature or option that would be useful in this homelab (it
-improves something the component is used for here, adds an integration
-with another component in the repository, or replaces a workaround in
-this repository), a notable user-facing feature (a capability the app's
-users did not have before, such as a new page, view, or kind of action,
-even when it needs no configuration), or a post-merge step from
+checks passed, but the range needs the user to decide or act: a new
+feature or option that would be useful in this homelab but needs a change
+in this repository to adopt (it improves something the component is used
+for here, adds an integration with another component in the repository,
+or replaces a workaround in this repository), or a post-merge step from
 docs/upgrades.md §9 that needs the user to act (run a one-time command,
-change a setting, repair something by hand). `comment` then also lists each such feature with what it adds or would
-change here, and the post-merge steps; the user merges, or replies `/upgrade <decision>` to
-have it adopted. Features of no use here (other platforms, integrations
-the homelab does not run, bug fixes, minor cosmetic tweaks, reworks or
-restyles of an existing view or feature) do not make a PR `review`;
-mention them in one line of a `ready` comment at most. Nor does checking
+change a setting, repair something by hand). `comment` then also lists
+each such feature with what adopting it would change here, and the
+post-merge steps; the user merges, or replies `/upgrade <decision>` to
+have it adopted. New user-facing features that work without any change
+here (a new page, view, or kind of action) do not make a PR `review`: a
+`ready` comment lists them under **New features** so the user learns of
+them when it merges. Features of no use here (other platforms,
+integrations the homelab does not run, bug fixes, minor cosmetic tweaks,
+reworks or restyles of an existing view or feature) do not make a PR
+`review` either; mention them in one line of a `ready` comment at most. Nor does checking
 that an automatic task succeeded (a migration or configuration patch the
 app runs on startup, such as OpenCloud's `[init]` and `[reindex]`): a
 `ready` comment lists that check under **What you need to do**, with its
@@ -308,7 +310,7 @@ requires it>
   exact UI path, when to do it (before merging, after Argo CD syncs), what
   a good result looks like, and what to do when it is not. Never write
   "check X" without saying how.
-- `ready` comments stay under about 15 lines. Add rows to the table (stepping,
+- `ready` comments stay under about 15 lines, plus their **New features**. Add rows to the table (stepping,
   database migrations, network policy) only when they found something.
 
 ## Reviewer prompt
