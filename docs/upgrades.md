@@ -269,8 +269,9 @@ the new images roll, finalize the schema explicitly:
 
 ### PostgreSQL Base Image
 
-`spec.image.postgres` (`ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie`)
-is tracked by the CloudNativePG package rule: minor bumps roll with zero
+`spec.image.postgres`, pinned to a
+`ghcr.io/cloudnative-pg/postgresql:<major>.<minor>-system-trixie` tag, is
+tracked by the CloudNativePG package rule: minor bumps roll with zero
 downtime, major bumps trigger CNPG's automated offline `pg_upgrade`. The image
 must stay trixie-based to match the extension's GLIBC requirements.
 
