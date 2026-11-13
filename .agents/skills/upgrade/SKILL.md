@@ -248,15 +248,20 @@ checks passed, but the range brings something the user should see before
 merging: a new feature or option that would be useful in this homelab (it
 improves something the component is used for here, adds an integration
 with another component in the repository, or replaces a workaround in
-this repository), a notable user-facing feature (something new the app's
-users can see or do, such as a new page, view, or capability, even when it
-needs no configuration), or a post-merge step from docs/upgrades.md §9.
-`comment` then also lists each such feature with what it adds or would
+this repository), a notable user-facing feature (a capability the app's
+users did not have before, such as a new page, view, or kind of action,
+even when it needs no configuration), or a post-merge step from
+docs/upgrades.md §9 that needs the user to act (run a one-time command,
+change a setting, repair something by hand). `comment` then also lists each such feature with what it adds or would
 change here, and the post-merge steps; the user merges, or replies `/upgrade <decision>` to
 have it adopted. Features of no use here (other platforms, integrations
-the homelab does not run, bug fixes, minor cosmetic tweaks) do not make a
-PR `review`;
-mention them in one line of a `ready` comment at most. `block` means a
+the homelab does not run, bug fixes, minor cosmetic tweaks, reworks or
+restyles of an existing view or feature) do not make a PR `review`;
+mention them in one line of a `ready` comment at most. Nor does checking
+that an automatic task succeeded (a migration or configuration patch the
+app runs on startup, such as OpenCloud's `[init]` and `[reindex]`): a
+`ready` comment lists that check under **What you need to do**, with its
+command, and the user acts only when it shows a failure. `block` means a
 blocker from step 4.1; `comment` states it, what was verified, and the
 exact decision or action needed from the user, phrased so a one-line
 `/upgrade <answer>` reply can resolve it. `wait` names the earlier PR.
@@ -296,6 +301,13 @@ requires it>
   exact versions, files and settings instead.
 - Only what matters to the owner: skip checks that found nothing beyond
   their table row, upstream bug fixes, and features of no use here.
+- Every step under **What you need to do** is something the owner can do
+  exactly as written: the full command in a code span (namespace,
+  workload and container included, e.g. ``kubectl -n opencloud logs
+  deploy/opencloud -c opencloud | grep -E '^\[(init|reindex)\]'``) or the
+  exact UI path, when to do it (before merging, after Argo CD syncs), what
+  a good result looks like, and what to do when it is not. Never write
+  "check X" without saying how.
 - `ready` comments stay under about 15 lines. Add rows to the table (stepping,
   database migrations, network policy) only when they found something.
 

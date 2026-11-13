@@ -21,7 +21,7 @@ spec:
   documentDbCredentialSecret: notesnook-documentdb-credentials
   image:
     # Must stay trixie-based to match the extension's GLIBC requirements.
-    postgres: ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie
+    postgres: ghcr.io/cloudnative-pg/postgresql:18.7-system-trixie
   resource:
     storage:
       pvcSize: 2Gi
