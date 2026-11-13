@@ -4,8 +4,8 @@ name: Upgrade agent
 # run by the pi coding agent with DeepSeek V4.1 Flash through the DeepSeek API
 # (thinking high). The agent's fixes are pushed to the PR and its review is
 # posted as a comment. A `ready` PR is merged once every other check on its head
-# passes; a `review` PR (new features worth using here, or post-merge steps)
-# stays open for the owner to merge (docs/upgrades.md, "Upgrade Tooling").
+# passes; a `review` PR (features worth adopting here, or post-merge steps
+# that need the owner to act) stays open for the owner to merge (docs/upgrades.md, "Upgrade Tooling").
 #
 # Reviews start when Renovate opens a PR (pull_request_target) or by
 # dispatch with the PR number; upgrade-agent-request.yaml dispatches them for
@@ -215,10 +215,10 @@ jobs:
           set -euo pipefail
           cd "$RUNNER_TEMP"
 
-          curl -sSfLO https://get.helm.sh/helm-v4.3.1-linux-amd64.tar.gz
-          curl -sSfL https://get.helm.sh/helm-v4.3.1-linux-amd64.tar.gz.sha256 |
-            awk '{print $1 "  helm-v4.3.1-linux-amd64.tar.gz"}' | sha256sum --check
-          tar -xzf helm-v4.3.1-linux-amd64.tar.gz
+          curl -sSfLO https://get.helm.sh/helm-v4.3.2-linux-amd64.tar.gz
+          curl -sSfL https://get.helm.sh/helm-v4.3.2-linux-amd64.tar.gz.sha256 |
+            awk '{print $1 "  helm-v4.3.2-linux-amd64.tar.gz"}' | sha256sum --check
+          tar -xzf helm-v4.3.2-linux-amd64.tar.gz
           sudo install linux-amd64/helm /usr/local/bin/helm
 
           # kubectl floats to the latest stable release, as in validate.yaml:
@@ -302,8 +302,9 @@ jobs:
           skill and AGENTS.md first and follow them exactly, in result mode.
           You run unattended in GitHub Actions: nobody can answer a question,
           so a blocker is a "block" decision in the result file. A "ready" PR
-          is merged without the user seeing it; useful new features, notable
-          user-facing features or post-merge steps make it "review" instead.
+          is merged without the user seeing it; useful features that need a
+          change here to adopt, or post-merge steps that need the user to
+          act, make it "review" instead.
           Write the "comment" exactly in the skill's Comment format: short,
           plain, a checks table. Use ${work} as the work directory. Always write
           the result file to exactly ${work}/result.json before you stop,
@@ -569,7 +570,18 @@ jobs:
           fi
           # The app's merge starts upgrade-agent-request, which releases PRs
           # waiting for this one.
-          if ! err="$(gh pr merge "$NUMBER" -R "$GITHUB_REPOSITORY" --merge --match-head-commit "$head" 2>&1)"; then
+          # Merges of other PRs at the same moment fail this one with "Base
+          # branch was modified": try again.
+          merged=false
+          for attempt in 1 2 3 4 5; do
+            if err="$(gh pr merge "$NUMBER" -R "$GITHUB_REPOSITORY" --merge --match-head-commit "$head" 2>&1)"; then
+              merged=true
+              break
+            fi
+            grep -q 'Base branch was modified' <<<"$err" || break
+            sleep $((attempt * 10))
+          done
+          if [ "$merged" != true ]; then
             printf '%s\n\n%s\n\n' "The merge failed, so the PR is still open. Reply \`/upgrade\` to review it again:" "\`\`\`
           ${err}
           \`\`\`" | cat - "$msg" > "$msg.tmp" && mv "$msg.tmp" "$msg"

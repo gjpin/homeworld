@@ -269,8 +269,9 @@ the new images roll, finalize the schema explicitly:
 
 ### PostgreSQL Base Image
 
-`spec.image.postgres` (`ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie`)
-is tracked by the CloudNativePG package rule: minor bumps roll with zero
+`spec.image.postgres`, pinned to a
+`ghcr.io/cloudnative-pg/postgresql:<major>.<minor>-system-trixie` tag, is
+tracked by the CloudNativePG package rule: minor bumps roll with zero
 downtime, major bumps trigger CNPG's automated offline `pg_upgrade`. The image
 must stay trixie-based to match the extension's GLIBC requirements.
 
@@ -424,9 +425,13 @@ a peak window ends. A second job pushes its commit as the `renovate-homeworld`
 app and posts the review as a PR comment and as the "Upgrade agent review"
 check on the PR head. A PR the agent passes with nothing for the owner
 to see is labelled `upgrade-ready` and merged by the app once every other
-check on its head passes. A PR that passes but brings a new feature useful
-here, a notable user-facing feature, or a post-merge step, is labelled `upgrade-review` and left open for
-the owner to merge. A blocker, failing CI, or a run that ended without a
+check on its head passes; its comment lists new user-facing features that
+need no change here. A PR that passes but brings a feature useful here that
+needs a change in this repository to adopt, or a post-merge step that needs
+the owner to act, is labelled `upgrade-review` and left open for the owner
+to merge. Checks that an automatic startup task succeeded (OpenCloud's
+configuration patch and re-index) do not hold a PR: its comment lists them
+with their commands. A blocker, failing CI, or a run that ended without a
 result is labelled `upgrade-blocked`. A PR waiting for an earlier PR of the same package is
 labelled `upgrade-waiting` and reviewed again when that one merges. The agent
 may not change `.github/`; such fixes come back as a diff in the comment.
@@ -459,7 +464,7 @@ The applications below document procedures beyond that review.
 | **Grafana VictoriaMetrics datasource plugins** | Read the plugin release notes ([metrics](https://github.com/VictoriaMetrics/victoriametrics-datasource/blob/main/CHANGELOG.md), [logs](https://github.com/VictoriaMetrics/victorialogs-datasource/blob/main/CHANGELOG.md)) and check the `grafanaDependency` in the release's `plugin.json` against the Grafana image. | The plugin-loader init container in `apps/grafana/0_grafana.yaml` verifies each tarball's sha256. Renovate moves the tag and tarball name but not the checksum: copy the new digest from the release assets page into the same PR. |
 | **OpenCode and OpenChamber (agents VM)** | OpenChamber runs only on the OpenCode major it targets, from the minimum in its `packages/web/server/lib/opencode/compatibility.js` (`MINIMUM_OPENCODE_VERSION`); a newer OpenCode major is unsupported until an OpenChamber release adopts it. OpenCode majors can move the installer URL and deprecate `opencode.json` keys ([V1 migration guide](https://opencode.ai/v2/docs/migrate-v1/)). | Before merging an `agents-vm-tools` PR that moves either pin, check that the pinned OpenChamber accepts the pinned OpenCode version. On an OpenCode major, check the installer URL in `host/agents-vm/provision.sh` and the managed keys in `host/agents-vm/agents-config.sh` ([agents-vm.md](agents-vm.md#managed-configuration)). |
 | **Longhorn** | See [§2](#2-automated-storage-engine-upgrades-longhorn). | |
-| **OpenCloud** | Each major has an upgrade page (`docs.opencloud.eu/docs/next/admin/maintenance/upgrade/upgrade-<major>.x.x`) linked from the release's *Action required* note: renamed or deprecated environment variables, moved `opencloud.yaml` keys, new opt-in services, and one-time cleanups. | Rename the variables and keys `apps/opencloud` sets in the same PR. The configuration patch (`opencloud init --diff`) and the search re-index run on startup ([§3](#3-automated-post-upgrade-tasks-opencloud)); check the `[init]` log lines after the sync. |
+| **OpenCloud** | Each major has an upgrade page (`docs.opencloud.eu/docs/next/admin/maintenance/upgrade/upgrade-<major>.x.x`) linked from the release's *Action required* note: renamed or deprecated environment variables, moved `opencloud.yaml` keys, new opt-in services, and one-time cleanups. | Rename the variables and keys `apps/opencloud` sets in the same PR. The configuration patch (`opencloud init --diff`) and the search re-index run on startup ([§3](#3-automated-post-upgrade-tasks-opencloud)). Once Argo CD has synced the new image, run `kubectl -n opencloud logs deploy/opencloud -c opencloud \| grep -E '^\[(init\|upgrade\|reindex)\]'`: expect `[init] Configuration is up to date.` or `[init] Configuration patch applied successfully.`, then `[reindex] Search re-indexing completed successfully.` (it can take minutes). On `[init] WARNING: Patch dry-run failed`, apply the change shown by `kubectl -n opencloud exec deploy/opencloud -c opencloud -- cat /etc/opencloud/opencloud.config.patch` to `/etc/opencloud/opencloud.yaml` by hand; a `[reindex] ERROR` retries on the next pod start (`kubectl -n opencloud rollout restart deploy/opencloud`). |
 | **DocumentDB, MariaDB, CloudNativePG operands** | See [§7](#7-documentdb-engine-upgrades), [§8](#8-mariadb-engine-upgrades-mariadb-operator), [§1](#1-automated-major-database-upgrades-cloudnativepg). | |
 
 Charts that ship their CRDs in `crds/` (Grafana Operator, OpenTelemetry
