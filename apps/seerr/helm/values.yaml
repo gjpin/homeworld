@@ -5,7 +5,7 @@ image:
   # Pinned: seerr-chart releases trail Seerr releases, so the chart
   # appVersion can lag behind the app. Renovate moves this tag together with
   # the chart and the config-seed init image (the seerr group).
-  tag: v3.5.1
+  tag: v3.5.2
 # Pod labels read app.kubernetes.io/name: seerr instead of the chart name,
 # which the network policies of the apps Seerr calls select.
 nameOverride: seerr
