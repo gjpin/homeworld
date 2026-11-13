@@ -465,7 +465,7 @@
       ]
     },
     {
-      "description": "Group the Seerr chart and its config-seed init image",
+      "description": "Group the Seerr chart, its server image tag and its config-seed init image",
       "matchPackageNames": [
         "ghcr.io/seerr-team/seerr/seerr-chart",
         "seerr-chart",
@@ -1606,6 +1606,20 @@
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://index.docker.io"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the Seerr server image tag (seerr-chart releases trail Seerr; grouped with the chart)",
+      "managerFilePatterns": [
+        "/^apps/seerr/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s+tag:\\s*(?<currentValue>v[^\\s#]+)\\s*$"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "depNameTemplate": "ghcr.io/seerr-team/seerr",
+      "registryUrlTemplate": "https://ghcr.io"
     },
     {
       "customType": "regex",
