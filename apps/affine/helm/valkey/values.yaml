@@ -17,8 +17,11 @@ resources:
   limits:
     cpu: 500m
     memory: 1Gi
-# The chart's readiness probe is opt-in; the Service only routes to a
-# server that answers PING.
+# Standalone, in-memory only: no PVC to hand over, so a rolling update keeps
+# the old pod serving until the new one answers.
+deploymentStrategy: RollingUpdate
+# Upstream now enables the readiness probe by default; pinned so the Service
+# only routes to a server that answers PING.
 readinessProbe:
   enabled: true
 initResources:
@@ -39,7 +42,7 @@ auth:
       passwordKey: password
 # In-memory only, with maxmemory below the container limit. BullMQ requires
 # noeviction: an evicted job key corrupts its queue.
-valkeyConfig: |
+extraConfig: |
   maxmemory 768mb
   maxmemory-policy noeviction
   save ""

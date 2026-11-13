@@ -107,7 +107,7 @@ controllers:
     containers:
       main:
         image:
-          tag: v3.4.0
+          tag: v3.4.1
         env:
           REDIS_HOSTNAME: valkey.immich.svc.cluster.local
           IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning.immich.svc.cluster.local:3003
