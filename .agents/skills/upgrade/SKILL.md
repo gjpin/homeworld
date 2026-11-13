@@ -296,6 +296,13 @@ requires it>
   exact versions, files and settings instead.
 - Only what matters to the owner: skip checks that found nothing beyond
   their table row, upstream bug fixes, and features of no use here.
+- Every step under **What you need to do** is something the owner can do
+  exactly as written: the full command in a code span (namespace,
+  workload and container included, e.g. ``kubectl -n opencloud logs
+  deploy/opencloud -c opencloud | grep -E '^\[(init|reindex)\]'``) or the
+  exact UI path, when to do it (before merging, after Argo CD syncs), what
+  a good result looks like, and what to do when it is not. Never write
+  "check X" without saying how.
 - `ready` comments stay under about 15 lines. Add rows to the table (stepping,
   database migrations, network policy) only when they found something.
 
