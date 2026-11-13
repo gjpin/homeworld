@@ -4,8 +4,8 @@ name: Upgrade agent
 # run by the pi coding agent with DeepSeek V4.1 Flash through the DeepSeek API
 # (thinking high). The agent's fixes are pushed to the PR and its review is
 # posted as a comment. A `ready` PR is merged once every other check on its head
-# passes; a `review` PR (new features worth using here, or post-merge steps)
-# stays open for the owner to merge (docs/upgrades.md, "Upgrade Tooling").
+# passes; a `review` PR (new features worth using here, or post-merge steps
+# that need the owner to act) stays open for the owner to merge (docs/upgrades.md, "Upgrade Tooling").
 #
 # Reviews start when Renovate opens a PR (pull_request_target) or by
 # dispatch with the PR number; upgrade-agent-request.yaml dispatches them for
@@ -303,7 +303,8 @@ jobs:
           You run unattended in GitHub Actions: nobody can answer a question,
           so a blocker is a "block" decision in the result file. A "ready" PR
           is merged without the user seeing it; useful new features, notable
-          user-facing features or post-merge steps make it "review" instead.
+          user-facing features or post-merge steps that need the user to act
+          make it "review" instead.
           Write the "comment" exactly in the skill's Comment format: short,
           plain, a checks table. Use ${work} as the work directory. Always write
           the result file to exactly ${work}/result.json before you stop,

@@ -426,8 +426,11 @@ app and posts the review as a PR comment and as the "Upgrade agent review"
 check on the PR head. A PR the agent passes with nothing for the owner
 to see is labelled `upgrade-ready` and merged by the app once every other
 check on its head passes. A PR that passes but brings a new feature useful
-here, a notable user-facing feature, or a post-merge step, is labelled `upgrade-review` and left open for
-the owner to merge. A blocker, failing CI, or a run that ended without a
+here, a notable user-facing feature (a new capability, not a rework of an
+existing view), or a post-merge step that needs the owner to act, is
+labelled `upgrade-review` and left open for the owner to merge. Checks that
+an automatic startup task succeeded (OpenCloud's configuration patch and
+re-index) do not hold a PR: its comment lists them with their commands. A blocker, failing CI, or a run that ended without a
 result is labelled `upgrade-blocked`. A PR waiting for an earlier PR of the same package is
 labelled `upgrade-waiting` and reviewed again when that one merges. The agent
 may not change `.github/`; such fixes come back as a diff in the comment.
