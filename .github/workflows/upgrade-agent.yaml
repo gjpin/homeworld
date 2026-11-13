@@ -1,9 +1,9 @@
 name: Upgrade agent
 
 # Reviews every Renovate PR with the upgrade skill (.agents/skills/upgrade),
-# run by Mistral Vibe with Z.ai GLM 5.3 Flash (served by Mistral, thinking
-# high). The agent's fixes are pushed to the PR and its review is posted as
-# a comment. A `ready` PR is merged once every other check on its head
+# run by the pi coding agent with DeepSeek V4.1 Flash through the DeepSeek API
+# (thinking high). The agent's fixes are pushed to the PR and its review is
+# posted as a comment. A `ready` PR is merged once every other check on its head
 # passes; a `review` PR (new features worth using here, or post-merge steps)
 # stays open for the owner to merge (docs/upgrades.md, "Upgrade Tooling").
 #
@@ -13,8 +13,14 @@ name: Upgrade agent
 # to its blocker) and when a merge releases a waiting PR of the same package.
 # The result is a check run on the PR head ("Upgrade agent review": success
 # when ready or for review, failure when blocked or CI failed, neutral while
-# waiting) carrying the
+# waiting or deferred) carrying the
 # review, plus the same review as a PR comment and a label.
+#
+# DeepSeek bills off-peak hours at half price (scripts/deepseek-off-peak.sh),
+# so a review starts only an hour or more into an off-peak period and with
+# enough of it left to finish. Any other PR is labelled upgrade-deferred, and
+# upgrade-agent-request.yaml dispatches it again an hour after the next peak
+# window ends.
 #
 # pull_request_target, not pull_request: the workflow always comes from
 # main, never from the PR (whose stale merge ref can predate this workflow,
@@ -23,7 +29,7 @@ name: Upgrade agent
 #
 # Three review jobs keep the agent away from write credentials. The agent
 # runs with auto-approve and reads untrusted release notes, so its job holds
-# only a read-only GITHUB_TOKEN and the Mistral key, and hands back a result
+# only a read-only GITHUB_TOKEN and the DeepSeek key, and hands back a result
 # file and its commit as patches. The other jobs never execute anything from
 # the agent's runner and hold the renovate-homeworld app token, which pushes
 # and comments (so CI runs on the pushed commit, like on Renovate's own).
@@ -51,7 +57,12 @@ env:
   # flag once the cluster is live: stateful upgrades then block, for a local
   # /upgrade run that can take the backup.
   UPGRADE_FLAGS: --no-cluster
-  VIBE_MODEL: glm-5.3-flash
+  PI_MODEL: deepseek-flash
+  # A review starts OFF_PEAK_SETTLE minutes or more into a DeepSeek off-peak
+  # period, with OFF_PEAK_NEEDED minutes or more of it left (reviews take
+  # about ten).
+  OFF_PEAK_SETTLE: 60
+  OFF_PEAK_NEEDED: 30
 
 jobs:
   prepare:
@@ -81,6 +92,14 @@ jobs:
           owner: ${{ github.repository_owner }}
           repositories: ${{ github.event.repository.name }}
 
+      - name: Check out the off-peak script
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          sparse-checkout: scripts/deepseek-off-peak.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
       - name: Resolve the PR and bring it up to date
         id: pr
         env:
@@ -103,9 +122,24 @@ jobs:
 
           # One label per call: gh rejects the whole edit when any label is
           # missing from the repository.
-          for l in upgrade-blocked upgrade-waiting upgrade-ready upgrade-review; do
+          for l in upgrade-blocked upgrade-waiting upgrade-ready upgrade-review upgrade-deferred; do
             GH_TOKEN="$APP_TOKEN" gh pr edit "$NUMBER" -R "$GITHUB_REPOSITORY" --remove-label "$l" >/dev/null 2>&1 || true
           done
+
+          # Only in DeepSeek off-peak hours; upgrade-agent-request.yaml
+          # dispatches deferred PRs an hour after the peak window ends.
+          read -r since left < <(scripts/deepseek-off-peak.sh)
+          if [ "$since" -lt "$OFF_PEAK_SETTLE" ] || [ "$left" -lt "$OFF_PEAK_NEEDED" ]; then
+            echo "Off-peak for ${since} minutes, peak in ${left}; deferring"
+            GH_TOKEN="$APP_TOKEN" gh label create upgrade-deferred -R "$GITHUB_REPOSITORY" --force --color c5def5 \
+              --description "Upgrade agent: reviewed once DeepSeek off-peak hours start" >/dev/null
+            GH_TOKEN="$APP_TOKEN" gh pr edit "$NUMBER" -R "$GITHUB_REPOSITORY" --add-label upgrade-deferred >/dev/null
+            gh api "repos/${GITHUB_REPOSITORY}/check-runs" -f name="Upgrade agent review" -f head_sha="$sha" \
+              -f status=completed -f conclusion=neutral -f details_url="$RUN_URL" \
+              -f 'output[title]=Deferred to DeepSeek off-peak hours' \
+              -f 'output[summary]=The review starts an hour into the next DeepSeek off-peak period (05:00 or 11:00 UTC on weekdays).' >/dev/null
+            exit 0
+          fi
 
           # The review must run against current main (skill step 3).
           behind="$(gh api "repos/${GITHUB_REPOSITORY}/compare/main...${sha}" --jq .behind_by)"
@@ -170,6 +204,11 @@ jobs:
           # persisted token is this job's read-only GITHUB_TOKEN, which the
           # agent already has as GH_TOKEN.
 
+      - name: Set up Node.js for pi
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '26.13.1'
+
       - name: Install the upgrade toolchain
         shell: bash
         run: |
@@ -207,38 +246,40 @@ jobs:
           tar -xzf go-containerregistry_Linux_x86_64.tar.gz crane
           sudo install crane /usr/local/bin/crane
 
-          pipx install mistral-vibe==3.1.2
+          npm install -g @earendil-works/pi-coding-agent@1.5.2
 
-      - name: Configure Vibe
+      - name: Configure pi
         run: |
           set -euo pipefail
-          echo "VIBE_HOME=${RUNNER_TEMP}/vibe" >> "$GITHUB_ENV"
-          mkdir -p "${RUNNER_TEMP}/vibe"
-          # Z.ai GLM 5.3 Flash as Mistral serves it
-          # (docs.mistral.ai/models/zai-glm-5-3-flash); prices are
-          # Mistral's, so --max-price caps the run. Telemetry and update
-          # checks off (AGENTS.md).
-          cat > "${RUNNER_TEMP}/vibe/config.toml" <<'EOF'
-          active_model = "glm-5.3-flash"
-          enable_telemetry = false
-          enable_update_checks = false
-          strict_config = true
-
-          [[models]]
-          name = "zai-glm-5-3-flash"
-          provider = "mistral"
-          alias = "glm-5.3-flash"
-          thinking = "high"
-          input_price = 0.15
-          output_price = 0.5
-          cached_input_price = 0.03
-          EOF
+          # Telemetry, provider attribution headers, version checks and
+          # model catalog refreshes off (AGENTS.md). Project trust stays off:
+          # the run loads only the upgrade skill, by path, and AGENTS.md.
+          mkdir -p "${RUNNER_TEMP}/pi"
+          {
+            echo "PI_CODING_AGENT_DIR=${RUNNER_TEMP}/pi"
+            echo "PI_OFFLINE=1"
+            echo "PI_SKIP_VERSION_CHECK=1"
+            echo "PI_TELEMETRY=0"
+          } >> "$GITHUB_ENV"
+          echo '{"enableInstallTelemetry": false, "defaultProjectTrust": "never"}' > "${RUNNER_TEMP}/pi/settings.json"
 
       - name: Run the upgrade skill
         env:
-          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           set -euo pipefail
+          # The prepare job's off-peak check again, then stop five minutes
+          # before the next DeepSeek peak window, so no request starts in it,
+          # and after 100 minutes at most. A review cut short by the peak
+          # window is deferred, not blocked.
+          read -r since left < <(scripts/deepseek-off-peak.sh)
+          if [ "$since" -lt "$OFF_PEAK_SETTLE" ] || [ "$left" -lt "$OFF_PEAK_NEEDED" ]; then
+            echo "Off-peak for ${since} minutes, peak in ${left}; deferring"
+            touch "${RUNNER_TEMP}/deferred"
+            exit 0
+          fi
+          limit=$((left - 5 < 100 ? left - 5 : 100))
+
           git fetch -q origin "+refs/heads/${BRANCH}:refs/remotes/origin/${BRANCH}"
           if [ "$(git rev-parse "origin/${BRANCH}")" != "$SHA" ]; then
             echo "::error::origin/${BRANCH} moved after prepare"
@@ -269,12 +310,18 @@ jobs:
           also when something failed.
           EOF
 
+          # pi reads stdin until it closes, so it gets /dev/null. The JSON
+          # event stream stays on the runner: it holds tool output.
+          mkdir -p "${RUNNER_TEMP}/pi-run"
           rc=0
-          vibe --trust --agent auto-approve --model "$VIBE_MODEL" \
-            --prompt-file "${RUNNER_TEMP}/prompt.md" \
-            --max-price 10 --time-limit 6000 \
-            --output-dir "${RUNNER_TEMP}/vibe-run" || rc=$?
-          echo "vibe exited with ${rc}"
+          timeout "${limit}m" pi --mode json --provider deepseek --model "$PI_MODEL" --thinking high \
+            --no-session --no-mcp --no-extensions --no-skills --skill .agents/skills/upgrade \
+            "$(cat "${RUNNER_TEMP}/prompt.md")" \
+            </dev/null > "${RUNNER_TEMP}/pi-run/events.jsonl" || rc=$?
+          echo "pi exited with ${rc}"
+          if [ "$rc" -eq 124 ] && [ "$limit" -lt 100 ]; then
+            touch "${RUNNER_TEMP}/deferred"
+          fi
 
       - name: Package the result
         if: ${{ !cancelled() }}
@@ -282,9 +329,19 @@ jobs:
           set -euo pipefail
           out="${RUNNER_TEMP}/out"
           mkdir -p "$out/patches"
-          # export.json: stop reason, token usage and cost; never the session
-          # journal (it holds tool output and is published with the artifact).
-          cp "${RUNNER_TEMP}/vibe-run/export.json" "$out/" 2>/dev/null || true
+          cp "${RUNNER_TEMP}/deferred" "$out/" 2>/dev/null || true
+          # usage.json: stop reason, token usage and cost (at pi's catalog
+          # prices, which are DeepSeek's peak rates: off-peak bills half),
+          # never the event stream (it holds tool output and is published
+          # with the artifact).
+          if [ -s "${RUNNER_TEMP}/pi-run/events.jsonl" ]; then
+            jq -s '[.[] | select(.type == "message_end" and .message.role == "assistant") | .message] | {
+                model: (last.model // null), stopReason: (last.stopReason // null),
+                errorMessage: (last.errorMessage // null), turns: length,
+                input: (map(.usage.input) | add), output: (map(.usage.output) | add),
+                cacheRead: (map(.usage.cacheRead) | add), costAtPeakRates: (map(.usage.cost.total) | add)
+              }' "${RUNNER_TEMP}/pi-run/events.jsonl" > "$out/usage.json" || true
+          fi
           # Only the result leaves the work directory, which holds tool output.
           cp "${RUNNER_TEMP}/upgrade/result.json" "$out/" 2>/dev/null || true
           result="$out/result.json"
@@ -395,10 +452,17 @@ jobs:
           }
           msg="${RUNNER_TEMP}/msg.md"
 
+          if [ -f "${dir}/deferred" ]; then
+            echo "The review ran outside DeepSeek's off-peak hours or reached the next peak window, so it stopped and nothing was pushed. It runs again an hour into the next off-peak period (05:00 or 11:00 UTC on weekdays)." > "$msg"
+            label upgrade-deferred c5def5 "reviewed once DeepSeek off-peak hours start"
+            finish neutral "Deferred to DeepSeek off-peak hours" "$msg"
+            exit 0
+          fi
+
           if ! jq -e --argjson n "$NUMBER" \
             '.pr == $n and (.decision | IN("ready", "review", "block", "wait")) and (.comment | type == "string")' \
             "$result" >/dev/null 2>&1; then
-            echo "The agent finished without a valid result file (stop reason in the run's \`upgrade-result\` artifact, \`export.json\`). Nothing was pushed." > "$msg"
+            echo "The agent finished without a valid result file (stop reason in the run's \`upgrade-result\` artifact, \`usage.json\`). Nothing was pushed." > "$msg"
             block "$msg"
             exit 0
           fi
