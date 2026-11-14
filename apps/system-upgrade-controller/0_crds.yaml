@@ -27,5 +27,5 @@ spec:
       - ServerSideApply=true
   source:
     repoURL: https://github.com/rancher/system-upgrade-controller.git
-    targetRevision: v0.21.0
+    targetRevision: v0.21.1
     path: pkg/crds/yaml/generated
