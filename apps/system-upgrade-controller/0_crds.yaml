@@ -1,4 +1,4 @@
-# https://github.com/rancher/system-upgrade-controller/tree/v0.20.2/pkg/crds/yaml/generated
+# https://github.com/rancher/system-upgrade-controller/tree/main/pkg/crds/yaml/generated
 #
 # The Plan CRD from the release tag, ahead of the controller (wave 1) and the
 # Plans (wave 2). Pruning is disabled like the other CRD-only Applications:
@@ -27,5 +27,5 @@ spec:
       - ServerSideApply=true
   source:
     repoURL: https://github.com/rancher/system-upgrade-controller.git
-    targetRevision: v0.21.0
+    targetRevision: v0.21.1
     path: pkg/crds/yaml/generated
