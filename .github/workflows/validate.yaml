@@ -41,7 +41,9 @@ jobs:
   validate:
     # A merged PR was validated on its own run; only direct pushes to main
     # are checked again.
-    if: ${{ github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'Merge pull request #') }}
+    # Quoted: in a plain YAML scalar, " #" starts a comment and cuts the
+    # expression short.
+    if: "github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'Merge pull request #')"
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
