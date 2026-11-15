@@ -131,7 +131,8 @@ everything else the agents or you add:
   OpenCode `update: "disable"`, Pi `PI_SKIP_VERSION_CHECK`, Copilot `autoUpdate`,
   Claude Code `DISABLE_UPDATES`, Infisical CLI `INFISICAL_DISABLE_UPDATE_CHECK`,
   Playwright CLI `NO_UPDATE_NOTIFIER`, Antigravity CLI `AGY_CLI_DISABLE_AUTO_UPDATE`,
-  Vibe `enable_update_checks`, Terraform `CHECKPOINT_DISABLE`.
+  Vibe `enable_update_checks`, Terraform `CHECKPOINT_DISABLE`,
+  chrome-devtools-mcp `CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS`.
   OpenChamber has no switch for its update
   check, so `OPENCHAMBER_UPDATE_API_URL` points at an unreachable local port.
   ThinkRail's release check only runs from an installer layout
@@ -143,7 +144,9 @@ everything else the agents or you add:
   `INFISICAL_DISABLE_TELEMETRY` (also set in the secrets loader), Copilot CLI
   `COPILOT_TELEMETRY_DISABLED` (its client telemetry uploads; server-side
   telemetry stays with GitHub), Vibe `enable_telemetry` (usage events,
-  experiments and the Sentry error reports of `vibe` and `vibe-acp`).
+  experiments and the Sentry error reports of `vibe` and `vibe-acp`),
+  chrome-devtools-mcp `CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS` (Google usage
+  statistics, on by default).
   Antigravity saves its telemetry choice with the account, not in
   `settings.json`, so it stays a manual step: turn off Enable Telemetry in
   `/config` after the first login; only the feedback survey is managed.
