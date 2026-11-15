@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Bindery HTTP traffic, background jobs and process health. Metrics verified against Bindery v1.46.0 internal/metrics/metrics.go (bindery_http_requests_total, bindery_http_request_duration_seconds, bindery_scheduler_runs_total, bindery_scheduler_run_duration_seconds, bindery_build_info) plus the client_golang go_/process_ collectors it registers; the project publishes no dashboard.",
+  "description": "Bindery HTTP traffic, background jobs, downloads, imports, indexer searches and process health. Metrics verified against Bindery internal/metrics/metrics.go and operational.go, the queue collector in cmd/bindery/queue_metrics.go and docs/metrics.md (bindery_http_*, bindery_scheduler_*, bindery_grabs_total, bindery_download_client_*, bindery_imports_total, bindery_indexer_*, bindery_queue_items, bindery_build_info) plus the client_golang go_/process_ collectors it registers; the project publishes no dashboard. Bindery's own job label reaches Prometheus as exported_job, because the scrape config sets no honor_labels.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -453,7 +453,7 @@
         "type": "victoriametrics-metrics-datasource",
         "uid": "victoriametrics"
       },
-      "description": "bindery_scheduler_runs_total rate by job and result.",
+      "description": "bindery_scheduler_runs_total rate by job and result. Bindery's own job label arrives as exported_job (the scrape config sets no honor_labels).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -501,8 +501,8 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(bindery_scheduler_runs_total{namespace=\"bindery\"}[$__rate_interval])) by (job, result)",
-          "legendFormat": "{{job}} {{result}}",
+          "expr": "sum(rate(bindery_scheduler_runs_total{namespace=\"bindery\"}[$__rate_interval])) by (exported_job, result)",
+          "legendFormat": "{{exported_job}} {{result}}",
           "range": true,
           "refId": "A"
         }
@@ -515,7 +515,7 @@
         "type": "victoriametrics-metrics-datasource",
         "uid": "victoriametrics"
       },
-      "description": "bindery_scheduler_run_duration_seconds sum / count by job.",
+      "description": "bindery_scheduler_run_duration_seconds sum / count by job. Bindery's own job label arrives as exported_job (the scrape config sets no honor_labels).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -563,8 +563,8 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(bindery_scheduler_run_duration_seconds_sum{namespace=\"bindery\"}[$__rate_interval])) by (job) / sum(rate(bindery_scheduler_run_duration_seconds_count{namespace=\"bindery\"}[$__rate_interval])) by (job)",
-          "legendFormat": "{{job}}",
+          "expr": "sum(rate(bindery_scheduler_run_duration_seconds_sum{namespace=\"bindery\"}[$__rate_interval])) by (exported_job) / sum(rate(bindery_scheduler_run_duration_seconds_count{namespace=\"bindery\"}[$__rate_interval])) by (exported_job)",
+          "legendFormat": "{{exported_job}}",
           "range": true,
           "refId": "A"
         }
@@ -729,6 +729,590 @@
         }
       ],
       "title": "CPU and goroutines",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 32
+      },
+      "id": 15,
+      "panels": [],
+      "title": "Downloads and imports",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
+      },
+      "description": "bindery_grabs_total rate: releases sent to a download client, from a manual grab or the automatic search, by media type and result.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 33
+      },
+      "id": 16,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(bindery_grabs_total{namespace=\"bindery\"}[$__rate_interval])) by (media_type, result)",
+          "legendFormat": "{{media_type}} {{result}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Grabs",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
+      },
+      "description": "bindery_download_client_requests_total rate by client type and result. A steady trickle of rejected is normal (Transmission's 409, qBittorrent's 403 before a relogin); error means a 5xx or a request that never got an answer.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 33
+      },
+      "id": 17,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(bindery_download_client_requests_total{namespace=\"bindery\"}[$__rate_interval])) by (client_type, result)",
+          "legendFormat": "{{client_type}} {{result}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Download client requests",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
+      },
+      "description": "histogram_quantile(0.95) of bindery_download_client_request_duration_seconds by client type.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            }
+          },
+          "mappings": [],
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 33
+      },
+      "id": 18,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum(rate(bindery_download_client_request_duration_seconds_bucket{namespace=\"bindery\"}[$__rate_interval])) by (le, client_type))",
+          "legendFormat": "{{client_type}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "p95 download client latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
+      },
+      "description": "bindery_imports_total rate by result: imported, failed (left in importFailed, retried automatically) or blocked (needs you).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 41
+      },
+      "id": 19,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(bindery_imports_total{namespace=\"bindery\"}[$__rate_interval])) by (result)",
+          "legendFormat": "{{result}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Imports",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
+      },
+      "description": "bindery_imports_total rate for the failed and blocked results, by reason (path_missing, no_files, unmatched, rejected_format, rejected_language, rejected_content, conflict, placement, source_gone, retry_limit, other).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 41
+      },
+      "id": 20,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, sum(rate(bindery_imports_total{namespace=\"bindery\", result!=\"imported\"}[$__rate_interval])) by (reason))",
+          "legendFormat": "{{reason}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Import failures by reason",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
+      },
+      "description": "bindery_queue_items: download records in each non-terminal state, counted from the database at scrape time. imported and failed are terminal and only grow until history is cleared.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            }
+          },
+          "mappings": [],
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 41
+      },
+      "id": 21,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(bindery_queue_items{namespace=\"bindery\", state!~\"imported|failed\"}) by (state)",
+          "legendFormat": "{{state}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Queue by state",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 49
+      },
+      "id": 22,
+      "panels": [],
+      "title": "Indexers and scheduler",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
+      },
+      "description": "bindery_indexer_requests_total rate by indexer type and result: ok, error, timeout, or quota when the indexer's daily cap ran out part way through. An indexer in a cooldown or at its cap is not searched and not counted.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 50
+      },
+      "id": 23,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(bindery_indexer_requests_total{namespace=\"bindery\"}[$__rate_interval])) by (indexer_type, result)",
+          "legendFormat": "{{indexer_type}} {{result}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Indexer searches",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
+      },
+      "description": "histogram_quantile(0.95) of bindery_indexer_request_duration_seconds by indexer type: the time one indexer takes to answer one search, including every query variant.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            }
+          },
+          "mappings": [],
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 50
+      },
+      "id": 24,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum(rate(bindery_indexer_request_duration_seconds_bucket{namespace=\"bindery\"}[$__rate_interval])) by (le, indexer_type))",
+          "legendFormat": "{{indexer_type}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "p95 indexer latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
+      },
+      "description": "bindery_scheduler_last_success_timestamp_seconds, per job: how long ago each background job last finished without panicking. A series appears once the job has run since startup. Bindery's own job label arrives as exported_job.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            }
+          },
+          "mappings": [],
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 50
+      },
+      "id": 25,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "time() - bindery_scheduler_last_success_timestamp_seconds{namespace=\"bindery\"}",
+          "legendFormat": "{{exported_job}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Time since last successful run",
       "type": "timeseries"
     }
   ],

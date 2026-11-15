@@ -75,7 +75,7 @@ dashboard's JSON `description` cites its provenance.
 | Argo CD | ArgoCD | official: argoproj/argo-cd repo `examples/dashboard.json` (linked from the docs monitoring page) |
 | Authelia | Authelia | custom (authelia telemetry metrics, authelia.com reference; no official dashboard) |
 | Bazarr | Bazarr | official: the exportarr project's bundled dashboard (onedr0p/exportarr `examples/grafana/dashboard2.json`, the Bazarr row), split per app like the qBittorrent exporter's; `__inputs` converted to a datasource variable, instance matchers scoped to the `bazarr` namespace, cAdvisor `container_*` panels dropped (not collected here) |
-| Bindery | Bindery | custom (bindery `internal/metrics/metrics.go`: `bindery_http_*`, `bindery_scheduler_*`, `bindery_build_info`, plus go_/process_; the project publishes no dashboard) |
+| Bindery | Bindery | custom (bindery `internal/metrics/metrics.go` and `operational.go`, `cmd/bindery/queue_metrics.go` and `docs/metrics.md`: `bindery_http_*`, `bindery_scheduler_*`, `bindery_grabs_total`, `bindery_download_client_*`, `bindery_imports_total`, `bindery_indexer_*`, `bindery_queue_items`, `bindery_build_info`, plus go_/process_; the project publishes no dashboard, and the scheduler's own `job` label reaches Prometheus as `exported_job`) |
 | cert-manager | cert-manager | custom (pkg/metrics/metrics.go plus certificate metrics corroborated by the docs-referenced monitoring mixin; the project publishes no dashboard) |
 | Cilium | Cilium Metrics, Cilium Operator, Hubble | official: cilium repo prometheus addon example; datasource uids and `k8s_app`/`io_cilium_app` target-label scoping adapted to the guaranteed `namespace` label |
 | CloudNativePG | CloudNativePG | official: cloudnative-pg/grafana-dashboards repo |

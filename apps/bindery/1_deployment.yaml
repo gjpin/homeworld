@@ -113,11 +113,17 @@ spec:
               port: http
             periodSeconds: 5
             failureThreshold: 30
+          # The readiness route round trips the SQLite database: it answers
+          # 503 when the connection is unusable, so a broken database drops
+          # the pod out of the Service. Its check budgets 2 s, so the kubelet
+          # timeout is 3 s (a busy database still counts as ready). Liveness
+          # stays on the static route, which never touches the database.
           readinessProbe:
             httpGet:
-              path: /api/v1/health
+              path: /api/v1/health/ready
               port: http
             periodSeconds: 10
+            timeoutSeconds: 3
             failureThreshold: 3
           livenessProbe:
             httpGet:
