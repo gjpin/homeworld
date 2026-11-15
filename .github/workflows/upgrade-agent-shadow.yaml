@@ -1,0 +1,237 @@
+name: Upgrade agent shadow
+
+# Temporary: replays the upgrade agent's review of a PR at the head it
+# reviewed, with another thinking level, to compare decisions and cost. It
+# only uploads result.json and usage.json; nothing is pushed, commented,
+# labelled or merged. The PR's comments and labels are hidden from the agent
+# (they hold the earlier review), and main and the PR branch are pinned to
+# their state at that review.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Renovate PR number
+        required: true
+        type: number
+      sha:
+        description: PR head the earlier review saw
+        required: true
+        type: string
+      thinking:
+        description: pi thinking level
+        required: true
+        default: medium
+        type: string
+
+permissions: {}
+
+env:
+  UPGRADE_FLAGS: --no-cluster
+  PI_MODEL: deepseek-flash
+  OFF_PEAK_SETTLE: 60
+  OFF_PEAK_NEEDED: 30
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      actions: read
+      checks: read
+      contents: read
+      issues: read
+      pull-requests: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      NUMBER: ${{ inputs.pr }}
+      SHA: ${{ inputs.sha }}
+      THINKING: ${{ inputs.thinking }}
+    steps:
+      - name: Check out main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Pin main and the PR branch to the reviewed state
+        run: |
+          set -euo pipefail
+          branch="$(gh pr view "$NUMBER" -R "$GITHUB_REPOSITORY" --json headRefName --jq .headRefName)"
+          final="$(gh pr view "$NUMBER" -R "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)"
+          git fetch -q origin "refs/pull/${NUMBER}/head"
+          git cat-file -e "${SHA}^{commit}"
+          base="$(git merge-base "$SHA" origin/main)"
+          git checkout -q -B main "$base"
+          git update-ref refs/remotes/origin/main "$base"
+          git update-ref "refs/remotes/origin/${branch}" "$SHA"
+          # A plain `git fetch origin` must not move them again.
+          git config --unset-all remote.origin.fetch
+          echo "BRANCH=${branch}" >> "$GITHUB_ENV"
+          echo "FINAL=${final}" >> "$GITHUB_ENV"
+          echo "main at ${base}, origin/${branch} at ${SHA} (final head ${final})"
+
+      - name: Hide the earlier review from gh
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/bin"
+          real="$(command -v gh)"
+          cat > "${RUNNER_TEMP}/bin/gh" <<SHIM
+          #!/usr/bin/env bash
+          # Shadow gh: the PR as it was when the earlier review started.
+          real="${real}"
+          SHIM
+          cat >> "${RUNNER_TEMP}/bin/gh" <<'SHIM'
+          args=()
+          for a in "$@"; do [ "$a" = --comments ] || args+=("$a"); done
+          set -- "${args[@]}"
+          scrub() { sed -e "s/${FINAL}/${SHA}/g" -e 's/^state:\tMERGED/state:\tOPEN/' -e 's/"state":"MERGED"/"state":"OPEN"/g' \
+            -e '/^labels:/d' -e 's/"labels":\[[^]]*\]/"labels":[]/g' -e 's/"comments":\[.*\]/"comments":[]/'; }
+          case "$1 $2" in
+            "pr view") "$real" "$@" | scrub; exit "${PIPESTATUS[0]}" ;;
+            "pr diff")
+              if printf '%s\n' "$@" | grep -qx -- --name-only; then git diff --name-only "main...${SHA}"
+              else git diff "main...${SHA}"; fi ;;
+            "pr checks")
+              "$real" api "repos/${GITHUB_REPOSITORY}/commits/${SHA}/check-runs?per_page=100" \
+                --jq '.check_runs[] | select(.name != "Upgrade agent review") |
+                  [.name, (if .conclusion == "success" then "pass" elif .conclusion == null then "pending" else .conclusion end), "", .details_url] | @tsv' ;;
+            "pr merge"|"pr comment"|"pr edit"|"pr update-branch"|"pr close"|"pr ready")
+              echo "shadow run: gh $1 $2 is disabled" >&2; exit 1 ;;
+            *)
+              if [ "$1" = api ] && printf '%s\n' "$@" | grep -qE '(issues|pulls)/[0-9]+/(comments|reviews|timeline|events)'; then
+                echo '[]'; exit 0
+              fi
+              exec "$real" "$@" ;;
+          esac
+          SHIM
+          chmod +x "${RUNNER_TEMP}/bin/gh"
+          echo "${RUNNER_TEMP}/bin" >> "$GITHUB_PATH"
+
+      - name: Set up Node.js for pi
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '26.13.1'
+
+      - name: Install the upgrade toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+
+          curl -sSfLO https://get.helm.sh/helm-v4.3.2-linux-amd64.tar.gz
+          curl -sSfL https://get.helm.sh/helm-v4.3.2-linux-amd64.tar.gz.sha256 |
+            awk '{print $1 "  helm-v4.3.2-linux-amd64.tar.gz"}' | sha256sum --check
+          tar -xzf helm-v4.3.2-linux-amd64.tar.gz
+          sudo install linux-amd64/helm /usr/local/bin/helm
+
+          # kubectl floats to the latest stable release, as in validate.yaml:
+          # it only renders manifests client-side.
+          kubectl_version="$(curl -sSfL https://dl.k8s.io/release/stable.txt)"
+          sudo curl -sSfL -o /usr/local/bin/kubectl \
+            "https://dl.k8s.io/release/${kubectl_version}/bin/linux/amd64/kubectl"
+          curl -sSfL "https://dl.k8s.io/release/${kubectl_version}/bin/linux/amd64/kubectl.sha256" |
+            awk '{print $1 "  /usr/local/bin/kubectl"}' | sha256sum --check
+          sudo chmod 0755 /usr/local/bin/kubectl
+
+          curl -sSfLO https://github.com/mikefarah/yq/releases/download/v4.54.3/yq_linux_amd64
+          yq_sha256_col="$(
+            curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.3/checksums_hashes_order |
+              grep -n '^SHA-256$' | cut -d: -f1
+          )"
+          curl -sSfL https://github.com/mikefarah/yq/releases/download/v4.54.3/checksums |
+            awk -v col="$((yq_sha256_col + 1))" '$1 == "yq_linux_amd64" {print $(col) "  yq_linux_amd64"}' |
+            sha256sum --check
+          sudo install yq_linux_amd64 /usr/local/bin/yq
+
+          curl -sSfLO https://github.com/google/go-containerregistry/releases/download/v0.22.1/go-containerregistry_Linux_x86_64.tar.gz
+          curl -sSfL https://github.com/google/go-containerregistry/releases/download/v0.22.1/checksums.txt |
+            grep ' go-containerregistry_Linux_x86_64.tar.gz$' | sha256sum --check
+          tar -xzf go-containerregistry_Linux_x86_64.tar.gz crane
+          sudo install crane /usr/local/bin/crane
+
+          npm install -g @earendil-works/pi-coding-agent@1.5.2
+
+      - name: Configure pi
+        run: |
+          set -euo pipefail
+          # Telemetry, provider attribution headers, version checks and
+          # model catalog refreshes off (AGENTS.md). Project trust stays off:
+          # the run loads only the upgrade skill, by path, and AGENTS.md.
+          mkdir -p "${RUNNER_TEMP}/pi"
+          {
+            echo "PI_CODING_AGENT_DIR=${RUNNER_TEMP}/pi"
+            echo "PI_OFFLINE=1"
+            echo "PI_SKIP_VERSION_CHECK=1"
+            echo "PI_TELEMETRY=0"
+          } >> "$GITHUB_ENV"
+          echo '{"enableInstallTelemetry": false, "defaultProjectTrust": "never"}' > "${RUNNER_TEMP}/pi/settings.json"
+
+      - name: Run the upgrade skill
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          set -euo pipefail
+          read -r since left < <(scripts/deepseek-off-peak.sh)
+          if [ "$since" -lt "$OFF_PEAK_SETTLE" ] || [ "$left" -lt "$OFF_PEAK_NEEDED" ]; then
+            echo "::error::Off-peak for ${since} minutes, peak in ${left}"
+            exit 1
+          fi
+          limit=$((left - 5 < 100 ? left - 5 : 100))
+          git config --global user.name "renovate-homeworld[bot]"
+          git config --global user.email "309082045+renovate-homeworld[bot]@users.noreply.github.com"
+          work="${RUNNER_TEMP}/upgrade"
+          mkdir -p "$work"
+          cat > "${RUNNER_TEMP}/prompt.md" <<EOP
+          Run the upgrade skill (.agents/skills/upgrade/SKILL.md) on Renovate PR
+          #${NUMBER} (branch ${BRANCH}, head ${SHA}) with these arguments:
+
+              ${NUMBER} --result ${work}/result.json ${UPGRADE_FLAGS}
+
+          This prompt is the explicit invocation the skill requires. Read the
+          skill and AGENTS.md first and follow them exactly, in result mode.
+          You run unattended in GitHub Actions: nobody can answer a question,
+          so a blocker is a "block" decision in the result file. A "ready" PR
+          is merged without the user seeing it; useful features that need a
+          change here to adopt, or post-merge steps that need the user to
+          act, make it "review" instead.
+          Write the "comment" exactly in the skill's Comment format: short,
+          plain, a checks table. Use ${work} as the work directory. Always write
+          the result file to exactly ${work}/result.json before you stop,
+          also when something failed.
+          EOP
+          mkdir -p "${RUNNER_TEMP}/pi-run"
+          rc=0
+          timeout "${limit}m" pi --mode json --provider deepseek --model "$PI_MODEL" --thinking "$THINKING" \
+            --no-session --no-mcp --no-extensions --no-skills --skill .agents/skills/upgrade \
+            "$(cat "${RUNNER_TEMP}/prompt.md")" \
+            </dev/null > "${RUNNER_TEMP}/pi-run/events.jsonl" || rc=$?
+          echo "pi exited with ${rc}"
+
+      - name: Package the result
+        if: ${{ !cancelled() }}
+        run: |
+          set -euo pipefail
+          out="${RUNNER_TEMP}/out"
+          mkdir -p "$out/patches"
+          if [ -s "${RUNNER_TEMP}/pi-run/events.jsonl" ]; then
+            jq -s '[.[] | select(.type == "message_end" and .message.role == "assistant") | .message] | {
+                model: (last.model // null), stopReason: (last.stopReason // null),
+                errorMessage: (last.errorMessage // null), turns: length,
+                input: (map(.usage.input) | add), output: (map(.usage.output) | add),
+                cacheRead: (map(.usage.cacheRead) | add), costAtPeakRates: (map(.usage.cost.total) | add)
+              }' "${RUNNER_TEMP}/pi-run/events.jsonl" > "$out/usage.json" || true
+          fi
+          cp "${RUNNER_TEMP}/upgrade/result.json" "$out/" 2>/dev/null || true
+          commit="$(jq -r '.commit // empty' "$out/result.json" 2>/dev/null || true)"
+          if [ -n "$commit" ] && git merge-base --is-ancestor "$SHA" "$commit" 2>/dev/null; then
+            git format-patch -q --binary -o "$out/patches" "${SHA}..${commit}"
+          fi
+
+      - name: Upload the result
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: shadow-result
+          path: ${{ runner.temp }}/out
+          if-no-files-found: ignore
