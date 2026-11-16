@@ -41,7 +41,7 @@ spec:
       containers:
         - name: bindery
           # Renovate tracks the image tag below.
-          image: ghcr.io/vavallee/bindery:v1.51.0
+          image: ghcr.io/vavallee/bindery:v1.51.1
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -58,6 +58,11 @@ spec:
               value: /config/bindery.db
             - name: BINDERY_DATA_DIR
               value: /config
+            # Cover cache ceiling: it lives under the data directory, the
+            # 2 GiB Longhorn volume the SQLite database and its backups
+            # share, so keep it well below the 2048 MB default.
+            - name: BINDERY_IMAGE_CACHE_MAX_MB
+              value: "512"
             # TRaSH-guides layout on the one shared media mount: the
             # download directories are the qBittorrent category paths, and
             # imports hardlink into the libraries (import mode auto).
