@@ -32,7 +32,7 @@ locals {
   namespace = "coder-workspaces"
   # The agents VM's toolset on Debian (apps/coder/image), built by
   # .github/workflows/coder-workspace-image.yaml.
-  image = "ghcr.io/gjpin/homeworld/coder-workspace:20261115.59"
+  image = "ghcr.io/gjpin/homeworld/coder-workspace:20261116.62"
   home  = "/home/coder"
 
   labels = {
