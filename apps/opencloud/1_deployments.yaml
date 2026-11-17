@@ -247,7 +247,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: bpmn
-          image: docker.io/opencloudeu/web-extensions:bpmn-1.1.1
+          image: docker.io/opencloudeu/web-extensions:bpmn-1.1.2
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
