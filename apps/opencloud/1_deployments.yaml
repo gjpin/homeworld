@@ -127,7 +127,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: unzip
-          image: docker.io/opencloudeu/web-extensions:unzip-2.2.1
+          image: docker.io/opencloudeu/web-extensions:unzip-2.2.2
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -157,7 +157,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: draw-io
-          image: docker.io/opencloudeu/web-extensions:draw-io-2.2.0
+          image: docker.io/opencloudeu/web-extensions:draw-io-2.2.1
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -247,7 +247,7 @@ spec:
             - name: opencloud-apps
               mountPath: /apps
         - name: bpmn
-          image: docker.io/opencloudeu/web-extensions:bpmn-1.1.1
+          image: docker.io/opencloudeu/web-extensions:bpmn-1.1.2
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
