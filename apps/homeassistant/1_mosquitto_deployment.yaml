@@ -38,7 +38,7 @@ spec:
         # start, so a rotated secret takes effect when the pod restarts. The
         # file lives in a memory-backed emptyDir and never reaches the PVC.
         - name: mosquitto-passwd
-          image: docker.io/library/eclipse-mosquitto:2.1.2-alpine
+          image: docker.io/library/eclipse-mosquitto:2.1.4-alpine
           imagePullPolicy: IfNotPresent
           command:
             - sh
@@ -79,7 +79,7 @@ spec:
             - mountPath: /mosquitto/auth
               name: mosquitto-auth
       containers:
-        - image: docker.io/library/eclipse-mosquitto:2.1.2-alpine
+        - image: docker.io/library/eclipse-mosquitto:2.1.4-alpine
           imagePullPolicy: IfNotPresent
           name: homeassistant-mosquitto
           ports:
