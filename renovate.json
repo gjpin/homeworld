@@ -50,6 +50,15 @@
       ]
     },
     {
+      "description": "Bindery: schema migrations run at startup and there is no downgrade guard",
+      "matchPackageNames": [
+        "ghcr.io/vavallee/bindery"
+      ],
+      "prBodyNotes": [
+        "⚠️ **Bindery Upgrade**: Read the [Bindery upgrade notes](https://github.com/vavallee/bindery/blob/HEAD/docs/DEPLOYMENT.md#upgrading) of every version crossed. Schema migrations apply once at startup, and the binary has no downgrade guard: roll back by restoring the pre-merge backup, not by reverting the image (see [docs/upgrades.md](docs/upgrades.md#9-upstream-upgrade-procedures))."
+      ]
+    },
+    {
       "description": "Immich: one PR per major with a breaking-change review reminder",
       "matchPackageNames": [
         "ghcr.io/immich-app/immich-charts/immich",
