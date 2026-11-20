@@ -44,9 +44,10 @@ spec:
               image: ghcr.io/ghomashudson/jellyfin-auto-collections:831beb2d7d01e0355ea32ef7614236cf5835966f
               imagePullPolicy: IfNotPresent
               # The fonts and the Letterboxd cache are written relative to
-              # the working directory; the plugins still load from /app.
+              # the working directory; the plugins still load from /app. The
+              # image's interpreter is `python` (Python 3.12).
               command:
-                - python3.10
+                - python
                 - -u
                 - /app/main.py
                 - --config
@@ -73,7 +74,9 @@ spec:
                 runAsGroup: 1000
                 seccompProfile:
                   type: RuntimeDefault
-              # Poster mosaics are rendered with Pillow.
+              # Poster mosaics are rendered with Pillow; the IMDb plugins
+              # render their pages with a headless Chromium from the image
+              # (about 450Mi peak, measured under gVisor).
               resources:
                 requests:
                   cpu: 50m
@@ -81,7 +84,7 @@ spec:
                   ephemeral-storage: 16Mi
                 limits:
                   cpu: 500m
-                  memory: 512Mi
+                  memory: 768Mi
                   ephemeral-storage: 256Mi
               volumeMounts:
                 - name: work
