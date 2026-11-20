@@ -123,7 +123,7 @@ instructions file (from `host/agents-vm/agents-instructions.md`), and keeps
 everything else the agents or you add:
 
 - Codex, OpenCode, Pi, the Antigravity CLI and Vibe run without approval
-  prompts; the VM itself is the sandbox. Vibe's default agent is
+  prompts; the VM itself is the sandbox. Vibe's default approval policy is
   `auto-approve`, and `~/projects` is in its trusted folders, so project
   `AGENTS.md` and `.vibe/` files load without a trust prompt.
 - Self-update and update checks are off for every agent (and inert anyway,
