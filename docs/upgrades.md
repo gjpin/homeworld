@@ -255,6 +255,20 @@ engines are not upgradable in place, so never pin one on a cluster that holds
 data. (The `vX.Y-0` form above is the GitHub *release* tag — a human-facing
 alias of the same version; Renovate tracks the image tags, not the releases.)
 
+### API Versions
+
+The `DocumentDB` and `Backup`/`ScheduledBackup` resources are authored against
+the stable `documentdb.io/v1` API, which the operator's CRDs store;
+`documentdb.io/preview` is still served but deprecated and returns a
+deprecation warning. Argo CD applies the CRDs together with the operator's
+render, so an operator release that needs the newer CRD needs no manual step.
+Because the manifest is written in `v1`, the next sync also rewrites the
+stored object to it. A release that stops serving `preview` fails the CRD
+update until no stored object is left in it: before merging one, rewrite them
+the same way (or with
+`for kind in dbs.documentdb.io backups.documentdb.io scheduledbackups.documentdb.io; do kubectl get "$kind" -A -o json | kubectl replace -f -; done`)
+and trim each CRD's `status.storedVersions` to `v1`.
+
 ### Schema Upgrades Are Two-Phase
 
 Binary (image) upgrades do **not** run `ALTER EXTENSION` automatically. After
@@ -469,10 +483,10 @@ The applications below document procedures beyond that review.
 | **DocumentDB, MariaDB, CloudNativePG operands** | See [§7](#7-documentdb-engine-upgrades), [§8](#8-mariadb-engine-upgrades-mariadb-operator), [§1](#1-automated-major-database-upgrades-cloudnativepg). | |
 
 Charts that ship their CRDs in `crds/` (Grafana Operator, OpenTelemetry
-Operator, RustFS Operator, Envoy Gateway, Velero) tell Helm users to apply
-the CRDs by hand before `helm upgrade`. Here the render includes them and
-Argo CD server-side applies them in the same sync ([argocd.md](argocd.md)),
-so no manual step is needed.
+Operator, RustFS Operator, DocumentDB Operator, Envoy Gateway, Velero) tell
+Helm users to apply the CRDs by hand before `helm upgrade`. Here the render
+includes them and Argo CD server-side applies them in the same sync
+([argocd.md](argocd.md)), so no manual step is needed.
 
 ### Cilium Pre-Flight Check
 

@@ -1,10 +1,10 @@
-# https://documentdb.io/documentdb-kubernetes-operator/latest/preview/
+# https://documentdb.io/documentdb-kubernetes-operator/latest/v1/
 # DocumentDB (MongoDB wire-protocol on PostgreSQL) replaces the standalone
 # MongoDB StatefulSet. The operator (wave 5) generates a CloudNativePG Cluster
 # named `notesnook` and injects the documentdb-gateway sidecar (:10260).
 # Fresh install; no data migration.
 ---
-apiVersion: documentdb.io/preview
+apiVersion: documentdb.io/v1
 kind: DocumentDB
 metadata:
   name: notesnook
