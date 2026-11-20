@@ -6,7 +6,7 @@ commonAnnotations:
 helmCharts:
   - name: manticoresearch
     repo: https://helm.manticoresearch.com
-    version: 29.9.1
+    version: 32.1.3
     releaseName: manticore
     namespace: affine
     includeCRDs: true
