@@ -41,7 +41,7 @@ spec:
             - name: jellyfin-auto-collections
               # Renovate tracks the commit tag below (no releases upstream;
               # CI tags every image with its commit SHA).
-              image: ghcr.io/ghomashudson/jellyfin-auto-collections:5ffcae1d022b1eaff370456081d6632c87f3fe26
+              image: ghcr.io/ghomashudson/jellyfin-auto-collections:831beb2d7d01e0355ea32ef7614236cf5835966f
               imagePullPolicy: IfNotPresent
               # The fonts and the Letterboxd cache are written relative to
               # the working directory; the plugins still load from /app.
