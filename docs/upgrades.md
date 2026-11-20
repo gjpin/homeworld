@@ -273,7 +273,10 @@ the new images roll, finalize the schema explicitly:
 `ghcr.io/cloudnative-pg/postgresql:<major>.<minor>-system-trixie` tag, is
 tracked by the CloudNativePG package rule: minor bumps roll with zero
 downtime, major bumps trigger CNPG's automated offline `pg_upgrade`. The image
-must stay trixie-based to match the extension's GLIBC requirements.
+must stay trixie-based to match the extension's GLIBC requirements, and it
+stays on the PostgreSQL 18 line: upstream publishes the engine's extension
+packages for PostgreSQL 17 and 18 only, so a later major has no extension to
+mount and the renovate.json rule for this file holds the pin below 19.
 
 This pin takes effect only because `imageMode: imageVolume` in
 `apps/documentdb-operator/helm/values.yaml` mounts the extension into that image

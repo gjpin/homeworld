@@ -20,8 +20,10 @@ spec:
   documentDBVersion: "1.0.1"
   documentDbCredentialSecret: notesnook-documentdb-credentials
   image:
-    # Must stay trixie-based to match the extension's GLIBC requirements.
-    postgres: ghcr.io/cloudnative-pg/postgresql:19.0-system-trixie
+    # Must stay trixie-based to match the extension's GLIBC requirements, and
+    # on the PostgreSQL 18 line: the DocumentDB extension packages are built
+    # for PostgreSQL 17/18 only, so the mounted extension cannot load in 19.
+    postgres: ghcr.io/cloudnative-pg/postgresql:18.7-system-trixie
   resource:
     storage:
       pvcSize: 2Gi

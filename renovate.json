@@ -111,6 +111,16 @@
       ]
     },
     {
+      "description": "The DocumentDB engine publishes its extension packages for PostgreSQL 17 and 18 only, so the notesnook cluster's base image stays on the PostgreSQL 18 line",
+      "matchFileNames": [
+        "apps/notesnook/0_documentdb.yaml"
+      ],
+      "matchPackageNames": [
+        "ghcr.io/cloudnative-pg/postgresql"
+      ],
+      "allowedVersions": "<19"
+    },
+    {
       "description": "cloudnative-vectorchord tags are <pg major>.<pg minor>-<VectorChord semver>; docker versioning would treat the VectorChord version as a fixed compatibility suffix and never propose an update",
       "matchPackageNames": [
         "ghcr.io/tensorchord/cloudnative-vectorchord"
