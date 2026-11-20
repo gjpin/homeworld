@@ -155,10 +155,11 @@ merge_json "$home_dir/.copilot/settings.json" \
   '.autoUpdate = false' \
   '{"autoUpdate":false}'
 
-# Vibe: never ask for approval, trust every project under ~/projects (its
-# AGENTS.md and .vibe/ load without a prompt); never check for updates and
-# never send telemetry or error reports.
-set_toml_key "$home_dir/.vibe/config.toml" default_agent '"auto-approve"'
+# Vibe: never ask for approval (via the approval policy, which now applies
+# whatever the agent), trust every project under ~/projects (its AGENTS.md and
+# .vibe/ load without a prompt); never check for updates and never send
+# telemetry or error reports.
+set_toml_key "$home_dir/.vibe/config.toml" default_approval_policy '"auto-approve"'
 set_toml_key "$home_dir/.vibe/config.toml" enable_update_checks 'false'
 set_toml_key "$home_dir/.vibe/config.toml" enable_telemetry 'false'
 refuse_symlink "$home_dir/.vibe/trusted_folders.toml"
