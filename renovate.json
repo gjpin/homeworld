@@ -59,6 +59,15 @@
       ]
     },
     {
+      "description": "DocumentDB Operator: the operator needs the CRDs its release ships, and stored objects must leave the deprecated preview API before it is dropped",
+      "matchPackageNames": [
+        "ghcr.io/documentdb/documentdb-operator"
+      ],
+      "prBodyNotes": [
+        "⚠️ **DocumentDB Operator Upgrade**: Read the [release notes](https://github.com/documentdb/documentdb-kubernetes-operator/releases) of every version crossed. The operator only starts once its CRDs serve the API version it uses; Argo CD applies them with the render, so no manual step is needed. Before merging a release that stops serving the deprecated `documentdb.io/preview` version, rewrite the stored objects and trim `status.storedVersions` (see [docs/upgrades.md](docs/upgrades.md#7-documentdb-engine-upgrades))."
+      ]
+    },
+    {
       "description": "Immich: one PR per major with a breaking-change review reminder",
       "matchPackageNames": [
         "ghcr.io/immich-app/immich-charts/immich",

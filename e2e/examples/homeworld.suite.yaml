@@ -418,7 +418,7 @@ spec:
       # so assert on those fields instead of a Ready condition.
       - name: documentdb-notesnook-cr
         resourceCondition:
-          apiVersion: documentdb.io/preview
+          apiVersion: documentdb.io/v1
           kind: DocumentDB
           name: notesnook
           namespace: notesnook
