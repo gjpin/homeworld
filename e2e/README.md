@@ -147,6 +147,13 @@ Size the Docker VM for the single kind node: the suite's pod CPU requests add up
 
 Images are pinned (see `examples/infisical/docker-compose.yml`) — never `latest`.
 
+The `pg_data` volume is disposable. The database image refuses to start on a
+data directory written by an older major, so after a PostgreSQL major bump
+remove a volume a kept run left behind
+(`docker compose -p e2e-infisical -f e2e/examples/infisical/docker-compose.yml down -v`)
+instead of waiting out the stack's health timeout; the next
+`e2e deps up` creates and seeds a fresh database.
+
 ### Kind → Infisical reachability
 
 1. Infisical publishes on the host at `127.0.0.1:8080`.
