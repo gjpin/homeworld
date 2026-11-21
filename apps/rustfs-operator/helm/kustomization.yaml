@@ -5,7 +5,7 @@ commonAnnotations:
 helmCharts:
   - name: rustfs-operator
     repo: https://operator.rustfs.com
-    version: 0.0.8
+    version: 0.0.9
     releaseName: rustfs-operator
     namespace: rustfs-operator
     includeCRDs: true
