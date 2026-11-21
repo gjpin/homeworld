@@ -1,0 +1,78 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  security.homeworld/profile: homelab
+helmCharts:
+  - name: generic-device-plugin
+    repo: https://squat.github.io/generic-device-plugin
+    version: 0.2.0
+    releaseName: generic-device-plugin
+    namespace: generic-device-plugin
+    includeCRDs: true
+    skipTests: true
+    valuesFile: values.yaml
+patches:
+  # The chart hardcodes kube-system; the plugin gets its own privileged
+  # namespace instead.
+  - target:
+      name: .*
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: generic-device-plugin
+  # The chart runs the plugin privileged, which only its /dev discovery of
+  # arbitrary devices would need: it lists and stats the /dev/dri nodes and
+  # serves its socket in the kubelet's root-owned device-plugins directory,
+  # so it keeps root but nothing else. SELinux confines it as
+  # container_device_plugin_t, like Intel's GPU plugin. It runs on the two
+  # nodes whose GPU Jellyfin can transcode with (host/nodes profiles):
+  # homeworld-dragon's Adreno render node would otherwise be advertised too.
+  - target:
+      group: apps
+      version: v1
+      kind: DaemonSet
+      name: ^generic-device-plugin$
+    patch: |-
+      - op: add
+        path: /spec/template/spec/affinity
+        value:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: node.homeworld/profile
+                      operator: In
+                      values:
+                        - homeworld-corebox
+                        - homeworld-ryzen
+      - op: add
+        path: /spec/template/spec/automountServiceAccountToken
+        value: false
+      - op: replace
+        path: /spec/template/spec/containers/0/securityContext
+        value:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: false
+          seLinuxOptions:
+            type: container_device_plugin_t
+          seccompProfile:
+            type: RuntimeDefault
+      - op: add
+        path: /metadata/annotations/security.homeworld~1exception-reason
+        value: The device plugin stats the /dev/dri render nodes and serves its socket in the kubelet's root-owned device-plugins directory through hostPath mounts, as root; SELinux confines it as container_device_plugin_t, and its only network traffic is the metrics scrape.
+      - op: add
+        path: /metadata/annotations/ignore-check.kube-linter.io~1run-as-non-root
+        value: The device plugin serves its socket in the kubelet's root-owned device-plugins directory, so it runs as root; SELinux confines it as container_device_plugin_t.
+  - target:
+      group: monitoring.coreos.com
+      version: v1
+      kind: PodMonitor
+      name: ^generic-device-plugin$
+    patch: |-
+      - op: replace
+        path: /spec/podMetricsEndpoints/0/interval
+        value: 60s

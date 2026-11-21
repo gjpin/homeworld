@@ -43,9 +43,9 @@ OMIT_APPS = {
     # Supernote publishes amd64-only images, and the kind node follows the
     # host architecture (arm64 on Apple-silicon Lima / Docker Desktop).
     "supernote-app",
-    # The Intel GPU device plugin image is amd64-only and kind nodes have no
-    # Intel GPU to advertise.
-    "intel-gpu-plugin-app",
+    # The GPU device plugin runs only on the homeworld-corebox and
+    # homeworld-ryzen profiles, and kind nodes have no GPU to advertise.
+    "generic-device-plugin-app",
     # qbit_manage manages qBittorrent, which is omitted above; its CronJob
     # would fail every run.
     "qbit-manage-app",
@@ -758,15 +758,19 @@ def rewrite_kind_nfs_volumes(root: pathlib.Path) -> None:
 
 
 def rewrite_jellyfin_kind_gpu(root: pathlib.Path) -> None:
-    """Kind has no Intel GPU device plugin (intel-gpu-plugin-app is omitted),
-    so Jellyfin's gpu.intel.com/i915 request would never schedule; it runs
-    with software transcoding instead."""
+    """Kind has no GPU device plugin (generic-device-plugin-app is omitted),
+    so Jellyfin's devic.es/dri requests would never schedule: drop them and
+    the jellyfin-gpu-profile init container that needs the render node.
+    Jellyfin runs with software transcoding instead."""
     path = root / "apps" / "jellyfin" / "helm" / "values.yaml"
     if not path.is_file():
         print("[rewrite-staging] jellyfin values missing; skipping GPU rewrite")
         return
     text = path.read_text()
-    new = re.sub(r'(?m)^\s*gpu\.intel\.com/i915:\s*"1"\n', "", text)
+    new = re.sub(r'(?m)^\s*devic\.es/dri:\s*"1"\n', "", text)
+    # The init container runs to the next top-level key; its comments
+    # stay behind, harmlessly.
+    new = re.sub(r"(?ms)^  - name: jellyfin-gpu-profile\n.*?(?=^\S)", "", new)
     if new != text:
         path.write_text(new)
         print("[rewrite-staging] jellyfin GPU request removed")

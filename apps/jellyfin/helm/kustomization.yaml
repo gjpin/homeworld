@@ -20,7 +20,7 @@ patches:
       - op: add
         path: /metadata/namespace
         value: jellyfin
-  # Standard runtime, not gVisor: gVisor has no Intel GPU passthrough. The
+  # Standard runtime, not gVisor: gVisor has no Intel or AMD GPU passthrough. The
   # media library is NFS, which has no idmapped mounts, so the pod keeps the
   # host user namespace (docs/pod-security.md). The chart has no hostUsers
   # value.
@@ -38,7 +38,7 @@ patches:
         value: false
       - op: add
         path: /metadata/annotations/security.homeworld~1exception-reason
-        value: Hardware transcoding needs the Intel iGPU, which gVisor cannot pass through, so the pod runs on runc (SELinux container_t); the NFS media library has no idmapped mounts, so it keeps the host user namespace.
+        value: Hardware transcoding needs the node's Intel or AMD GPU, which gVisor cannot pass through, so the pod runs on runc (SELinux container_t); the NFS media library has no idmapped mounts, so it keeps the host user namespace.
       - op: add
         path: /metadata/annotations/ignore-check.kube-linter.io~1no-read-only-root-fs
         value: Jellyfin does not document running with a read-only root filesystem, so the chart's writable default stays until verified on the cluster.

@@ -695,8 +695,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^intel-gpu-plugin$",
-          "namespace": "^intel-gpu-plugin$"
+          "name": "^generic-device-plugin$",
+          "namespace": "^generic-device-plugin$"
         }
       },
       {
@@ -1711,8 +1711,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^intel-gpu-plugin$",
-          "namespace": "^intel-gpu-plugin$"
+          "name": "^generic-device-plugin$",
+          "namespace": "^generic-device-plugin$"
         }
       },
       {
@@ -2293,8 +2293,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^intel-gpu-plugin$",
-          "namespace": "^intel-gpu-plugin$"
+          "name": "^generic-device-plugin$",
+          "namespace": "^generic-device-plugin$"
         }
       },
       {
@@ -3177,8 +3177,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^intel-gpu-plugin$",
-          "namespace": "^intel-gpu-plugin$"
+          "name": "^generic-device-plugin$",
+          "namespace": "^generic-device-plugin$"
         }
       },
       {
@@ -3301,8 +3301,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^intel-gpu-plugin$",
-          "namespace": "^intel-gpu-plugin$"
+          "name": "^generic-device-plugin$",
+          "namespace": "^generic-device-plugin$"
         }
       },
       {
@@ -4308,8 +4308,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^intel-gpu-plugin$",
-          "namespace": "^intel-gpu-plugin$"
+          "name": "^generic-device-plugin$",
+          "namespace": "^generic-device-plugin$"
         }
       },
       {
@@ -4510,6 +4510,14 @@
       "alertOnly"
     ],
     "resources": [
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^DaemonSet$",
+          "name": "^generic-device-plugin$",
+          "namespace": "^generic-device-plugin$"
+        }
+      },
       {
         "designatorType": "Attributes",
         "attributes": {
@@ -5344,8 +5352,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^intel-gpu-plugin$",
-          "namespace": "^intel-gpu-plugin$"
+          "name": "^generic-device-plugin$",
+          "namespace": "^generic-device-plugin$"
         }
       },
       {
@@ -7690,8 +7698,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^intel-gpu-plugin$",
-          "namespace": "^intel-gpu-plugin$"
+          "name": "^generic-device-plugin$",
+          "namespace": "^generic-device-plugin$"
         }
       },
       {
@@ -8464,8 +8472,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^intel-gpu-plugin$",
-          "namespace": "^intel-gpu-plugin$"
+          "name": "^generic-device-plugin$",
+          "namespace": "^generic-device-plugin$"
         }
       },
       {
@@ -9656,8 +9664,8 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^DaemonSet$",
-          "name": "^intel-gpu-plugin$",
-          "namespace": "^intel-gpu-plugin$"
+          "name": "^generic-device-plugin$",
+          "namespace": "^generic-device-plugin$"
         }
       },
       {

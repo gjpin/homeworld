@@ -252,7 +252,7 @@ spec:
             - vaultwarden
             - affine
             - homepage
-            # The media stack (docs/media-stack.md); the Intel GPU plugin and
+            # The media stack (docs/media-stack.md); the GPU device plugin and
             # qbit_manage are omitted on kind, and Recyclarr, media-config,
             # beets and Jellyfin-Auto-Collections run only as CronJobs.
             - prowlarr

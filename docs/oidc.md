@@ -76,4 +76,4 @@ Browser-UI routes without usable app-native auth are authenticated by Envoy Gate
 | media-config | No | No user login (a scheduled job). It sets Bindery's Authelia provider through Bindery's API. |
 | unpackerr | No | Its web UI has no route: it is reached over `kubectl port-forward` with a local admin password (`/unpackerr/UI_PASSWORD`), and `/metrics` takes an API key. |
 | jellyfin-auto-collections | No | No user login (a scheduled job). |
-| intel-gpu-plugin | No | No user login. |
+| generic-device-plugin | No | No user login. |

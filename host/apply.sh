@@ -75,10 +75,14 @@ fi
 
 # --- packages -------------------------------------------------------------
 put 0644 "$files/dnf/rancher-k3s-common.repo" /etc/yum.repos.d/rancher-k3s-common.repo || true
+# The GPU firmware Jellyfin's transcoding needs (homeworld-corebox's Intel
+# and homeworld-ryzen's AMD GPU) is only a weak dependency of
+# linux-firmware; every node gets both, so the package set stays the same.
 packages=(
   container-selinux k3s-selinux policycoreutils-python-utils
   firewalld iscsi-initiator-utils nfs-utils cryptsetup wireguard-tools
   clevis-luks clevis-dracut dnf5-plugin-automatic
+  amd-gpu-firmware intel-gpu-firmware
   bzip2 curl jq tar yq
 )
 missing=()
@@ -92,8 +96,8 @@ timedatectl set-timezone "$TIMEZONE"
 # NFS volumes keep their nfs_t label (the CSI driver drops context= mount
 # options); container_t reaches them through this container-selinux boolean.
 [ "$(getsebool virt_use_nfs | awk '{print $3}')" = on ] || setsebool -P virt_use_nfs on
-# Jellyfin's QuickSync transcoding (container_t) maps the iGPU render node
-# allocated by the Intel GPU device plugin; recent container-selinux turns
+# Jellyfin's hardware transcoding (container_t) maps the GPU render node
+# allocated by the generic device plugin; recent container-selinux turns
 # this boolean on by default, older releases lack it.
 if getsebool container_use_dri_devices >/dev/null 2>&1; then
   [ "$(getsebool container_use_dri_devices | awk '{print $3}')" = on ] || setsebool -P container_use_dri_devices on

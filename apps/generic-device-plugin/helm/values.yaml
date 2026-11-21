@@ -1,0 +1,46 @@
+# https://github.com/squat/generic-device-plugin/tree/main/charts/generic-device-plugin
+fullnameOverride: generic-device-plugin
+
+image:
+  repository: docker.io/squat/generic-device-plugin
+  # The chart defaults to latest; Renovate tracks this tag.
+  tag: "0.2.0"
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  # The plugin talks to the kubelet over its socket, never to the API.
+  automount: false
+
+# Upstream values, plus ephemeral storage.
+resources:
+  requests:
+    cpu: 50m
+    memory: 10Mi
+    ephemeral-storage: 16Mi
+  limits:
+    cpu: 50m
+    memory: 20Mi
+    ephemeral-storage: 64Mi
+
+# The GPU render node for Jellyfin's hardware transcoding, advertised as
+# devic.es/dri: homeworld-corebox's Intel UHD 730 and homeworld-ryzen's AMD
+# RX 560 (the DaemonSet runs on those two nodes only, kustomization.yaml).
+# Whatever number the node gives its render node, the container sees it as
+# /dev/dri/renderD128, the device Jellyfin's encoding.xml names. One
+# allocation per GPU: Jellyfin is the only consumer.
+devices:
+  - name: dri
+    groups:
+      - paths:
+          - path: /dev/dri/renderD*
+            mountPath: /dev/dri/renderD128
+
+# Only /dev/dri instead of the chart's default /dev mount (a mount under /dev
+# replaces it); the plugin only lists and stats the device nodes.
+hostPathMounts:
+  - name: dri
+    hostPath: /dev/dri
+    readOnly: true
+    type: Directory
+
+deployPodMonitor: true

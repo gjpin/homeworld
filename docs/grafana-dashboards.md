@@ -87,6 +87,7 @@ dashboard's JSON `description` cites its provenance.
 | Forgejo | Forgejo | custom (forgejo `modules/metrics/collector.go`; the project publishes no dashboard — the gitea-monitoring mixin is a third-party fork) |
 | Grafana | Grafana Overview | official: grafana/grafana repo `grafana-mixin/dashboards/grafana-overview.json` |
 | Grafana Operator | Grafana Operator | custom (grafana-operator `controllers/metrics/metrics.go` plus controller-runtime metrics; no official dashboard) |
+| Generic Device Plugin | Generic Device Plugin | custom (the plugin's `generic_device_plugin_devices`, `generic_device_plugin_allocations_total` and `generic_device_plugin_restarts_total` metrics and Go process collector from its `deviceplugin` and `main.go` source; the project publishes no dashboard) |
 | Headlamp | Headlamp | custom (headlamp `backend/pkg/telemetry/metrics.go`: `http_server_request_count_total`, `http_server_duration_milliseconds`, `http_server_active_requests`, `headlamp_cluster_proxy_requests_total`, `headlamp_errors_total`, plus go_/process_; the project publishes no dashboard) |
 | Home Assistant | Home Assistant | custom (HA prometheus integration, `components/prometheus`; no official dashboard) |
 | Immich | Immich | custom (OTel `http_server_duration` metrics and `immich_queues_*` gauges verified in the immich source; the project publishes no dashboard) |
@@ -127,8 +128,8 @@ metrics; of the media stack, `seerr`, `maintainerr`, `cleanuparr`, `houndarr`,
 `audiobookshelf`, `streamystats`, `audiomuse-ai` and `feishin` serve no
 Prometheus endpoint (their PostgreSQL clusters are covered by the
 CloudNativePG folder), and the `recyclarr`, `qbit-manage`, `media-config`,
-`beets` and `jellyfin-auto-collections` jobs and the
-`intel-gpu-plugin` expose none; the DocumentDB operator's controller-runtime metrics endpoint is
+`beets` and `jellyfin-auto-collections` jobs expose none; the DocumentDB
+operator's controller-runtime metrics endpoint is
 disabled upstream with no chart toggle. Apps whose only metrics are the
 shared CloudNativePG instance metrics (`vaultwarden`, `homeassistant` and the
 other CNPG-backed apps) are covered by the CloudNativePG folder's dashboards

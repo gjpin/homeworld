@@ -348,8 +348,10 @@ spec:
         - matchName: woodpecker-ci.org
         - matchName: kubereboot.github.io
         - matchName: jellyfin.github.io
-        # chart-releaser repositories (kured, jellyfin) serve their chart
-        # tarballs as GitHub release assets, which redirect here.
+        - matchName: squat.github.io
+        # chart-releaser repositories (kured, jellyfin,
+        # generic-device-plugin) serve their chart tarballs as GitHub
+        # release assets, which redirect here.
         - matchName: release-assets.githubusercontent.com
         - matchName: raw.githubusercontent.com
         - matchName: ghcr.io

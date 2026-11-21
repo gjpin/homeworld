@@ -368,6 +368,17 @@ spec:
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
 metadata:
+  name: folder-generic-device-plugin
+  namespace: grafana
+spec:
+  title: Generic Device Plugin
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
   name: folder-kured
   namespace: grafana
 spec:

@@ -48,9 +48,9 @@
    * csi-driver-nfs: the NFS CSI node plugin that mounts the NAS shares,
      ahead of the wave 6+ applications whose static NFS PersistentVolumes
      it serves ([docs/nas.md](nas.md))
-   * intel-gpu-plugin: Intel's GPU device plugin (from the release's own
-     kustomize base), advertising the homeworld-corebox iGPU as `gpu.intel.com/i915`
-     ahead of Jellyfin (wave 7), which requests it
+   * generic-device-plugin: the generic device plugin (official chart),
+     advertising the homeworld-corebox and homeworld-ryzen GPU render nodes
+     as `devic.es/dri` ahead of Jellyfin (wave 7), which requests one
    * system-upgrade-controller: the `Plan` CRD (from the pinned release tag,
      intra-component wave 0), the controller, and the k3s upgrade Plans
      ([docs/upgrades.md](upgrades.md))
@@ -117,7 +117,7 @@
      and Authelia (wave 6), CloudNativePG, and csi-driver-nfs: prowlarr,
      flaresolverr, sonarr, radarr, lidarr, bindery, bazarr, recyclarr,
      unpackerr, media-config, jellyfin (official chart, after
-     intel-gpu-plugin), navidrome, feishin, audiomuse-ai (official chart),
+     generic-device-plugin), navidrome, feishin, audiomuse-ai (official chart),
      beets, audiobookshelf, seerr (official chart),
      streamystats, jellyfin-auto-collections, maintainerr, cleanuparr,
      qbit-manage, and houndarr (official chart); their cross-namespace API

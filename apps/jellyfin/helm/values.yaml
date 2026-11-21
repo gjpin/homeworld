@@ -5,7 +5,8 @@ serviceAccount:
   # Token hygiene only: Jellyfin never talks to the Kubernetes API.
   automount: false
 
-# One transcoder on the single iGPU; the config volume is ReadWriteOnce.
+# One transcoder on the node's single GPU; the config volume is
+# ReadWriteOnce.
 deploymentStrategy:
   type: Recreate
 
@@ -48,24 +49,42 @@ jellyfin:
     - name: JELLYFIN_PublishedServerUrl
       value: https://jellyfin.base-domain.invalid
 
-# Intel QuickSync (homeworld-corebox's UHD 730). The device plugin
-# (apps/intel-gpu-plugin) runs on homeworld-corebox only and advertises
-# gpu.intel.com/i915 there, so the request also places the pod there.
+# The GPU render node: the device plugin (apps/generic-device-plugin)
+# advertises devic.es/dri on homeworld-corebox (Intel UHD 730, QuickSync)
+# and homeworld-ryzen (AMD RX 560, VA-API) only, so the request places the
+# pod on one of them. The jellyfin-gpu-profile init container below matches
+# the transcoding settings to whichever GPU the pod got.
 resources:
   requests:
     cpu: 500m
     memory: 1Gi
     ephemeral-storage: 256Mi
-    gpu.intel.com/i915: "1"
-  # QuickSync does the heavy lifting; software fallbacks (subtitle burn-in,
-  # audio) may use every homeworld-corebox core. The ephemeral-storage limit covers
-  # the 32Gi transcode cache emptyDir: emptyDir usage counts against the
-  # pod's limit, and exceeding it evicts the pod.
+    devic.es/dri: "1"
+  # The GPU does the heavy lifting; software fallbacks (subtitle burn-in,
+  # audio, codecs the GPU cannot decode) may use four cores, all of
+  # homeworld-corebox's. The ephemeral-storage limit covers the 32Gi
+  # transcode cache emptyDir: emptyDir usage counts against the pod's limit,
+  # and exceeding it evicts the pod.
   limits:
     cpu: "4"
     memory: 4Gi
     ephemeral-storage: 34Gi
-    gpu.intel.com/i915: "1"
+    devic.es/dri: "1"
+
+# homeworld-corebox's QuickSync encodes better and also decodes VP8, VP9 and
+# AV1, which the RX 560 cannot: Jellyfin runs there whenever it can and on
+# homeworld-ryzen while homeworld-corebox is down or drained. The preference
+# applies only when the pod is scheduled; it does not move back on its own.
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+            - key: node.homeworld/profile
+              operator: In
+              values:
+                - homeworld-corebox
 
 persistence:
   config:
@@ -106,7 +125,8 @@ volumeMounts:
 # empty config volume. Jellyfin fills every missing element with its default
 # and rewrites the files on save, so the seed applies once; later git
 # changes must be made in the dashboard or by editing the files under
-# /config/config directly.
+# /config/config directly. The exception is the GPU-specific part of
+# encoding.xml, which jellyfin-gpu-profile sets on every start.
 extraInitContainers:
   - name: jellyfin-config-bootstrap
     image: docker.io/jellyfin/jellyfin:12.4
@@ -142,15 +162,18 @@ extraInitContainers:
           </KnownProxies>
         </NetworkConfiguration>
         XML
-        # Intel QuickSync on the Alder Lake iGPU: hardware decode of every
-        # codec it supports (AV1 decode only), low-power H.264/HEVC
-        # encoding, and HDR tone mapping
-        # (https://jellyfin.org/docs/general/post-install/transcoding/hardware-acceleration/intel/).
+        # Hardware transcoding on the allocated render node, always
+        # /dev/dri/renderD128 in the container (apps/generic-device-plugin):
+        # hardware encoding, Intel's low-power H.264/HEVC encoders (Jellyfin
+        # applies them only on an Intel GPU), and HDR tone mapping
+        # (https://jellyfin.org/docs/general/post-install/transcoding/hardware-acceleration/).
+        # The acceleration type and decoder list follow the GPU
+        # (jellyfin-gpu-profile below).
         [ -e "$dir/encoding.xml" ] || cat >"$dir/encoding.xml" <<XML
         <?xml version="1.0" encoding="utf-8"?>
         <EncodingOptions $ns>
-          <HardwareAccelerationType>qsv</HardwareAccelerationType>
           <QsvDevice>/dev/dri/renderD128</QsvDevice>
+          <VaapiDevice>/dev/dri/renderD128</VaapiDevice>
           <EnableHardwareEncoding>true</EnableHardwareEncoding>
           <EnableIntelLowPowerH264HwEncoder>true</EnableIntelLowPowerH264HwEncoder>
           <EnableIntelLowPowerHevcHwEncoder>true</EnableIntelLowPowerHevcHwEncoder>
@@ -162,15 +185,6 @@ extraInitContainers:
           <EnableSegmentDeletion>true</EnableSegmentDeletion>
           <EnableDecodingColorDepth10Hevc>true</EnableDecodingColorDepth10Hevc>
           <EnableDecodingColorDepth10Vp9>true</EnableDecodingColorDepth10Vp9>
-          <HardwareDecodingCodecs>
-            <string>h264</string>
-            <string>hevc</string>
-            <string>mpeg2video</string>
-            <string>vc1</string>
-            <string>vp8</string>
-            <string>vp9</string>
-            <string>av1</string>
-          </HardwareDecodingCodecs>
         </EncodingOptions>
         XML
     securityContext:
@@ -193,6 +207,70 @@ extraInitContainers:
         cpu: 200m
         memory: 64Mi
         ephemeral-storage: 64Mi
+    volumeMounts:
+      - name: config
+        mountPath: /config
+  # Matches the GPU-specific encoding settings to the GPU this pod was
+  # given, on every start, since Jellyfin can run on either GPU node:
+  # HardwareAccelerationType and HardwareDecodingCodecs, which fail playback
+  # when they name a decoder the GPU lacks. Every other setting stays as the
+  # seed or the dashboard left it. It requests the render node itself, which
+  # the kubelet then hands on to the jellyfin container.
+  - name: jellyfin-gpu-profile
+    image: docker.io/jellyfin/jellyfin:12.4
+    imagePullPolicy: IfNotPresent
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        # The render node's PCI vendor, found by its device number: the
+        # plugin mounts any render node as renderD128.
+        set -- $(stat -c '%t %T' /dev/dri/renderD128)
+        vendor=$(cat "/sys/dev/char/$((0x$1)):$((0x$2))/device/vendor")
+        case "$vendor" in
+          # Intel UHD 730 (Alder Lake): QuickSync decodes all of these
+          # (AV1 decode only)
+          # (https://jellyfin.org/docs/general/post-install/transcoding/hardware-acceleration/intel/).
+          0x8086) accel=qsv codecs="h264 hevc mpeg2video vc1 vp8 vp9 av1" ;;
+          # AMD RX 560 (Polaris): VA-API through the image's own Mesa
+          # driver; no VP8, VP9 or AV1 decoding
+          # (https://jellyfin.org/docs/general/post-install/transcoding/hardware-acceleration/amd/).
+          0x1002) accel=vaapi codecs="h264 hevc mpeg2video vc1" ;;
+          *) echo "no transcoding profile for GPU vendor $vendor" >&2; exit 1 ;;
+        esac
+        ACCEL=$accel CODECS=$codecs perl -0777 -pi -e '
+          my $type = "<HardwareAccelerationType>$ENV{ACCEL}</HardwareAccelerationType>";
+          my $list = "<HardwareDecodingCodecs>\n"
+            . join("", map { "    <string>$_</string>\n" } split(" ", $ENV{CODECS}))
+            . "  </HardwareDecodingCodecs>";
+          s{<HardwareAccelerationType\s*/>|<HardwareAccelerationType>.*?</HardwareAccelerationType>}{$type}s
+            or s{</EncodingOptions>}{  $type\n</EncodingOptions>};
+          s{<HardwareDecodingCodecs\s*/>|<HardwareDecodingCodecs>.*?</HardwareDecodingCodecs>}{$list}s
+            or s{</EncodingOptions>}{  $list\n</EncodingOptions>};
+        ' /config/config/encoding.xml
+        echo "GPU vendor $vendor: $accel, hardware decoding of $codecs"
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 20004
+      runAsGroup: 20004
+      seccompProfile:
+        type: RuntimeDefault
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+        ephemeral-storage: 16Mi
+        devic.es/dri: "1"
+      limits:
+        cpu: 200m
+        memory: 64Mi
+        ephemeral-storage: 64Mi
+        devic.es/dri: "1"
     volumeMounts:
       - name: config
         mountPath: /config

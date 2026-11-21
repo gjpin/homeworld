@@ -1,9 +1,9 @@
-# https://intel.github.io/intel-device-plugins-for-kubernetes/cmd/gpu_plugin/README.html
+# https://github.com/squat/generic-device-plugin/tree/main/charts/generic-device-plugin
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: intel-gpu-plugin
+  name: generic-device-plugin
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "1"
@@ -11,7 +11,7 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: intel-gpu-plugin
+    namespace: generic-device-plugin
   syncPolicy:
     automated:
       prune: true
@@ -25,7 +25,7 @@ spec:
     - ServerSideApply=true
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: apps/intel-gpu-plugin/plugin
+    path: apps/generic-device-plugin/helm
     targetRevision: HEAD
     plugin:
       name: homeworld

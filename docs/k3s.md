@@ -89,9 +89,10 @@ is identical on every server apart from the node address and profile label:
   works regardless. It reloads the file while running, so changes need no
   reboot.
 
-The node label `node.homeworld/profile=<profile>` selects
-homeworld-corebox, the only node with an Intel GPU, for the Intel GPU device plugin,
-and homeworld-dragon, which has the Zigbee USB coordinator, for Zigbee2MQTT.
+The node label `node.homeworld/profile=<profile>` selects homeworld-corebox
+and homeworld-ryzen, the nodes whose GPUs Jellyfin transcodes with, for the
+generic device plugin (and homeworld-corebox as Jellyfin's preferred node), and
+homeworld-dragon, which has the Zigbee USB coordinator, for Zigbee2MQTT.
 
 The Gateway API CRDs come from k3s's bundled `gateway-api-crd` addon
 (standard channel), which k3s re-applies on every start and moves with every

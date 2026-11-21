@@ -201,6 +201,10 @@ configMapGenerator:
   - name: grafana-dashboard-kured
     files:
       - json=dashboards/kured/kured.json
+  # generic-device-plugin
+  - name: grafana-dashboard-generic-device-plugin
+    files:
+      - json=dashboards/generic-device-plugin/generic-device-plugin.json
   # valkey
   - name: grafana-dashboard-valkey
     files:
@@ -242,6 +246,7 @@ resources:
   - 1_dashboards_external-dns.yaml
   - 1_dashboards_external-secrets.yaml
   - 1_dashboards_forgejo.yaml
+  - 1_dashboards_generic-device-plugin.yaml
   - 1_dashboards_grafana.yaml
   - 1_dashboards_grafana-operator.yaml
   - 1_dashboards_headlamp.yaml

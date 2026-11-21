@@ -395,13 +395,14 @@ spec:
       annotations:
         security.homeworld/exception-reason: The NFS CSI node plugin mounts NAS exports into kubelet's pod directories, which requires a privileged host-network container with bidirectional hostPath mounts.
 ---
-# intel-gpu-plugin
-# Wave 3: node plugins; it advertises the Intel iGPU (gpu.intel.com/i915)
-# that Jellyfin (wave 7) requests.
+# generic-device-plugin
+# Wave 3: node plugins; it advertises the GPU render nodes of
+# homeworld-corebox and homeworld-ryzen (devic.es/dri) that Jellyfin
+# (wave 7) requests.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: intel-gpu-plugin-app
+  name: generic-device-plugin-app
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: homeworld
@@ -413,13 +414,13 @@ spec:
   project: default
   source:
     repoURL: https://github.com/gjpin/homeworld.git
-    path: "apps/intel-gpu-plugin"
+    path: "apps/generic-device-plugin"
     targetRevision: HEAD
     plugin:
       name: homeworld
   destination:
     server: https://kubernetes.default.svc
-    namespace: intel-gpu-plugin
+    namespace: generic-device-plugin
   syncPolicy:
     automated:
       prune: true
@@ -440,7 +441,7 @@ spec:
         pod-security.kubernetes.io/warn: restricted
         pod-security.kubernetes.io/warn-version: v1.37
       annotations:
-        security.homeworld/exception-reason: The Intel GPU device plugin reads /dev/dri and /sys/class/drm and serves its socket in the kubelet's device-plugins directory through hostPath mounts as root, which PSS baseline forbids; SELinux confines it as container_device_plugin_t.
+        security.homeworld/exception-reason: The generic device plugin stats the /dev/dri render nodes and serves its socket in the kubelet's device-plugins directory through hostPath mounts as root, which PSS baseline forbids; SELinux confines it as container_device_plugin_t.
 ---
 # system-upgrade-controller
 # Wave 3: Plan CRD (wave 0 inside) and controller; the Plans upgrade k3s in

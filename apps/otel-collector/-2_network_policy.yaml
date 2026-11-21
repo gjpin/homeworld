@@ -716,6 +716,29 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
+  name: allow-otel-pod-scrape-generic-device-plugin
+  namespace: otel-collector
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/managed-by: opentelemetry-operator
+      k8s:app.kubernetes.io/instance: otel-collector.otel-collector-pod
+      k8s:app.kubernetes.io/component: opentelemetry-collector
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: generic-device-plugin
+            k8s:app.kubernetes.io/name: generic-device-plugin
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
   name: allow-otel-pod-scrape-vmalert
   namespace: otel-collector
   annotations:

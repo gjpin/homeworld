@@ -4,7 +4,7 @@ The media automation, download and streaming apps (the README's *arr Stack
 table) share one NAS library and are wired together by an hourly job. This
 page records how they fit together: the design choices, the per-app
 packaging, who owns which job, and what is automated. Every app syncs at
-app-of-apps wave 7, after qBittorrent and Authelia; the Intel GPU plugin
+app-of-apps wave 7, after qBittorrent and Authelia; the GPU device plugin
 syncs at wave 3. The one-time UI steps are in the README's
 [Set Up the Media Stack](../README.md#13-set-up-the-media-stack).
 
@@ -22,7 +22,7 @@ syncs at wave 3. The one-time UI steps are in the README's
 | Collections | Jellyfin-Auto-Collections (Kometa's released versions support Plex only) |
 | Jellyfin sign-in | Jellyfin's own login (no SSO plugin) |
 | Jellyfin metadata | On the NAS share (`jellyfin/metadata`), not Longhorn; no backup |
-| Jellyfin transcode cache | 32Gi `emptyDir` on homeworld-corebox's disk, with throttling and segment deletion |
+| Jellyfin transcode cache | 32Gi `emptyDir` on the disk of the node it runs on, with throttling and segment deletion |
 | Audiobookshelf podcasts | On (world `80`/`443` egress exception, podcast library read-write) |
 | Navidrome artist info | AudioMuse-AI first for similar songs and artists, then Deezer, Last.fm, ListenBrainz |
 | Music imports | Copied, not hardlinked, so beets can retag the library ([Music tagging](#music-tagging)) |
@@ -56,12 +56,18 @@ size.
 - **Direct play first.** 4K HEVC HDR clients (TVs, streaming boxes) play
   the file untouched: the cost is the NAS's network read (about 15–25 Mbit/s
   per 2160p WEB stream, far below the Pi's gigabit link at 4 streams).
-- **Transcodes** (browsers, phones, SDR screens) run on homeworld-corebox's UHD 730.
-  Jellyfin's Intel guide puts the UHD 7xx series in its high-performance
-  tier; tone mapping uses OpenCL, which also maps Dolby Vision profile 5.
-  The UHD 730 has one video engine, so a few tone-mapped transcodes at once
-  is the realistic load; measure it with `intel_gpu_top` while several
-  clients transcode.
+- **Transcodes** (browsers, phones, SDR screens) run on homeworld-corebox's
+  UHD 730 through QuickSync. Jellyfin's Intel guide puts the UHD 7xx series
+  in its high-performance tier; tone mapping uses OpenCL, which also maps
+  Dolby Vision profile 5. The UHD 730 has one video engine, so a few
+  tone-mapped transcodes at once is the realistic load; measure it with
+  `intel_gpu_top` while several clients transcode.
+- **Fallback GPU**: while homeworld-corebox is down or drained, Jellyfin runs
+  on homeworld-ryzen's RX 560 through VA-API, with Vulkan tone mapping. It
+  decodes H.264, HEVC (8- and 10-bit), MPEG-2 and VC-1 in hardware and
+  encodes H.264 and 8-bit HEVC, at lower quality than QuickSync; VP8, VP9 and
+  AV1 sources are decoded on the CPU. Jellyfin returns to homeworld-corebox
+  the next time its pod is rescheduled, not on its own.
 - **Storage**: a 2160p WEB release is roughly two to three times its 1080p
   counterpart.
 
@@ -98,7 +104,7 @@ qbit_manage.
 | Lidarr | handwritten | `ghcr.io/home-operations/lidarr` | gVisor | CNPG (main + log) | gateway OIDC + `External` | exportarr |
 | Bindery | handwritten | `ghcr.io/vavallee/bindery` | gVisor | SQLite (Longhorn) | native OIDC | native `/metrics` |
 | Bazarr | handwritten | `ghcr.io/home-operations/bazarr` | gVisor | CNPG | gateway OIDC | exportarr |
-| Jellyfin | official chart (`jellyfin/jellyfin-helm`) | `docker.io/jellyfin/jellyfin` | runc + Intel iGPU (homeworld-corebox) | SQLite (Longhorn) | native login | native `/metrics` (blocked on the route) |
+| Jellyfin | official chart (`jellyfin/jellyfin-helm`) | `docker.io/jellyfin/jellyfin` | runc + GPU (homeworld-corebox's Intel, homeworld-ryzen's AMD as fallback) | SQLite (Longhorn) | native login | native `/metrics` (blocked on the route) |
 | Seerr | official chart (`oci://ghcr.io/seerr-team/seerr/seerr-chart`) | `ghcr.io/seerr-team/seerr` | gVisor | CNPG | native (Jellyfin accounts) | — |
 | Recyclarr | handwritten CronJob | `ghcr.io/recyclarr/recyclarr` | gVisor | — | — | — |
 | Maintainerr | handwritten | `ghcr.io/maintainerr/maintainerr` | gVisor | SQLite (Longhorn) | gateway OIDC (no built-in login) | — |
@@ -246,12 +252,18 @@ AudioMuse-AI's analysis schedule) are the README's manual steps.
 
 ## Platform pieces
 
-- **Intel GPU**: Intel's GPU device plugin from its release's own kustomize
-  base, scheduled on homeworld-corebox only (the
-  `node.homeworld/profile=homeworld-corebox` label). Jellyfin requests
-  `gpu.intel.com/i915: 1`, which also places it on homeworld-corebox; containerd's
-  `device_ownership_from_security_context` gives the render node to
-  Jellyfin's user, and `host/apply.sh` keeps `container_use_dri_devices` on.
+- **GPU**: the generic device plugin (official chart) runs on
+  homeworld-corebox and homeworld-ryzen only (the `node.homeworld/profile`
+  label) and advertises each node's render node as `devic.es/dri`, mounted
+  as `/dev/dri/renderD128` whatever its number on the host. Jellyfin
+  requests `devic.es/dri: 1`, which places it on one of the two, and prefers
+  homeworld-corebox. Its `jellyfin-gpu-profile` init container reads the
+  render node's PCI vendor on every start and sets `encoding.xml`'s
+  acceleration type (QuickSync on Intel, VA-API on AMD) and hardware decoder
+  list to match; other transcoding settings stay as the seed or the
+  dashboard left them. containerd's `device_ownership_from_security_context`
+  gives the render node to Jellyfin's user, and `host/apply.sh` keeps
+  `container_use_dri_devices` on.
 - **qBittorrent**: the shared `/data` volume, UID 20004, one category per
   library, `WebUI\ServerDomains` (quoted) listing the Service FQDNs, and
   ingress from the *arrs, Bindery, Cleanuparr and qbit_manage

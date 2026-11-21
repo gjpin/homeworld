@@ -42,7 +42,7 @@ flowchart TB
 
   subgraph pixel["Pixel · VLAN 1 · 192.168.8.0/24 · gateway .1<br/>Wi-Fi 'Pixel' (5 GHz) · untagged on lan1–lan5"]
     sw["TP-Link<br/>TL-SG108E switch<br/>192.168.8.2<br/>uplink on lan2–lan5"]
-    homeworld_ryzen["homeworld-ryzen<br/>192.168.8.10<br/>k3s server<br/>Ryzen 7 3700X"]
+    homeworld_ryzen["homeworld-ryzen<br/>192.168.8.10<br/>k3s server<br/>AMD RX 560 (Jellyfin fallback)"]
     homeworld_corebox["homeworld-corebox<br/>192.168.8.11<br/>k3s server<br/>Intel iGPU (Jellyfin)"]
     homeworld_dragon["homeworld-dragon<br/>192.168.8.12<br/>k3s server<br/>Qualcomm arm64"]
     nas["NAS<br/>192.168.8.20<br/>Raspberry Pi 5<br/>OpenMediaVault NFS"]
@@ -83,7 +83,7 @@ flowchart TB
 | ISP router | `192.168.2.1` | Forwards the WireGuard UDP port to the OpenWrt WAN; guest, IoT and things VLANs cannot reach its subnet |
 | OpenWrt router | WAN `192.168.2.2`; Pixel `192.168.8.1`, PixelGuest `192.168.9.1`, PixelIoT `192.168.10.1`, PixelThings `192.168.11.1`; WireGuard `10.10.0.1` | DHCP, AdGuard Home DNS, Tang for the nodes' LUKS unlock |
 | TP-Link TL-SG108E switch | `192.168.8.2` | Wires the three nodes and the NAS to the router; uplink on `lan2`–`lan5` (untagged Pixel only), web UI on Pixel ([docs/openwrt.md](docs/openwrt.md) section 18) |
-| homeworld-ryzen | `192.168.8.10` | k3s server |
+| homeworld-ryzen | `192.168.8.10` | k3s server; AMD RX 560 for Jellyfin transcoding when homeworld-corebox is unavailable |
 | homeworld-corebox | `192.168.8.11` | k3s server; Intel iGPU for Jellyfin transcoding |
 | homeworld-dragon | `192.168.8.12` | k3s server (arm64) |
 | NAS | `192.168.8.20` | NFSv4.2 exports to the three node addresses only ([docs/nas.md](docs/nas.md)) |
@@ -125,7 +125,7 @@ Media automation, download and streaming apps sharing the NAS media library ([do
 | FlareSolverr | — | Cloudflare challenge solver used only by Prowlarr (no route, no login). |
 | Gluetun | — | ProtonVPN WireGuard sidecar in the qBittorrent pod: tunnels all BitTorrent traffic and DNS, keeps a default-deny firewall as the kill switch, and provides the forwarded port qBittorrent seeds on ([qbittorrent.md](docs/qbittorrent.md)). |
 | Houndarr | `houndarr.base-domain.invalid` | Rate-limited background searches for missing episodes, films and albums in Sonarr, Radarr and Lidarr, behind the Gateway's Authelia sign-in. |
-| Jellyfin | `jellyfin.base-domain.invalid` | Media server for movies, TV and music with Intel QuickSync hardware transcoding. |
+| Jellyfin | `jellyfin.base-domain.invalid` | Media server for movies, TV and music with hardware transcoding (Intel QuickSync, or the AMD GPU as fallback). |
 | Jellyfin-Auto-Collections | — | Daily job building Jellyfin collections from IMDb and Letterboxd lists. |
 | Lidarr | `lidarr.base-domain.invalid` | Music manager, behind the Gateway's Authelia sign-in. |
 | Maintainerr | `maintainerr.base-domain.invalid` | Rule-based library cleanup through Jellyfin, Seerr, Sonarr and Radarr, behind the Gateway's Authelia sign-in. |
@@ -156,10 +156,10 @@ Operators, foundations, and supporting services:
 | Envoy Gateway | `envoy.base-domain.invalid` | Gateway API implementation and its admin console. |
 | ExternalDNS | — | Publishes the wildcard DNS record pointing every app hostname at the Gateway VIP (Cloudflare). |
 | External Secrets | — | Infisical-backed secret synchronization. |
+| Generic Device Plugin | — | Advertises the homeworld-corebox and homeworld-ryzen GPU render nodes (`devic.es/dri`) for Jellyfin's hardware transcoding. |
 | Grafana | `grafana.base-domain.invalid` | Dashboards and observability visualization. |
 | Grafana Operator | — | Grafana instance, dashboard, and datasource operator. |
 | Headlamp | `headlamp.base-domain.invalid` | Kubernetes web UI; each user acts under their own RBAC through Authelia. |
-| Intel GPU Plugin | — | Intel's device plugin advertising the homeworld-corebox iGPU (`gpu.intel.com/i915`) for Jellyfin's QuickSync transcoding. |
 | Kube Control Plane | — | Scrape targets for the k3s-embedded API servers, scheduler, controller manager, and etcd (a ServiceMonitor and ScrapeConfigs; no workloads). |
 | Kube State Metrics | — | Cluster-state `kube_*` metrics for the OpenTelemetry pipeline and the CloudNativePG dashboard. |
 | Kubelet Serving Cert Approver | — | Approves kubelet serving certificate CSRs so metrics-server scrapes kubelets over verified TLS. |

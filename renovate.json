@@ -429,12 +429,13 @@
       "groupName": "seerr"
     },
     {
-      "description": "Group the Intel GPU device plugin remote base and image",
+      "description": "Group the generic device plugin chart and its pinned image; the image also has commit-hash tags, so only x.y.z releases count",
       "matchPackageNames": [
-        "intel/intel-device-plugins-for-kubernetes",
-        "docker.io/intel/intel-gpu-plugin"
+        "generic-device-plugin",
+        "docker.io/squat/generic-device-plugin"
       ],
-      "groupName": "intel-gpu-plugin"
+      "groupName": "generic-device-plugin",
+      "allowedVersions": "/^\\d+\\.\\d+\\.\\d+$/"
     },
     {
       "description": "qBittorrent and qbit_manage: qbit_manage refuses qBittorrent releases its pinned qbittorrent-api does not list",
@@ -1503,26 +1504,14 @@
     },
     {
       "customType": "regex",
-      "description": "Update the Intel GPU device plugin remote base and image (outside the helm/ kustomize pattern)",
+      "description": "Update the generic device plugin image tag (the chart defaults to latest)",
       "managerFilePatterns": [
-        "/^apps/intel-gpu-plugin/plugin/kustomization\\.yaml$/"
+        "/^apps/generic-device-plugin/helm/values\\.yaml$/"
       ],
       "matchStrings": [
-        "intel-device-plugins-for-kubernetes//deployments/gpu_plugin\\?ref=v(?<currentValue>[^\\s#]+)"
+        "(?ms)^image:\\s*\\n\\s+repository:\\s*docker\\.io/squat/generic-device-plugin\\s*\\n(?:\\s*#[^\\n]*\\n)*\\s+tag:\\s*\"?(?<currentValue>[^\"\\s#]+)"
       ],
-      "depNameTemplate": "intel/intel-device-plugins-for-kubernetes",
-      "datasourceTemplate": "github-releases",
-      "extractVersionTemplate": "^v(?<version>.*)$"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Intel GPU device plugin image tag (kustomize images newTag)",
-      "managerFilePatterns": [
-        "/^apps/intel-gpu-plugin/plugin/kustomization\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?m)^\\s*newName:\\s*(?<depName>docker\\.io/intel/intel-gpu-plugin)\\s*\\n\\s*newTag:\\s*(?<currentValue>[^\\s#]+)\\s*$"
-      ],
+      "depNameTemplate": "docker.io/squat/generic-device-plugin",
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker",
       "registryUrlTemplate": "https://index.docker.io"
