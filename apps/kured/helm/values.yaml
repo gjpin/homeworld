@@ -14,9 +14,8 @@ configuration:
   # serves /api/v1/alerts).
   prometheusUrl: http://victoria-metrics.victoria-metrics.svc.cluster.local:8428
   alertFiringOnly: true
-  # Window after the k3s upgrades (01:00-02:00) and the agents VM rebuild
-  # (02:00-02:30). One node at a time; the lock stays held until the
-  # rebooted node is back.
+  # Window after the k3s upgrades (01:00-02:00). One node at a time; the
+  # lock stays held until the rebooted node is back.
   startTime: "02:30"
   endTime: "06:30"
   timeZone: Europe/Lisbon

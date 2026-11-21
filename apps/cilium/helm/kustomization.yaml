@@ -11,8 +11,6 @@ helmCharts:
     includeCRDs: true
     skipTests: true
     valuesFile: values.yaml
-resources:
-  - agents_vm_host_node_config.yaml
 patches:
   # bpf.autoMount.enabled: false also drops this mount from the chart's Envoy,
   # which then cannot read the ipcache, so every rule proxied through it fails

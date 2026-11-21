@@ -399,23 +399,6 @@
       "groupName": "valkey"
     },
     {
-      "description": "Group the agents VM tool pins: one PR rebuilds the VM root once in the nightly window",
-      "matchFileNames": [
-        "host/agents-vm/versions.env"
-      ],
-      "groupName": "agents-vm-tools"
-    },
-    {
-      "description": "OpenCode and OpenChamber: OpenChamber supports one OpenCode major from a minimum version",
-      "matchPackageNames": [
-        "anomalyco/opencode",
-        "@openchamber/web"
-      ],
-      "prBodyNotes": [
-        "⚠️ **OpenCode / OpenChamber Upgrade**: OpenChamber runs only on the OpenCode major it targets, from `MINIMUM_OPENCODE_VERSION` in its `packages/web/server/lib/opencode/compatibility.js`. Before merging, confirm the pinned OpenChamber accepts the pinned OpenCode. On an OpenCode major, check the installer URL in `host/agents-vm/provision.sh` and the managed `opencode.json` keys against the [migration guide](https://opencode.ai/v2/docs/migrate-v1/) (see [docs/upgrades.md](docs/upgrades.md#9-upstream-upgrade-procedures))."
-      ]
-    },
-    {
       "description": "Group the exportarr sidecar across the *arr Deployments so one release lands in a single PR",
       "matchPackageNames": [
         "ghcr.io/onedr0p/exportarr"
@@ -1683,10 +1666,9 @@
     },
     {
       "customType": "regex",
-      "description": "Update the host and agents VM version pins annotated with `# renovate:` comments",
+      "description": "Update the host version pins annotated with `# renovate:` comments",
       "managerFilePatterns": [
-        "/^host/versions\\.env$/",
-        "/^host/agents-vm/versions\\.env$/"
+        "/^host/versions\\.env$/"
       ],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: versioning=(?<versioning>\\S+))?(?: extractVersion=(?<extractVersion>\\S+))?\\n[A-Z0-9_]+=(?<currentValue>\\S+)"

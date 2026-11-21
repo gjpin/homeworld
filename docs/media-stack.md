@@ -6,7 +6,7 @@ page records how they fit together: the design choices, the per-app
 packaging, who owns which job, and what is automated. Every app syncs at
 app-of-apps wave 7, after qBittorrent and Authelia; the Intel GPU plugin
 syncs at wave 3. The one-time UI steps are in the README's
-[Set Up the Media Stack](../README.md#14-set-up-the-media-stack).
+[Set Up the Media Stack](../README.md#13-set-up-the-media-stack).
 
 ## Design
 

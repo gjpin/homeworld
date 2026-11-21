@@ -9,9 +9,8 @@ loss of any one node.
 | --- | --- |
 | `192.168.8.10`–`.12` | Node static DHCP leases (homeworld-ryzen, homeworld-corebox, homeworld-dragon) |
 | `192.168.8.51` | Kubernetes API VIP: [kube-vip](https://kube-vip.io/) static pod in ARP mode on every server, leader-elected; joining servers register through it |
-| `192.168.8.50` | Gateway VIP: announced by Cilium L2 announcements from every node except homeworld-ryzen ([docs/cilium.md](cilium.md)) |
+| `192.168.8.50` | Gateway VIP: announced by Cilium L2 announcements from any node ([docs/cilium.md](cilium.md)) |
 | `10.42.0.0/16`, `10.43.0.0/16` | Pod and Service CIDRs (k3s defaults; Cilium cluster-pool IPAM) |
-| `10.20.0.0/24` | Agents VM subnet, routed through homeworld-ryzen ([docs/agents-vm.md](agents-vm.md)) |
 
 In-cluster clients reach the API through the `kubernetes` Service. Cilium
 itself talks to the local API server on `127.0.0.1:6444`, which on a k3s
@@ -24,23 +23,21 @@ Everything on the hosts comes from the `host/` tree:
 | Path | Purpose |
 | --- | --- |
 | `host/bootstrap.sh <profile>` | One-time node bootstrap, run by hand (below) |
-| `host/disks.sh` | Interactive choice of the data disks for Longhorn and the agents VM, run by bootstrap.sh or by hand ([docs/fedora.md](fedora.md#data-disks)) |
+| `host/disks.sh` | Interactive choice of the data disks for Longhorn, run by bootstrap.sh or by hand ([docs/fedora.md](fedora.md#data-disks)) |
 | `host/apply.sh` | Idempotent converger, run hourly by `homeworld-pull.timer` |
 | `host/cluster.env` | Cluster coordinates (literal values, as everywhere in git) |
 | `host/versions.env` | Fedora release, the k3s version bootstrap installs, gVisor, kube-vip, helm |
-| `host/nodes/<profile>.env` | Per-hardware profile: expected arch/CPU/RAM, agents VM flag, kubelet `system-reserved`, Longhorn reserve |
+| `host/nodes/<profile>.env` | Per-hardware profile: expected arch/CPU/RAM, kubelet `system-reserved`, Longhorn reserve |
 | `host/files/` | k3s config template, PSA defaults, containerd gVisor handler and device ownership, kube-vip static pod, firewalld, sysctls, kernel modules, dnf5-automatic, kured helpers, systemd units |
-| `host/agents-vm/` | The agents VM on homeworld-ryzen ([docs/agents-vm.md](agents-vm.md)) |
 
 `homeworld-pull.timer` downloads the public `main` branch over HTTPS every
 hour (randomized by up to 20 minutes per node) and runs its `host/apply.sh`.
-The script changes only what differs: packages, firewalld zones and
-policies, sshd (key-only, listening on the node address), gVisor
-(sha512-verified), the containerd drop-ins, the k3s configuration, the kube-vip manifest, the
-dnf5-automatic and kured helpers, the Longhorn disk annotation, and the
-agents subnet route. Files k3s or containerd read only at start are written
-but not reloaded: apply.sh leaves `/var/lib/homeworld/reboot-required`, and
-kured reboots the node in its window ([docs/fedora.md](fedora.md)). Node
+The script changes only what differs: packages, firewalld zones, sshd
+(key-only, listening on the node address), gVisor (sha512-verified), the
+containerd drop-ins, the k3s configuration, the kube-vip manifest, the
+dnf5-automatic and kured helpers, and the Longhorn disk annotation. Files k3s
+or containerd read only at start are written but not reloaded: apply.sh
+leaves `/var/lib/homeworld/reboot-required`, and kured reboots the node in its window ([docs/fedora.md](fedora.md)). Node
 addresses and the cluster domain never live in git: bootstrap.sh records them
 in `/etc/homeworld/env`.
 
@@ -92,8 +89,7 @@ is identical on every server apart from the node address and profile label:
   works regardless. It reloads the file while running, so changes need no
   reboot.
 
-The node label `node.homeworld/profile=<profile>` selects the
-homeworld-ryzen for the Gateway VIP exclusion and its Cilium node configuration,
+The node label `node.homeworld/profile=<profile>` selects
 homeworld-corebox, the only node with an Intel GPU, for the Intel GPU device plugin,
 and homeworld-dragon, which has the Zigbee USB coordinator, for Zigbee2MQTT.
 
@@ -113,9 +109,8 @@ Prerequisites:
    ([docs/fedora.md](fedora.md)). Set each node's hostname in the installer:
    it becomes the Kubernetes node name.
 3. The Infisical secrets exist (README step 5), including the cluster
-   domain (`/argocd/BASE_DOMAIN`), the External Secrets Universal Auth
-   identity and, for homeworld-ryzen, the read-only
-   `/agents/*` identity ([docs/secrets.md](secrets.md)).
+   domain (`/argocd/BASE_DOMAIN`) and the External Secrets Universal Auth
+   identity ([docs/secrets.md](secrets.md)).
 
 ### First server
 
@@ -130,16 +125,13 @@ sudo host/bootstrap.sh <homeworld-ryzen|homeworld-corebox|homeworld-dragon>
 
 The script checks the profile against the hardware and asks for:
 
-- this node's address, all three node addresses, and homeworld-ryzen's address
-  (the agents VM host);
+- this node's address and all three node addresses;
 - the role: `init` on the first server;
 - the cluster domain (`/argocd/BASE_DOMAIN`), which the API server's
   authentication configuration needs from the first start;
-- on homeworld-ryzen only: the agents VM's Infisical client ID, client secret and
-  project ID, and the SSH public keys for the VM's `agent` user;
 - the LUKS passphrase of the root device, to bind it to Tang (compare the key
   thumbprint it prints with the router's first);
-- the data disks for Longhorn and the agents VM, and a recovery passphrase for
+- the data disks for Longhorn, and a recovery passphrase for
   any it encrypts ([docs/fedora.md](fedora.md#data-disks));
 - the External Secrets Operator's Infisical Universal Auth client ID and
   secret, with which it reads the cluster domain from Infisical and checks it
@@ -193,8 +185,7 @@ on the node's encrypted root filesystem (bootstrap.sh grows the root LV to the
 whole volume group). The `node.longhorn.io/create-default-disk=config` node label
 and the `node.longhorn.io/default-disks-config` annotation, which apply.sh sets,
 create those disks. On root, the profile's `LONGHORN_RESERVED_GIB` sets the
-per-node reserve: on homeworld-ryzen it also covers the agents VM disks unless they
-have a data disk. A disk of its own gets a token 1 GiB, because Longhorn takes a
+per-node reserve. A disk of its own gets a token 1 GiB, because Longhorn takes a
 reserve of 0 as unset and holds back 30%.
 
 Longhorn reads the annotation only for a node with no disks yet. To add a data

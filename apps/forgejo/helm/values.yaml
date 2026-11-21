@@ -13,7 +13,7 @@ image:
 persistence:
   claimName: gitea-shared-storage
   storageClass: longhorn-crypto
-  # Repositories, LFS and the container registry (the agents VM pushes there).
+  # Repositories, LFS and the container registry.
   size: 20Gi
 
 resources:

@@ -1,6 +1,6 @@
 #!/bin/bash
-# Choose which attached SSD/NVMe disks hold Longhorn and the agents VM disks
-# (docs/fedora.md, "Data disks"). Run as root by bootstrap.sh, or by hand:
+# Choose which attached SSD/NVMe disks hold Longhorn (docs/fedora.md, "Data
+# disks"). Run as root by bootstrap.sh, or by hand:
 #
 #   sudo host/disks.sh [--treat-as-ssd SERIAL]...
 #
@@ -10,12 +10,8 @@
 # apply.sh only reads them. A rerun leaves configured disks alone.
 set -euo pipefail
 
-here=$(cd "$(dirname "$0")" && pwd)
 [ "$(id -u)" = 0 ] || { echo "run as root" >&2; exit 1; }
 [ -f /etc/homeworld/node.env ] || { echo "/etc/homeworld/node.env missing: run host/bootstrap.sh <profile>" >&2; exit 1; }
-. /etc/homeworld/node.env
-# shellcheck source=/dev/null
-. "$here/nodes/$PROFILE.env"
 
 treat_as_ssd=" "
 while [ $# -gt 0 ]; do
@@ -29,14 +25,11 @@ done
 state=/etc/homeworld/storage.env
 disks_dir=/var/lib/homeworld-disks
 keys_dir=/etc/cryptsetup-keys.d
-vm_images=/var/lib/libvirt/images/agents
-vm_gib=${AGENTS_VM_RESERVED_GIB:-200}
 min_longhorn_gib=20
 gib=$((1024 * 1024 * 1024))
 mount_opts=defaults,nosuid,nodev,noexec,nofail,x-systemd.device-timeout=60s
 
 LONGHORN_DISKS=""
-AGENTS_VM_ON_DISK=0
 STORAGE_MOUNTS=""
 # shellcheck source=/dev/null
 [ -f "$state" ] && . "$state"
@@ -200,10 +193,9 @@ save_state() {
   local tmp
   tmp=$(mktemp)
   {
-    echo "# Written by host/disks.sh. Read by apply.sh, the agents VM scripts and"
-    echo "# homeworld-postboot (docs/fedora.md, \"Data disks\")."
+    echo "# Written by host/disks.sh. Read by apply.sh and homeworld-postboot"
+    echo "# (docs/fedora.md, \"Data disks\")."
     echo "LONGHORN_DISKS=\"$LONGHORN_DISKS\""
-    echo "AGENTS_VM_ON_DISK=$AGENTS_VM_ON_DISK"
     echo "STORAGE_MOUNTS=\"$STORAGE_MOUNTS\""
   } >"$tmp"
   install -m 0644 "$tmp" "$state"
@@ -282,26 +274,11 @@ use_for_longhorn() { # use_for_longhorn NAME RESERVED-BYTES
   echo "$dir: Longhorn"
 }
 
-use_for_vm() { # use_for_vm NAME
-  local dir=$disks_dir/$1/agents-vm
-  mkdir -p "$dir" "$vm_images"
-  mountpoint -q "$vm_images" || chattr +i "$vm_images"
-  set_line /etc/fstab 2 "$vm_images" \
-    "$dir $vm_images none bind,nofail,x-systemd.before=virtqemud.service,x-systemd.before=libvirt-guests.service 0 0"
-  systemctl daemon-reload
-  mountpoint -q "$vm_images" || mount "$vm_images"
-  restorecon -RF "$vm_images"
-  add_mount "$vm_images"
-  AGENTS_VM_ON_DISK=1
-  save_state
-  echo "$vm_images: agents VM disks"
-}
-
-# new_volume NAME PARTITION ROLE: encrypt, format, mount and assign an erased
+# new_volume NAME PARTITION: encrypt, format, mount and give Longhorn an erased
 # partition. Longhorn takes a reserve of 0 as unset and holds back 30% instead,
 # so a filesystem of its own gets a token reserve.
 new_volume() {
-  local name=$1 part=$2 role=$3
+  local name=$1 part=$2
   log "Encrypting $part (LUKS2, XFS)"
   new_key "$name"
   printf %s "$recovery" | cryptsetup luksFormat --type luks2 --batch-mode --key-file=- "$part"
@@ -311,10 +288,7 @@ new_volume() {
   add_crypttab "$name" "$part"
   mount_volume "$name" "/dev/mapper/hw-$name" xfs
   restorecon "$disks_dir/$name" 2>/dev/null || true
-  case "$role" in
-    longhorn) use_for_longhorn "$name" "$gib" ;;
-    agents-vm) use_for_vm "$name" ;;
-  esac
+  use_for_longhorn "$name" "$gib"
 }
 
 partition_path() { # partition_path DISK PARTN
@@ -336,21 +310,12 @@ carve_partition() {
   echo "$after"
 }
 
-# build_on_free JSON DISK ROLE: new volumes in existing or just-erased GPT space.
+# build_on_free JSON DISK: a new volume in existing or just-erased GPT space.
 build_on_free() {
-  local json=$1 disk=$2 role=$3 n vm_n
+  local json=$1 disk=$2 n
   recovery_passphrase
-  # Partitions first: the kernel will not reread the table of a disk in use.
-  if [ "$role" = both ]; then
-    # The room the VM's full-size disks need, plus LUKS and XFS overhead.
-    vm_n=$(carve_partition "$disk" "$((vm_gib + 5))")
-    n=$(carve_partition "$disk" "")
-    new_volume "$(volume_name "$json" "$vm_n")" "$(partition_path "$disk" "$vm_n")" agents-vm
-    role=longhorn
-  else
-    n=$(carve_partition "$disk" "")
-  fi
-  new_volume "$(volume_name "$json" "$n")" "$(partition_path "$disk" "$n")" "$role"
+  n=$(carve_partition "$disk" "")
+  new_volume "$(volume_name "$json" "$n")" "$(partition_path "$disk" "$n")"
 }
 
 confirm_serial() { # confirm_serial JSON DISK VERB: type the serial to go on.
@@ -375,12 +340,11 @@ erase_disk() { # erase_disk DISK: partition table, signatures and, if it can, ev
   udevadm settle
 }
 
-# give_longhorn SIZE USED ROLE: the bytes to reserve so Longhorn keeps to the
+# give_longhorn SIZE USED: the bytes to reserve so Longhorn keeps to the
 # amount chosen here. Printed last, on stdout; prompts go to stderr.
 give_longhorn() {
-  local size=$1 used=$2 role=$3 free most reply=""
+  local size=$1 used=$2 free most reply=""
   free=$((size - used))
-  [ "$role" != both ] || free=$((free - vm_gib * gib))
   most=$((free / gib))
   while :; do
     {
@@ -403,53 +367,16 @@ give_longhorn() {
   done
 }
 
-vm_role_available() {
-  [ "$AGENTS_VM" = 1 ] && [ "$AGENTS_VM_ON_DISK" != 1 ] && {
-    # Mounting over existing VM disks would hide them.
-    [ ! -d "$vm_images" ] || [ -z "$(ls -A "$vm_images")" ]
-  }
-}
-
-choose_role() { # choose_role VAR AVAILABLE-BYTES [longhorn-only]
-  local var=$1 room=$2 only=${3:-} reply="" roles=() i
-  [ "$room" -lt $((min_longhorn_gib * gib)) ] || roles+=(longhorn)
-  if [ -z "$only" ] && vm_role_available; then
-    [ "$room" -lt $((vm_gib * gib)) ] || roles+=(agents-vm)
-    [ "$room" -lt $(((vm_gib + 5 + min_longhorn_gib) * gib)) ] || roles+=(both)
-  fi
-  if [ "${#roles[@]}" = 0 ]; then
-    echo "  Not enough room: Longhorn needs ${min_longhorn_gib} GiB and the agents VM ${vm_gib} GiB."
-    printf -v "$var" '%s' ""
-    return 0
-  fi
-  if [ "${#roles[@]}" = 1 ]; then
-    echo "  Role: ${roles[0]}"
-    printf -v "$var" '%s' "${roles[0]}"
-    return 0
-  fi
-  echo "  Use it for:"
-  i=1
-  for reply in "${roles[@]}"; do
-    echo "    $i) $reply"
-    i=$((i + 1))
-  done
-  echo "    Enter) skip"
-  ask reply "  Choice: "
-  case "$reply" in
-    '' | *[!0-9]*) printf -v "$var" '%s' "" ;;
-    *)
-      if [ "$reply" -ge 1 ] && [ "$reply" -le "${#roles[@]}" ]; then
-        printf -v "$var" '%s' "${roles[$((reply - 1))]}"
-      else
-        printf -v "$var" '%s' ""
-      fi
-      ;;
-  esac
+# has_room AVAILABLE-BYTES: enough for Longhorn.
+has_room() {
+  [ "$1" -ge $((min_longhorn_gib * gib)) ] && return 0
+  echo "  Not enough room: Longhorn needs ${min_longhorn_gib} GiB."
+  return 1
 }
 
 # keep_volume JSON DEV FSTYPE: reuse a filesystem, its contents untouched.
 keep_volume() {
-  local json=$1 dev=$2 fstype=$3 partn name spec only="" role reserved stats size used inner attempts pass
+  local json=$1 dev=$2 fstype=$3 partn name spec only="" reserved stats size used inner attempts pass
   partn=$(lsblk -nrpo PARTN "$dev" | head -1)
   name=$(volume_name "$json" "$partn")
   if [ "$fstype" = crypto_LUKS ]; then
@@ -486,18 +413,10 @@ keep_volume() {
   fi
   size=${stats% *}
   used=${stats#* }
-  choose_role role $((size - used)) "$only"
-  if [ -z "$role" ]; then
+  if ! has_room $((size - used)) || ! reserved=$(give_longhorn "$size" "$used"); then
+    echo "Leaving $dev alone."
     [ "$only" = longhorn-only ] || cryptsetup close "hw-$name"
     return 0
-  fi
-  reserved=0
-  if [ "$role" != agents-vm ]; then
-    if ! reserved=$(give_longhorn "$size" "$used" "$role"); then
-      echo "Leaving $dev alone."
-      [ "$only" = longhorn-only ] || cryptsetup close "hw-$name"
-      return 0
-    fi
   fi
   if [ "$only" != longhorn-only ]; then
     new_key "$name"
@@ -505,14 +424,7 @@ keep_volume() {
     add_crypttab "$name" "$dev"
   fi
   mount_volume "$name" "$spec" "$fstype"
-  case "$role" in
-    longhorn) use_for_longhorn "$name" "$reserved" ;;
-    agents-vm) use_for_vm "$name" ;;
-    both)
-      use_for_vm "$name"
-      use_for_longhorn "$name" "$reserved"
-      ;;
-  esac
+  use_for_longhorn "$name" "$reserved"
 }
 
 # --- the menu ---------------------------------------------------------------
@@ -555,7 +467,7 @@ done < <(lsblk -dnrpo NAME,TYPE | awk '$2 == "disk" && $1 !~ /\/(zram|ram)[0-9]+
 
 if [ "${#choices[@]}" = 0 ]; then
   echo
-  echo "No disk to choose from. Longhorn and the agents VM stay on the root disk."
+  echo "No disk to choose from. Longhorn stays on the root disk."
   exit 0
 fi
 
@@ -611,16 +523,12 @@ for disk in "${choices[@]}"; do
       keep_volume "$json" "$2" "$3"
       ;;
     free)
-      choose_role role "$free"
-      if [ -z "$role" ]; then
-        echo "Skipped."
-      elif confirm_serial "$json" "$disk" "add a partition to $disk"; then
-        build_on_free "$json" "$disk" "$role"
+      if confirm_serial "$json" "$disk" "add a partition to $disk"; then
+        build_on_free "$json" "$disk"
       fi
       ;;
     format)
-      choose_role role "$(jq -r '.size' <<<"$json")"
-      if [ -z "$role" ]; then
+      if ! has_room "$(jq -r '.size' <<<"$json")"; then
         echo "Skipped."
         continue
       fi
@@ -641,7 +549,7 @@ for disk in "${choices[@]}"; do
       fi
       recovery_passphrase
       erase_disk "$disk"
-      build_on_free "$(tree "$disk")" "$disk" "$role"
+      build_on_free "$(tree "$disk")" "$disk"
       ;;
   esac
 done

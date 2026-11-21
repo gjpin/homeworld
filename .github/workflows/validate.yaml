@@ -100,7 +100,7 @@ jobs:
       - name: Check shell script syntax
         if: ${{ !cancelled() }}
         run: |
-          for f in scripts/*.sh e2e/examples/hooks/*.sh host/*.sh host/agents-vm/*.sh; do
+          for f in scripts/*.sh e2e/examples/hooks/*.sh host/*.sh; do
             bash -n "$f"
           done
           for f in host/files/libexec/*; do

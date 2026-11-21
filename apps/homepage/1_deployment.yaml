@@ -157,9 +157,6 @@ spec:
               mountPath: /app/config/custom.js
               subPath: custom.js
               readOnly: true
-            - name: homepage-icons
-              mountPath: /app/public/icons
-              readOnly: true
             - name: logs
               mountPath: /app/config/logs
             - name: tmp
@@ -168,9 +165,6 @@ spec:
         - name: homepage-config
           configMap:
             name: homepage
-        - name: homepage-icons
-          configMap:
-            name: homepage-icons
         - name: logs
           emptyDir: {}
         - name: tmp

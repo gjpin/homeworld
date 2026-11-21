@@ -122,7 +122,7 @@ Apps without collectible metrics have no folder: `admission-policies` and
 node plugin, whose metrics listener belongs to the omitted controller;
 `system-upgrade-controller` serves no metrics endpoint; `actual-budget` serves
 only a JSON `/metrics` (process memory and uptime, not Prometheus); `homepage`, `radicale`,
-`openchamber`, `velero-ui`, and `opentelemetry-operator` expose no scrapeable
+`velero-ui`, and `opentelemetry-operator` expose no scrapeable
 metrics; of the media stack, `seerr`, `maintainerr`, `cleanuparr`, `houndarr`,
 `audiobookshelf`, `streamystats`, `audiomuse-ai` and `feishin` serve no
 Prometheus endpoint (their PostgreSQL clusters are covered by the

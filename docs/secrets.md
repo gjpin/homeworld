@@ -16,17 +16,10 @@ The External Secrets Operator's own Infisical credentials (Secret `universal-aut
 
 The same credentials read `/argocd/BASE_DOMAIN` once during bootstrap: Argo CD's repo-server cannot render any Application, External Secrets included, without the domain, so `host/bootstrap.sh` seeds the `homeworld-domain` Secret in `argocd`, and the `homeworld-domain` ExternalSecret adopts it once External Secrets runs.
 
-The agents VM ([agents-vm.md](agents-vm.md)) is not a cluster workload and does not use the External Secrets Operator: it has its own read-only Machine Identity (Universal Auth), granted read access to the `/agents` folder only. `host/bootstrap.sh` asks for its client ID, client secret and the project ID on homeworld-ryzen and stores them root-only in `/etc/homeworld/agents-vm.env`; the VM fetches the `/agents/*` keys below at every boot.
-
 The cluster domain is the one coordinate kept out of git: manifests carry the `base-domain.invalid` placeholder, and Argo CD's homeworld plugin replaces it with `/argocd/BASE_DOMAIN` at render time ([argocd.md](argocd.md#homeworld-plugin)). The API server needs it outside Argo CD, so `host/bootstrap.sh` also records it in each node's `/etc/homeworld/env` ([k3s.md](k3s.md)). The other non-secret cluster coordinates are committed as literal values: the `192.168.8.50` Gateway VIP, the Infisical endpoint (`https://eu.infisical.com`, project `homeworld`, environment `prod`) in `apps/external-secrets/2_secret_store.yaml`, and the Velero B2 target (`homeworld-velero` in `eu-central-003`) in `apps/velero/helm/values.yaml`.
 
 | Component | Infisical path | Description | Generation |
 | :--- | :--- | :--- | :--- |
-| **Agents VM** | `/agents/OPENCHAMBER_UI_PASSWORD` | Password protecting the OpenChamber web UI. | Chosen strong password |
-| | `/agents/PASEO_PASSWORD` | Paseo daemon password (clients send it as a bearer token); required, because the daemon listens on the VM's network address. | Chosen strong password |
-| | `/agents/OPENAI_API_KEY` | OpenAI API key for Codex CLI and OpenCode. | From OpenAI |
-| | `/agents/MISTRAL_API_KEY` | Optional Mistral API key for Mistral Vibe; without it, Vibe uses the key saved by `vibe --setup`. | From Mistral AI Studio |
-| | `/agents/GITHUB_TOKEN` | GitHub token for agent git operations. | From GitHub (needs the Copilot Requests permission, [agents-vm.md](agents-vm.md#agent-logins)) |
 | **AFFiNE** | `/affine/PRIVATE_KEY` | Server signing and encryption key (sessions, tokens, and the BYOK provider keys workspace owners store server-side), rendered into the read-only `private.key` of the server's configuration directory. Rotating it invalidates every stored BYOK key and session. | `openssl ecparam -name prime256v1 -genkey -noout` (P-256 private-key PEM, including the BEGIN/END lines) |
 | | `/affine/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `affine` (the CNPG `owner` user) |
 | | `/affine/POSTGRES_PASSWORD` | CloudNativePG application password. Must contain only RFC 3986 unreserved characters; it is embedded unescaped in the PostgreSQL connection URL. | `openssl rand -hex 32` (hex output is RFC 3986 unreserved) |
@@ -43,7 +36,7 @@ The cluster domain is the one coordinate kept out of git: manifests carry the `b
 | | `/audiomuse-ai/ADMIN_USERNAME` | The first AudioMuse-AI admin, created on the first start. | Chosen username |
 | | `/audiomuse-ai/ADMIN_PASSWORD` | Its password (later changes are made in the UI). | `openssl rand -hex 32` |
 | | `/audiomuse-ai/API_TOKEN` | Bearer token for Navidrome's AudioMuse-AI plugin, entered in the plugin's settings as well. | `openssl rand -hex 32` |
-| | `/audiomuse-ai/NAVIDROME_USER` | The Navidrome account AudioMuse-AI reads the library with; the playlists it creates belong to it. | The Navidrome user created for it ([README](../README.md#14-set-up-the-media-stack)) |
+| | `/audiomuse-ai/NAVIDROME_USER` | The Navidrome account AudioMuse-AI reads the library with; the playlists it creates belong to it. | The Navidrome user created for it ([README](../README.md#13-set-up-the-media-stack)) |
 | | `/audiomuse-ai/NAVIDROME_PASSWORD` | That account's Navidrome password. | Chosen when creating the account |
 | **Authelia** | `/authelia/SESSION_SECRET` | Session cookie encryption secret. | `openssl rand -hex 32` |
 | | `/authelia/STORAGE_ENCRYPTION_KEY` | At-rest encryption key for the SQL configuration storage. | `openssl rand -hex 32` |
@@ -57,7 +50,7 @@ The cluster domain is the one coordinate kept out of git: manifests carry the `b
 | | `/authelia/OIDC_CLIENT_SECRET_ARGOCD` | Argo CD OIDC client secret. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_AFFINE` | AFFiNE OIDC client secret (also rendered into AFFiNE's `config.json` by the `affine-config` ExternalSecret). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_ACTUAL_BUDGET` | Actual Budget OIDC client secret (also delivered to the `actual-budget` namespace as `actual-budget-secrets`). | `openssl rand -hex 32` |
-| | `/authelia/OIDC_CLIENT_SECRET_ENVOY` | Envoy Gateway OIDC client secret (shared by every gateway-OIDC route; delivered to each protected app's namespace — envoy-gateway, homepage, longhorn-system, victoria-metrics, homeassistant, openchamber, and the media apps prowlarr, sonarr, radarr, lidarr, bazarr, maintainerr, houndarr and audiomuse-ai — as `envoy-oidc-client-secret`). | `openssl rand -hex 32` |
+| | `/authelia/OIDC_CLIENT_SECRET_ENVOY` | Envoy Gateway OIDC client secret (shared by every gateway-OIDC route; delivered to each protected app's namespace — envoy-gateway, homepage, longhorn-system, victoria-metrics, homeassistant, and the media apps prowlarr, sonarr, radarr, lidarr, bazarr, maintainerr, houndarr and audiomuse-ai — as `envoy-oidc-client-secret`). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_AUDIOBOOKSHELF` | Audiobookshelf OIDC client secret (entered once in Audiobookshelf's authentication settings). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_BINDERY` | Bindery OIDC client secret, set in Bindery's provider settings by the media-config job. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_CLEANUPARR` | Cleanuparr OIDC client secret (entered once in Cleanuparr's account settings). | `openssl rand -hex 32` |
@@ -171,7 +164,6 @@ Some secrets are produced by manual one-time procedures rather than generated di
 - `/woodpecker/FORGEJO_CLIENT` and `/woodpecker/FORGEJO_SECRET` are created by the **Forgejo OAuth Application for Woodpecker CI** procedure in the [README's Manual Setup](../README.md#manual-setup) section.
 - The four `/homepage/*` tokens are created by the **Create API Tokens for Homepage Widgets** procedure in the [README's Manual Setup](../README.md#manual-setup) section.
 - The media apps' UI-generated keys (`/homepage/JELLYFIN_API_KEY`, `/homepage/AUDIOBOOKSHELF_API_KEY`, the `/homepage/NAVIDROME_*` trio and the `/jellyfin-auto-collections/*` pair) are created by the **Set Up the Media Stack** procedure in the [README's Manual Setup](../README.md#manual-setup) section, after the apps' first start; until then the Homepage and Jellyfin-Auto-Collections ExternalSecrets stay unready. The Servarr, Bazarr, Seerr and Bindery API keys are generated up front and injected, so the apps start with them.
-- The four `/agents/*` keys are read by the agents VM described in [agents-vm.md](agents-vm.md), which also covers access and coding-agent logins.
 
 Generation constraints worth knowing:
 

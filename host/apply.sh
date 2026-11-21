@@ -15,10 +15,9 @@ here=$(cd "$(dirname "$0")" && pwd)
 # shellcheck source=/dev/null
 . "$here/nodes/$PROFILE.env"
 . /etc/homeworld/env
-# The data disks chosen with host/disks.sh; Longhorn and the agents VM stay on
-# the root disk without it.
+# The data disks chosen with host/disks.sh; Longhorn stays on the root disk
+# without it.
 LONGHORN_DISKS=""
-AGENTS_VM_ON_DISK=0
 if [ -f /etc/homeworld/storage.env ]; then
   . /etc/homeworld/storage.env
 fi
@@ -82,9 +81,6 @@ packages=(
   clevis-luks clevis-dracut dnf5-plugin-automatic
   bzip2 curl jq tar yq
 )
-if [ "$AGENTS_VM" = 1 ]; then
-  packages+=(libvirt-daemon-kvm qemu-kvm virt-install cloud-utils xorriso)
-fi
 missing=()
 for p in "${packages[@]}"; do
   rpm -q "$p" >/dev/null 2>&1 || missing+=("$p")
@@ -117,8 +113,6 @@ fw() { # fw ZONE-OR-POLICY-ARGS QUERY-FLAG ADD-FLAG VALUE
   fi
 }
 fw_zone() { firewall-cmd --permanent --get-zones | tr ' ' '\n' | grep -x "$1" >/dev/null || { firewall-cmd --permanent --new-zone="$1" >/dev/null; fw_changed=1; }; }
-fw_policy() { firewall-cmd --permanent --get-policies | tr ' ' '\n' | grep -x "$1" >/dev/null || { firewall-cmd --permanent --new-policy="$1" >/dev/null; fw_changed=1; }; }
-fw_target() { [ "$(firewall-cmd --permanent "$1" --get-target)" = "$2" ] || { firewall-cmd --permanent "$1" --set-target="$2" >/dev/null; fw_changed=1; }; }
 
 systemctl enable --now firewalld >/dev/null 2>&1
 systemctl disable --now cockpit.socket >/dev/null 2>&1 || true
@@ -152,69 +146,12 @@ for i in cilium_host cilium_net cilium_vxlan cilium_wg0 'lxc+'; do
   fw --zone=trusted --query-interface --add-interface "$i"
 done
 
-if [ "$AGENTS_VM" = 1 ]; then
-  # The agents VM (docs/agents-vm.md): the host offers it DHCP and DNS only.
-  fw_zone homeworld-agents
-  fw --zone=homeworld-agents --query-service --add-service dhcp
-  fw --zone=homeworld-agents --query-service --add-service dns
-  # VM -> anywhere: the internet, never the LAN, the host, the NAS or the
-  # cluster, except the Gateway VIP for Forgejo (HTTPS and SSH).
-  fw_policy agents-out
-  fw --policy=agents-out --query-ingress-zone --add-ingress-zone homeworld-agents
-  fw --policy=agents-out --query-egress-zone --add-egress-zone ANY
-  fw_target --policy=agents-out ACCEPT
-  for port in 443 22; do
-    fw --policy=agents-out --query-rich-rule --add-rich-rule "rule priority=-20 family=ipv4 destination address=$GATEWAY_VIP port port=$port protocol=tcp accept"
-  done
-  for cidr in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 169.254.0.0/16 224.0.0.0/4; do
-    fw --policy=agents-out --query-rich-rule --add-rich-rule "rule priority=-10 family=ipv4 destination address=$cidr reject"
-  done
-  for cidr in fc00::/7 fe80::/10 ff00::/8; do
-    fw --policy=agents-out --query-rich-rule --add-rich-rule "rule priority=-10 family=ipv6 destination address=$cidr reject"
-  done
-  # LAN and WireGuard clients -> VM: any port, except ThinkRail, which has
-  # no login of its own and is reached only through the Gateway's sign-in.
-  fw_policy lan-to-agents
-  fw --policy=lan-to-agents --query-ingress-zone --add-ingress-zone homeworld-lan
-  fw --policy=lan-to-agents --query-egress-zone --add-egress-zone homeworld-agents
-  fw_target --policy=lan-to-agents ACCEPT
-  fw --policy=lan-to-agents --query-rich-rule --add-rich-rule 'rule priority=-10 port port=24242 protocol=tcp reject'
-  # Node IPs and pods (Envoy) -> VM: OpenChamber, Paseo and ThinkRail only.
-  fw_policy nodes-to-agents
-  fw --policy=nodes-to-agents --query-ingress-zone --add-ingress-zone homeworld-nodes
-  fw --policy=nodes-to-agents --query-ingress-zone --add-ingress-zone trusted
-  fw --policy=nodes-to-agents --query-egress-zone --add-egress-zone homeworld-agents
-  fw_target --policy=nodes-to-agents REJECT
-  # This host -> VM: the same ports, plus DHCP replies.
-  fw_policy host-to-agents
-  fw --policy=host-to-agents --query-ingress-zone --add-ingress-zone HOST
-  fw --policy=host-to-agents --query-egress-zone --add-egress-zone homeworld-agents
-  fw_target --policy=host-to-agents REJECT
-  fw --policy=host-to-agents --query-port --add-port 68/udp
-  fw --policy=host-to-agents --query-protocol --add-protocol icmp
-  for policy in nodes-to-agents host-to-agents; do
-    fw --policy=$policy --query-port --add-port 3000/tcp
-    fw --policy=$policy --query-port --add-port 6767/tcp
-    fw --policy=$policy --query-port --add-port 24242/tcp
-  done
-fi
 if [ "$fw_changed" = 1 ]; then
   firewall-cmd --reload >/dev/null
   log "firewalld reloaded"
 fi
 # Every interface without an explicit zone (the LAN NIC) lands here.
 [ "$(firewall-cmd --get-default-zone)" = homeworld-lan ] || firewall-cmd --set-default-zone=homeworld-lan >/dev/null
-
-# Every non-VM-host node routes the agents subnet through the VM host (the
-# router has the same route for LAN clients).
-if [ "$AGENTS_VM" != 1 ]; then
-  ip route replace "$AGENTS_CIDR" via "$AGENTS_VM_HOST_IP" dev "$lan_iface"
-  conn=$(nmcli -g GENERAL.CONNECTION device show "$lan_iface")
-  if ! nmcli -g ipv4.routes connection show "$conn" | grep "$AGENTS_CIDR" >/dev/null; then
-    nmcli connection modify "$conn" +ipv4.routes "$AGENTS_CIDR $AGENTS_VM_HOST_IP"
-    log "persisted route $AGENTS_CIDR via $AGENTS_VM_HOST_IP"
-  fi
-fi
 
 # --- sshd -----------------------------------------------------------------
 tmp=$(mktemp)
@@ -331,19 +268,10 @@ if [ "$k3s_installed" = 1 ] && systemctl is-active -q k3s; then
         '{name: $name, path: $path, allowScheduling: true, storageReserved: $reserved}'
     done | jq -cs .)
   else
-    reserved_gib=$LONGHORN_RESERVED_GIB
-    if [ "$AGENTS_VM_ON_DISK" = 1 ]; then
-      reserved_gib=$((reserved_gib - AGENTS_VM_RESERVED_GIB))
-    fi
-    disks="[{\"path\":\"/var/lib/longhorn\",\"allowScheduling\":true,\"storageReserved\":$((reserved_gib * 1024 * 1024 * 1024))}]"
+    disks="[{\"path\":\"/var/lib/longhorn\",\"allowScheduling\":true,\"storageReserved\":$((LONGHORN_RESERVED_GIB * 1024 * 1024 * 1024))}]"
   fi
   k3s kubectl annotate node "$(hostname)" --overwrite \
     "node.longhorn.io/default-disks-config=$disks" >/dev/null 2>&1 || true
-fi
-
-# --- agents VM ------------------------------------------------------------
-if [ "$AGENTS_VM" = 1 ]; then
-  "$here/agents-vm/host.sh"
 fi
 
 log "done"

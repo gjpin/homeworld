@@ -24,9 +24,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   `bootstrap.sh` (one-time node bootstrap), `disks.sh` (interactive choice of
   the data disks, node-local and never run by apply.sh), `apply.sh` (idempotent converger
   run hourly from `main` on every node), `cluster.env` and `versions.env`
-  (coordinates and pins), `nodes/<profile>.env` (per-hardware profiles),
-  `files/` (k3s, containerd, firewalld, systemd, kured helpers), and
-  `agents-vm/` (the libvirt agents VM on homeworld-ryzen, docs/agents-vm.md).
+  (coordinates and pins), `nodes/<profile>.env` (per-hardware profiles), and
+  `files/` (k3s, containerd, firewalld, systemd, kured helpers).
 - `bootstrap/argocd-values.yaml`: the minimal Argo CD bootstrap.sh installs
   before `apps/argocd` adopts it.
 - `README.md`: required environment variables, bootstrap notes, and sync-wave documentation.
@@ -140,8 +139,8 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   Infisical `/argocd/BASE_DOMAIN` at render time (docs/argocd.md, "Homeworld
   plugin"). Every Application sourced from this repository sets
   `spec.source.plugin.name: homeworld`. Files that reach a system outside Argo
-  CD need their own substitution (the agents VM seed, `host/agents-vm/rebuild.sh`;
-  the API server's `host/files/k3s/authentication.yaml.in`, `host/apply.sh`).
+  CD need their own substitution (the API server's
+  `host/files/k3s/authentication.yaml.in`, `host/apply.sh`).
   All other cluster coordinates (Gateway VIP, Infisical endpoint, Velero
   target) are literal values, and anything operator-specific that is not a
   fixed coordinate (SMTP relays, sender addresses) comes from Infisical. Runtime expansions owned
@@ -314,7 +313,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   redirect cannot complete without a browser. Remove headless consumers of a
   protected route (e.g. Homepage siteMonitors) instead of exempting them.
   Apps that cannot delegate their login at all (Collabora's WOPI route, the
-  RustFS operator console, OpenChamber and Paseo pairing, the Notesnook stack) keep
+  RustFS operator console, the Notesnook stack) keep
   app-native access control, with the reason documented in `docs/oidc.md`.
 - Apps without native OIDC support may use a pinned community integration
   delivered by a sha256-verified init container (hass-oidc-auth pattern,
@@ -552,7 +551,7 @@ scripts/check-secret-refs.sh
 scripts/check-network-policies.sh
 
 # Shell syntax of the host scripts (shellcheck as well when it is installed).
-for f in host/*.sh host/agents-vm/*.sh; do bash -n "$f"; done
+for f in host/*.sh; do bash -n "$f"; done
 for f in host/files/libexec/*; do sh -n "$f"; done
 ```
 

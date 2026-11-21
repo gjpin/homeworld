@@ -60,7 +60,6 @@ if [ ! -f /etc/homeworld/env ]; then
   default_ip=$(ip -o -4 route get 1.1.1.1 | awk '{for (i = 1; i < NF; i++) if ($i == "src") print $(i + 1)}')
   ask node_ip "This node's LAN address (its static DHCP lease)" "$default_ip"
   ask node_ips "All three node addresses, space-separated"
-  ask vm_host_ip "Address of the node running the agents VM (homeworld-ryzen profile)"
   ask role "First server of a new cluster (init) or joining one (join)" join
   case "$role" in init | join) ;; *) echo "role must be init or join" >&2; exit 1 ;; esac
   # k3s needs the domain for its first start (authentication.yaml), before
@@ -76,7 +75,6 @@ if [ ! -f /etc/homeworld/env ]; then
   cat >/etc/homeworld/env <<EOF
 NODE_IP=$node_ip
 NODE_IPS="$node_ips"
-AGENTS_VM_HOST_IP=$vm_host_ip
 K3S_ROLE=$role
 BASE_DOMAIN=$base_domain
 EOF
@@ -95,29 +93,10 @@ if [ ! -s /etc/rancher/k3s/token ]; then
   fi
 fi
 
-if [ "$AGENTS_VM" = 1 ] && [ ! -f /etc/homeworld/agents-vm.env ]; then
-  log "Agents VM secrets (read-only Infisical machine identity for /agents/*)"
-  ask client_id "Infisical Universal Auth client ID"
-  ask_secret client_secret "Infisical Universal Auth client secret"
-  ask project_id "Infisical project ID (project settings)"
-  echo "SSH public keys for the VM's agent user, one per line; end with an empty line:"
-  keys=""
-  while read -r line && [ -n "$line" ]; do keys+="$line"$'\n'; done
-  (
-    umask 077
-    {
-      echo "AGENTS_INFISICAL_CLIENT_ID=$client_id"
-      echo "AGENTS_INFISICAL_CLIENT_SECRET=$client_secret"
-      echo "AGENTS_INFISICAL_PROJECT_ID=$project_id"
-      printf "AGENT_SSH_KEYS='%s'\n" "$keys"
-    } >/etc/homeworld/agents-vm.env
-  )
-fi
-
 # --- disk ---------------------------------------------------------------------
 # Fedora Server's automatic partitioning leaves most of the volume group
 # free; it holds the container images, etcd and, unless disks.sh below moves
-# them, Longhorn (/var/lib/longhorn) and the agents VM disks.
+# it, Longhorn (/var/lib/longhorn).
 root_dev=$(findmnt -no SOURCE /)
 if lvs "$root_dev" >/dev/null 2>&1; then
   vg=$(lvs --noheadings -o vg_name "$root_dev" | tr -d ' ')

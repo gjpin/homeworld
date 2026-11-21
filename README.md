@@ -24,7 +24,6 @@
 - Unified telemetry pipeline with OpenTelemetry Collector, VictoriaMetrics, VictoriaLogs, and VictoriaTraces
 - Declarative dashboards and monitoring via Grafana Operator, with Prometheus Operator ServiceMonitors and PodMonitors consumed by the OpenTelemetry Operator's Target Allocator
 - Automated dependency updates and [upgrade procedures](docs/upgrades.md) via Renovate
-- AI agent [virtual machine](docs/agents-vm.md) (OpenChamber, Paseo, ThinkRail, OpenCode, Claude Code, Codex CLI, Pi agent, Antigravity CLI, Copilot CLI, Mistral Vibe on Fedora) with a rebuildable root and pinned tools
 
 ## Network
 The OpenWrt router ([docs/openwrt.md](docs/openwrt.md)) sits behind the ISP router and splits the home into four VLANs. The three nodes and the NAS are wired to a TP-Link TL-SG108E switch on one of the router's LAN ports. The cluster, the NAS and trusted clients share the Pixel network; WireGuard clients join it remotely.
@@ -43,9 +42,7 @@ flowchart TB
 
   subgraph pixel["Pixel · VLAN 1 · 192.168.8.0/24 · gateway .1<br/>Wi-Fi 'Pixel' (5 GHz) · untagged on lan1–lan5"]
     sw["TP-Link<br/>TL-SG108E switch<br/>192.168.8.2<br/>uplink on lan2–lan5"]
-    subgraph homeworld_ryzen["homeworld-ryzen 192.168.8.10<br/>k3s server · Ryzen 7 3700X<br/>Radeon RX 560 4 GB"]
-      vm["Agents VM<br/>10.20.0.10<br/>virbr-agents 10.20.0.0/24<br/>gateway 10.20.0.1"]
-    end
+    homeworld_ryzen["homeworld-ryzen<br/>192.168.8.10<br/>k3s server<br/>Ryzen 7 3700X"]
     homeworld_corebox["homeworld-corebox<br/>192.168.8.11<br/>k3s server<br/>Intel iGPU (Jellyfin)"]
     homeworld_dragon["homeworld-dragon<br/>192.168.8.12<br/>k3s server<br/>Qualcomm arm64"]
     nas["NAS<br/>192.168.8.20<br/>Raspberry Pi 5<br/>OpenMediaVault NFS"]
@@ -66,7 +63,7 @@ flowchart TB
 
   internet --- isp --- wan
   remote -. "UDP port forward on the ISP router" .-> wg
-  wg -- "Pixel and agents VM routes" --> pixel
+  wg -- "Pixel route" --> pixel
   pixel == "may open connections to" ==> guest
   pixel == "may open connections to" ==> iot
   pixel == "may open connections to" ==> things
@@ -75,28 +72,25 @@ flowchart TB
   sw --- homeworld_corebox
   sw --- homeworld_dragon
   sw --- nas
+  homeworld_ryzen -. "L2 announce" .- gwvip
   homeworld_corebox -. "L2 announce" .- gwvip
   homeworld_dragon -. "L2 announce" .- gwvip
   clients -- "HTTPS :443 · git SSH :22" --> gwvip
-
-  style homeworld_ryzen fill:#202020,stroke:#226B8E
-  style vm fill:#474949,stroke:#6E6E6E
 ```
 
 | Device or address | IP | Notes |
 | --- | --- | --- |
 | ISP router | `192.168.2.1` | Forwards the WireGuard UDP port to the OpenWrt WAN; guest, IoT and things VLANs cannot reach its subnet |
-| OpenWrt router | WAN `192.168.2.2`; Pixel `192.168.8.1`, PixelGuest `192.168.9.1`, PixelIoT `192.168.10.1`, PixelThings `192.168.11.1`; WireGuard `10.10.0.1` | DHCP, AdGuard Home DNS, Tang for the nodes' LUKS unlock, static route `10.20.0.0/24` via homeworld-ryzen |
+| OpenWrt router | WAN `192.168.2.2`; Pixel `192.168.8.1`, PixelGuest `192.168.9.1`, PixelIoT `192.168.10.1`, PixelThings `192.168.11.1`; WireGuard `10.10.0.1` | DHCP, AdGuard Home DNS, Tang for the nodes' LUKS unlock |
 | TP-Link TL-SG108E switch | `192.168.8.2` | Wires the three nodes and the NAS to the router; uplink on `lan2`–`lan5` (untagged Pixel only), web UI on Pixel ([docs/openwrt.md](docs/openwrt.md) section 18) |
-| homeworld-ryzen | `192.168.8.10` | k3s server; hosts the agents VM ([docs/agents-vm.md](docs/agents-vm.md)); never holds the Gateway VIP |
+| homeworld-ryzen | `192.168.8.10` | k3s server |
 | homeworld-corebox | `192.168.8.11` | k3s server; Intel iGPU for Jellyfin transcoding |
 | homeworld-dragon | `192.168.8.12` | k3s server (arm64) |
 | NAS | `192.168.8.20` | NFSv4.2 exports to the three node addresses only ([docs/nas.md](docs/nas.md)) |
-| Gateway VIP | `192.168.8.50` | Every `*.<domain>` name; Cilium L2 announcement from homeworld-corebox or homeworld-dragon ([docs/cilium.md](docs/cilium.md)) |
+| Gateway VIP | `192.168.8.50` | Every `*.<domain>` name; Cilium L2 announcement from any node ([docs/cilium.md](docs/cilium.md)) |
 | Gateway node address | `10.43.0.50` | `host/cluster.env` and `apps/envoy-gateway/0_node_access_service.yaml`: the fixed ClusterIP through which pods and the API server reach Envoy ([docs/envoy-gateway.md](docs/envoy-gateway.md)) |
 | Kubernetes API VIP | `192.168.8.51` | kube-vip, leader-elected across all three servers ([docs/k3s.md](docs/k3s.md)) |
-| Agents VM | `10.20.0.10` (gateway `10.20.0.1`) | Routed `10.20.0.0/24` on homeworld-ryzen; internet only, rejected from every private range by the router |
-| WireGuard clients | `10.10.0.2`–`.254` | One `/32` per peer; tunnel `10.10.0.0/24`, `192.168.8.0/24` and `10.20.0.0/24` |
+| WireGuard clients | `10.10.0.2`–`.254` | One `/32` per peer; tunnel `10.10.0.0/24` and `192.168.8.0/24` |
 | DHCP clients | `.100`–`.249` in each VLAN | Everything below `.100` is reserved for static leases and VIPs |
 | Pods and Services | `10.42.0.0/16`, `10.43.0.0/16` | In-cluster only (Cilium cluster-pool IPAM); pod traffic leaves masqueraded as its node |
 
@@ -112,7 +106,6 @@ User-facing applications:
 | Homepage | `homepage.base-domain.invalid` | Application dashboard aggregating links, status, and live service widgets. |
 | Immich | `photos.base-domain.invalid` | Photo and video management. |
 | Notesnook | `notes.base-domain.invalid`<br>`auth.notes.base-domain.invalid`<br>`sse.notes.base-domain.invalid`<br>`monograph.notes.base-domain.invalid` | End-to-end encrypted note-taking sync server with auth, SSE, and Monograph. |
-| OpenChamber | `openchamber.base-domain.invalid`<br>`paseo.base-domain.invalid`<br>`thinkrail.base-domain.invalid` | Routes to the AI agent VM on homeworld-ryzen: the OpenChamber web server, the Paseo daemon, and ThinkRail (behind the Gateway's Authelia sign-in). |
 | OpenCloud | `cloud.base-domain.invalid` | Files, sharing, search, collaboration, CalDAV, and CardDAV. |
 | Supernote | `supernote.base-domain.invalid` | Supernote Private Cloud: device sync, web file manager, and note conversion (amd64 nodes only). |
 | Vaultwarden | `vault.base-domain.invalid` | Bitwarden-compatible password manager with optional Authelia SSO sign-in. |
@@ -195,15 +188,14 @@ This is a fresh-install runbook, in order. Every cluster coordinate except the d
 
 | Constant | Value | Where it is set |
 | --- | --- | --- |
-| Domain | Infisical `/argocd/BASE_DOMAIN` (placeholder `base-domain.invalid` in git) | Substituted into every Gateway, route, and app config under `apps/` by Argo CD's homeworld plugin ([docs/argocd.md](docs/argocd.md#homeworld-plugin)) and into the agents VM's seed; the router's rebind exception (`DNS_REBIND_DOMAIN`, [docs/openwrt.md](docs/openwrt.md)) |
+| Domain | Infisical `/argocd/BASE_DOMAIN` (placeholder `base-domain.invalid` in git) | Substituted into every Gateway, route, and app config under `apps/` by Argo CD's homeworld plugin ([docs/argocd.md](docs/argocd.md#homeworld-plugin)); the router's rebind exception (`DNS_REBIND_DOMAIN`, [docs/openwrt.md](docs/openwrt.md)) |
 | Gateway VIP | `192.168.8.50` | The Gateway's `spec.addresses`; the ExternalDNS wildcard record (`apps/external-dns/2_dns_endpoint.yaml`); `host/cluster.env`; outside the router's DHCP pool ([docs/openwrt.md](docs/openwrt.md) section 17) |
 | Kubernetes API VIP | `192.168.8.51` | `host/cluster.env` (kube-vip and the k3s `tls-san`); outside the router's DHCP pool |
 | Node addresses | `192.168.8.10`–`.12` | The router's static leases; entered at bootstrap and kept on each node in `/etc/homeworld/env` (never in git) |
 | Switch | `192.168.8.2` | The router's static lease ([docs/openwrt.md](docs/openwrt.md) sections 17 and 18) |
 | NAS | `192.168.8.20` | `host/cluster.env`; the static NFS PersistentVolumes (Immich, OpenCloud, the media stack); the router's static lease ([docs/nas.md](docs/nas.md)) |
-| Agents VM subnet | `10.20.0.0/24` (VM `10.20.0.10`) | `host/cluster.env`; `host/agents-vm/network.xml`; the router's static route; the OpenChamber EndpointSlices; Home Assistant's LAN egress exceptions |
 | Tang | `http://192.168.8.1:7500` | `host/cluster.env`; the router ([docs/openwrt.md](docs/openwrt.md) section 17) |
-| Infisical | `https://eu.infisical.com`, project `homeworld`, environment `prod` | `apps/external-secrets/2_secret_store.yaml` and its egress policy; the agents VM's secrets loader (`host/agents-vm/provision.sh`) |
+| Infisical | `https://eu.infisical.com`, project `homeworld`, environment `prod` | `apps/external-secrets/2_secret_store.yaml` and its egress policy |
 | Velero B2 target | bucket `homeworld-velero` in `eu-central-003` | `apps/velero/helm/values.yaml` and its egress policies |
 | Git source | `https://github.com/gjpin/homeworld.git` at `HEAD` (`main`) | Every Argo CD `Application` (`apps/app-of-apps.yaml` and the child Applications); the hosts' hourly pull (`REPO_TARBALL` in `host/cluster.env`) |
 
@@ -213,7 +205,7 @@ ssh-keygen -t ed25519 -a 100 -C ""
 ```
 
 ### 1. Configure the Router
-Set up the OpenWrt router before anything else. Follow [docs/openwrt.md](docs/openwrt.md), including its section 17 for the cluster (the nodes', the NAS's and the switch's static leases, the agents VM route, and the Tang server the nodes' encrypted disks unlock through) and section 18 for the TP-Link switch the nodes and the NAS are wired to (uplink on `lan2`–`lan5`, management address moved onto Pixel). Set `DNS_REBIND_DOMAIN` to your domain: its public wildcard record answers with the private Gateway VIP, which AdGuard Home's rebind protection would otherwise drop.
+Set up the OpenWrt router before anything else. Follow [docs/openwrt.md](docs/openwrt.md), including its section 17 for the cluster (the nodes', the NAS's and the switch's static leases and the Tang server the nodes' encrypted disks unlock through) and section 18 for the TP-Link switch the nodes and the NAS are wired to (uplink on `lan2`–`lan5`, management address moved onto Pixel). Set `DNS_REBIND_DOMAIN` to your domain: its public wildcard record answers with the private Gateway VIP, which AdGuard Home's rebind protection would otherwise drop.
 
 ### 2. Prepare the NAS
 Enable the Raspberry Pi's PCIe port for the SATA HAT, then create the per-app NFS shares, their owners, and the exports on OpenMediaVault, and restrict NFS to the nodes. Follow [docs/nas.md](docs/nas.md).
@@ -264,7 +256,7 @@ Every component synchronizes its secrets from Infisical via the External Secrets
 
 The Velero keys come from Backblaze: create the `homeworld-velero` bucket in `eu-central-003` (bucket-default SSE-B2, lifecycle rule deleting hidden versions after one day) and a dedicated application key limited to it, then store the key as `/velero/B2_APPLICATION_KEY_ID`/`/velero/B2_APPLICATION_KEY` alongside a `/velero/KOPIA_REPOSITORY_PASSWORD` you keep recoverable. Follow [docs/velero.md](docs/velero.md).
 
-Two Machine Identities (Universal Auth) live outside the synchronized keys (see [docs/secrets.md](docs/secrets.md)): the External Secrets Operator's own, which cannot fetch the credentials that grant it access to Infisical, and the agents VM's read-only identity for the `/agents` folder. Create both now; the node bootstrap asks for their client IDs and secrets.
+One Machine Identity (Universal Auth) lives outside the synchronized keys (see [docs/secrets.md](docs/secrets.md)): the External Secrets Operator's own, which cannot fetch the credentials that grant it access to Infisical. Create it now; the node bootstrap asks for its client ID and secret.
 
 ### 6. Install Fedora on the Nodes
 Install Fedora Server with an encrypted root on each node, set its hostname, and copy your SSH key to its admin account. Follow [docs/fedora.md](docs/fedora.md#install).
@@ -298,28 +290,10 @@ The Homepage dashboard's live widgets authenticate to four services with dedicat
 
 Homepage reads its dashboard configuration (`apps/homepage/0_config.yaml`) at startup; after changing it, restart the pod with `kubectl -n homepage rollout restart deploy/homepage`.
 
-### 12. Use the Agents VM
-The homeworld-ryzen node builds the agents VM during its bootstrap ([docs/agents-vm.md](docs/agents-vm.md)):
-
-- **Browser**: `https://openchamber.base-domain.invalid` (sign in with `/agents/OPENCHAMBER_UI_PASSWORD`), `https://paseo.base-domain.invalid` (`/agents/PASEO_PASSWORD`) and `https://thinkrail.base-domain.invalid` (Authelia, `platform` group), from the Pixel network or over WireGuard.
-- **Apps**: pair the Paseo and OpenChamber desktop and mobile apps directly with the VM (`10.20.0.10`) or through the same hostnames; no relay is used.
-- **SSH and editors**: `ssh agent@10.20.0.10` with the keys entered at bootstrap.
-- **Coding agent logins**: once, over SSH; the credentials persist on the VM's `/home` across rebuilds:
-  ```bash
-  opencode auth login   # OpenCode
-  codex login           # Codex CLI
-  claude                # Claude Code
-  pi                    # then run /login inside the Pi session
-  agy                   # Antigravity CLI
-  copilot login         # Copilot CLI (device-code flow)
-  vibe --setup          # Mistral Vibe (API key)
-  ```
-  `/agents/OPENAI_API_KEY` and `/agents/GITHUB_TOKEN` reach the agents that OpenChamber and Paseo start, so Codex and OpenCode also work without an interactive login; an optional `/agents/MISTRAL_API_KEY` does the same for Vibe. Copilot CLI prefers `GITHUB_TOKEN` over its stored login, so that token must carry the Copilot Requests permission, otherwise `copilot login` appears to succeed but is silently shadowed.
-
-### 13. Set Up AFFiNE
+### 12. Set Up AFFiNE
 Open `https://affine.base-domain.invalid/admin` right after the first sync and create the instance admin account in the setup wizard; `affine-user` members then sign in through Authelia. AI keys are not set in git: each workspace owner adds them under **Workspace Settings → Integrations → AI BYOK**, following [docs/affine.md](docs/affine.md).
 
-### 14. Set Up the Media Stack
+### 13. Set Up the Media Stack
 The media apps ([docs/media-stack.md](docs/media-stack.md)) keep most of their settings in their own databases. The connections between them are made by the hourly **media-config** job (`apps/media-config`) through the apps' APIs, so they need no UI steps and come back if removed:
 - Sonarr, Radarr and Lidarr: the qBittorrent download client (categories `tv`, `movies`, `music`), the root folders `/data/media/tv`, `/data/media/movies` and `/data/media/music`, the global delay profile (a fresh release waits 6 hours for a better one, unless it is already the best quality), and a Jellyfin library-refresh connection once the Jellyfin API key exists. In Lidarr also: upgrades off on every quality profile, propers and repacks not preferred, imports **copied** instead of hardlinked, and **Write Audio Tags** set to **For new downloads only** (beets then retags the library in place; retagging a hardlinked file would corrupt the torrent it is seeding).
 - Prowlarr: the Sonarr, Radarr and Lidarr app links (full sync) and the FlareSolverr proxy, applied to indexers tagged `flaresolverr`.

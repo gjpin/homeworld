@@ -37,22 +37,6 @@ data:
             href: https://ci.base-domain.invalid
             description: CI pipelines
             siteMonitor: https://ci.base-domain.invalid
-        - OpenChamber:
-            icon: /icons/openchamber.svg
-            href: https://openchamber.base-domain.invalid
-            description: AI agent workspace
-            siteMonitor: https://openchamber.base-domain.invalid
-        # No siteMonitor: the daemon requires its password as a bearer token
-        # on every request, so an unauthenticated probe cannot reach it.
-        - Paseo:
-            icon: mdi-robot-outline
-            href: https://paseo.base-domain.invalid
-            description: Coding agent daemon
-        # No siteMonitor: the route is behind the Gateway's Authelia sign-in.
-        - ThinkRail:
-            icon: /icons/thinkrail.svg
-            href: https://thinkrail.base-domain.invalid
-            description: Agentic IDE for the Pi agent
     - Media:
         - Immich:
             icon: immich

@@ -24,8 +24,8 @@ defaultSettings:
   defaultDataPath: /var/lib/longhorn
   # Each node's disks come from its node.longhorn.io/default-disks-config
   # annotation (host/apply.sh): the chosen data disks, or the root volume with
-  # a storageReserved that keeps room for the OS, container images and, on the
-  # agents VM host, the VM's disks (host/nodes/<profile>.env).
+  # a storageReserved that keeps room for the OS and container images
+  # (host/nodes/<profile>.env).
   createDefaultDiskLabeledNodes: true
   storageOverProvisioningPercentage: 150
 # Helm hook Jobs rendered through kustomize land in the Argo sync path as

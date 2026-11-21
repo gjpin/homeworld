@@ -31,23 +31,21 @@ Fedora Server's automatic partitioning gives the root LV about 15 GiB and
 leaves the rest of the volume group free. bootstrap.sh grows the root LV to
 the whole volume group (`lvextend -r -l +100%FREE`) before anything else
 lands on it: root holds etcd, the container images and whatever has no data
-disk of its own (below): `/var/lib/longhorn` and, on homeworld-ryzen, the agents VM
-disks. Longhorn's per-node reserve (`LONGHORN_RESERVED_GIB` in
-`host/nodes/<profile>.env`) keeps that space free for the OS and, while it
-lives on root, the VM.
+disk of its own (below): `/var/lib/longhorn`. Longhorn's per-node reserve
+(`LONGHORN_RESERVED_GIB` in `host/nodes/<profile>.env`) keeps that space free
+for the OS.
 
 ## Data disks
 
 `host/disks.sh`, which bootstrap.sh runs before k3s is installed, lists the
-attached disks and lets you put Longhorn and, on homeworld-ryzen, the agents VM disks
-on them. It takes SSD and NVMe disks only: spinning disks are listed but cannot
+attached disks and lets you put Longhorn on them. It takes SSD and NVMe disks only: spinning disks are listed but cannot
 be chosen. USB enclosures can report an SSD as spinning, so name such a disk
 explicitly with `--treat-as-ssd <serial>` (bootstrap.sh passes the option on).
 A USB disk gets a warning, because a brief disconnect can fault every replica
 on it.
 
 Longhorn takes over completely once it has a data disk: root is no longer one
-of its disks. Choosing no disk at all keeps both on root.
+of its disks. Choosing no disk at all keeps it on root.
 
 Skip is the default for every disk. Nothing is erased unless you pick the format
 option and type the disk's serial, which every format and every new partition
@@ -68,15 +66,12 @@ table and runs `blkdiscard`; the script warns when the disk does not support
 discard, because old unencrypted data may then stay recoverable. It never
 shrinks a partition or converts one to LUKS in place.
 
-A disk can hold Longhorn, the agents VM disks (at least 200 GiB) or both. On new
-space, both means two partitions, so neither can take the other's room. On a
-filesystem that keeps your data, each gets a subfolder, and the script asks how
-many GiB Longhorn may use and reserves the rest. That reserve is fixed, so leave
+On a filesystem that keeps your data, Longhorn gets a subfolder, and the
+script asks how many GiB Longhorn may use and reserves the rest. That reserve is fixed, so leave
 room for your files to grow. Longhorn also stops placing replicas once under 25%
 of the filesystem is free. Your files stay reachable by anything with host
 access, such as Longhorn's privileged pods, and they need a backup of their own:
-Longhorn can rebuild its replicas from other nodes, but not your files or the
-VM's `home.qcow2`.
+Longhorn can rebuild its replicas from other nodes, but not your files.
 
 Unencrypted disks are for Longhorn only, because both StorageClasses encrypt
 their volumes: a stolen disk shows volume names and sizes, not their contents.
@@ -85,18 +80,17 @@ The choices stay on the node:
 
 | Path | Purpose |
 | --- | --- |
-| `/etc/homeworld/storage.env` | Longhorn disks, mounts and whether the VM has its own disk; read by apply.sh, the agents VM scripts and the post-boot check |
+| `/etc/homeworld/storage.env` | Longhorn disks and mounts; read by apply.sh and the post-boot check |
 | `/etc/cryptsetup-keys.d/hw-<name>.key` | Key file that unlocks the disk at boot, root-only on the encrypted root |
 | `/etc/crypttab`, `/etc/fstab` | Unlocks by LUKS UUID and mounts by mapper name or filesystem UUID, so device renumbering is harmless |
 | `/var/lib/homeworld-disks/<name>/longhorn` | Longhorn's disk path |
-| `/var/lib/homeworld-disks/<name>/agents-vm` | Bind-mounted at `/var/lib/libvirt/images/agents` |
 
 apply.sh never formats, mounts or changes a disk. Rerunning disks.sh leaves
 configured disks alone, and it has no way to undo a choice.
 
 A missing disk does not stop the boot (`nofail`). Its mountpoints are immutable
-(`chattr +i`), so nothing can land on the root disk in its place, the VM rebuild
-refuses to run, and the post-boot check fails (below).
+(`chattr +i`), so nothing can land on the root disk in its place, and the
+post-boot check fails (below).
 
 ## Disk encryption: LUKS, Clevis and Tang
 
@@ -151,7 +145,6 @@ UID/GID (`device_ownership_from_security_context`,
 | Fedora package updates | daily | `dnf5-automatic.timer`: `apply_updates = yes`, `reboot = never` |
 | Host configuration from git | hourly | `homeworld-pull.timer` ([docs/k3s.md](k3s.md)) |
 | k3s upgrades | 01:00–02:00 | system-upgrade-controller ([docs/upgrades.md](upgrades.md)) |
-| Agents VM root rebuild | 02:00–02:30, only when its pins change | `agents-vm-rebuild.timer` ([docs/agents-vm.md](agents-vm.md)) |
 | Reboots | 02:30–06:30 | kured |
 
 [kured](https://kured.dev/) reboots one node at a time. Its reboot sentinel
@@ -208,13 +201,6 @@ the offline upgrade one at a time in its window, and the post-boot check
 clears the marker once the node runs release N. A node whose upgrade did
 not apply stays tainted and halts the rollout.
 
-The same pin drives the agents VM's base image, so a release bump also
-rebuilds the VM root in its window.
-
-Third-party repositories that have not published the new release yet
-(inside the agents VM: HashiCorp, Adoptium) fall back to the previous
-release until they do.
-
 ## Firewall
 
 firewalld (nftables backend) stays enabled; Cockpit is disabled.
@@ -224,11 +210,9 @@ firewalld (nftables backend) stays enabled; Cockpit is disabled.
 | `homeworld-lan` (default) | the LAN NIC | SSH, Kubernetes API (`6443`) |
 | `homeworld-nodes` | the three node addresses | SSH, etcd (`2379`–`2381`), Kubernetes API, kubelet (`10250`), scheduler and controller-manager metrics (`10257`, `10259`), Cilium health, Hubble peers and metrics (`4240`, `4244`, `9962`–`9965`), Cilium WireGuard (`51871/udp`), VXLAN (`8472/udp`) |
 | `trusted` | Pod and Service CIDRs, `cilium_*` and `lxc*` interfaces | everything |
-| `homeworld-agents` (homeworld-ryzen) | `virbr-agents` | DHCP and DNS to libvirt's dnsmasq |
 
 The Gateway VIP (`443`, `22`) is load-balanced by Cilium's eBPF datapath
-before netfilter sees it. The agents VM policies on homeworld-ryzen are listed in
-[docs/agents-vm.md](agents-vm.md).
+before netfilter sees it.
 
 ## Trust
 

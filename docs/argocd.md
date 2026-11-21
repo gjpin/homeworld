@@ -113,9 +113,6 @@
    * collabora: standalone Collabora chart and WOPI endpoint
    * woodpecker: CI server and Kubernetes-backend agents, after Forgejo (the
      OAuth source and webhook target)
-   * openchamber: routes and selectorless Services for the agents VM
-     ([docs/agents-vm.md](agents-vm.md)), after Envoy Gateway
-     and cert-manager
    * the media stack ([media-stack.md](media-stack.md)), after qBittorrent
      and Authelia (wave 6), CloudNativePG, and csi-driver-nfs: prowlarr,
      flaresolverr, sonarr, radarr, lidarr, bindery, bazarr, recyclarr,
