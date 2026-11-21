@@ -1,4 +1,5 @@
 apps/**/helm/**/charts/
+incubator/**/helm/**/charts/
 security-reports/
 e2e/examples/.generated/
 **/__pycache__/

@@ -105,7 +105,7 @@ put 0644 "$files/modules/homeworld.conf" /etc/modules-load.d/homeworld.conf && s
 
 # --- firewalld ------------------------------------------------------------
 fw_changed=0
-fw() { # fw ZONE-OR-POLICY-ARGS QUERY-FLAG ADD-FLAG VALUE
+fw() { # fw ZONE-ARGS QUERY-FLAG ADD-FLAG VALUE
   local target=$1 query=$2 add=$3 value=$4
   if ! firewall-cmd --permanent $target "$query=$value" >/dev/null 2>&1; then
     firewall-cmd --permanent $target "$add=$value" >/dev/null

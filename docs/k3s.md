@@ -37,9 +37,9 @@ The script changes only what differs: packages, firewalld zones, sshd
 containerd drop-ins, the k3s configuration, the kube-vip manifest, the
 dnf5-automatic and kured helpers, and the Longhorn disk annotation. Files k3s
 or containerd read only at start are written but not reloaded: apply.sh
-leaves `/var/lib/homeworld/reboot-required`, and kured reboots the node in its window ([docs/fedora.md](fedora.md)). Node
-addresses and the cluster domain never live in git: bootstrap.sh records them
-in `/etc/homeworld/env`.
+leaves `/var/lib/homeworld/reboot-required`, and kured reboots the node in
+its window ([docs/fedora.md](fedora.md)). Node addresses and the cluster domain
+never live in git: bootstrap.sh records them in `/etc/homeworld/env`.
 
 Each run is bounded (five minutes for the download, 50 for apply.sh) and
 records its outcome as the node condition `HomeworldApply`

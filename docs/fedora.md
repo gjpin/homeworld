@@ -38,11 +38,11 @@ for the OS.
 ## Data disks
 
 `host/disks.sh`, which bootstrap.sh runs before k3s is installed, lists the
-attached disks and lets you put Longhorn on them. It takes SSD and NVMe disks only: spinning disks are listed but cannot
-be chosen. USB enclosures can report an SSD as spinning, so name such a disk
-explicitly with `--treat-as-ssd <serial>` (bootstrap.sh passes the option on).
-A USB disk gets a warning, because a brief disconnect can fault every replica
-on it.
+attached disks and lets you put Longhorn on them. It takes SSD and NVMe disks
+only: spinning disks are listed but cannot be chosen. USB enclosures can report
+an SSD as spinning, so name such a disk explicitly with
+`--treat-as-ssd <serial>` (bootstrap.sh passes the option on). A USB disk gets
+a warning, because a brief disconnect can fault every replica on it.
 
 Longhorn takes over completely once it has a data disk: root is no longer one
 of its disks. Choosing no disk at all keeps it on root.
@@ -58,7 +58,7 @@ not selectable until you free it.
 | Nothing | Format and encrypt |
 | At least 20 GiB unallocated (GPT) | Add an encrypted partition there, or erase the disk and format it |
 | LUKS with ext4 or XFS | Unlock it and use its free space, or erase the disk and format it |
-| Unencrypted ext4 or XFS | Use its free space for Longhorn only, or erase the disk and format it |
+| Unencrypted ext4 or XFS | Use its free space, or erase the disk and format it |
 | Anything else | Erase the disk and format it |
 
 Formatting creates LUKS2 with XFS. Erasing removes the signatures and partition
@@ -67,13 +67,14 @@ discard, because old unencrypted data may then stay recoverable. It never
 shrinks a partition or converts one to LUKS in place.
 
 On a filesystem that keeps your data, Longhorn gets a subfolder, and the
-script asks how many GiB Longhorn may use and reserves the rest. That reserve is fixed, so leave
-room for your files to grow. Longhorn also stops placing replicas once under 25%
-of the filesystem is free. Your files stay reachable by anything with host
-access, such as Longhorn's privileged pods, and they need a backup of their own:
-Longhorn can rebuild its replicas from other nodes, but not your files.
+script asks how many GiB Longhorn may use and reserves the rest. That reserve
+is fixed, so leave room for your files to grow. Longhorn also stops placing
+replicas once under 25% of the filesystem is free. Your files stay reachable
+by anything with host access, such as Longhorn's privileged pods, and they need
+a backup of their own: Longhorn can rebuild its replicas from other nodes, but
+not your files.
 
-Unencrypted disks are for Longhorn only, because both StorageClasses encrypt
+Unencrypted disks are fine for Longhorn, because both StorageClasses encrypt
 their volumes: a stolen disk shows volume names and sizes, not their contents.
 
 The choices stay on the node:

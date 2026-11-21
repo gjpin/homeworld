@@ -376,7 +376,7 @@ has_room() {
 
 # keep_volume JSON DEV FSTYPE: reuse a filesystem, its contents untouched.
 keep_volume() {
-  local json=$1 dev=$2 fstype=$3 partn name spec only="" reserved stats size used inner attempts pass
+  local json=$1 dev=$2 fstype=$3 partn name spec plain="" reserved stats size used inner attempts pass
   partn=$(lsblk -nrpo PARTN "$dev" | head -1)
   name=$(volume_name "$json" "$partn")
   if [ "$fstype" = crypto_LUKS ]; then
@@ -401,24 +401,24 @@ keep_volume() {
         ;;
     esac
   else
-    only=longhorn-only
+    plain=1
     spec=UUID=$(blkid -o value -s UUID "$dev")
-    echo "  Not encrypted: Longhorn only, whose volumes are encrypted themselves."
+    echo "  Not encrypted: fine for Longhorn, whose volumes are encrypted themselves."
   fi
   stats=$(fs_stats "$spec" "$fstype")
   if [ -z "$stats" ]; then
     echo "Could not read $dev. Leaving it alone."
-    [ "$only" = longhorn-only ] || cryptsetup close "hw-$name"
+    [ -n "$plain" ] || cryptsetup close "hw-$name"
     return 0
   fi
   size=${stats% *}
   used=${stats#* }
   if ! has_room $((size - used)) || ! reserved=$(give_longhorn "$size" "$used"); then
     echo "Leaving $dev alone."
-    [ "$only" = longhorn-only ] || cryptsetup close "hw-$name"
+    [ -n "$plain" ] || cryptsetup close "hw-$name"
     return 0
   fi
-  if [ "$only" != longhorn-only ]; then
+  if [ -z "$plain" ]; then
     new_key "$name"
     printf %s "$pass" | cryptsetup luksAddKey --key-file=- "$dev" "$keys_dir/hw-$name.key"
     add_crypttab "$name" "$dev"
@@ -480,7 +480,7 @@ for disk in "${choices[@]}"; do
   while IFS=$'\t' read -r dev fstype; do
     case "$fstype" in
       crypto_LUKS) labels+=("Keep the data, unlock $dev and use the free space"); actions+=("keep $dev $fstype") ;;
-      *) labels+=("Keep the data, use the free space on $dev ($fstype, not encrypted, Longhorn only)"); actions+=("keep $dev $fstype") ;;
+      *) labels+=("Keep the data, use the free space on $dev ($fstype, not encrypted)"); actions+=("keep $dev $fstype") ;;
     esac
   done < <(jq -r '[recurse(.children[]?) | select(.fstype == "crypto_LUKS" or .fstype == "ext4" or .fstype == "xfs")]
     | .[] | [.name, .fstype] | @tsv' <<<"$json")

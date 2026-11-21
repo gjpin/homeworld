@@ -365,7 +365,7 @@ filter_referenced() {
       else
         prefix="$key"
         while [[ -n "$prefix" ]]; do
-          # Library and dependency charts (bjw-s common, libcoder) render the
+          # Library and dependency charts (bjw-s common, victoria-metrics-common) render the
           # parent's values, so search every template under the chart.
           if grep -rqE --include='*.yaml' --include='*.tpl' --exclude='values*.yaml' \
             "\.Values\.$(sed 's/[.]/\\./g' <<<"$prefix")([^A-Za-z0-9_.]|\$)" "$chart" 2>/dev/null; then
