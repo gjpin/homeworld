@@ -217,7 +217,7 @@ Staging copies live under `/tmp/homeworld-e2e-git`. The kubectl-applied Applicat
 | `longhorn-app` | Longhorn needs host disks; PVCs use a local-path class of the same name instead |
 | `velero-app`, `velero-ui-app` | Real Backblaze B2 |
 | `homeassistant-app` | Zigbee / host devices |
-| `external-dns-app` | Publishes the production wildcard record through the Cloudflare API; the CoreDNS stub resolves the e2e domain instead |
+| `external-dns-app` | Publishes the production wildcard record through the Porkbun API; the CoreDNS stub resolves the e2e domain instead |
 | `cilium-app` | Rootless Docker (Lima or Desktop) cannot mount bpffs, so the Cilium datapath cannot start on kind; the suite installs its own CRD-only Cilium in kube-system |
 | `snapshot-controller-app` | kind's local-path provisioner has no CSI driver, so there is nothing for the snapshot controller to act on |
 | `qbittorrent-app` | The gluetun VPN sidecar needs real ProtonVPN WireGuard credentials, which the suite does not have |

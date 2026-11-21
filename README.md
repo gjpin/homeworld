@@ -148,13 +148,13 @@ Operators, foundations, and supporting services:
 | Admission Policies | — | CEL ValidatingAdmissionPolicies protecting Pod Security Admission labels. |
 | Argo CD | `argocd.base-domain.invalid` | GitOps continuous delivery. |
 | Authelia | `auth.base-domain.invalid` | Identity provider for every OIDC sign-in (applications and the gateway-OIDC routes). |
-| cert-manager | — | The shared Gateway's Let's Encrypt wildcard certificate (DNS-01 through Cloudflare). |
+| cert-manager | — | The shared Gateway's Let's Encrypt wildcard certificate (DNS-01 through Porkbun). |
 | Cilium | — | kube-proxy-free eBPF CNI with WireGuard pod-to-pod encryption and Hubble relay/UI observability (cluster-internal). |
 | CloudNativePG | — | PostgreSQL operator. |
 | csi-driver-nfs | — | NFS CSI node plugin mounting the NAS shares behind the static Immich, OpenCloud, and media-stack volumes. |
 | DocumentDB Operator | — | DocumentDB, a MongoDB-compatible datastore, operator. |
 | Envoy Gateway | `envoy.base-domain.invalid` | Gateway API implementation and its admin console. |
-| ExternalDNS | — | Publishes the wildcard DNS record pointing every app hostname at the Gateway VIP (Cloudflare). |
+| ExternalDNS | — | Publishes the wildcard DNS record pointing every app hostname at the Gateway VIP (Porkbun). |
 | External Secrets | — | Infisical-backed secret synchronization. |
 | Generic Device Plugin | — | Advertises the homeworld-corebox and homeworld-ryzen GPU render nodes (`devic.es/dri`) for Jellyfin's hardware transcoding. |
 | Grafana | `grafana.base-domain.invalid` | Dashboards and observability visualization. |
@@ -211,9 +211,10 @@ Set up the OpenWrt router before anything else. Follow [docs/openwrt.md](docs/op
 Enable the Raspberry Pi's PCIe port for the SATA HAT, then create the per-app NFS shares, their owners, and the exports on OpenMediaVault, and restrict NFS to the nodes. Follow [docs/nas.md](docs/nas.md).
 
 ### 3. Set Up the Domain
-Every app is served on `<app>.<domain>` from one wildcard DNS record and one wildcard certificate. The domain's DNS must be hosted on Cloudflare:
-1. Create a Cloudflare API token (*My Profile → API Tokens*) with **Zone → DNS → Edit** and **Zone → Zone → Read** on the domain's zone. ExternalDNS publishes the `*.<domain>` A record to `192.168.8.50` with it, and cert-manager answers the Let's Encrypt DNS-01 challenges for the wildcard certificate.
-2. Store the token in Infisical as `/cloudflare/API_TOKEN` and the domain itself (`example.com`, no wildcard or trailing dot) as `/argocd/BASE_DOMAIN` ([docs/secrets.md](docs/secrets.md)).
+Every app is served on `<app>.<domain>` from one wildcard DNS record and one wildcard certificate. The domain's DNS is hosted on Porkbun:
+1. Create a Porkbun API key at [porkbun.com/account/api](https://porkbun.com/account/api) with **Custom** permissions: **read** (default, mandatory) and **dns** (*Change DNS records, URL forwarding and records at a connected Cloudflare account*).
+2. Enable **API Access** on the domain under *Domain Management → Details → API Access* (disabled per domain by default). ExternalDNS publishes the `*.<domain>` A record to `192.168.8.50` in `upsert-only` mode (leaving manually managed records untouched), and cert-manager answers the Let's Encrypt DNS-01 challenges for the wildcard certificate through the Porkbun webhook.
+3. Store the credentials in Infisical as `/porkbun/API_KEY` and `/porkbun/SECRET_API_KEY`, and the domain itself (`example.com`, no wildcard or trailing dot) as `/argocd/BASE_DOMAIN` ([docs/secrets.md](docs/secrets.md)).
 
 The record points at a private address, so the apps answer only on the Pixel network and over WireGuard even though the names resolve publicly. Certificate Transparency logs publish the domain (not the app names: the certificate covers `*.<domain>` plus the `*.notes` and `*.rustfs` second-level wildcards).
 

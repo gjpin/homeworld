@@ -122,8 +122,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  # ACME HTTP APIs and Cloudflare DNS-01 reconciliation are the controller's
-  # only Internet dependencies.
+  # ACME HTTP APIs are the controller's only Internet dependencies; DNS-01
+  # reconciliation runs through the Porkbun webhook via kube-apiserver.
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/component: controller
@@ -132,10 +132,74 @@ spec:
     - toFQDNs:
         - matchName: acme-v02.api.letsencrypt.org
         - matchName: acme-staging-v02.api.letsencrypt.org
-        - matchName: api.cloudflare.com
       toPorts:
         - ports:
             - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-porkbun-webhook-kubernetes-api
+  namespace: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: cert-manager-webhook-porkbun
+      k8s:app.kubernetes.io/instance: cert-manager-webhook-porkbun
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-porkbun-webhook-dns-api
+  namespace: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # The Porkbun DNS-01 webhook reconciles ACME challenge TXT records only
+  # through the Porkbun JSON API v3 over HTTPS.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: cert-manager-webhook-porkbun
+      k8s:app.kubernetes.io/instance: cert-manager-webhook-porkbun
+  egress:
+    - toFQDNs:
+        - matchName: api.porkbun.com
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-porkbun-webhook-ingress
+  namespace: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  # Aggregated API server traffic from kube-apiserver (on local or remote nodes)
+  # reaches the webhook container on its unprivileged port 8443.
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: cert-manager-webhook-porkbun
+      k8s:app.kubernetes.io/instance: cert-manager-webhook-porkbun
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "8443"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2

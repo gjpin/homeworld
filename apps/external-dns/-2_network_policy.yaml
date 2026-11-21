@@ -60,19 +60,20 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: allow-cloudflare-dns-api
+  name: allow-porkbun-dns-api
   namespace: external-dns
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  # ExternalDNS reconciles records only through the Cloudflare HTTPS API.
+  # The Porkbun webhook sidecar reconciles records only through the Porkbun
+  # JSON API v3 over HTTPS.
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: external-dns
       k8s:app.kubernetes.io/instance: external-dns
   egress:
     - toFQDNs:
-        - matchName: api.cloudflare.com
+        - matchName: api.porkbun.com
       toPorts:
         - ports:
             - port: "443"
@@ -86,8 +87,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
 spec:
-  # The chart's ServiceMonitor scrapes the http listener that also serves
-  # the Prometheus endpoint.
+  # The chart's ServiceMonitor scrapes both the controller's http listener
+  # (7979) and the Porkbun webhook sidecar's ops listener (8080).
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: external-dns
@@ -102,4 +103,6 @@ spec:
       toPorts:
         - ports:
             - port: "7979"
+              protocol: TCP
+            - port: "8080"
               protocol: TCP

@@ -18,7 +18,7 @@ OMIT_APPS = {
     "velero-ui-app",
     "homeassistant-app",
     # ExternalDNS publishes the production wildcard record through the
-    # Cloudflare API; kind resolves the e2e domain through CoreDNS
+    # Porkbun API; kind resolves the e2e domain through CoreDNS
     # (patch-coredns-e2e-domain.sh) instead.
     "external-dns-app",
     # Rootless Docker (Lima or Desktop) cannot mount bpffs, so the Cilium

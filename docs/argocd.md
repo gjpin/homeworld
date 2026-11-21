@@ -25,7 +25,8 @@
      chart's ServiceMonitors validate
 * **Sync wave 3**
    * cert-manager: the shared Gateway's wildcard certificate from the
-     Let's Encrypt ClusterIssuers (DNS-01 through Cloudflare)
+     Let's Encrypt ClusterIssuers (DNS-01 through the Porkbun webhook,
+     deployed in intra-component wave 2 after the wave-1 chart)
    * external-dns: publishes the wildcard record pointing every name under
      the domain at the Gateway VIP; its `DNSEndpoint` CRD ships with the
      chart (wave-1 Helm Application) and the `DNSEndpoint` itself syncs at

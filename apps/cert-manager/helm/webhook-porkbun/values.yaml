@@ -1,0 +1,30 @@
+fullnameOverride: cert-manager-webhook-porkbun
+# Must match the groupName in apps/cert-manager/2_cluster_issuer.yaml.
+# base-domain.invalid is replaced with the real domain by the Argo CD
+# homeworld plugin (docs/argocd.md).
+groupName: acme.base-domain.invalid
+
+certManager:
+  namespace: cert-manager
+  serviceAccountName: cert-manager
+
+replicaCount: 1
+
+image:
+  pullPolicy: IfNotPresent
+
+rbac:
+  secretAccess:
+    scope: Namespaced
+    secretNames:
+      - porkbun-api-credentials
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+    ephemeral-storage: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+    ephemeral-storage: 256Mi

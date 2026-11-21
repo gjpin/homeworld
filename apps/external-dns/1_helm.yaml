@@ -1,5 +1,5 @@
 # https://artifacthub.io/packages/helm/external-dns/external-dns
-# https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/cloudflare.md
+# https://github.com/mattgmoser/external-dns-porkbun-webhook
 # https://kubernetes-sigs.github.io/external-dns/latest/docs/sources/crd/
 ---
 apiVersion: argoproj.io/v1alpha1

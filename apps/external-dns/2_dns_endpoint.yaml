@@ -17,6 +17,7 @@ spec:
   endpoints:
     - dnsName: "*.base-domain.invalid"
       recordType: A
-      recordTTL: 300
+      # Porkbun enforces a 600s minimum TTL.
+      recordTTL: 600
       targets:
         - 192.168.8.50

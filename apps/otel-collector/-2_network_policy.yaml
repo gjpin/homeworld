@@ -1002,6 +1002,8 @@ spec:
         - ports:
             - port: "7979"
               protocol: TCP
+            - port: "8080"
+              protocol: TCP
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy

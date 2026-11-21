@@ -217,7 +217,7 @@ spec:
 ---
 # external-dns
 # Wave 3: publishes the wildcard record for the Gateway VIP alongside
-# cert-manager, whose wildcard certificate needs the same Cloudflare zone.
+# cert-manager, whose wildcard certificate needs the same Porkbun zone.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

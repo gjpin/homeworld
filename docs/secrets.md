@@ -28,7 +28,7 @@ The cluster domain is the one coordinate kept out of git: manifests carry the `b
 | | `/affine/RUSTFS_SECRET_KEY` | RustFS S3 secret key for the blob, avatar, and AI storages. | `openssl rand -hex 16` |
 | | `/affine/EXA_API_KEY` | Exa API key for AFFiNE AI web search. | From Exa |
 | | `/affine/UNSPLASH_API_KEY` | Unsplash access key for image search in documents. | From Unsplash (application access key) |
-| **Argo CD** | `/argocd/BASE_DOMAIN` | The cluster domain (`example.com`, no wildcard or trailing dot): every app is served on `<app>.<domain>`. The homeworld Config Management Plugin substitutes it for the `base-domain.invalid` placeholder ([argocd.md](argocd.md#homeworld-plugin)); `host/bootstrap.sh` reads it once to seed the Secret before External Secrets runs. | The domain whose Cloudflare zone `/cloudflare/API_TOKEN` edits |
+| **Argo CD** | `/argocd/BASE_DOMAIN` | The cluster domain (`example.com`, no wildcard or trailing dot): every app is served on `<app>.<domain>`. The homeworld Config Management Plugin substitutes it for the `base-domain.invalid` placeholder ([argocd.md](argocd.md#homeworld-plugin)); `host/bootstrap.sh` reads it once to seed the Secret before External Secrets runs. | The Porkbun domain whose DNS `/porkbun/API_KEY` edits |
 | | `/argocd/VALKEY_PASSWORD` | Valkey password for the controllers' cache; rendered into both the `password` key (Valkey chart) and the Argo CD chart's `redis-password` key. | `openssl rand -hex 32` |
 | **Audiobookshelf** | `/audiobookshelf/JWT_SECRET_KEY` | Signs Audiobookshelf's session and API tokens; without it the server generates one into its database. | `openssl rand -hex 32` |
 | **AudioMuse-AI** | `/audiomuse-ai/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `audiomuse` (the CNPG `owner` user) |
@@ -68,7 +68,6 @@ The cluster domain is the one coordinate kept out of git: manifests carry the `b
 | **Bindery** | `/bindery/API_KEY` | Bindery API key (`BINDERY_API_KEY`), shared with the media-config job. | `openssl rand -hex 32` |
 | **Cleanuparr** | `/cleanuparr/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `cleanuparr` (the CNPG `owner` user) |
 | | `/cleanuparr/POSTGRES_PASSWORD` | CloudNativePG application password. | `openssl rand -hex 32` |
-| **Cloudflare** | `/cloudflare/API_TOKEN` | Cloudflare DNS API token (Zone → DNS → Edit **plus** Zone → Zone → Read, so external-dns and cert-manager can resolve the zone ID for each record) shared by the cert-manager ClusterIssuers (DNS-01) and external-dns (the wildcard record). | From the Cloudflare dashboard (My Profile → API Tokens) |
 | **Collabora** | `/opencloud/COLLABORA_ADMIN_USER` | Collabora admin console username. | Chosen username |
 | | `/opencloud/COLLABORA_ADMIN_PASSWORD` | Collabora admin console password. | `openssl rand -hex 32` |
 | | `/opencloud/COLLABORA_PROOF_KEY` | WOPI proof private key for OpenCloud ↔ Collabora requests. | `openssl genrsa -out proof_key 4096` (matching the chart's 4096-bit requirement; existing 2048-bit keys still verify) |
@@ -111,6 +110,8 @@ The cluster domain is the one coordinate kept out of git: manifests carry the `b
 | | `/notesnook/RUSTFS_ACCESS_KEY` | RustFS S3 access key for note attachments. | Chosen access key ID (≥8 characters, no whitespace, `=` or `,`) |
 | | `/notesnook/RUSTFS_SECRET_KEY` | RustFS S3 secret key for note attachments. | `openssl rand -hex 16` |
 | **OpenCloud** | `/opencloud/IDM_ADMIN_PASSWORD` | OpenCloud IDM administrator password. | `openssl rand -hex 32` |
+| **Porkbun** | `/porkbun/API_KEY` | Porkbun API key (`pk1_...`) shared by external-dns (wildcard A record) and cert-manager's Porkbun DNS-01 webhook (Let's Encrypt challenges). Also enable **API Access** on the domain under *Domain Management → Details → API Access*. | From [porkbun.com/account/api](https://porkbun.com/account/api) with **Custom** permissions: **read** (default, mandatory) and **dns** (*Change DNS records, URL forwarding and records at a connected Cloudflare account*) |
+| | `/porkbun/SECRET_API_KEY` | Porkbun secret API key (`sk1_...`) paired with `/porkbun/API_KEY`. | From the same Porkbun API key creation at [porkbun.com/account/api](https://porkbun.com/account/api) |
 | **Prowlarr** | `/prowlarr/API_KEY` | Prowlarr API key (`PROWLARR__AUTH__APIKEY` overrides `config.xml`), shared with its exportarr sidecar, the media-config job and the Homepage widget (media-config stores it in Bindery). | `openssl rand -hex 16` (32 hex characters, the Servarr key format) |
 | | `/prowlarr/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `prowlarr` (the CNPG `owner` user) |
 | | `/prowlarr/POSTGRES_PASSWORD` | CloudNativePG application password. | `openssl rand -hex 32` |

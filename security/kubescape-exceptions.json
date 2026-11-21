@@ -1024,6 +1024,14 @@
           "name": "^otel-targetallocator-monitor-credentials$",
           "namespace": "^woodpecker$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cert-manager-webhook-porkbun:secret-reader$",
+          "namespace": "^cert-manager$"
+        }
       }
     ],
     "posturePolicies": [
@@ -2841,6 +2849,14 @@
           "name": "^pre-sync-snapshot-rotation$",
           "namespace": "^supernote$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-webhook-porkbun$",
+          "namespace": "^cert-manager$"
+        }
       }
     ],
     "posturePolicies": [
@@ -3957,6 +3973,28 @@
           "kind": "^RoleBinding$",
           "name": "^pre-sync-snapshot-rotation$",
           "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-webhook-porkbun:domain-solver$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^ClusterRoleBinding$",
+          "name": "^cert-manager-webhook-porkbun:flowcontrol$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cert-manager-webhook-porkbun:secret-reader$",
+          "namespace": "^cert-manager$"
         }
       }
     ],
@@ -5309,6 +5347,14 @@
           "name": "^opencloud$",
           "namespace": "^opencloud$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-webhook-porkbun$",
+          "namespace": "^cert-manager$"
+        }
       }
     ],
     "posturePolicies": [
@@ -5680,6 +5726,14 @@
           "kind": "^RoleBinding$",
           "name": "^otel-targetallocator-monitor-credentials$",
           "namespace": "^woodpecker$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^RoleBinding$",
+          "name": "^cert-manager-webhook-porkbun:secret-reader$",
+          "namespace": "^cert-manager$"
         }
       }
     ],
@@ -6264,6 +6318,14 @@
           "kind": "^Job$",
           "name": "^pre-sync-snapshot-rotation$",
           "namespace": "^supernote$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-webhook-porkbun$",
+          "namespace": "^cert-manager$"
         }
       }
     ],
@@ -8077,6 +8139,14 @@
           "name": "^opencloud$",
           "namespace": "^opencloud$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-webhook-porkbun$",
+          "namespace": "^cert-manager$"
+        }
       }
     ],
     "posturePolicies": [
@@ -8842,6 +8912,22 @@
           "kind": "^Deployment$",
           "name": "^opencloud$",
           "namespace": "^opencloud$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-webhook-porkbun$",
+          "namespace": "^cert-manager$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^external-dns$",
+          "namespace": "^external-dns$"
         }
       }
     ],
@@ -10073,6 +10159,14 @@
           "name": "^pre-sync-snapshot-rotation$",
           "namespace": "^supernote$"
         }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-webhook-porkbun$",
+          "namespace": "^cert-manager$"
+        }
       }
     ],
     "posturePolicies": [
@@ -10334,6 +10428,14 @@
           "kind": "^Deployment$",
           "name": "^system-upgrade-controller$",
           "namespace": "^system-upgrade$"
+        }
+      },
+      {
+        "designatorType": "Attributes",
+        "attributes": {
+          "kind": "^Deployment$",
+          "name": "^cert-manager-webhook-porkbun$",
+          "namespace": "^cert-manager$"
         }
       }
     ],

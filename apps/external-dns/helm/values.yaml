@@ -6,39 +6,147 @@ namespaced: true
 sourceNamespace: external-dns
 replicaCount: 1
 
+# Keep a single writable controller during upgrades so overlapping webhook
+# sidecars cannot bypass the process-local Porkbun rate limiter.
+deploymentStrategy:
+  type: Recreate
+
 image:
   pullPolicy: IfNotPresent
 
 sources:
   - crd
 
-# The wildcard record is the only record this instance publishes, so sync
-# also removes it when the DNSEndpoint goes away. The TXT registry limits
-# deletions to records carrying this owner id.
-policy: sync
+# Never delete existing records in the Porkbun zone: manually managed records
+# coexist with the cluster wildcard. The TXT registry additionally limits
+# mutations to records carrying this owner id.
+policy: upsert-only
 
 # Scope this instance to its own zone; the txt registry only adopts records
 # carrying this prefix/owner id. base-domain.invalid is replaced with the
 # real domain by the Argo CD homeworld plugin (docs/argocd.md).
 domainFilters:
   - base-domain.invalid
-txtPrefix: external-dns.
+txtPrefix: external-dns-%{record_type}.
 txtOwnerId: external-dns
 
 extraArgs:
   # The registry TXT record of *.base-domain.invalid cannot carry a literal
-  # "*" behind the prefix; write it as "wildcard" instead.
-  - --txt-wildcard-replacement=wildcard
+  # "*" behind the prefix; write it as "_wildcard" instead so it cannot collide
+  # with a real first label.
+  - --txt-wildcard-replacement=_wildcard
+  - --webhook-provider-url=http://127.0.0.1:8888
+  # Porkbun serializes API calls at ~1 req/s; raise the default 15s total
+  # webhook deadline to 5m (30s read + 4m30s write).
+  - --webhook-provider-read-timeout=30s
+  - --webhook-provider-write-timeout=4m30s
 
 provider:
-  name: cloudflare
+  name: webhook
+  webhook:
+    image:
+      repository: ghcr.io/mattgmoser/external-dns-porkbun-webhook
+      tag: "0.7.2"
+      pullPolicy: IfNotPresent
+    env:
+      - name: PORKBUN_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: porkbun-api-credentials
+            key: api-key
+      - name: PORKBUN_SECRET_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: porkbun-api-credentials
+            key: secret-key
+      - name: PORKBUN_DOMAIN
+        value: base-domain.invalid
+      - name: DOMAIN_FILTER
+        value: base-domain.invalid
+      # Bind the unauthenticated ExternalDNS webhook protocol to loopback only;
+      # expose only the ops listener (probes + metrics) on the Service.
+      - name: WEBHOOK_LISTEN
+        value: "127.0.0.1:8888"
+      - name: OPS_LISTEN
+        value: ":8080"
+      - name: CACHE_TTL
+        value: 1m
+      - name: LOG_LEVEL
+        value: info
+      - name: LOG_FORMAT
+        value: text
+      - name: DRY_RUN
+        value: "false"
+    securityContext:
+      privileged: false
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 65532
+      runAsGroup: 65532
+      capabilities:
+        drop:
+          - ALL
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: http-webhook
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 2
+      successThreshold: 1
+    readinessProbe:
+      httpGet:
+        path: /readyz
+        port: http-webhook
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 6
+      successThreshold: 1
+    service:
+      port: 8080
+    serviceMonitor:
+      interval: 60s
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+        ephemeral-storage: 64Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi
+        ephemeral-storage: 256Mi
 
-env:
-  - name: CF_API_TOKEN
-    valueFrom:
-      secretKeyRef:
-        name: cloudflare-api-token
-        key: api-token
+# Project the Kubernetes ServiceAccount token only into the external-dns
+# container so the webhook sidecar receives no Kubernetes API credentials.
+serviceAccount:
+  automountServiceAccountToken: false
+automountServiceAccountToken: false
+extraVolumes:
+  - name: kube-api-access-external-dns
+    projected:
+      defaultMode: 420
+      sources:
+        - serviceAccountToken:
+            path: token
+            expirationSeconds: 3600
+        - configMap:
+            name: kube-root-ca.crt
+            items:
+              - key: ca.crt
+                path: ca.crt
+        - downwardAPI:
+            items:
+              - path: namespace
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+extraVolumeMounts:
+  - name: kube-api-access-external-dns
+    mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+    readOnly: true
 
 serviceMonitor:
   enabled: true

@@ -1678,6 +1678,19 @@
     },
     {
       "customType": "regex",
+      "description": "Update the ExternalDNS Porkbun webhook sidecar image tag",
+      "managerFilePatterns": [
+        "/^apps/external-dns/helm/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?ms)^\\s+repository:\\s*(?<depName>ghcr\\.io/mattgmoser/external-dns-porkbun-webhook)\\s*\\n\\s+tag:\\s*\"?(?<currentValue>[^\"\\s#]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    },
+    {
+      "customType": "regex",
       "description": "Update the kubectl image the system-upgrade-controller Jobs use (a kustomize patch value no built-in manager sees)",
       "managerFilePatterns": [
         "/^apps/system-upgrade-controller/controller/kustomization\\.yaml$/"

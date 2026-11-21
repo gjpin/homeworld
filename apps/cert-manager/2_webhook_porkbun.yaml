@@ -1,0 +1,36 @@
+# https://github.com/octabits-io/cert-manager-webhook-porkbun
+#
+# Deployed in wave 2 after the wave-1 cert-manager chart installs its CRDs and
+# controller, because this chart renders cert-manager Issuer and Certificate
+# resources for the webhook's own serving TLS chain.
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager-webhook-porkbun
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=true
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true
+  source:
+    repoURL: https://github.com/gjpin/homeworld.git
+    path: apps/cert-manager/helm/webhook-porkbun
+    targetRevision: HEAD
+    plugin:
+      name: homeworld

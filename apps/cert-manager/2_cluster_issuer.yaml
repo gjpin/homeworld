@@ -1,8 +1,9 @@
-# https://cert-manager.io/docs/configuration/acme/dns01/cloudflare/
+# https://github.com/octabits-io/cert-manager-webhook-porkbun
 #
 # The shared Gateway (apps/envoy-gateway/2_gateway.yaml) takes its wildcard
-# certificate from letsencrypt-prod through DNS-01. No account email is set:
-# the field cannot come from a Secret, and the domain stays out of git.
+# certificate from letsencrypt-prod through Porkbun DNS-01 via the
+# cert-manager-webhook-porkbun solver. No account email is set: the field
+# cannot come from a Secret, and the domain stays out of git.
 ---
 # Let's Encrypt Prod
 apiVersion: cert-manager.io/v1
@@ -18,11 +19,17 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-prod
     solvers:
-    - dns01:
-        cloudflare:
-          apiTokenSecretRef:
-            name: cloudflare-api-token
-            key: api-token
+      - dns01:
+          webhook:
+            groupName: acme.base-domain.invalid
+            solverName: porkbun
+            config:
+              apiKey:
+                name: porkbun-api-credentials
+                key: api-key
+              secretApiKey:
+                name: porkbun-api-credentials
+                key: secret-key
 ---
 # Let's Encrypt Staging
 apiVersion: cert-manager.io/v1
@@ -38,8 +45,14 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-staging
     solvers:
-    - dns01:
-        cloudflare:
-          apiTokenSecretRef:
-            name: cloudflare-api-token
-            key: api-token
+      - dns01:
+          webhook:
+            groupName: acme.base-domain.invalid
+            solverName: porkbun
+            config:
+              apiKey:
+                name: porkbun-api-credentials
+                key: api-key
+              secretApiKey:
+                name: porkbun-api-credentials
+                key: secret-key
