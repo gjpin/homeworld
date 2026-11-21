@@ -43,7 +43,7 @@ The cluster domain is the one coordinate kept out of git: manifests carry the `b
 | | `/audiomuse-ai/ADMIN_USERNAME` | The first AudioMuse-AI admin, created on the first start. | Chosen username |
 | | `/audiomuse-ai/ADMIN_PASSWORD` | Its password (later changes are made in the UI). | `openssl rand -hex 32` |
 | | `/audiomuse-ai/API_TOKEN` | Bearer token for Navidrome's AudioMuse-AI plugin, entered in the plugin's settings as well. | `openssl rand -hex 32` |
-| | `/audiomuse-ai/NAVIDROME_USER` | The Navidrome account AudioMuse-AI reads the library with; the playlists it creates belong to it. | The Navidrome user created for it ([README](../README.md#15-set-up-the-media-stack)) |
+| | `/audiomuse-ai/NAVIDROME_USER` | The Navidrome account AudioMuse-AI reads the library with; the playlists it creates belong to it. | The Navidrome user created for it ([README](../README.md#14-set-up-the-media-stack)) |
 | | `/audiomuse-ai/NAVIDROME_PASSWORD` | That account's Navidrome password. | Chosen when creating the account |
 | **Authelia** | `/authelia/SESSION_SECRET` | Session cookie encryption secret. | `openssl rand -hex 32` |
 | | `/authelia/STORAGE_ENCRYPTION_KEY` | At-rest encryption key for the SQL configuration storage. | `openssl rand -hex 32` |
@@ -57,7 +57,6 @@ The cluster domain is the one coordinate kept out of git: manifests carry the `b
 | | `/authelia/OIDC_CLIENT_SECRET_ARGOCD` | Argo CD OIDC client secret. | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_AFFINE` | AFFiNE OIDC client secret (also rendered into AFFiNE's `config.json` by the `affine-config` ExternalSecret). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_ACTUAL_BUDGET` | Actual Budget OIDC client secret (also delivered to the `actual-budget` namespace as `actual-budget-secrets`). | `openssl rand -hex 32` |
-| | `/authelia/OIDC_CLIENT_SECRET_CODER` | Coder OIDC client secret (also delivered to coderd by the `coder-secrets` ExternalSecret). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_ENVOY` | Envoy Gateway OIDC client secret (shared by every gateway-OIDC route; delivered to each protected app's namespace — envoy-gateway, homepage, longhorn-system, victoria-metrics, homeassistant, openchamber, and the media apps prowlarr, sonarr, radarr, lidarr, bazarr, maintainerr, houndarr and audiomuse-ai — as `envoy-oidc-client-secret`). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_AUDIOBOOKSHELF` | Audiobookshelf OIDC client secret (entered once in Audiobookshelf's authentication settings). | `openssl rand -hex 32` |
 | | `/authelia/OIDC_CLIENT_SECRET_BINDERY` | Bindery OIDC client secret, set in Bindery's provider settings by the media-config job. | `openssl rand -hex 32` |
@@ -77,8 +76,6 @@ The cluster domain is the one coordinate kept out of git: manifests carry the `b
 | **Cleanuparr** | `/cleanuparr/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `cleanuparr` (the CNPG `owner` user) |
 | | `/cleanuparr/POSTGRES_PASSWORD` | CloudNativePG application password. | `openssl rand -hex 32` |
 | **Cloudflare** | `/cloudflare/API_TOKEN` | Cloudflare DNS API token (Zone → DNS → Edit **plus** Zone → Zone → Read, so external-dns and cert-manager can resolve the zone ID for each record) shared by the cert-manager ClusterIssuers (DNS-01) and external-dns (the wildcard record). | From the Cloudflare dashboard (My Profile → API Tokens) |
-| **Coder** | `/coder/POSTGRES_USERNAME` | CloudNativePG application username. | Fixed: `coder` (the CNPG `owner` user) |
-| | `/coder/POSTGRES_PASSWORD` | CloudNativePG application password (also templated into coderd's `CODER_PG_CONNECTION_URL`). | `openssl rand -hex 32` |
 | **Collabora** | `/opencloud/COLLABORA_ADMIN_USER` | Collabora admin console username. | Chosen username |
 | | `/opencloud/COLLABORA_ADMIN_PASSWORD` | Collabora admin console password. | `openssl rand -hex 32` |
 | | `/opencloud/COLLABORA_PROOF_KEY` | WOPI proof private key for OpenCloud ↔ Collabora requests. | `openssl genrsa -out proof_key 4096` (matching the chart's 4096-bit requirement; existing 2048-bit keys still verify) |

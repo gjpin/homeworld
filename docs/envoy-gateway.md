@@ -1,6 +1,6 @@
 # Envoy Gateway
 
-One Gateway (`apps/envoy-gateway/2_gateway.yaml`) serves every app behind the Gateway VIP `192.168.8.50`: its HTTPS listeners cover `*.base-domain.invalid` and the `*.notes`, `*.rustfs` and `*.coder` second-level wildcards with a single Let's Encrypt certificate (cert-manager's Gateway shim, DNS-01), and a TCP listener on port 22 carries Forgejo's git SSH. Components attach HTTPRoutes (and Forgejo its TCPRoute) to it from their own namespaces; route-level SecurityPolicies add gateway OIDC for apps without a usable login of their own ([oidc.md](oidc.md)). The `envoy-merged` GatewayClass keeps `mergeGateways: true` (`apps/envoy-gateway/2_envoy_proxy.yaml`).
+One Gateway (`apps/envoy-gateway/2_gateway.yaml`) serves every app behind the Gateway VIP `192.168.8.50`: its HTTPS listeners cover `*.base-domain.invalid` and the `*.notes` and `*.rustfs` second-level wildcards with a single Let's Encrypt certificate (cert-manager's Gateway shim, DNS-01), and a TCP listener on port 22 carries Forgejo's git SSH. Components attach HTTPRoutes (and Forgejo its TCPRoute) to it from their own namespaces; route-level SecurityPolicies add gateway OIDC for apps without a usable login of their own ([oidc.md](oidc.md)). The `envoy-merged` GatewayClass keeps `mergeGateways: true` (`apps/envoy-gateway/2_envoy_proxy.yaml`).
 
 ## In-cluster clients
 

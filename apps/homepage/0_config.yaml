@@ -37,11 +37,6 @@ data:
             href: https://ci.base-domain.invalid
             description: CI pipelines
             siteMonitor: https://ci.base-domain.invalid
-        - Coder:
-            icon: coder
-            href: https://coder.base-domain.invalid
-            description: Cloud development workspaces
-            siteMonitor: https://coder.base-domain.invalid
         - OpenChamber:
             icon: /icons/openchamber.svg
             href: https://openchamber.base-domain.invalid

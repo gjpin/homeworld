@@ -346,7 +346,6 @@ spec:
         - matchName: kubernetes-sigs.github.io
         - matchName: helm.cilium.io
         - matchName: woodpecker-ci.org
-        - matchName: helm.coder.com
         - matchName: kubereboot.github.io
         - matchName: jellyfin.github.io
         # chart-releaser repositories (kured, jellyfin) serve their chart

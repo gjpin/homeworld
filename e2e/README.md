@@ -229,7 +229,7 @@ Staging copies live under `/tmp/homeworld-e2e-git`. The kubectl-applied Applicat
 assertions require OTel-exported series and log lines, which only the pod
 collector self-scrape and the node collector `filelog` receiver produce.
 
-Argo CD renders through the production homeworld plugin with the reserved `homeworld.test` domain. Kind cannot answer Let's Encrypt DNS-01 challenges, so self-signed `letsencrypt-prod`/`letsencrypt-staging` issuers stand in, and no workload trusts the resulting certificate: in-cluster HTTPS calls to the domain (OIDC discovery and token calls, WOPI, webhooks) fail with x509 errors. Coder and Actual Budget, which gate startup on Authelia's OIDC discovery, are excluded from the readiness checks. The public wildcard record is replaced by the CoreDNS stub; HTTP coverage targets ClusterIP services through in-cluster probes (including Collabora's WOPI discovery endpoint) rather than the public Gateway, and no OIDC login flow is exercised.
+Argo CD renders through the production homeworld plugin with the reserved `homeworld.test` domain. Kind cannot answer Let's Encrypt DNS-01 challenges, so self-signed `letsencrypt-prod`/`letsencrypt-staging` issuers stand in, and no workload trusts the resulting certificate: in-cluster HTTPS calls to the domain (OIDC discovery and token calls, WOPI, webhooks) fail with x509 errors. Actual Budget, which gates startup on Authelia's OIDC discovery, is excluded from the readiness checks. The public wildcard record is replaced by the CoreDNS stub; HTTP coverage targets ClusterIP services through in-cluster probes (including Collabora's WOPI discovery endpoint) rather than the public Gateway, and no OIDC login flow is exercised.
 
 ### Out of scope
 

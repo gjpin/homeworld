@@ -235,14 +235,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^RoleBinding$",
-          "name": "^coder$",
-          "namespace": "^coder-workspaces$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^ClusterRoleBinding$",
           "name": "^system-upgrade-drainer$"
         }
@@ -299,14 +291,6 @@
           "kind": "^ConfigMap$",
           "name": "^cilium-config$",
           "namespace": "^cilium$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^coder$",
-          "namespace": "^coder$"
         }
       },
       {
@@ -1416,14 +1400,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Deployment$",
-          "name": "^coder$",
-          "namespace": "^coder$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^StatefulSet$",
           "name": "^manticore-worker$",
           "namespace": "^affine$"
@@ -2268,14 +2244,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Deployment$",
-          "name": "^coder$",
-          "namespace": "^coder$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^StatefulSet$",
           "name": "^manticore-worker$",
           "namespace": "^affine$"
@@ -2824,14 +2792,6 @@
           "kind": "^DaemonSet$",
           "name": "^csi-nfs-node$",
           "namespace": "^csi-driver-nfs$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^coder$",
-          "namespace": "^coder$"
         }
       },
       {
@@ -3890,14 +3850,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^RoleBinding$",
-          "name": "^coder$",
-          "namespace": "^coder-workspaces$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
           "name": "^manticore$",
           "namespace": "^affine$"
         }
@@ -4334,14 +4286,6 @@
           "kind": "^DaemonSet$",
           "name": "^csi-nfs-node$",
           "namespace": "^csi-driver-nfs$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^coder$",
-          "namespace": "^coder$"
         }
       },
       {
@@ -4932,14 +4876,6 @@
           "kind": "^Deployment$",
           "name": "^vmalert$",
           "namespace": "^victoria-metrics$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^coder$",
-          "namespace": "^coder$"
         }
       },
       {
@@ -5854,14 +5790,6 @@
           "name": "^opentelemetry-operator-leader-election$",
           "namespace": "^opentelemetry-operator$"
         }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^RoleBinding$",
-          "name": "^coder$",
-          "namespace": "^coder-workspaces$"
-        }
       }
     ],
     "posturePolicies": [
@@ -6280,14 +6208,6 @@
           "kind": "^DaemonSet$",
           "name": "^csi-nfs-node$",
           "namespace": "^csi-driver-nfs$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^coder$",
-          "namespace": "^coder$"
         }
       },
       {
@@ -6816,14 +6736,6 @@
           "kind": "^Deployment$",
           "name": "^authelia$",
           "namespace": "^authelia$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^coder$",
-          "namespace": "^coder$"
         }
       },
       {
@@ -7729,14 +7641,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Deployment$",
-          "name": "^coder$",
-          "namespace": "^coder$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^StatefulSet$",
           "name": "^manticore-worker$",
           "namespace": "^affine$"
@@ -8511,14 +8415,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Deployment$",
-          "name": "^coder$",
-          "namespace": "^coder$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^StatefulSet$",
           "name": "^manticore-worker$",
           "namespace": "^affine$"
@@ -9202,14 +9098,6 @@
         "designatorType": "Attributes",
         "attributes": {
           "kind": "^Deployment$",
-          "name": "^coder$",
-          "namespace": "^coder$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
           "name": "^valkey$",
           "namespace": "^affine$"
         }
@@ -9719,14 +9607,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Deployment$",
-          "name": "^coder$",
-          "namespace": "^coder$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^StatefulSet$",
           "name": "^manticore-worker$",
           "namespace": "^affine$"
@@ -10141,14 +10021,6 @@
       {
         "designatorType": "Attributes",
         "attributes": {
-          "kind": "^Deployment$",
-          "name": "^coder$",
-          "namespace": "^coder$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
           "kind": "^StatefulSet$",
           "name": "^manticore-worker$",
           "namespace": "^affine$"
@@ -10446,14 +10318,6 @@
           "kind": "^Deployment$",
           "name": "^mariadb-operator-cert-controller$",
           "namespace": "^mariadb-operator$"
-        }
-      },
-      {
-        "designatorType": "Attributes",
-        "attributes": {
-          "kind": "^Deployment$",
-          "name": "^coder$",
-          "namespace": "^coder$"
         }
       },
       {

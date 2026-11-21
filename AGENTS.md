@@ -101,7 +101,7 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   single shared Gateway (`parentRefs` `envoy` in `envoy-gateway`,
   `apps/envoy-gateway/2_gateway.yaml`); components never add their own Gateway.
   Its wildcard listener (`*.base-domain.invalid`, plus the second-level
-  `*.notes`, `*.rustfs` and `*.coder` wildcards) carries one Let's Encrypt
+  `*.notes` and `*.rustfs` wildcards) carries one Let's Encrypt
   certificate, and ExternalDNS's wildcard record points every name at the
   Cilium-announced Gateway VIP `192.168.8.50`, so a new single-label hostname
   needs no DNS or certificate change. A hostname with more labels needs its own
@@ -141,11 +141,10 @@ version-pinned Helm charts. It also contains Grafana dashboard exports.
   plugin"). Every Application sourced from this repository sets
   `spec.source.plugin.name: homeworld`. Files that reach a system outside Argo
   CD need their own substitution (the agents VM seed, `host/agents-vm/rebuild.sh`;
-  the API server's `host/files/k3s/authentication.yaml.in`, `host/apply.sh`)
-  or must avoid the placeholder (the hand-pushed Coder template). All other
-  cluster coordinates (Gateway VIP, Infisical endpoint, Velero target) are
-  literal values, and anything operator-specific that is not a fixed coordinate
-  (SMTP relays, sender addresses) comes from Infisical. Runtime expansions owned
+  the API server's `host/files/k3s/authentication.yaml.in`, `host/apply.sh`).
+  All other cluster coordinates (Gateway VIP, Infisical endpoint, Velero
+  target) are literal values, and anything operator-specific that is not a
+  fixed coordinate (SMTP relays, sender addresses) comes from Infisical. Runtime expansions owned
   by an application stay verbatim.
 - `*.base-domain.invalid` certificates are publicly trusted, so in-cluster HTTPS
   calls need no CA mounts. Pods resolve the names to the `envoy-node-access`

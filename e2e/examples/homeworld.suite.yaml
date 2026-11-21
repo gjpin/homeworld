@@ -192,9 +192,9 @@ spec:
     #     DNS-01 challenges, so the Gateway serves a self-signed certificate
     #     that no workload trusts. Every in-cluster HTTPS call to the domain
     #     (OIDC discovery and token calls to Authelia, WOPI, webhooks) fails
-    #     with x509 errors. Coder and Actual Budget gate startup on Authelia's
-    #     OIDC discovery and never become Ready, so their namespaces are
-    #     excluded below and their health probes are not asserted.
+    #     with x509 errors. Actual Budget gates startup on Authelia's OIDC
+    #     discovery and never becomes Ready, so its namespace is excluded
+    #     below and its health probes are not asserted.
     timeout: 20m
     checks:
       - name: pods
@@ -213,7 +213,6 @@ spec:
             - velero
             - homeassistant
             # OIDC discovery over the untrusted e2e certificate (above).
-            - coder
             - actual-budget
             - otel-collector
             - otel-collector-node
@@ -363,15 +362,6 @@ spec:
           kind: Cluster
           name: woodpecker
           namespace: woodpecker
-          condition: Ready
-          status: "True"
-          timeout: 10m
-      - name: cnpg-coder
-        resourceCondition:
-          apiVersion: postgresql.cnpg.io/v1
-          kind: Cluster
-          name: coder
-          namespace: coder
           condition: Ready
           status: "True"
           timeout: 10m

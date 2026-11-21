@@ -10,14 +10,13 @@
     "github-actions",
     "gomod",
     "kustomize",
-    "kubernetes",
-    "mise",
-    "terraform"
+    "kubernetes"
   ],
   "ignorePaths": [
     "**/node_modules/**",
     "**/bower_components/**",
-    "e2e/testdata/**"
+    "e2e/testdata/**",
+    "incubator/**"
   ],
   "automerge": false,
   "prConcurrentLimit": 0,
@@ -216,32 +215,6 @@
       "groupName": "audiomuse-ai"
     },
     {
-      "description": "Codex in the Coder workspace mise.toml: openai/codex tags its releases rust-v<version>, which the mise manager's default ^v? extraction cannot parse",
-      "matchManagers": [
-        "mise"
-      ],
-      "matchDepNames": [
-        "codex"
-      ],
-      "extractVersion": "^rust-v(?<version>.+)$"
-    },
-    {
-      "description": "Refresh the mise and rustup-init sha256 hashes in the Coder workspace image on version bumps",
-      "matchPackageNames": [
-        "jdx/mise",
-        "rust-lang/rustup"
-      ],
-      "postUpgradeTasks": {
-        "commands": [
-          "bash scripts/refresh-coder-image-shas.sh"
-        ],
-        "fileFilters": [
-          "apps/coder/image/Dockerfile"
-        ],
-        "executionMode": "update"
-      }
-    },
-    {
       "description": "Group every Kubernetes version pin (k3s, PSA labels, kind node image, documentation, e2e hook comments) into one PR",
       "matchPackageNames": [
         "kindest/node",
@@ -319,35 +292,6 @@
       ],
       "prBodyNotes": [
         "ℹ️ **Argo CD Upgrade**: Read the [upgrading notes](https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/overview/) of every Argo CD minor this chart bump crosses, and the chart README for value changes."
-      ]
-    },
-    {
-      "description": "Group the Coder chart and server image: the chart's appVersion and the pinned image move together",
-      "matchPackageNames": [
-        "coder",
-        "ghcr.io/coder/coder"
-      ],
-      "groupName": "coder"
-    },
-    {
-      "description": "Group every Coder workspace image input (Debian base, mise, rustup, Rust, the mise.toml toolset) into one PR: each merge rebuilds the image once",
-      "matchFileNames": [
-        "apps/coder/image/**"
-      ],
-      "groupName": "coder-workspace-image"
-    },
-    {
-      "description": "Coder minors run irreversible database migrations",
-      "matchPackageNames": [
-        "coder",
-        "ghcr.io/coder/coder"
-      ],
-      "matchUpdateTypes": [
-        "major",
-        "minor"
-      ],
-      "prBodyNotes": [
-        "ℹ️ **Coder Upgrade**: Read the [release notes](https://github.com/coder/coder/releases) of every minor crossed. Migrations run on startup and cannot be rolled back, so take the CNPG volume-snapshot backup first (docs/upgrades.md §9), then push the repository template again if a provider minimum changed (docs/coder.md)."
       ]
     },
     {
@@ -1104,94 +1048,6 @@
       "datasourceTemplate": "helm",
       "versioningTemplate": "helm",
       "registryUrlTemplate": "https://woodpecker-ci.org/"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Coder Helm chart",
-      "managerFilePatterns": [
-        "/^apps/coder/helm/kustomization\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^\\s+- name:\\s+coder\\s+repo:\\s+https://helm\\.coder\\.com/v2\\s+version:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "depNameTemplate": "coder",
-      "datasourceTemplate": "helm",
-      "versioningTemplate": "helm",
-      "registryUrlTemplate": "https://helm.coder.com/v2"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Coder server image",
-      "managerFilePatterns": [
-        "/^apps/coder/helm/values\\.yaml$/"
-      ],
-      "matchStrings": [
-        "(?ms)^\\s+image:\\s*\\n\\s+repo:\\s*(?<depName>ghcr\\.io/coder/coder)\\s*\\n\\s+tag:\\s*(?<currentValue>[^\\s#]+)"
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Coder workspace image in the template; tags are <build date>.<workflow run number>",
-      "managerFilePatterns": [
-        "/^apps/coder/template/main\\.tf$/"
-      ],
-      "matchStrings": [
-        "image\\s*=\\s*\"(?<depName>ghcr\\.io/gjpin/homeworld/coder-workspace):(?<currentValue>[^\"]+)\""
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "regex:^(?<major>\\d{8})\\.(?<minor>\\d+)$"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Debian base of the Coder workspace image",
-      "managerFilePatterns": [
-        "/^apps/coder/image/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "FROM (?<depName>docker\\.io/library/debian):(?<currentValue>trixie-[\\d.]+)"
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "regex:^trixie-(?<major>\\d{8})(\\.(?<minor>\\d+))?$",
-      "registryUrlTemplate": "https://index.docker.io"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the mise binary in the Coder workspace image",
-      "managerFilePatterns": [
-        "/^apps/coder/image/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG MISE_VERSION=(?<currentValue>[\\d.]+)"
-      ],
-      "depNameTemplate": "jdx/mise",
-      "datasourceTemplate": "github-releases",
-      "extractVersionTemplate": "^v(?<version>.+)$"
-    },
-    {
-      "customType": "regex",
-      "description": "Update rustup in the Coder workspace image",
-      "managerFilePatterns": [
-        "/^apps/coder/image/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG RUSTUP_VERSION=(?<currentValue>[\\d.]+)"
-      ],
-      "depNameTemplate": "rust-lang/rustup",
-      "datasourceTemplate": "github-tags"
-    },
-    {
-      "customType": "regex",
-      "description": "Update the Rust toolchain in the Coder workspace image",
-      "managerFilePatterns": [
-        "/^apps/coder/image/Dockerfile$/"
-      ],
-      "matchStrings": [
-        "ARG RUST_VERSION=(?<currentValue>[\\d.]+)"
-      ],
-      "depNameTemplate": "rust-lang/rust",
-      "datasourceTemplate": "github-releases"
     },
     {
       "customType": "regex",

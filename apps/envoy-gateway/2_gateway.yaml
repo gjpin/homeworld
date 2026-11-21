@@ -66,20 +66,6 @@ spec:
           - name: wildcard-tls
             kind: Secret
             group: ""
-    # Coder workspace apps (apps/coder).
-    - name: https-coder
-      protocol: HTTPS
-      port: 443
-      hostname: "*.coder.base-domain.invalid"
-      allowedRoutes:
-        namespaces:
-          from: All
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: wildcard-tls
-            kind: Secret
-            group: ""
     # Plain TCP passthrough for git SSH (git@ clone/push). Raw TCP carries
     # no hostname, so every name resolving to 192.168.8.50 reaches it;
     # clients use git.base-domain.invalid.

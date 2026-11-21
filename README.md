@@ -24,7 +24,6 @@
 - Unified telemetry pipeline with OpenTelemetry Collector, VictoriaMetrics, VictoriaLogs, and VictoriaTraces
 - Declarative dashboards and monitoring via Grafana Operator, with Prometheus Operator ServiceMonitors and PodMonitors consumed by the OpenTelemetry Operator's Target Allocator
 - Automated dependency updates and [upgrade procedures](docs/upgrades.md) via Renovate
-- [Coder](docs/coder.md) cloud development workspaces on Kubernetes, with Coder Agents running AI coding agents from the control plane
 - AI agent [virtual machine](docs/agents-vm.md) (OpenChamber, Paseo, ThinkRail, OpenCode, Claude Code, Codex CLI, Pi agent, Antigravity CLI, Copilot CLI, Mistral Vibe on Fedora) with a rebuildable root and pinned tools
 
 ## Network
@@ -107,7 +106,6 @@ User-facing applications:
 | --- | --- | --- |
 | Actual Budget | `budget.base-domain.invalid` | Envelope-budgeting sync server and web app with Authelia sign-in and Enable Banking bank sync. |
 | AFFiNE | `affine.base-domain.invalid` | Docs, whiteboards, and databases with Authelia sign-in, Manticore-backed search, CalDAV calendars through OpenCloud, and AI through workspace-owned provider keys ([docs/affine.md](docs/affine.md)). |
-| Coder | `coder.base-domain.invalid`<br>`*.coder.base-domain.invalid` | Cloud development workspaces and Coder Agents; the wildcard serves workspace apps ([docs/coder.md](docs/coder.md)). |
 | Collabora | `office.base-domain.invalid` | WOPI office editor for OpenCloud. |
 | Forgejo | `git.base-domain.invalid` | Git forge. |
 | Home Assistant | `home.base-domain.invalid`<br>`z2m.base-domain.invalid` | Home automation and Zigbee bridge. |
@@ -225,7 +223,7 @@ Every app is served on `<app>.<domain>` from one wildcard DNS record and one wil
 1. Create a Cloudflare API token (*My Profile → API Tokens*) with **Zone → DNS → Edit** and **Zone → Zone → Read** on the domain's zone. ExternalDNS publishes the `*.<domain>` A record to `192.168.8.50` with it, and cert-manager answers the Let's Encrypt DNS-01 challenges for the wildcard certificate.
 2. Store the token in Infisical as `/cloudflare/API_TOKEN` and the domain itself (`example.com`, no wildcard or trailing dot) as `/argocd/BASE_DOMAIN` ([docs/secrets.md](docs/secrets.md)).
 
-The record points at a private address, so the apps answer only on the Pixel network and over WireGuard even though the names resolve publicly. Certificate Transparency logs publish the domain (not the app names: the certificate covers `*.<domain>` plus the `*.notes`, `*.rustfs` and `*.coder` second-level wildcards).
+The record points at a private address, so the apps answer only on the Pixel network and over WireGuard even though the names resolve publicly. Certificate Transparency logs publish the domain (not the app names: the certificate covers `*.<domain>` plus the `*.notes` and `*.rustfs` second-level wildcards).
 
 ### 4. Create the Authelia Users Database
 Every OIDC sign-in resolves against Authelia's file-backed user database, stored in Infisical as `/authelia/USERS_DATABASE` (the full `users_database.yml` content). Generate an Argon2id digest per user, then list their groups — group memberships drive each application's role mapping:
@@ -255,7 +253,6 @@ users:
 | `headlamp-admin` / `headlamp-user` | Headlamp sign-in; required (deny-by-default). Kubernetes RBAC maps them to `cluster-admin` and `view` |
 | `homeassistant-admin` | Home Assistant admin role |
 | `affine-user` | AFFiNE sign-in; required (deny-by-default). AFFiNE roles are not mapped from groups: the instance admin is the account created in AFFiNE's `/admin` setup ([docs/affine.md](docs/affine.md)) |
-| `coder-user` | Coder sign-in; required (deny-by-default). Coder roles are not mapped from groups: the first user to sign in becomes Owner ([docs/coder.md](docs/coder.md)) |
 | `audiobookshelf-admin` / `audiobookshelf-user` | Audiobookshelf sign-in; required (deny-by-default). Roles are assigned in Audiobookshelf |
 | `bindery-admin` / `bindery-user` | Bindery sign-in; required (deny-by-default). `bindery-admin` is mapped to the admin role on every login |
 | `cleanuparr-admin` | Cleanuparr sign-in; required (deny-by-default). Every Cleanuparr account is an administrator |
@@ -301,10 +298,7 @@ The Homepage dashboard's live widgets authenticate to four services with dedicat
 
 Homepage reads its dashboard configuration (`apps/homepage/0_config.yaml`) at startup; after changing it, restart the pod with `kubectl -n homepage rollout restart deploy/homepage`.
 
-### 12. Set Up Coder
-Sign in to `https://coder.base-domain.invalid` with a `coder-user` account; the first sign-in becomes the deployment Owner. Then make the `coder-workspace` package on GitHub public after the image workflow's first push, push the workspace template from `apps/coder/template/`, and configure an LLM provider for Coder Agents, following [docs/coder.md](docs/coder.md).
-
-### 13. Use the Agents VM
+### 12. Use the Agents VM
 The homeworld-ryzen node builds the agents VM during its bootstrap ([docs/agents-vm.md](docs/agents-vm.md)):
 
 - **Browser**: `https://openchamber.base-domain.invalid` (sign in with `/agents/OPENCHAMBER_UI_PASSWORD`), `https://paseo.base-domain.invalid` (`/agents/PASEO_PASSWORD`) and `https://thinkrail.base-domain.invalid` (Authelia, `platform` group), from the Pixel network or over WireGuard.
@@ -322,10 +316,10 @@ The homeworld-ryzen node builds the agents VM during its bootstrap ([docs/agents
   ```
   `/agents/OPENAI_API_KEY` and `/agents/GITHUB_TOKEN` reach the agents that OpenChamber and Paseo start, so Codex and OpenCode also work without an interactive login; an optional `/agents/MISTRAL_API_KEY` does the same for Vibe. Copilot CLI prefers `GITHUB_TOKEN` over its stored login, so that token must carry the Copilot Requests permission, otherwise `copilot login` appears to succeed but is silently shadowed.
 
-### 14. Set Up AFFiNE
+### 13. Set Up AFFiNE
 Open `https://affine.base-domain.invalid/admin` right after the first sync and create the instance admin account in the setup wizard; `affine-user` members then sign in through Authelia. AI keys are not set in git: each workspace owner adds them under **Workspace Settings → Integrations → AI BYOK**, following [docs/affine.md](docs/affine.md).
 
-### 15. Set Up the Media Stack
+### 14. Set Up the Media Stack
 The media apps ([docs/media-stack.md](docs/media-stack.md)) keep most of their settings in their own databases. The connections between them are made by the hourly **media-config** job (`apps/media-config`) through the apps' APIs, so they need no UI steps and come back if removed:
 - Sonarr, Radarr and Lidarr: the qBittorrent download client (categories `tv`, `movies`, `music`), the root folders `/data/media/tv`, `/data/media/movies` and `/data/media/music`, the global delay profile (a fresh release waits 6 hours for a better one, unless it is already the best quality), and a Jellyfin library-refresh connection once the Jellyfin API key exists. In Lidarr also: upgrades off on every quality profile, propers and repacks not preferred, imports **copied** instead of hardlinked, and **Write Audio Tags** set to **For new downloads only** (beets then retags the library in place; retagging a hardlinked file would corrupt the torrent it is seeding).
 - Prowlarr: the Sonarr, Radarr and Lidarr app links (full sync) and the FlareSolverr proxy, applied to indexers tagged `flaresolverr`.

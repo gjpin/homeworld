@@ -41,22 +41,6 @@ configMapGenerator:
   - name: grafana-dashboard-cloudnative-pg
     files:
       - json=dashboards/cloudnative-pg/cloudnative-pg.json
-  # coder
-  - name: grafana-dashboard-coder-coderd
-    files:
-      - json=dashboards/coder/coderd.json
-  - name: grafana-dashboard-coder-provisionerd
-    files:
-      - json=dashboards/coder/provisionerd.json
-  - name: grafana-dashboard-coder-workspaces
-    files:
-      - json=dashboards/coder/workspaces.json
-  - name: grafana-dashboard-coder-workspace-detail
-    files:
-      - json=dashboards/coder/workspace-detail.json
-  - name: grafana-dashboard-coder-derp
-    files:
-      - json=dashboards/coder/derp.json
   # collabora
   - name: grafana-dashboard-collabora-ha-allocation
     files:
@@ -253,7 +237,6 @@ resources:
   - 1_dashboards_cert-manager.yaml
   - 1_dashboards_cilium.yaml
   - 1_dashboards_cloudnative-pg.yaml
-  - 1_dashboards_coder.yaml
   - 1_dashboards_collabora.yaml
   - 1_dashboards_envoy-gateway.yaml
   - 1_dashboards_external-dns.yaml

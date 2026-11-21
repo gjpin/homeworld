@@ -116,10 +116,6 @@
    * openchamber: routes and selectorless Services for the agents VM
      ([docs/agents-vm.md](agents-vm.md)), after Envoy Gateway
      and cert-manager
-   * coder: Coder control plane (CloudNativePG-backed) and, through its
-     intra-component wave-0 `coder-workspaces` application, the workspace
-     namespace whose Role the wave-1 chart binds; after Authelia, whose OIDC
-     discovery coderd requires at startup ([docs/coder.md](coder.md))
    * the media stack ([media-stack.md](media-stack.md)), after qBittorrent
      and Authelia (wave 6), CloudNativePG, and csi-driver-nfs: prowlarr,
      flaresolverr, sonarr, radarr, lidarr, bindery, bazarr, recyclarr,
